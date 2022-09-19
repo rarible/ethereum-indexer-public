@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 
 internal class ActionJobHandlerTest {
+
     private val actionEventRepository = mockk<NftItemActionEventRepository>()
     private val executor1 = mockk<ActionExecutor<Action>> {
         every { type } returns ActionType.BURN

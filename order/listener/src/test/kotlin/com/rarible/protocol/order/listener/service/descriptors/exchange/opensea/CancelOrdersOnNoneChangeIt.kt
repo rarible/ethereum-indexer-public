@@ -22,7 +22,6 @@ import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -35,7 +34,6 @@ import scalether.domain.Address
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
-import java.time.Instant
 
 @IntegrationTest
 internal class CancelOrdersOnNoneChangeIt : AbstractOpenSeaV1Test() {
@@ -129,7 +127,7 @@ internal class CancelOrdersOnNoneChangeIt : AbstractOpenSeaV1Test() {
     fun `should cancel Looksrare maker orders`() = runBlocking {
         val maker = randomAddress()
         val protocol = randomAddress()
-        val date = Instant.now()
+        val date = nowMillis()
         val before = nowMillis().minusSeconds(5)
         val orderVersion1 = createOrderVersion().copy(
             maker = maker,
