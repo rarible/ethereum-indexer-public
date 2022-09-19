@@ -1,7 +1,5 @@
-api:
-  chain-id: 4
 common:
-  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
+  royaltyRegistryAddress: "0x1b27CdaD69cDfd6298cBc2956785b86BA2D41190"
   factory:
     erc721Rarible: "0x21d2AAAac56Aa438cD549f78155acF954948Dc59"
     erc721RaribleUser: "0x043081189b3023572e86e0D75719f7B645465109"
