@@ -524,6 +524,8 @@ fun randomSellOnChainAmmOrder(data: PoolData = createSudoSwapPoolDataV1()): Pool
     )
 }
 
+fun PoolHistory.isPoolCreate(): Boolean = this is PoolCreate
+
 fun randomPoolTargetNftOut(): PoolTargetNftOut {
     return PoolTargetNftOut(
         hash = Word.apply(randomWord()),
