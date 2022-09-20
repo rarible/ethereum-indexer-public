@@ -69,7 +69,7 @@ internal class PoolEventListenerTest {
         coEvery { orderRepository.findById(poolHistory.hash) } returns order
         coEvery { orderPublisher.publish(any<OrderEventDto>()) } returns Unit
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, reverted = false)
 
         coVerify { orderPublisher.publish(withArg<OrderEventDto> { eventDto ->
             eventDto as AmmOrderNftUpdateEventDto
@@ -93,7 +93,7 @@ internal class PoolEventListenerTest {
         coEvery { orderRepository.findById(event.hash) } returns createSellOrder()
         coEvery { orderPublisher.publish(any<OrderEventDto>()) } returns Unit
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, reverted = true)
 
         coVerify { orderPublisher.publish(withArg<OrderEventDto> { eventDto ->
             eventDto as AmmOrderNftUpdateEventDto
@@ -110,7 +110,7 @@ internal class PoolEventListenerTest {
 
         coEvery { orderRepository.findById(event.hash) } returns order
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, reverted = false)
 
         coVerify( exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
     }
@@ -123,7 +123,7 @@ internal class PoolEventListenerTest {
 
         coEvery { orderRepository.findById(event.hash) } returns order
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, reverted = false)
 
         coVerify( exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
     }
@@ -136,7 +136,7 @@ internal class PoolEventListenerTest {
 
         coEvery { orderRepository.findById(event.hash) } returns order
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, reverted = false)
 
         coVerify( exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
     }
