@@ -15,18 +15,6 @@ common:
     ipfsGateway: "https://ipfs.io"
     ipfsPublicGateway: "https://rarible.mypinata.cloud"
 
-rarible:
-  loader:
-    broker-replica-set: ${kafka.hosts}
-    topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
-    enableWorkers: true
-    workers: 1
-    retry:
-      backoffDelaysMillis: [100, 200]
-      job:
-        runner:
-          period: 100000000000000 # Disabled in the tests, run the RetryTasksService manually.
-
 api:
   opensea:
     url: https://api.opensea.io/api/v1

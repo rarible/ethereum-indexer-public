@@ -4,6 +4,7 @@ import com.rarible.blockchain.scanner.ethereum.EnableEthereumScanner
 import com.rarible.core.cache.EnableRaribleCache
 import com.rarible.core.lockredis.EnableRaribleRedisLock
 import com.rarible.core.loggingfilter.EnableLoggingContextFilter
+import com.rarible.core.telemetry.actuator.WebRequestClientTagContributor
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.sign.service.ERC1271SignService
@@ -39,10 +40,17 @@ class NftIndexerApiConfiguration(
     }
 
     @Bean
-    fun daonomicLazyNftValidator(sender: MonoTransactionSender, erc1271SignService: ERC1271SignService): LazyNftValidator {
+    fun daonomicLazyNftValidator(
+        sender: MonoTransactionSender, erc1271SignService: ERC1271SignService
+    ): LazyNftValidator {
         return LazyNftValidator(
             erc1271SignService,
             EIP712DomainNftFactory(BigInteger.valueOf(nftIndexerApiProperties.chainId))
         )
+    }
+
+    @Bean
+    fun webRequestClientTagContributor(): WebRequestClientTagContributor {
+        return WebRequestClientTagContributor()
     }
 }

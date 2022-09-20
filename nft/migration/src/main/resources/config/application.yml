@@ -20,6 +20,9 @@ spring:
     web-application-type: reactive
 
 rarible:
+  core:
+    client:
+      name: rarible-protocol
   ethereum:
     converter:
       enabled: true
@@ -27,10 +30,6 @@ rarible:
       enabled: true
   cache:
     use-locks: false
-  loader:
-    broker-replica-set: ${kafka.hosts}
-    topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
-    enableWorkers: false
 
 mongock:
   change-logs-scan-package:

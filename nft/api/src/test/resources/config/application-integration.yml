@@ -3,13 +3,6 @@ rarible:
     apm:
       agent:
         enabled: false
-  loader:
-    enableWorkers: true
-    broker-replica-set: ${kafka.hosts}
-    retry:
-      job:
-        runner:
-          period: 100000000000000 # Disabled in the tests.
 
 api:
   metaSyncLoadingTimeout: 3000
