@@ -9,6 +9,7 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.AmmOrderNftUpdateEventDto
 import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.order.core.data.createSellOrder
+import com.rarible.protocol.order.core.data.isPoolCreate
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
 import com.rarible.protocol.order.core.data.randomPoolFeeUpdate
 import com.rarible.protocol.order.core.data.randomPoolNftDeposit
@@ -46,7 +47,7 @@ internal class PoolEventListenerTest {
             val tokenIds = (1..10).map { EthUInt256.of(randomInt()) }
             val itemIds = tokenIds.map { ItemId(collection, it.value).toString() }
             return Stream.of(
-                Arguments.of(randomSellOnChainAmmOrder().copy(tokenIds = tokenIds), collection, itemIds, true),
+                Arguments.of(randomSellOnChainAmmOrder().copy(collection = collection, tokenIds = tokenIds), collection, itemIds, true),
                 Arguments.of(randomPoolNftDeposit().copy(collection = collection, tokenIds = tokenIds), collection, itemIds, true),
                 Arguments.of(randomPoolTargetNftIn().copy(tokenIds = tokenIds), collection, itemIds, true),
                 Arguments.of(randomPoolTargetNftOut().copy(tokenIds = tokenIds), collection, itemIds, false),
@@ -66,7 +67,7 @@ internal class PoolEventListenerTest {
         val order = createSellOrder().copy(make = randomAmmNftAsset(collection))
         val logEvent = logEvent(poolHistory)
 
-        coEvery { orderRepository.findById(poolHistory.hash) } returns order
+        coEvery { orderRepository.findById(poolHistory.hash) } returns if (poolHistory.isPoolCreate()) null else order
         coEvery { orderPublisher.publish(any<OrderEventDto>()) } returns Unit
 
         listener.onPoolEvent(logEvent, reverted = false)
