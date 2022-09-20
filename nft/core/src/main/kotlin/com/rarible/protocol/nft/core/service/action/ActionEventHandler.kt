@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.action
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.nft.core.model.ActionEvent
@@ -15,13 +16,11 @@ import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.time.Clock
 
 @Component
 @CaptureSpan(SpanType.APP)
 class ActionEventHandler(
     private val nftItemActionEventRepository: NftItemActionEventRepository,
-    private val clock: Clock,
     private val incomeBurnActionMetric: RegisteredCounter,
     private val itemReduceService: ItemReduceService
 ) : ConsumerEventHandler<ActionEvent> {
@@ -34,7 +33,7 @@ class ActionEventHandler(
 
     private suspend fun handleBurnActionEvent(event: BurnItemActionEvent) {
         val existedActions = nftItemActionEventRepository.findByItemIdAndType(event.itemId(), ActionType.BURN)
-        val lastUpdatedAt = clock.instant()
+        val lastUpdatedAt = nowMillis()
         val burnItemAction = BurnItemAction(
             token = event.token,
             tokenId = event.tokenId,

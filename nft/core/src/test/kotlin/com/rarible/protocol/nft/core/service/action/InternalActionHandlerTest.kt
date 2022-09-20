@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.action
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
@@ -22,28 +23,31 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
-import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 
 internal class InternalActionHandlerTest {
 
     private val nftItemActionEventRepository = mockk<NftItemActionEventRepository>()
-    private val clock = mockk<Clock>()
     private val registeredCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
-    private val itemReduceService = mockk<FeaturedItemReduceService> { every { update(any(), any()) } returns listOf(ItemId.MAX_ID).toFlux() }
-    private val internalActionHandler = ActionEventHandler(nftItemActionEventRepository, clock, registeredCounter, itemReduceService)
+    private val itemReduceService = mockk<FeaturedItemReduceService> {
+        every { update(any(), any()) } returns listOf(
+            ItemId.MAX_ID
+        ).toFlux()
+    }
+    private val internalActionHandler = ActionEventHandler(
+        nftItemActionEventRepository, registeredCounter, itemReduceService
+    )
 
     @Test
     fun `should save a new burn action`() = runBlocking {
-        val now = Instant.now()
+        val now = nowMillis()
         val event = createRandomBurnItemActionEvent()
 
         coEvery { nftItemActionEventRepository.findByItemIdAndType(event.itemId(), ActionType.BURN) } returns emptyList()
         every { nftItemActionEventRepository.save(any()) } answers {
             Mono.just(args.first() as Action)
         }
-        every { clock.instant() } returns now
         internalActionHandler.handle(event)
         verify(exactly = 1) {
             nftItemActionEventRepository.save(withArg {
@@ -51,8 +55,8 @@ internal class InternalActionHandlerTest {
                 it as BurnItemAction
                 assertThat(it.itemId()).isEqualTo(event.itemId())
                 assertThat(it.actionAt).isEqualTo(event.burnAt)
-                assertThat(it.lastUpdatedAt).isEqualTo(now)
-                assertThat(it.createdAt).isEqualTo(now)
+                assertThat(it.lastUpdatedAt).isAfterOrEqualTo(now)
+                assertThat(it.createdAt).isAfterOrEqualTo(now)
                 assertThat(it.state).isEqualTo(ActionState.PENDING)
             })
             itemReduceService.update(event.token, event.tokenId)
@@ -78,7 +82,6 @@ internal class InternalActionHandlerTest {
         every { nftItemActionEventRepository.save(any()) } answers {
             Mono.just(args.first() as Action)
         }
-        every { clock.instant() } returns now
         internalActionHandler.handle(event)
         verify(exactly = 1) {
             nftItemActionEventRepository.save(withArg {
@@ -88,7 +91,7 @@ internal class InternalActionHandlerTest {
                 assertThat(it.version).isEqualTo(action.version)
                 assertThat(it.itemId()).isEqualTo(event.itemId())
                 assertThat(it.actionAt).isEqualTo(event.burnAt)
-                assertThat(it.lastUpdatedAt).isEqualTo(now)
+                assertThat(it.lastUpdatedAt).isAfterOrEqualTo(now)
                 assertThat(it.createdAt).isEqualTo(action.createdAt)
                 assertThat(it.state).isEqualTo(ActionState.PENDING)
             })
@@ -98,7 +101,6 @@ internal class InternalActionHandlerTest {
 
     @Test
     fun `should not save existed action`() = runBlocking {
-        val now = Instant.now()
         val token = randomAddress()
         val tokenId = EthUInt256.of(randomBigInt())
         val action = createRandomBurnItemAction().copy(
@@ -111,7 +113,6 @@ internal class InternalActionHandlerTest {
             token = token,
             tokenId = tokenId
         )
-        every { clock.instant() } returns now
         coEvery { nftItemActionEventRepository.findByItemIdAndType(event.itemId(), ActionType.BURN) } returns listOf(action)
         internalActionHandler.handle(event)
         verify(exactly = 0) {
