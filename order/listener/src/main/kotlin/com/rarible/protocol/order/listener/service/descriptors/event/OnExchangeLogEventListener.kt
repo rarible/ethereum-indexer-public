@@ -4,7 +4,6 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.OnLogEventListener
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.core.model.ItemType
@@ -43,9 +42,6 @@ class OnExchangeLogEventListener(
     }.then()
 
     private suspend fun convert(source: LogEvent, reverted: Boolean): OrderActivityDto? {
-        if (source.status != LogEventStatus.CONFIRMED) {
-            return null
-        }
         val result = if (
             (source.data as? OrderSideMatch)?.side == OrderSide.LEFT
             || source.data is OnChainOrder
