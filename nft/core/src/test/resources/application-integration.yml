@@ -9,28 +9,11 @@ common:
   cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
   ensDomainsContractAddress: "0x0000000000000000000000000000000000000000"
   metricRootPath: "nft-metrics"
-  factory:
-    erc721Rarible: "0x0000000000000000000000000000000000000000"
-    erc721RaribleUser: "0x0000000000000000000000000000000000000000"
-    erc1155Rarible: "0x0000000000000000000000000000000000000000"
-    erc1155RaribleUser: "0x0000000000000000000000000000000000000000"
   reduceProperties:
     skipOwnerships: true
   ipfs:
     ipfsGateway: "https://ipfs.io"
     ipfsPublicGateway: "https://rarible.mypinata.cloud"
-
-rarible:
-  loader:
-    broker-replica-set: ${kafka.hosts}
-    topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
-    enableWorkers: true
-    workers: 1
-    retry:
-      backoffDelaysMillis: [100, 200]
-      job:
-        runner:
-          period: 100000000000000 # Disabled in the tests, run the RetryTasksService manually.
 
 api:
   opensea:

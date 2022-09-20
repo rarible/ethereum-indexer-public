@@ -2,6 +2,7 @@ package com.rarible.protocol.order.api.configuration
 
 import com.rarible.core.loggingfilter.EnableLoggingContextFilter
 import com.rarible.core.mongo.configuration.EnableRaribleMongo
+import com.rarible.core.telemetry.actuator.WebRequestClientTagContributor
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
@@ -39,6 +40,11 @@ class OrderIndexerApiConfiguration(
             erc1271SignService,
             EIP712DomainNftFactory(BigInteger.valueOf(indexerProperties.chainId.toLong()))
         )
+    }
+
+    @Bean
+    fun webRequestClientTagContributor(): WebRequestClientTagContributor {
+        return WebRequestClientTagContributor()
     }
 
 }

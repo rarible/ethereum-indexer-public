@@ -28,6 +28,8 @@ rarible:
     nginx-expose:
       enabled: false
       location: /template
+    client:
+      name: rarible-protocol
   event-producer:
     environment: ${application.environment}
     kafka-replica-set: ${kafka.hosts}

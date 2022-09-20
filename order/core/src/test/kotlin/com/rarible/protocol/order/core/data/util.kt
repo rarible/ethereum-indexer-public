@@ -3,6 +3,9 @@ package com.rarible.protocol.order.core.data
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.*
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.listener.log.domain.EventData
+import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Binary
@@ -400,6 +403,22 @@ fun createOrderSideMatch(): OrderSideMatch {
     )
 }
 
+fun createLogEvent(
+    data: EventData,
+    status: LogEventStatus = LogEventStatus.CONFIRMED,
+): LogEvent {
+    return LogEvent(
+        data = data,
+        address = randomAddress(),
+        topic = Word.apply(randomWord()),
+        transactionHash = Word.apply(randomWord()),
+        status = status,
+        index = 0,
+        logIndex = 0,
+        minorLogIndex = 0
+    )
+}
+
 fun randomErc20(value: EthUInt256) = Asset(Erc20AssetType(AddressFactory.create()), value)
 
 fun randomErc20() = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(randomInt()))
@@ -505,6 +524,8 @@ fun randomSellOnChainAmmOrder(data: PoolData = createSudoSwapPoolDataV1()): Pool
     )
 }
 
+fun PoolHistory.isPoolCreate(): Boolean = this is PoolCreate
+
 fun randomPoolTargetNftOut(): PoolTargetNftOut {
     return PoolTargetNftOut(
         hash = Word.apply(randomWord()),
@@ -525,7 +546,6 @@ fun randomPoolNftWithdraw(): PoolNftWithdraw {
         collection = randomAddress()
     )
 }
-
 
 fun randomPoolTargetNftIn(): PoolTargetNftIn {
     return PoolTargetNftIn(

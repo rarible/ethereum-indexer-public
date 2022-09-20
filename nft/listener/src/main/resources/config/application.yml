@@ -31,6 +31,8 @@ rarible:
         enabled: true
         server: http://elk_apm-server:8200
         packages: com.rarible.protocol.nft.listener
+    client:
+      name: rarible-protocol
   ethereum:
     max-frame-size: 104857600
     converter:
@@ -39,20 +41,6 @@ rarible:
       enabled: true
   cache:
     use-locks: true
-  loader:
-    broker-replica-set: ${kafka.hosts}
-    topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
-    enableRetrySchedulerJob: true
-    enableWorkers: true
-    workers: 8
-    loadTasksBatchSize: 50
-    loadTasksTopicPartitions: 32
-    retry:
-      # Retry after 24h
-      backoffDelaysMillis: [ 86400000 ]
-      job:
-        runner:
-          period: 30000 # Schedule retry tasks every 30s
 
 ethereumMaxFrameSize: 104857600
 ethereumBlockBatchSize: 50

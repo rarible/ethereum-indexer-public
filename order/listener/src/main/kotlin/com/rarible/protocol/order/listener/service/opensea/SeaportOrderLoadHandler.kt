@@ -24,11 +24,11 @@ class SeaportOrderLoadHandler(
         val result = seaportOrderLoader.load(cursor)
 
         val (nextCursor, needDelay) = if (result.previous == null && cursor != null) {
-            loader.seaportInfo("Previous cursor ($cursor) is not finalized, reuse it")
+            logger.seaportInfo("Previous cursor ($cursor) is not finalized, reuse it")
             cursor to true
         } else {
             val next = result.previous ?: result.next ?: error("Can't determine next Seaport cursor")
-            loader.seaportInfo("Use next cursor $next")
+            logger.seaportInfo("Use next cursor $next")
             next to false
         }
         aggregatorStateRepository.save(state.withCursor(nextCursor))
@@ -44,7 +44,8 @@ class SeaportOrderLoadHandler(
     }
 
     internal companion object {
-        val loader: Logger = LoggerFactory.getLogger(SeaportOrderLoadHandler::class.java)
+
+        val logger: Logger = LoggerFactory.getLogger(SeaportOrderLoadHandler::class.java)
         const val STATE_ID_PREFIX = "seaport_order_fetch"
     }
 }

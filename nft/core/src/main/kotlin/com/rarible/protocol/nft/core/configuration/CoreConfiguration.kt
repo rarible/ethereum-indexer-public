@@ -15,7 +15,6 @@ import com.rarible.core.meta.resource.resolver.LegacyIpfsGatewaySubstitutor
 import com.rarible.core.meta.resource.resolver.RandomGatewayProvider
 import com.rarible.core.meta.resource.resolver.UrlResolver
 import com.rarible.ethereum.log.service.LogEventService
-import com.rarible.loader.cache.configuration.EnableRaribleCacheLoader
 import com.rarible.protocol.nft.core.converters.ConvertersPackage
 import com.rarible.protocol.nft.core.event.EventListenerPackage
 import com.rarible.protocol.nft.core.model.CollectionEventType
@@ -35,7 +34,6 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.http.HttpHeaders
 
 @Configuration
-@EnableRaribleCacheLoader
 @EnableConfigurationProperties(NftIndexerProperties::class)
 @Import(RepositoryConfiguration::class, ProducerConfiguration::class, MetricsCountersConfiguration::class)
 @ComponentScan(

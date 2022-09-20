@@ -36,6 +36,8 @@ rarible:
         packages: com.rarible.protocol.order.listener
     contract:
       enabled: true
+    client:
+      name: rarible-protocol
 
 protocol:
   nft:

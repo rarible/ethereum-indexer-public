@@ -2,7 +2,6 @@ package com.rarible.protocol.order.core.service.pool
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.AmmOrderNftUpdateEventDto
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.PoolCreate
@@ -23,28 +22,33 @@ class PoolEventListener(
     private val orderRepository: OrderRepository,
     private val orderPublisher: ProtocolOrderPublisher,
 ) {
-    suspend fun onPoolEvent(event: LogEvent) {
-        val reverted = event.status == LogEventStatus.REVERTED
+    suspend fun onPoolEvent(event: LogEvent, reverted: Boolean) {
         val poolHistory = event.data as PoolHistory
         val hash = poolHistory.hash
-        val order = orderRepository.findById(hash) ?: return
-        val collection = when {
-            order.make.type.nft -> order.make.type.token
-            order.take.type.nft -> order.take.type.token
-            else -> return
-        }
+        val collection = orderRepository.findById(hash)
+            ?.let {
+                when {
+                    it.make.type.nft -> it.make.type.token
+                    it.take.type.nft -> it.take.type.token
+                    else -> return
+                }
+            }
+            ?: run {
+                if (poolHistory is PoolCreate) poolHistory.collection else return
+            }
+
         val nftDelta = when (poolHistory) {
             is PoolCreate -> {
                 NftDelta(inNft = poolHistory.tokenIds)
             }
             is PoolNftDeposit -> {
-                if (poolHistory.collection == order.make.type.token) NftDelta(inNft = poolHistory.tokenIds) else NftDelta()
+                if (poolHistory.collection == collection) NftDelta(inNft = poolHistory.tokenIds) else NftDelta()
             }
             is PoolNftIn -> {
                 NftDelta(inNft = poolHistory.tokenIds)
             }
             is PoolNftWithdraw -> {
-                if (poolHistory.collection == order.make.type.token) NftDelta(outNft = poolHistory.tokenIds) else NftDelta()
+                if (poolHistory.collection == collection) NftDelta(outNft = poolHistory.tokenIds) else NftDelta()
             }
             is PoolNftOut -> {
                 NftDelta(outNft = poolHistory.tokenIds)
