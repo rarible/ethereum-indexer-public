@@ -41,7 +41,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         val expectedPrice = getSingleBuyNFTQuote(userSender, poolAddress) //spotPrice + delta + protocolFee (0.5%)
 
         checkOrder(orderHash) {
-            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
             assertThat(it.take.value).isEqualTo(expectedPrice.inputValue)
             assertThat(it.makeStock).isEqualTo(tokenIds.size.toBigInteger())
             assertThat(it.makePrice?.stripTrailingZeros()).isEqualTo(expectedPrice.price())
@@ -82,7 +82,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         val expectedPrice = getSingleBuyNFTQuote(userSender, poolAddress)
 
         checkOrder(orderHash) {
-            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
             assertThat(it.take.value).isEqualTo(expectedPrice.inputValue)
             assertThat(it.makeStock).isEqualTo(tokenIds.size.toBigInteger())
             assertThat(it.makePrice?.stripTrailingZeros()).isEqualTo(expectedPrice.price())
@@ -121,7 +121,8 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             value = BigInteger("5").eth()
         )
         checkOrder(orderHash) {
-            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
+            assertThat(it.makeStock).isEqualTo(tokenIds.size)
         }
         val buyTokenIds = mintAndApprove(5, userSender, token, poolAddress)
         swapNFTsForToken(
@@ -133,7 +134,8 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         )
         val expectedPrice = getSingleBuyNFTQuote(userSender, poolAddress)
         checkOrder(orderHash) {
-            assertThat(it.make.value).isEqualTo((tokenIds + buyTokenIds).size)
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
+            assertThat(it.makeStock).isEqualTo((tokenIds + buyTokenIds).size)
             assertThat(it.take.value).isEqualTo(expectedPrice.inputValue)
             assertThat(it.makePrice?.stripTrailingZeros()).isEqualTo(expectedPrice.price())
         }
@@ -147,7 +149,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         val (poolAddress, orderHash) = createPool(userSender, token.address())
 
         checkOrder(orderHash) {
-            assertThat(it.make.value).isEqualTo(BigInteger.ZERO)
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
             assertThat(it.makeStock).isEqualTo(BigInteger.ZERO)
             assertThat(it.status).isEqualTo(OrderStatusDto.INACTIVE)
         }
@@ -160,7 +162,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             tokenIds,
         )
         checkOrder(orderHash) {
-            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
             assertThat(it.makeStock).isEqualTo(tokenIds.size)
             assertThat(it.status).isEqualTo(OrderStatusDto.ACTIVE)
         }
@@ -176,7 +178,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         val (poolAddress, orderHash) = createPool(userSender, token.address(), tokenIds = tokenIds)
 
         checkOrder(orderHash) {
-            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
             assertThat(it.makeStock).isEqualTo(tokenIds.size)
         }
         depositNFTs(
@@ -187,7 +189,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         )
         delay(Duration.ofSeconds(5))
         checkOrder(orderHash) {
-            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
             assertThat(it.makeStock).isEqualTo(tokenIds.size)
         }
     }
@@ -213,6 +215,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             value = BigDecimal("1").multiply(decimal).toBigInteger()
         )
         checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
             assertThat(it.makeStock).isEqualTo(2)
         }
     }
@@ -239,6 +242,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             value = BigDecimal("1").multiply(decimal).toBigInteger()
         )
         checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
             assertThat(it.makeStock).isEqualTo(3)
         }
         checkHoldItems(orderHash, token.address(), tokenIds2)
@@ -267,6 +271,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             tokenIds = tokenIds1
         )
         checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(BigInteger.ONE)
             assertThat(it.makeStock).isEqualTo(3)
         }
         checkHoldItems(orderHash, token.address(), tokenIds2)
