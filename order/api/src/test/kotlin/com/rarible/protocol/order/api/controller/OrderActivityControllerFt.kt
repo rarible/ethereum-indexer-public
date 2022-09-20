@@ -3,6 +3,7 @@ package com.rarible.protocol.order.api.controller
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
@@ -1290,6 +1291,24 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
         checkOrderActivityDto(activities.items.single(), version)
         assertThat((activities.items.single() as? OrderActivityListDto)?.price).isEqualTo(BigDecimal.ZERO)
         checkOrderActivityDto(activities.items.single(), version)
+    }
+
+    @Test
+    fun `should sync all reverted history activity`() = runBlocking<Unit> {
+        val reverted = listOf(
+            createLogEvent(orderErc721BidCancel(), status = LogEventStatus.REVERTED),
+            createLogEvent(orderErc721SellSideMatch(), status = LogEventStatus.REVERTED),
+            createLogEvent(orderErc721SellCancel(), status = LogEventStatus.REVERTED)
+        )
+        val confirmed = listOf(
+            createLogEvent(orderErc721BidCancel(), status = LogEventStatus.CONFIRMED),
+            createLogEvent(orderErc721SellSideMatch(), status = LogEventStatus.CONFIRMED),
+            createLogEvent(orderErc721SellCancel(), status = LogEventStatus.CONFIRMED)
+        )
+        saveHistory(*(reverted + confirmed).shuffled().toTypedArray())
+
+        val revertedActivities = orderActivityClient.getOrderRevertedActivitiesSync(null, null, null).awaitFirst()
+        assertThat(revertedActivities.items.map { it.id }).containsExactlyInAnyOrderElementsOf(reverted.map { it.id.toHexString() })
     }
 
     fun prepareNftClient(filter: OrderActivityFilterDto, orderVersions: List<OrderVersion>) {

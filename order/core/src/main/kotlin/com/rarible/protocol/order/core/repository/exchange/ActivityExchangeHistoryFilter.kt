@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.repository.exchange
 import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.misc.safeQueryParam
 import com.rarible.protocol.order.core.model.ActivitySort
@@ -40,6 +41,7 @@ sealed class ActivityExchangeHistoryFilter {
 
     internal open val hint: Document? = null
     internal abstract val sort: ActivitySort
+    internal open val status: LogEventStatus = LogEventStatus.CONFIRMED
 
     class AllSell(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
@@ -51,6 +53,19 @@ sealed class ActivityExchangeHistoryFilter {
 
     class AllSync(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
+        override fun getCriteria(): Criteria {
+            return Criteria().andOperator(
+                takeOrderExchange exists true,
+                makeOrderExchange exists true,
+                makerOrderExchange exists true,
+                orderSideMatchSide ne OrderSide.RIGHT
+            ).scrollTo(sort, continuation)
+        }
+    }
+
+    class AllRevertedSync(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
+        override val hint: Document = ExchangeHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
+        override val status: LogEventStatus = LogEventStatus.REVERTED
         override fun getCriteria(): Criteria {
             return Criteria().andOperator(
                 takeOrderExchange exists true,
