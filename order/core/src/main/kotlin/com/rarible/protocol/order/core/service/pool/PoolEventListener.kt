@@ -2,7 +2,6 @@ package com.rarible.protocol.order.core.service.pool
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.AmmOrderNftUpdateEventDto
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.PoolCreate
@@ -23,8 +22,7 @@ class PoolEventListener(
     private val orderRepository: OrderRepository,
     private val orderPublisher: ProtocolOrderPublisher,
 ) {
-    suspend fun onPoolEvent(event: LogEvent) {
-        val reverted = event.status == LogEventStatus.REVERTED
+    suspend fun onPoolEvent(event: LogEvent, reverted: Boolean) {
         val poolHistory = event.data as PoolHistory
         val hash = poolHistory.hash
         val order = orderRepository.findById(hash) ?: return
