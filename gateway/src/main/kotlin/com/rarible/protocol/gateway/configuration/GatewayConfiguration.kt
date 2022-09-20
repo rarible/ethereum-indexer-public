@@ -2,7 +2,9 @@ package com.rarible.protocol.gateway.configuration
 
 import com.rarible.core.autoconfigure.filter.cors.EnableRaribleCorsWebFilter
 import com.rarible.core.autoconfigure.nginx.EnableRaribleNginxExpose
-import com.rarible.protocol.nft.api.client.*
+import com.rarible.core.telemetry.actuator.WebRequestClientTagContributor
+import com.rarible.protocol.nft.api.client.NftActivityControllerApi
+import com.rarible.protocol.nft.api.client.NftIndexerApiClientFactory
 import com.rarible.protocol.order.api.client.OrderActivityControllerApi
 import com.rarible.protocol.order.api.client.OrderIndexerApiClientFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -43,7 +45,14 @@ class GatewayConfiguration(
     }
 
     @Bean
-    fun orderActivityControllerApi(orderIndexerApiClientFactory: OrderIndexerApiClientFactory): OrderActivityControllerApi {
+    fun orderActivityControllerApi(
+        orderIndexerApiClientFactory: OrderIndexerApiClientFactory
+    ): OrderActivityControllerApi {
         return orderIndexerApiClientFactory.createOrderActivityApiClient(properties.blockchain.value)
+    }
+
+    @Bean
+    fun webRequestClientTagContributor(): WebRequestClientTagContributor {
+        return WebRequestClientTagContributor()
     }
 }

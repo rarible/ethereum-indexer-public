@@ -13,8 +13,6 @@ rarible:
   ethereum:
     httpUrl: ${node.hosts}
     websocketUrl: ${node.webSocketHosts}
-  loader:
-    broker-replica-set: ${kafka.hosts}
 
 common:
   kafka-replica-set: ${kafka.hosts}

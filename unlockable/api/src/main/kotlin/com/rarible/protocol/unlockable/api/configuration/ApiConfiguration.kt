@@ -2,6 +2,7 @@ package com.rarible.protocol.unlockable.api.configuration
 
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
+import com.rarible.core.telemetry.actuator.WebRequestClientTagContributor
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.dto.UnlockableEventDto
 import com.rarible.protocol.dto.UnlockableTopicProvider
@@ -43,6 +44,11 @@ class ApiConfiguration(
     @Bean
     fun nftOwnershipControllerApi(): NftOwnershipControllerApi {
         return nftIndexerApiClientFactory.createNftOwnershipApiClient(blockchain.value)
+    }
+
+    @Bean
+    fun webRequestClientTagContributor(): WebRequestClientTagContributor {
+        return WebRequestClientTagContributor()
     }
 
 }

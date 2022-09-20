@@ -32,18 +32,21 @@ class EnsDomainBurnActionExecutor(
         val expiration = ensDomainService.getExpirationProperty(properties)
         if (expiration == null || action.actionAt >= expiration) {
             if (reducer.update(token = action.token, tokenId = action.tokenId).awaitFirstOrNull() != null) {
-                loader.info("Action burn for ${itemId.decimalStringValue} was executed")
+                logger.info("Action burn for ${itemId.decimalStringValue} was executed")
                 executedBurnActionMetric.increment()
             } else {
-                loader.error("Can't execute action for ${itemId.decimalStringValue}")
+                logger.error("Can't execute action for ${itemId.decimalStringValue}")
             }
         } else {
-            loader.info("New expiration date detected for ${itemId.decimalStringValue}, expected to burn at ${action.actionAt} but expired at $expiration")
+            logger.info(
+                "New expiration date detected for ${itemId.decimalStringValue}, expected to burn at ${action.actionAt} but expired at $expiration"
+            )
             ensDomainService.onGetProperties(itemId, properties)
         }
     }
 
     private companion object {
-        val loader: Logger = LoggerFactory.getLogger(EnsDomainBurnActionExecutor::class.java)
+
+        val logger: Logger = LoggerFactory.getLogger(EnsDomainBurnActionExecutor::class.java)
     }
 }

@@ -29,6 +29,8 @@ rarible:
           enabled: true
       annotation:
         enabled: true
+    client:
+      name: rarible-protocol
   ethereum:
     converter:
       enabled: true
@@ -36,11 +38,6 @@ rarible:
       enabled: true
   cache:
     use-locks: true
-  loader:
-    topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
-    enableWorkers: false
-    enableNotifications: false
-    enableRetrySchedulerJob: false
 
 api:
   opensea:

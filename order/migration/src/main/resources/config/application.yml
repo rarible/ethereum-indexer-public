@@ -28,6 +28,8 @@ rarible:
   core:
     contract:
       enabled: true
+    client:
+      name: rarible-protocol
 
 mongock:
   change-logs-scan-package:
