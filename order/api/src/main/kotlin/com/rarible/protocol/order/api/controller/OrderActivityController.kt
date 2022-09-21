@@ -92,4 +92,30 @@ class OrderActivityController(
          val orderActivities = OrderActivitiesDto(nextContinuation, result)
          return ResponseEntity.ok(orderActivities)
      }
+
+     override suspend fun getOrderRevertedActivitiesSync(
+         continuation: String?,
+         size: Int?,
+         sort: SyncSortDto?
+     ): ResponseEntity<OrderActivitiesDto> {
+         val requestSize = PageSize.ORDER_ACTIVITY.limit(size)
+         val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
+         val activitySort = sort?.let { ActivitySyncSortConverter.convert(sort) } ?: ActivitySort.SYNC_EARLIEST_FIRST
+
+         val historyFilter = ActivityExchangeHistoryFilter.AllRevertedSync(
+             activitySort,
+             continuationDto?.let { ContinuationConverter.convert(it) })
+
+         val result = orderActivityService
+             .search(listOf(historyFilter), emptyList(), activitySort, requestSize)
+             .mapNotNull { orderActivityConverter.convert(it) }
+
+         val nextContinuation = if (result.isEmpty() || result.size < requestSize) {
+             null
+         } else {
+             ContinuationMapper.toSyncString(result.last())
+         }
+         val orderActivities = OrderActivitiesDto(nextContinuation, result)
+         return ResponseEntity.ok(orderActivities)
+     }
  }

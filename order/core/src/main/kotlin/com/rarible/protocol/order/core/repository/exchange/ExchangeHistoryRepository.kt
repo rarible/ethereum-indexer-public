@@ -158,7 +158,7 @@ class ExchangeHistoryRepository(
     fun searchActivity(filter: ActivityExchangeHistoryFilter): Flux<LogEvent> {
         val hint = filter.hint
         val criteria = filter.getCriteria()
-            .and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
+            .and(LogEvent::status).isEqualTo(filter.status)
 
         val query = Query(criteria)
 
