@@ -59,6 +59,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
     private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
         val event = getTakeEvent(log)
         val collectionType = tokenStandardProvider.getTokenStandard(event.collection)
+        val taker = OrderSideMatch.getRealTaker(event.taker, transaction)
 
         val (make, take) = run {
             val nft = Asset(
@@ -88,7 +89,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                 side = OrderSide.LEFT,
                 fill = event.amount,
                 maker = event.maker,
-                taker = event.taker,
+                taker = taker,
                 make = make,
                 take = take,
                 makeValue = prizeNormalizer.normalize(make),
@@ -107,7 +108,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                 counterHash = event.orderHash,
                 side = OrderSide.RIGHT,
                 fill = event.amount,
-                maker = event.taker,
+                maker = taker,
                 taker = event.maker,
                 make = take,
                 take = make,

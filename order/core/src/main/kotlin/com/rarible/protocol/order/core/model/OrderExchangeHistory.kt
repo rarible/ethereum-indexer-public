@@ -3,10 +3,14 @@ package com.rarible.protocol.order.core.model
 import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.contracts.exchange.gemswap.v1.GemSwapV1
+import com.rarible.protocol.contracts.exchange.wrapper.ExchangeWrapper
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
+import scalether.domain.response.Transaction
 import java.math.BigDecimal
 import java.time.Instant
 
@@ -77,6 +81,16 @@ data class OrderSideMatch(
                 } else {
                     it
                 }
+            }
+        }
+
+        fun getRealTaker(originTaker: Address, transaction: Transaction): Address {
+            return when (transaction.input().methodSignatureId()) {
+                GemSwapV1.batchBuyWithETHSignature().id(),
+                GemSwapV1.batchBuyWithERC20sSignature().id(),
+                ExchangeWrapper.bulkPurchaseSignature().id(),
+                ExchangeWrapper.bulkPurchaseSignature().id() -> transaction.from()
+                else -> originTaker
             }
         }
     }
