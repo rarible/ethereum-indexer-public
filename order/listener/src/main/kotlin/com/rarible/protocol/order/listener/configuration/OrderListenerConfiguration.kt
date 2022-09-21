@@ -25,8 +25,6 @@ import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
 import com.rarible.protocol.order.listener.job.LooksrareOrdersFetchWorker
-import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
-import com.rarible.protocol.order.listener.job.OpenSeaOrdersPeriodFetcherWorker
 import com.rarible.protocol.order.listener.job.OrderStartEndCheckerWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
@@ -230,108 +228,6 @@ class OrderListenerConfiguration(
             handler = handler,
             properties = properties,
             meterRegistry = meterRegistry
-        ).apply { start() }
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["open-sea-orders-load-worker.enabled"],
-        havingValue="true"
-    )
-    fun openSeaOrderLoadWorker(
-        openSeaOrderService: OpenSeaOrderService,
-        openSeaFetchStateRepository: OpenSeaFetchStateRepository,
-        openSeaOrderConverter: OpenSeaOrderConverter,
-        openSeaOrderValidator: OpenSeaOrderValidator,
-        orderRepository: OrderRepository,
-        orderUpdateService: OrderUpdateService,
-        orderVersionListener: OrderVersionListener,
-        meterRegistry: MeterRegistry,
-        properties: OrderListenerProperties,
-        openSeaSaveCounter: RegisteredCounter
-    ): OpenSeaOrdersFetcherWorker {
-        return OpenSeaOrdersFetcherWorker(
-            properties = properties.openSeaOrdersLoadWorker,
-            openSeaOrderService = measurableOpenSeaOrderService(openSeaOrderService),
-            openSeaFetchStateRepository = openSeaFetchStateRepository,
-            openSeaOrderConverter = openSeaOrderConverter,
-            openSeaOrderValidator = openSeaOrderValidator,
-            orderRepository = orderRepository,
-            orderUpdateService = orderUpdateService,
-            meterRegistry = meterRegistry,
-            saveCounter = openSeaSaveCounter,
-        ).apply { start() }
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["open-sea-orders-load-delay-worker.enabled"],
-        havingValue="true"
-    )
-    fun openSeaOrderLoadWithDelayWorker(
-        openSeaOrderService: OpenSeaOrderService,
-        openSeaFetchStateRepository: OpenSeaFetchStateRepository,
-        openSeaOrderConverter: OpenSeaOrderConverter,
-        openSeaOrderValidator: OpenSeaOrderValidator,
-        orderRepository: OrderRepository,
-        orderUpdateService: OrderUpdateService,
-        orderVersionListener: OrderVersionListener,
-        meterRegistry: MeterRegistry,
-        properties: OrderListenerProperties,
-        openSeaDelaySaveCounter: RegisteredCounter,
-        openSeaDelayLoadCounter: RegisteredCounter
-    ): OpenSeaOrdersFetcherWorker {
-        return OpenSeaOrdersFetcherWorker(
-            properties = properties.openSeaOrdersLoadDelayWorker,
-            openSeaOrderService = measurableOpenSeaOrderService(
-                openSeaOrderService = openSeaOrderService,
-                measureDelay = false,
-                openSeaCounter = openSeaDelayLoadCounter
-            ),
-            openSeaFetchStateRepository = openSeaFetchStateRepository,
-            openSeaOrderConverter = openSeaOrderConverter,
-            openSeaOrderValidator = openSeaOrderValidator,
-            orderRepository = orderRepository,
-            orderUpdateService = orderUpdateService,
-            meterRegistry = meterRegistry,
-            saveCounter = openSeaDelaySaveCounter,
-        ).apply { start() }
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["open-sea-orders-load-period-worker"],
-        havingValue="true"
-    )
-    fun openSeaOrderPeriodLoadWorker(
-        openSeaOrderService: OpenSeaOrderService,
-        openSeaFetchStateRepository: OpenSeaFetchStateRepository,
-        openSeaOrderConverter: OpenSeaOrderConverter,
-        openSeaOrderValidator: OpenSeaOrderValidator,
-        orderRepository: OrderRepository,
-        orderUpdateService: OrderUpdateService,
-        orderVersionListener: OrderVersionListener,
-        properties: OrderListenerProperties,
-        meterRegistry: MeterRegistry,
-        openSeaSaveCounter: RegisteredCounter,
-    ): OpenSeaOrdersPeriodFetcherWorker {
-        return OpenSeaOrdersPeriodFetcherWorker(
-            properties = properties.openSeaOrdersLoadPeriodWorker,
-            openSeaOrderService = measurableOpenSeaOrderService(
-                openSeaOrderService = openSeaOrderService,
-                measureDelay = false,
-                openSeaCounter = openSeaLoadCounter
-            ),
-            openSeaFetchStateRepository = openSeaFetchStateRepository,
-            openSeaOrderConverter = openSeaOrderConverter,
-            openSeaOrderValidator = openSeaOrderValidator,
-            orderRepository = orderRepository,
-            orderUpdateService = orderUpdateService,
-            meterRegistry = meterRegistry,
-            openSeaOrderSaveCounter = openSeaSaveCounter,
         ).apply { start() }
     }
 
