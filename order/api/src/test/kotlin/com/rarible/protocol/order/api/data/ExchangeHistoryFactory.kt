@@ -188,14 +188,17 @@ fun orderErc721BidCancel(): OrderCancel {
     return orderCancel(make, take)
 }
 
-fun createLogEvent(data: OrderExchangeHistory) = LogEvent(
+fun createLogEvent(
+    data: OrderExchangeHistory,
+    status: LogEventStatus = LogEventStatus.CONFIRMED
+) = LogEvent(
     data = data,
     address = randomAddress(),
     topic = Word.apply(RandomUtils.nextBytes(32)),
     transactionHash = Word.apply(RandomUtils.nextBytes(32)),
     index = RandomUtils.nextInt(),
     minorLogIndex = 0,
-    status = LogEventStatus.CONFIRMED
+    status = status
 )
 
 fun orderSideMatch(make: Asset, take: Asset): OrderSideMatch = OrderSideMatch(
