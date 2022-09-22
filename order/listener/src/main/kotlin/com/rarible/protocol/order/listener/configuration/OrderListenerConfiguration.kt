@@ -17,7 +17,6 @@ import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFactory
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
@@ -67,7 +66,6 @@ class OrderListenerConfiguration(
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val blockRepository: BlockRepository,
     private val micrometer: MeterRegistry,
-    private val openSeaLoadCounter: RegisteredCounter,
     private val seaportLoadCounter: RegisteredCounter,
     private val seaportOrderDelayGauge : RegisteredGauge<Long>
 ) {
@@ -305,14 +303,12 @@ class OrderListenerConfiguration(
     private fun measurableOpenSeaOrderService(
         openSeaOrderService: OpenSeaOrderService,
         measureDelay: Boolean = true,
-        openSeaCounter: RegisteredCounter = openSeaLoadCounter,
         seaportCounter: RegisteredCounter = seaportLoadCounter
     ): MeasurableOpenSeaOrderService {
         return MeasurableOpenSeaOrderService(
             delegate = openSeaOrderService,
             micrometer = micrometer,
             blockchain = blockchain(),
-            openSeaLoadCounter = openSeaCounter,
             seaportLoadCounter = seaportCounter,
             seaportDelayGauge = seaportOrderDelayGauge,
             measureDelay = measureDelay

@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.test.data.randomString
-import com.rarible.opensea.client.OpenSeaClient
 import com.rarible.opensea.client.SeaportProtocolClient
 import com.rarible.opensea.client.model.OpenSeaError
 import com.rarible.opensea.client.model.OpenSeaErrorCode
@@ -9,7 +8,6 @@ import com.rarible.opensea.client.model.OpenSeaResult
 import com.rarible.opensea.client.model.OperationResult
 import com.rarible.opensea.client.model.v2.OrdersRequest
 import com.rarible.opensea.client.model.v2.SeaportOrders
-import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.data.randomSeaportOrder
 import io.mockk.coEvery
@@ -26,18 +24,12 @@ internal class OpenSeaOrderServiceImplTest {
     private val seaportRequestCursorProducer = mockk<SeaportRequestCursorProducer> {
         every { produceNextFromCursor(any(), any(), any()) } returns emptyList()
     }
-    private val openSeaClient = mockk<OpenSeaClient>()
     private val seaportProtocolClient = mockk<SeaportProtocolClient>()
     private val seaportLoad = SeaportLoadProperties(retry = 2, retryDelay = Duration.ZERO)
-    private val properties = mockk<OrderListenerProperties> {
-        every { openSeaOrderSide } returns OrderListenerProperties.OrderSide.SELL
-    }
     private val openSeaOrderService = OpenSeaOrderServiceImpl(
         seaportRequestCursorProducer = seaportRequestCursorProducer,
         seaportProtocolClient = seaportProtocolClient,
-        openSeaClient = openSeaClient,
         seaportLoad = seaportLoad,
-        properties = properties
     )
 
     @Test
