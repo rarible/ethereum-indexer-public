@@ -41,6 +41,7 @@ import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoadHandl
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoader
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import com.rarible.protocol.order.listener.service.order.OrderStartEndCheckerHandler
+import com.rarible.protocol.order.listener.service.order.SeaportOrdersLoadTaskHandler
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoadHandler
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoader
 import io.micrometer.core.instrument.MeterRegistry
@@ -229,6 +230,34 @@ class OrderListenerConfiguration(
             properties = properties,
             meterRegistry = meterRegistry
         ).apply { start() }
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = ["listener.seaport-load.enabled"], havingValue = "true")
+    fun seaportOrdersLoadTaskHandler(
+        openSeaOrderService: OpenSeaOrderService,
+        openSeaOrderConverter: OpenSeaOrderConverter,
+        openSeaOrderValidator: OpenSeaOrderValidator,
+        orderRepository: OrderRepository,
+        orderUpdateService: OrderUpdateService,
+        properties: SeaportLoadProperties,
+        seaportTaskSaveCounter: RegisteredCounter,
+        seaportTaskLoadCounter: RegisteredCounter,
+    ): SeaportOrdersLoadTaskHandler {
+        val loader = SeaportOrderLoader(
+            openSeaOrderService = measurableOpenSeaOrderService(
+                openSeaOrderService = openSeaOrderService,
+                seaportCounter = seaportTaskLoadCounter,
+                measureDelay = false,
+            ),
+            openSeaOrderConverter = openSeaOrderConverter,
+            openSeaOrderValidator = openSeaOrderValidator,
+            orderRepository = orderRepository,
+            orderUpdateService = orderUpdateService,
+            properties = properties,
+            seaportSaveCounter = seaportTaskSaveCounter
+        )
+        return SeaportOrdersLoadTaskHandler(loader)
     }
 
     @Bean
