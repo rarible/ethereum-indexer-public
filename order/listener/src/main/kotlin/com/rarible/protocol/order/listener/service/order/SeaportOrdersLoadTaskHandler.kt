@@ -20,7 +20,7 @@ class SeaportOrdersLoadTaskHandler(
         val listedAfter = param.ifNotBlank()?.let { Instant.ofEpochSecond(param.toLong()) } ?: Instant.EPOCH
         var cursor = from
         do {
-            val result = seaportOrderLoader.load(cursor)
+            val result = seaportOrderLoader.load(cursor, loadAhead = false)
             val orders = result.orders
             val lastFetchedList = orders.minOfOrNull { it.createdAt } ?: Instant.EPOCH
             cursor = result.next

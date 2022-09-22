@@ -23,7 +23,7 @@ class OpenSeaOrderServiceImpl(
     private val seaportLoad: SeaportLoadProperties,
 ) : OpenSeaOrderService {
 
-    override suspend fun getNextSellOrders(nextCursor: String?): SeaportOrders {
+    override suspend fun getNextSellOrders(nextCursor: String?, loadAhead: Boolean): SeaportOrders {
         val requests = mutableListOf<SeaportOrdersRequest>()
         requests.add(
             SeaportOrdersRequest(
@@ -31,7 +31,7 @@ class OpenSeaOrderServiceImpl(
                 limit = seaportLoad.loadMaxSize
             )
         )
-        if (nextCursor != null && seaportLoad.asyncRequestsEnabled) {
+        if (nextCursor != null && loadAhead) {
             seaportRequestCursorProducer.produceNextFromCursor(
                 cursor = nextCursor,
                 step = seaportLoad.loadMaxSize,

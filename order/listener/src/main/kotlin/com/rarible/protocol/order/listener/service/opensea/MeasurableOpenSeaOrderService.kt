@@ -22,8 +22,8 @@ class MeasurableOpenSeaOrderService(
         initMetrics()
     }
 
-    override suspend fun getNextSellOrders(nextCursor: String?): SeaportOrders {
-        val orders = delegate.getNextSellOrders(nextCursor)
+    override suspend fun getNextSellOrders(nextCursor: String?, loadAhead: Boolean): SeaportOrders {
+        val orders = delegate.getNextSellOrders(nextCursor, loadAhead)
         seaportLoadCounter.increment(orders.orders.size)
         if (measureDelay) {
             orders.orders.maxOfOrNull { it.createdAt }?.let {

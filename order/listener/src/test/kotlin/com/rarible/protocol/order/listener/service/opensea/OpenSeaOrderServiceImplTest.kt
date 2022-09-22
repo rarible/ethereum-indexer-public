@@ -120,7 +120,7 @@ internal class OpenSeaOrderServiceImplTest {
             )
         } returns OpenSeaResult.success(SeaportOrders(next = "next3", previous = "previous3", orders = orders3))
 
-        val result = openSeaOrderService.getNextSellOrders(cursor1)
+        val result = openSeaOrderService.getNextSellOrders(cursor1, loadAhead = true)
         assertThat(result.orders).isEqualTo(orders1 + orders2 + orders3)
         assertThat(result.next).isEqualTo("next3")
         assertThat(result.previous).isEqualTo("previous3")
@@ -158,7 +158,7 @@ internal class OpenSeaOrderServiceImplTest {
             )
         } returns OpenSeaResult.success(SeaportOrders(next = "next12", previous = null, orders = orders2))
 
-        val result = openSeaOrderService.getNextSellOrders(cursor1)
+        val result = openSeaOrderService.getNextSellOrders(cursor1, loadAhead = true)
         assertThat(result.orders).isEqualTo(orders1 + orders2)
         assertThat(result.next).isEqualTo("next1")
         assertThat(result.previous).isEqualTo("previous1")
