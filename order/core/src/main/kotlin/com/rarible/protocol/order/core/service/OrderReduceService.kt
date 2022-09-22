@@ -15,6 +15,7 @@ import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
@@ -53,11 +54,11 @@ class OrderReduceService(
     private val raribleOrderExpiration: OrderIndexerProperties.RaribleOrderExpirationProperties,
     private val approvalHistoryRepository: ApprovalHistoryRepository,
     private val poolReducer: EventPoolReducer,
-    private val poolPriceProvider: PoolPriceProvider
+    private val poolPriceProvider: PoolPriceProvider,
+    private val orderStateRepository: OrderStateRepository,
 ) {
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
-    // TODO: current reduce implementation does not guarantee we will save the latest Order, see RPN-921.
     fun update(orderHash: Word? = null, fromOrderHash: Word? = null, platforms: List<Platform>? = null): Flux<Order> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
         @Suppress("DEPRECATION")
@@ -373,6 +374,15 @@ class OrderReduceService(
         )
     }
 
+    private suspend fun Order.withFinalState(): Order {
+        val state = orderStateRepository.getById(hash) ?: return this
+        return copy(
+            cancelled = state.canceled,
+            lastUpdateAt = maxOf(lastUpdateAt, state.lastUpdateAt),
+            lastEventId = accumulateEventId(lastEventId, state.id.prefixed())
+        )
+    }
+
     private suspend fun Order.withApproval(): Order {
         if (this.status != OrderStatus.ACTIVE) return this
         return if (this.isBid()) withBidApproval() else withSellApproval()
@@ -411,6 +421,7 @@ class OrderReduceService(
             .withCancelOpenSea()
             .withApproval()
             .withBidExpire()
+            .withFinalState()
 
         val saved = orderRepository.save(order)
         logger.info(buildString {
