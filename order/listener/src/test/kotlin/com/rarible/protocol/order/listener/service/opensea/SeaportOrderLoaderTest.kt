@@ -20,7 +20,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-internal class eaportOrderLoaderTest {
+internal class SeaportOrderLoaderTest {
     private val openSeaOrderService = mockk<OpenSeaOrderService>()
     private val openSeaOrderConverter = mockk<OpenSeaOrderConverter>()
     private val openSeaOrderValidator = mockk<OpenSeaOrderValidator>()
@@ -73,7 +73,7 @@ internal class eaportOrderLoaderTest {
         coEvery { orderUpdateService.updateMakeStock(validOrderVersion1.hash) } returns mockk()
         every { seaportSaveCounter.increment() } returns Unit
 
-        handler.load(null)
+        handler.load(null, false)
 
         coVerify(exactly = 1) { openSeaOrderService.getNextSellOrders(any()) }
         coVerify(exactly = 4) { openSeaOrderConverter.convert(any<SeaportOrder>()) }
@@ -141,7 +141,7 @@ internal class eaportOrderLoaderTest {
         coEvery { orderUpdateService.updateMakeStock(orderVersion3.hash) } returns mockk()
         every { seaportSaveCounter.increment() } returns Unit
 
-        val result = handler.load(previous)
+        val result = handler.load(previous, false)
         assertThat(result).isEqualTo(seaportOrders3)
 
         coVerifyOrder {
@@ -178,7 +178,7 @@ internal class eaportOrderLoaderTest {
 
         assertThrows<RuntimeException> {
             runBlocking {
-                handler.load(previous)
+                handler.load(previous, false)
             }
         }
     }
@@ -203,7 +203,7 @@ internal class eaportOrderLoaderTest {
         }
         every { seaportSaveCounter.increment() } returns Unit
 
-        val result = handler.load("previous0")
+        val result = handler.load("previous0", false)
         assertThat(result.previous).isEqualTo("previous${properties.maxLoadResults}")
         coVerify(exactly = properties.maxLoadResults) { openSeaOrderService.getNextSellOrders(any()) }
         coVerify(exactly = properties.maxLoadResults) { orderUpdateService.save(any()) }

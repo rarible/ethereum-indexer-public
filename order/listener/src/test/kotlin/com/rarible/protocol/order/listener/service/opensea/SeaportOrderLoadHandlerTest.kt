@@ -32,7 +32,7 @@ internal class SeaportOrderLoadHandlerTest {
         coEvery { aggregatorStateRepository.getSeaportState() } returns null
         coEvery { aggregatorStateRepository.save(any()) } returns Unit
         coEvery { legacyOpenSeaFetchStateRepository.get(SeaportOrderLoadHandler.STATE_ID_PREFIX) } returns OpenSeaFetchState(cursor = "current", listedAfter = 1)
-        coEvery { seaportOrderLoader.load("current") } returns SeaportOrders(next = "next", previous = "previous", orders = emptyList())
+        coEvery { seaportOrderLoader.load("current", false) } returns SeaportOrders(next = "next", previous = "previous", orders = emptyList())
 
         handler.handle()
 
@@ -50,7 +50,7 @@ internal class SeaportOrderLoadHandlerTest {
     fun `should use previous state if it not completed`() = runBlocking<Unit> {
         coEvery { aggregatorStateRepository.getSeaportState() } returns SeaportFetchState(cursor = "current")
         coEvery { aggregatorStateRepository.save(any()) } returns Unit
-        coEvery { seaportOrderLoader.load("current") } returns SeaportOrders(next = "next", previous = null, orders = emptyList())
+        coEvery { seaportOrderLoader.load("current", false) } returns SeaportOrders(next = "next", previous = null, orders = emptyList())
 
         handler.handle()
 

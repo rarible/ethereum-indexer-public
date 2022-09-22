@@ -17,7 +17,6 @@ import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFactory
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
@@ -25,8 +24,6 @@ import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
 import com.rarible.protocol.order.listener.job.LooksrareOrdersFetchWorker
-import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
-import com.rarible.protocol.order.listener.job.OpenSeaOrdersPeriodFetcherWorker
 import com.rarible.protocol.order.listener.job.OrderStartEndCheckerWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
@@ -43,6 +40,7 @@ import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoadHandl
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoader
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import com.rarible.protocol.order.listener.service.order.OrderStartEndCheckerHandler
+import com.rarible.protocol.order.listener.service.order.SeaportOrdersLoadTaskHandler
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoadHandler
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoader
 import io.micrometer.core.instrument.MeterRegistry
@@ -68,7 +66,6 @@ class OrderListenerConfiguration(
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val blockRepository: BlockRepository,
     private val micrometer: MeterRegistry,
-    private val openSeaLoadCounter: RegisteredCounter,
     private val seaportLoadCounter: RegisteredCounter,
     private val seaportOrderDelayGauge : RegisteredGauge<Long>
 ) {
@@ -234,105 +231,31 @@ class OrderListenerConfiguration(
     }
 
     @Bean
-    @ConditionalOnProperty(
-        prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["open-sea-orders-load-worker.enabled"],
-        havingValue="true"
-    )
-    fun openSeaOrderLoadWorker(
+    @ConditionalOnProperty(name = ["listener.seaport-load.enabled"], havingValue = "true")
+    fun seaportOrdersLoadTaskHandler(
         openSeaOrderService: OpenSeaOrderService,
-        openSeaFetchStateRepository: OpenSeaFetchStateRepository,
         openSeaOrderConverter: OpenSeaOrderConverter,
         openSeaOrderValidator: OpenSeaOrderValidator,
         orderRepository: OrderRepository,
         orderUpdateService: OrderUpdateService,
-        orderVersionListener: OrderVersionListener,
-        meterRegistry: MeterRegistry,
-        properties: OrderListenerProperties,
-        openSeaSaveCounter: RegisteredCounter
-    ): OpenSeaOrdersFetcherWorker {
-        return OpenSeaOrdersFetcherWorker(
-            properties = properties.openSeaOrdersLoadWorker,
-            openSeaOrderService = measurableOpenSeaOrderService(openSeaOrderService),
-            openSeaFetchStateRepository = openSeaFetchStateRepository,
-            openSeaOrderConverter = openSeaOrderConverter,
-            openSeaOrderValidator = openSeaOrderValidator,
-            orderRepository = orderRepository,
-            orderUpdateService = orderUpdateService,
-            meterRegistry = meterRegistry,
-            saveCounter = openSeaSaveCounter,
-        ).apply { start() }
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["open-sea-orders-load-delay-worker.enabled"],
-        havingValue="true"
-    )
-    fun openSeaOrderLoadWithDelayWorker(
-        openSeaOrderService: OpenSeaOrderService,
-        openSeaFetchStateRepository: OpenSeaFetchStateRepository,
-        openSeaOrderConverter: OpenSeaOrderConverter,
-        openSeaOrderValidator: OpenSeaOrderValidator,
-        orderRepository: OrderRepository,
-        orderUpdateService: OrderUpdateService,
-        orderVersionListener: OrderVersionListener,
-        meterRegistry: MeterRegistry,
-        properties: OrderListenerProperties,
-        openSeaDelaySaveCounter: RegisteredCounter,
-        openSeaDelayLoadCounter: RegisteredCounter
-    ): OpenSeaOrdersFetcherWorker {
-        return OpenSeaOrdersFetcherWorker(
-            properties = properties.openSeaOrdersLoadDelayWorker,
+        properties: SeaportLoadProperties,
+        seaportTaskSaveCounter: RegisteredCounter,
+        seaportTaskLoadCounter: RegisteredCounter,
+    ): SeaportOrdersLoadTaskHandler {
+        val loader = SeaportOrderLoader(
             openSeaOrderService = measurableOpenSeaOrderService(
                 openSeaOrderService = openSeaOrderService,
+                seaportCounter = seaportTaskLoadCounter,
                 measureDelay = false,
-                openSeaCounter = openSeaDelayLoadCounter
             ),
-            openSeaFetchStateRepository = openSeaFetchStateRepository,
             openSeaOrderConverter = openSeaOrderConverter,
             openSeaOrderValidator = openSeaOrderValidator,
             orderRepository = orderRepository,
             orderUpdateService = orderUpdateService,
-            meterRegistry = meterRegistry,
-            saveCounter = openSeaDelaySaveCounter,
-        ).apply { start() }
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["open-sea-orders-load-period-worker"],
-        havingValue="true"
-    )
-    fun openSeaOrderPeriodLoadWorker(
-        openSeaOrderService: OpenSeaOrderService,
-        openSeaFetchStateRepository: OpenSeaFetchStateRepository,
-        openSeaOrderConverter: OpenSeaOrderConverter,
-        openSeaOrderValidator: OpenSeaOrderValidator,
-        orderRepository: OrderRepository,
-        orderUpdateService: OrderUpdateService,
-        orderVersionListener: OrderVersionListener,
-        properties: OrderListenerProperties,
-        meterRegistry: MeterRegistry,
-        openSeaSaveCounter: RegisteredCounter,
-    ): OpenSeaOrdersPeriodFetcherWorker {
-        return OpenSeaOrdersPeriodFetcherWorker(
-            properties = properties.openSeaOrdersLoadPeriodWorker,
-            openSeaOrderService = measurableOpenSeaOrderService(
-                openSeaOrderService = openSeaOrderService,
-                measureDelay = false,
-                openSeaCounter = openSeaLoadCounter
-            ),
-            openSeaFetchStateRepository = openSeaFetchStateRepository,
-            openSeaOrderConverter = openSeaOrderConverter,
-            openSeaOrderValidator = openSeaOrderValidator,
-            orderRepository = orderRepository,
-            orderUpdateService = orderUpdateService,
-            meterRegistry = meterRegistry,
-            openSeaOrderSaveCounter = openSeaSaveCounter,
-        ).apply { start() }
+            properties = properties,
+            seaportSaveCounter = seaportTaskSaveCounter
+        )
+        return SeaportOrdersLoadTaskHandler(loader)
     }
 
     @Bean
@@ -380,14 +303,12 @@ class OrderListenerConfiguration(
     private fun measurableOpenSeaOrderService(
         openSeaOrderService: OpenSeaOrderService,
         measureDelay: Boolean = true,
-        openSeaCounter: RegisteredCounter = openSeaLoadCounter,
         seaportCounter: RegisteredCounter = seaportLoadCounter
     ): MeasurableOpenSeaOrderService {
         return MeasurableOpenSeaOrderService(
             delegate = openSeaOrderService,
             micrometer = micrometer,
             blockchain = blockchain(),
-            openSeaLoadCounter = openSeaCounter,
             seaportLoadCounter = seaportCounter,
             seaportDelayGauge = seaportOrderDelayGauge,
             measureDelay = measureDelay

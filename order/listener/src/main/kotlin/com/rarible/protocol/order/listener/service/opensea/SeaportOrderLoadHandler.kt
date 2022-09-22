@@ -21,7 +21,7 @@ class SeaportOrderLoadHandler(
     override suspend fun handle() {
         val state = aggregatorStateRepository.getSeaportState() ?: getDefaultFetchState()
         val cursor = state.cursor.ifNotBlank()
-        val result = seaportOrderLoader.load(cursor)
+        val result = seaportOrderLoader.load(cursor, properties.asyncRequestsEnabled)
 
         val (nextCursor, needDelay) = if (result.previous == null && cursor != null) {
             logger.seaportInfo("Previous cursor ($cursor) is not finalized, reuse it")
