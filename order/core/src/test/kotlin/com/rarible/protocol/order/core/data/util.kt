@@ -626,3 +626,11 @@ fun randomPoolInfo(): PoolInfo {
     )
 }
 
+fun randomSudoSwapPurchaseValue(): SudoSwapPurchaseValue {
+    return SudoSwapPurchaseValue(
+        newSpotPrice = randomBigInt(),
+        newDelta = randomBigInt(),
+        value = randomBigInt(),
+    )
+}
+

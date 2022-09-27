@@ -5,6 +5,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.randomPoolInfo
+import com.rarible.protocol.order.core.data.randomSudoSwapPurchaseValue
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
 import com.rarible.protocol.order.core.service.curve.SudoSwapCurve
@@ -53,8 +54,8 @@ internal class SudoSwapInNftPairDescriptorTest {
             every { value() } returns BigInteger.ZERO
         }
         val date = Instant.now().truncatedTo(ChronoUnit.SECONDS)
-        val collection = randomAddress()
-        val poolInfo = randomPoolInfo().copy(collection)
+        val poolInfo = randomPoolInfo()
+        val purchaseValue = randomSudoSwapPurchaseValue()
         val log = log(
             listOf(
                 Word.apply("0x3614eb567740a0ee3897c0e2b11ad6a5720d2e4438f9c8accf6c95c24af3a470")
@@ -62,16 +63,18 @@ internal class SudoSwapInNftPairDescriptorTest {
             ""
         )
         coEvery { sudoSwapPoolInfoProvider.gePollInfo(log.address()) } returns poolInfo
+        coEvery { sudoSwapCurve.getBuyInputValues(poolInfo.curve, poolInfo.spotPrice, poolInfo.delta, 1) } returns listOf(purchaseValue)
         val nftOut = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
 
         Assertions.assertThat(nftOut).isInstanceOf(PoolTargetNftIn::class.java)
         nftOut as PoolTargetNftIn
 
         Assertions.assertThat(nftOut.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(log.address()))
-        Assertions.assertThat(nftOut.collection).isEqualTo(collection)
+        Assertions.assertThat(nftOut.collection).isEqualTo(poolInfo.collection)
         Assertions.assertThat(nftOut.tokenIds).containsExactlyInAnyOrder(EthUInt256.of(6209))
         Assertions.assertThat(nftOut.tokenRecipient).isEqualTo(Address.apply("0x3Cb23ccc26a1870eb9E79B7A061907BDaeF4F7D6"))
         Assertions.assertThat(nftOut.date).isEqualTo(date)
+        Assertions.assertThat(nftOut.inputValue.value).isEqualTo(purchaseValue.value)
         Assertions.assertThat(nftOut.source).isEqualTo(HistorySource.SUDOSWAP)
     }
 }

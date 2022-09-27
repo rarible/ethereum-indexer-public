@@ -28,6 +28,20 @@ internal class SudoSwapLinearCurveTest {
     }
 
     @Test
+    fun getBuyValues() = runBlocking<Unit> {
+        val result = curve.getBuyInputValues(
+            curve = randomAddress(),
+            spotPrice = BigInteger("1").eth(),
+            delta = BigDecimal("0.3").eth(),
+            numItems = 3
+        )
+        assertThat(result).hasSize(3)
+        assertThat(result[0].value).isEqualTo(BigDecimal("1.3").eth())
+        assertThat(result[1].value).isEqualTo(BigDecimal("1.6").eth())
+        assertThat(result[2].value).isEqualTo(BigDecimal("1.9").eth())
+    }
+
+    @Test
     fun getSellInfo() = runBlocking<Unit> {
         val result = curve.getSellInfo(
             curve = randomAddress(),
@@ -41,5 +55,19 @@ internal class SudoSwapLinearCurveTest {
         assertThat(result.newDelta).isEqualTo(BigInteger("1").eth() / BigInteger.TEN)
         assertThat(result.outputValue).isEqualTo(BigDecimal("13.888").eth())
         assertThat(result.protocolFee).isEqualTo(BigDecimal("0.042").eth())
+    }
+
+    @Test
+    fun getSellValues() = runBlocking<Unit> {
+        val result = curve.getSellOutputValues(
+            curve = randomAddress(),
+            spotPrice = BigInteger("1").eth(),
+            delta = BigDecimal("0.3").eth(),
+            numItems = 3
+        )
+        assertThat(result).hasSize(3)
+        assertThat(result[0].value).isEqualTo(BigDecimal("1").eth())
+        assertThat(result[1].value).isEqualTo(BigDecimal("0.7").eth())
+        assertThat(result[2].value).isEqualTo(BigDecimal("0.4").eth())
     }
 }
