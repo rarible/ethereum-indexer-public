@@ -2,10 +2,8 @@ package com.rarible.protocol.order.listener.service.sudoswap
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
-import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -21,7 +19,7 @@ internal class SudoSwapPoolCollectionProviderTest {
     private val sudoSwapEventConverter = mockk<SudoSwapEventConverter>()
     private val orderRepository = mockk<OrderRepository>()
 
-    private val sudoSwapPoolCollectionProvider = SudoSwapPoolCollectionProvider(
+    private val sudoSwapPoolCollectionProvider = SudoSwapPoolInfoProvider(
         sender = sender,
         sudoSwapEventConverter = sudoSwapEventConverter,
         orderRepository = orderRepository
@@ -36,7 +34,7 @@ internal class SudoSwapPoolCollectionProviderTest {
         every { sudoSwapEventConverter.getPoolHash(poolAddress) } returns orderHash
         coEvery { orderRepository.findById(orderHash) } returns order
 
-        val result = sudoSwapPoolCollectionProvider.getPoolCollection(poolAddress)
+        val result = sudoSwapPoolCollectionProvider.gePollInfo(poolAddress)
         assertThat(result).isEqualTo(collection)
     }
 }

@@ -4,12 +4,14 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.data.randomPoolInfo
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
+import com.rarible.protocol.order.core.service.curve.SudoSwapCurve
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolCollectionProvider
+import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolInfoProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -28,14 +30,16 @@ import java.time.temporal.ChronoUnit
 
 internal class SudoSwapInNftPairDescriptorTest {
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
-    private val sudoSwapPoolCollectionProvider = mockk<SudoSwapPoolCollectionProvider>()
+    private val sudoSwapPoolInfoProvider = mockk<SudoSwapPoolInfoProvider>()
     private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
+    private val sudoSwapCurve = mockk<SudoSwapCurve>()
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
 
     private val descriptor = SudoSwapInNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapInNftEventCounter = counter,
-        sudoSwapPoolCollectionProvider = sudoSwapPoolCollectionProvider
+        sudoSwapPoolInfoProvider = sudoSwapPoolInfoProvider,
+        sudoSwapCurve = sudoSwapCurve
     )
 
     @Test
@@ -50,13 +54,14 @@ internal class SudoSwapInNftPairDescriptorTest {
         }
         val date = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val collection = randomAddress()
+        val poolInfo = randomPoolInfo().copy(collection)
         val log = log(
             listOf(
                 Word.apply("0x3614eb567740a0ee3897c0e2b11ad6a5720d2e4438f9c8accf6c95c24af3a470")
             ),
             ""
         )
-        coEvery { sudoSwapPoolCollectionProvider.getPoolCollection(log.address()) } returns collection
+        coEvery { sudoSwapPoolInfoProvider.gePollInfo(log.address()) } returns poolInfo
         val nftOut = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
 
         Assertions.assertThat(nftOut).isInstanceOf(PoolTargetNftIn::class.java)

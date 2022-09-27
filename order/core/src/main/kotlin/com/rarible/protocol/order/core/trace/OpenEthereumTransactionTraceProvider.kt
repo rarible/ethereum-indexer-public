@@ -59,7 +59,8 @@ class OpenEthereumTransactionTraceProvider(
                 from = trace.action.from,
                 to = trace.action.to,
                 input = trace.action.input ?: Binary.empty(),
-                value = trace.action.value?.fromHexToBigInteger()
+                value = trace.action.value?.fromHexToBigInteger(),
+                output = trace.result?.output
             )
         } else {
             null
@@ -80,7 +81,7 @@ class OpenEthereumTransactionTraceProvider(
         )
 
         data class Result(
-            val output: String?
+            val output: Binary?
         )
     }
 }

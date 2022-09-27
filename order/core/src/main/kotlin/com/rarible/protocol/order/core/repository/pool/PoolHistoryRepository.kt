@@ -7,7 +7,10 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.PoolDataUpdate
+import com.rarible.protocol.order.core.model.PoolDeltaUpdate
 import com.rarible.protocol.order.core.model.PoolHistory
+import com.rarible.protocol.order.core.model.PoolHistoryType
 import com.rarible.protocol.order.core.model.PoolNftChange
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -25,13 +28,17 @@ import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.exists
 import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
+import org.springframework.data.mongodb.core.query.lte
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
+import java.math.BigInteger
 
 @CaptureSpan(type = SpanType.DB)
 @Component
@@ -84,7 +91,23 @@ class PoolHistoryRepository(
         val criteria = Criteria().andOperator(
             LogEvent::data / PoolNftChange::collection isEqualTo collection,
             LogEvent::data / PoolNftChange::tokenIds isEqualTo tokenId,
-            LogEvent::status  isEqualTo LogEventStatus.CONFIRMED,
+            LogEvent::status isEqualTo LogEventStatus.CONFIRMED,
+        )
+        val query = Query(criteria)
+            .with(POOL_NFT_CHANGE_SORT_DESC)
+            .withHint(Indexes.NFT_CHANGES_POOL_ITEM_IDS_DEFINITION.indexKeys)
+            .limit(1)
+
+        return template.find<LogEvent>(query, COLLECTION).collectList().awaitFirst()
+    }
+
+    suspend fun getLatestPoolDelta(hash: Word, blockNumber: Long, logIndex: Int): List<LogEvent> {
+        val criteria = Criteria().andOperator(
+            LogEvent::data / PoolDataUpdate::hash isEqualTo hash,
+            LogEvent::data / PoolDataUpdate::type isEqualTo PoolHistoryType.POOL_DELTA_UPDATE,
+            LogEvent::blockNumber lte blockNumber,
+            LogEvent::logIndex lt logIndex,
+            LogEvent::status isEqualTo LogEventStatus.CONFIRMED,
         )
         val query = Query(criteria)
             .with(POOL_NFT_CHANGE_SORT_DESC)
@@ -114,6 +137,14 @@ class PoolHistoryRepository(
         val NFT_CHANGES_POOL_ITEM_IDS_DEFINITION: Index = Index()
             .on("${LogEvent::data.name}.${PoolNftChange::collection.name}", Sort.Direction.ASC)
             .on("${LogEvent::data.name}.${PoolNftChange::tokenIds.name}", Sort.Direction.ASC)
+            .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
+            .on(LogEvent::logIndex.name, Sort.Direction.ASC)
+            .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
+            .background()
+
+        val POOL_UPDATES_DEFINITION: Index = Index()
+            .on("${LogEvent::data.name}.${PoolHistory::hash}", Sort.Direction.ASC)
+            .on("${LogEvent::data.name}.${PoolHistory::type.name}", Sort.Direction.ASC)
             .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
             .on(LogEvent::logIndex.name, Sort.Direction.ASC)
             .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)

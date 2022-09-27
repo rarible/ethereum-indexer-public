@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.service.curve
 
 import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
 import com.rarible.protocol.order.core.model.SudoSwapBuyInfo
+import com.rarible.protocol.order.core.model.SudoSwapPurchaseValue
 import com.rarible.protocol.order.core.model.SudoSwapSellInfo
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
@@ -33,6 +34,24 @@ class CompositeSudoSwapCurve(
             feeMultiplier = feeMultiplier,
             protocolFeeMultiplier = protocolFeeMultiplier
         )
+    }
+
+    override suspend fun getBuyInputValues(
+        curve: Address,
+        spotPrice: BigInteger,
+        delta: BigInteger,
+        numItems: Int
+    ): List<SudoSwapPurchaseValue> {
+        return getCurve(curve).getBuyInputValues(curve, spotPrice, delta, numItems)
+    }
+
+    override suspend fun getSellOutputValues(
+        curve: Address,
+        spotPrice: BigInteger,
+        delta: BigInteger,
+        numItems: Int,
+    ): List<SudoSwapPurchaseValue> {
+        return getCurve(curve).getSellOutputValues(curve, spotPrice, delta, numItems)
     }
 
     override suspend fun getSellInfo(
