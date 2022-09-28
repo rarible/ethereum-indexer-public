@@ -12,6 +12,7 @@ import com.rarible.protocol.dto.OrderActivityListDto
 import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.OrderActivityMatchSideDto
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OnChainOrder
 import com.rarible.protocol.order.core.model.OrderActivityResult
@@ -23,8 +24,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.Platform.*
 import com.rarible.protocol.order.core.model.PoolActivityResult
 import com.rarible.protocol.order.core.model.PoolCreate
-import com.rarible.protocol.order.core.model.PoolDataUpdate
-import com.rarible.protocol.order.core.model.PoolHistory
+import com.rarible.protocol.order.core.model.PoolNftChange
 import com.rarible.protocol.order.core.model.PoolNftDeposit
 import com.rarible.protocol.order.core.model.PoolNftWithdraw
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
@@ -169,27 +169,29 @@ class OrderActivityConverter(
         val blockHash = history.blockHash ?: DEFAULT_BLOCK_HASH
         val blockNumber = history.blockNumber ?: DEFAULT_BLOCK_NUMBER
         val logIndex = history.logIndex ?: DEFAULT_LOG_INDEX
-        val event = history.data as PoolHistory
+        val event = history.data as PoolNftChange
         val pool = poolHistoryRepository.getPoolCreateEvent(event.hash)?.data as? PoolCreate ?: return null
+        val nftAsset = Asset(Erc721AssetType(event.collection, event.tokenIds.first()), EthUInt256.ONE)
 
         return when (event) {
             is PoolTargetNftIn -> {
+                val currencyAsset = pool.currencyAsset().copy(value = event.inputValue)
                 OrderActivityMatchDto(
                     id = history.id.toString(),
                     date = event.date,
                     left = OrderActivityMatchSideDto(
                         maker = pool.data.poolAddress,
-                        asset = assetDtoConverter.convert(pool.currencyAsset()),
+                        asset = assetDtoConverter.convert(currencyAsset),
                         hash = pool.hash,
                         type = OrderActivityMatchSideDto.Type.BID,
                     ),
                     right = OrderActivityMatchSideDto(
                         maker = event.tokenRecipient,
-                        asset = assetDtoConverter.convert(pool.nftAsset()),
+                        asset = assetDtoConverter.convert(nftAsset),
                         hash = Word.apply(ByteArray(32)),
                         type = OrderActivityMatchSideDto.Type.SELL
                     ),
-                    price = price(pool.currencyAsset(), pool.nftAsset() /* NFT */),
+                    price = price(currencyAsset, nftAsset /* NFT */),
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
@@ -204,22 +206,23 @@ class OrderActivityConverter(
                 )
             }
             is PoolTargetNftOut -> {
+                val currencyAsset = pool.currencyAsset().copy(value = event.outputValue)
                 OrderActivityMatchDto(
                     id = history.id.toString(),
                     date = event.date,
                     left = OrderActivityMatchSideDto(
                         maker = pool.data.poolAddress,
-                        asset = assetDtoConverter.convert(pool.nftAsset()),
+                        asset = assetDtoConverter.convert(nftAsset),
                         hash = pool.hash,
                         type = OrderActivityMatchSideDto.Type.SELL,
                     ),
                     right = OrderActivityMatchSideDto(
                         maker = event.recipient,
-                        asset = assetDtoConverter.convert(pool.currencyAsset()),
+                        asset = assetDtoConverter.convert(currencyAsset),
                         hash = Word.apply(ByteArray(32)),
                         type = OrderActivityMatchSideDto.Type.BID
                     ),
-                    price = price(pool.currencyAsset(), pool.nftAsset() /* NFT */),
+                    price = price(currencyAsset, nftAsset /* NFT */),
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
@@ -233,7 +236,6 @@ class OrderActivityConverter(
                     counterMarketplaceMarker = null
                 )
             }
-            is PoolDataUpdate,
             is PoolCreate,
             is PoolNftDeposit,
             is PoolNftWithdraw -> null
