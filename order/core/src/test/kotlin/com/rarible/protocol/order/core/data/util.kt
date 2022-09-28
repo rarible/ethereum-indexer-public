@@ -534,6 +534,7 @@ fun randomPoolTargetNftOut(): PoolTargetNftOut {
         recipient = randomAddress(),
         date = Instant.now(),
         source = HistorySource.values().random(),
+        outputValue = EthUInt256.of(randomInt())
     )
 }
 
@@ -555,6 +556,7 @@ fun randomPoolTargetNftIn(): PoolTargetNftIn {
         tokenRecipient = randomAddress(),
         date = Instant.now(),
         source = HistorySource.values().random(),
+        inputValue = EthUInt256.of(randomInt())
     )
 }
 
@@ -600,7 +602,8 @@ fun randomSimpleTrace(): SimpleTraceResult {
         from = randomAddress(),
         to = randomAddress(),
         input = Binary.empty(),
-        value = randomBigInt()
+        value = randomBigInt(),
+        output = Binary.empty()
     )
 }
 
@@ -613,3 +616,21 @@ fun randomHeadTransaction(): HeadTransaction {
         value = randomBigInt()
     )
 }
+
+fun randomPoolInfo(): PoolInfo {
+    return PoolInfo(
+        collection = randomAddress(),
+        curve = randomAddress(),
+        spotPrice = randomBigInt(),
+        delta = randomBigInt(),
+    )
+}
+
+fun randomSudoSwapPurchaseValue(): SudoSwapPurchaseValue {
+    return SudoSwapPurchaseValue(
+        newSpotPrice = randomBigInt(),
+        newDelta = randomBigInt(),
+        value = randomBigInt(),
+    )
+}
+

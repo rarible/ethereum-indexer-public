@@ -52,6 +52,7 @@ data class PoolTargetNftOut(
     override val date: Instant,
     override val source: HistorySource,
     val recipient: Address,
+    val outputValue: EthUInt256,
 ) : PoolNftOut(PoolHistoryType.POOL_NFT_OUT)
 
 data class PoolNftWithdraw(
@@ -69,6 +70,7 @@ data class PoolTargetNftIn(
     override val date: Instant,
     override val source: HistorySource,
     val tokenRecipient: Address,
+    val inputValue: EthUInt256,
 ) : PoolNftIn(PoolHistoryType.POOL_NFT_IN)
 
 data class PoolNftDeposit(

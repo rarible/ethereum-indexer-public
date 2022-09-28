@@ -39,6 +39,7 @@ class TraceCallServiceImpl(
                     to = headTransaction.to,
                     value = headTransaction.value,
                     input = realInput,
+                    output = null,
                 )
             )
         } else if (featureFlags.skipGetTrace) {

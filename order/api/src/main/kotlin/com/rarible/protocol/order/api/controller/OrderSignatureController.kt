@@ -32,7 +32,7 @@ class OrderSignatureController(
             )
         }
 
-        return ResponseEntity.ok(X2Y2SignResponseDto(response.data.single().input))
+        return ResponseEntity.ok(X2Y2SignResponseDto(response.data.input))
     }
 
     override suspend fun orderSignX2Y2(x2Y2OrderSignRequestDto: X2Y2OrderSignRequestDto): ResponseEntity<X2Y2SignResponseDto> {

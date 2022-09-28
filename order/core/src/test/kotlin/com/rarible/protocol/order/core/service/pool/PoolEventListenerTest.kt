@@ -21,6 +21,7 @@ import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.service.pool.listener.PoolOrderEventListener
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -38,7 +39,7 @@ internal class PoolEventListenerTest {
     private val orderRepository = mockk<OrderRepository>()
     private val orderPublisher = mockk<ProtocolOrderPublisher>()
 
-    val listener = PoolEventListener(orderRepository, orderPublisher)
+    val listener = PoolOrderEventListener(orderRepository, orderPublisher)
 
     private companion object {
         @JvmStatic

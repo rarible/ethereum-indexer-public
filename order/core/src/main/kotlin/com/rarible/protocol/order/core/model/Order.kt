@@ -758,6 +758,13 @@ val AssetType.tokenId: EthUInt256?
 val Order.isMakeFillOrder: Boolean
     get() = data.isMakeFillOrder(sell = make.type.nft)
 
+val Order.token: Address
+    get() = when {
+        make.type.nft -> make.type.token
+        take.type.nft -> take.type.token
+        else -> throw IllegalArgumentException("Can't determine nft toke for order $this")
+    }
+
 /**
  * All on-chain CryptoPunks orders have salt = 0.
  * We can't have a better salt for them, because there is nothing like "nonce"
