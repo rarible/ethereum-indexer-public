@@ -7,12 +7,16 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.PoolDataUpdate
 import com.rarible.protocol.order.core.model.PoolHistory
+import com.rarible.protocol.order.core.model.PoolHistoryType
 import com.rarible.protocol.order.core.model.PoolNftChange
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository.Indexes.HASH_DEFINITION
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -28,6 +32,8 @@ import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
+import org.springframework.data.mongodb.core.query.lte
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -80,14 +86,44 @@ class PoolHistoryRepository(
         return template.find(query, COLLECTION)
     }
 
+    suspend fun getPoolCreateEvent(hash: Word): LogEvent? {
+        val criteria = Criteria().andOperator(
+            LogEvent::data / PoolHistory::hash isEqualTo hash,
+            LogEvent::data / PoolHistory::type isEqualTo PoolHistoryType.POOL_CREAT,
+            LogEvent::status isEqualTo LogEventStatus.CONFIRMED,
+        )
+        val query = Query(criteria)
+            .with(POOL_CHANGE_SORT_ASC)
+            .withHint(HASH_DEFINITION.indexKeys)
+            .limit(1)
+
+        return template.findOne(query, LogEvent::class.java, COLLECTION).awaitFirstOrNull()
+    }
+
     suspend fun getLatestPoolNftChange(collection: Address, tokenId: EthUInt256): List<LogEvent> {
         val criteria = Criteria().andOperator(
             LogEvent::data / PoolNftChange::collection isEqualTo collection,
             LogEvent::data / PoolNftChange::tokenIds isEqualTo tokenId,
-            LogEvent::status  isEqualTo LogEventStatus.CONFIRMED,
+            LogEvent::status isEqualTo LogEventStatus.CONFIRMED,
         )
         val query = Query(criteria)
-            .with(POOL_NFT_CHANGE_SORT_DESC)
+            .with(POOL_CHANGE_SORT_DESC)
+            .withHint(Indexes.NFT_CHANGES_POOL_ITEM_IDS_DEFINITION.indexKeys)
+            .limit(1)
+
+        return template.find<LogEvent>(query, COLLECTION).collectList().awaitFirst()
+    }
+
+    suspend fun getLatestPoolDelta(hash: Word, blockNumber: Long, logIndex: Int): List<LogEvent> {
+        val criteria = Criteria().andOperator(
+            LogEvent::data / PoolDataUpdate::hash isEqualTo hash,
+            LogEvent::data / PoolDataUpdate::type isEqualTo PoolHistoryType.POOL_DELTA_UPDATE,
+            LogEvent::blockNumber lte blockNumber,
+            LogEvent::logIndex lt logIndex,
+            LogEvent::status isEqualTo LogEventStatus.CONFIRMED,
+        )
+        val query = Query(criteria)
+            .with(POOL_CHANGE_SORT_DESC)
             .withHint(Indexes.NFT_CHANGES_POOL_ITEM_IDS_DEFINITION.indexKeys)
             .limit(1)
 
@@ -129,11 +165,18 @@ class PoolHistoryRepository(
     companion object {
         const val COLLECTION = "pool_history"
 
-        val POOL_NFT_CHANGE_SORT_DESC: Sort = Sort
+        val POOL_CHANGE_SORT_DESC: Sort = Sort
             .by(
                 Sort.Order(Sort.Direction.DESC, LogEvent::blockNumber.name),
                 Sort.Order(Sort.Direction.DESC, LogEvent::logIndex.name),
                 Sort.Order(Sort.Direction.DESC, LogEvent::minorLogIndex.name),
+            )
+
+        val POOL_CHANGE_SORT_ASC: Sort = Sort
+            .by(
+                Sort.Order(Sort.Direction.ASC, LogEvent::blockNumber.name),
+                Sort.Order(Sort.Direction.ASC, LogEvent::logIndex.name),
+                Sort.Order(Sort.Direction.ASC, LogEvent::minorLogIndex.name),
             )
 
         val LOG_SORT_ASC: Sort = Sort

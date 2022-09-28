@@ -11,17 +11,18 @@ import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapTargetOutNftDetail
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
+import com.rarible.protocol.order.core.service.curve.SudoSwapCurve
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolCollectionProvider
+import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolInfoProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
@@ -33,7 +34,8 @@ class SudoSwapOutNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val nftTransferDetector: SudoSwapNftTransferDetector,
     private val sudoSwapOutNftEventCounter: RegisteredCounter,
-    private val sudoSwapPoolCollectionProvider: SudoSwapPoolCollectionProvider
+    private val sudoSwapPoolInfoProvider: SudoSwapPoolInfoProvider,
+    private val sudoSwapCurve: SudoSwapCurve,
 ): LogEventDescriptor<PoolTargetNftOut> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -43,46 +45,48 @@ class SudoSwapOutNftPairDescriptor(
     override fun getAddresses(): Mono<Collection<Address>> = emptyList<Address>().toMono()
 
     override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<PoolTargetNftOut> {
-        return mono { listOfNotNull(convert(log, transaction, index, totalLogs, Instant.ofEpochSecond(timestamp))) }.flatMapMany { it.toFlux() }
+        return mono { convert(log, transaction, index, totalLogs, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): PoolTargetNftOut {
+    private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): List<PoolTargetNftOut> {
         val details = sudoSwapEventConverter.getSwapOutNftDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
         }
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
-        val collection = sudoSwapPoolCollectionProvider.getPoolCollection(log.address())
-        return when (details) {
+        val pollInfo = sudoSwapPoolInfoProvider.gePollInfo(log.address())
+        val tokenIds = when (details) {
             is SudoSwapAnyOutNftDetail -> {
                 logger.info("Detected swapTokenForAnyNFTs method call in tx=${transaction.hash()}")
-
                 val tokenIds = nftTransferDetector.detectNftTransfers(
                     sudoSwapNftOutPairLog = log,
-                    nftCollection = collection
+                    nftCollection = pollInfo.collection
                 )
                 require(tokenIds.size == details.numberNft.toInt()) {
                     "Found tokenIds amount (${tokenIds.size}) didn't much event nft out number (${details.numberNft.toInt()}), tx=${transaction.hash()}, logIndex=${log.logIndex()}"
                 }
-                PoolTargetNftOut(
-                    hash = hash,
-                    collection = collection,
-                    tokenIds = tokenIds.map { EthUInt256.of(it) },
-                    recipient = details.nftRecipient,
-                    date = date,
-                    source = HistorySource.SUDOSWAP
-                )
+                tokenIds
             }
             is SudoSwapTargetOutNftDetail -> {
-                PoolTargetNftOut(
-                    hash = hash,
-                    collection = collection,
-                    tokenIds = details.nft.map { EthUInt256.of(it) },
-                    recipient = details.nftRecipient,
-                    date = date,
-                    source = HistorySource.SUDOSWAP
-                )
+                details.nft
             }
+        }
+        val outputValue = sudoSwapCurve.getSellOutputValues(
+            curve = pollInfo.curve,
+            spotPrice = pollInfo.spotPrice,
+            delta = pollInfo.delta,
+            numItems = tokenIds.size,
+        )
+        return tokenIds.mapIndexed { i, tokenId ->
+            PoolTargetNftOut(
+                hash = hash,
+                collection = pollInfo.collection,
+                tokenIds = listOf(EthUInt256.of(tokenId)),
+                recipient = details.nftRecipient,
+                outputValue = EthUInt256.of(outputValue[i].value),
+                date = date,
+                source = HistorySource.SUDOSWAP
+            )
         }.also { sudoSwapOutNftEventCounter.increment() }
     }
 

@@ -23,7 +23,6 @@ import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
-import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.Asset
@@ -36,6 +35,7 @@ import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -535,6 +535,16 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
 
         assertThat(result.hash).isEqualTo(OrderReduceService.EMPTY_ORDER_HASH)
         assertThat(orderRepository.findById(onChainAmmOrder.hash)).isNull()
+    }
+
+    @Test
+    fun `should apply state as final order state`() = runBlocking<Unit> {
+        val order = createOrderVersion()
+        val saved = orderUpdateService.save(order)
+        assertThat(saved.status).isNotEqualTo(OrderStatus.CANCELLED)
+        orderStateRepository.save(OrderState(saved.hash, canceled = true))
+        val updated = orderReduceService.updateOrder(order.hash)
+        assertThat(updated?.status).isEqualTo(OrderStatus.CANCELLED)
     }
 
     private suspend fun prepareStorage(status: LogEventStatus, vararg histories: OrderExchangeHistory) {
