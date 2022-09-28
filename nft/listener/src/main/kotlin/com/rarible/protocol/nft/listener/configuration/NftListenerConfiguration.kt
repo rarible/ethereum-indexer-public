@@ -6,6 +6,7 @@ import com.rarible.core.cache.EnableRaribleCache
 import com.rarible.core.daemon.job.JobDaemonWorker
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.daemon.sequential.ConsumerWorkerHolder
+import com.rarible.core.daemon.sequential.SequentialDaemonWorker
 import com.rarible.core.lockredis.EnableRaribleRedisLock
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.dto.NftCollectionEventDto
@@ -18,6 +19,7 @@ import com.rarible.protocol.nft.core.producer.InternalTopicProvider
 import com.rarible.protocol.nft.core.service.action.ActionEventHandler
 import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 import com.rarible.protocol.nft.core.service.action.ActionJobHandler
+import com.rarible.protocol.nft.listener.job.ItemOwnershipConsistencyWorker
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
@@ -113,5 +115,14 @@ class NftListenerConfiguration(
         return CommandLineRunner {
             actionConsumerWorker.start()
         }
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = ["listener.job.item-ownership-consistency.enabled"], havingValue = "true")
+    fun itemOwnershipConsistencyWorker(): SequentialDaemonWorker {
+        return ItemOwnershipConsistencyWorker(
+            properties = nftListenerProperties.itemOwnershipConsistency,
+            meterRegistry = meterRegistry
+        ).apply { start() }
     }
 }
