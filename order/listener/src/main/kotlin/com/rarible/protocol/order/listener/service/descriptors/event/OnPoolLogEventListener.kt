@@ -5,7 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.OnLogEventListener
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.model.PoolHistoryType
-import com.rarible.protocol.order.core.service.pool.PoolEventListener
+import com.rarible.protocol.order.core.service.pool.listener.PoolEventListener
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono
 @Component
 @CaptureSpan(type = SpanType.EVENT)
 class OnPoolLogEventListener(
-    private val poolEventListener: PoolEventListener
+    private val poolEventListeners: List<PoolEventListener>
 ) : OnLogEventListener {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -28,6 +28,6 @@ class OnPoolLogEventListener(
     private suspend fun onPoolEvent(logEvent: LogEvent, reverted: Boolean) {
         val dataType = logEvent.data::class.java.simpleName
         logger.info("Pool ${if (reverted) "reverted" else ""} log event: id=${logEvent.id}, dataType=$dataType")
-        poolEventListener.onPoolEvent(logEvent, reverted)
+        poolEventListeners.forEach { it.onPoolEvent(logEvent, reverted) }
     }
 }

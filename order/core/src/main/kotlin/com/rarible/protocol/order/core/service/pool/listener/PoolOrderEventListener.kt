@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.core.service.pool
+package com.rarible.protocol.order.core.service.pool.listener
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -18,11 +18,12 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
-class PoolEventListener(
+class PoolOrderEventListener(
     private val orderRepository: OrderRepository,
     private val orderPublisher: ProtocolOrderPublisher,
-) {
-    suspend fun onPoolEvent(event: LogEvent, reverted: Boolean) {
+) : PoolEventListener {
+
+    override suspend fun onPoolEvent(event: LogEvent, reverted: Boolean) {
         val poolHistory = event.data as PoolHistory
         val hash = poolHistory.hash
         val collection = orderRepository.findById(hash)
