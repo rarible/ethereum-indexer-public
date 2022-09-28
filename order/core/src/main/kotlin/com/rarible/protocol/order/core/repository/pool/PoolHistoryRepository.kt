@@ -7,10 +7,13 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.PoolDataUpdate
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.PoolHistoryType
 import com.rarible.protocol.order.core.model.PoolNftChange
+import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository.Indexes.HASH_DEFINITION
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -60,6 +63,11 @@ class PoolHistoryRepository(
 
     fun findById(id: ObjectId): Mono<LogEvent> {
         return template.findById(id, COLLECTION)
+    }
+
+    fun findByIds(ids: List<ObjectId>): Flux<LogEvent> {
+        val query = Query(LogEvent::id inValues ids)
+        return template.find(query, LogEvent::class.java, COLLECTION)
     }
 
     fun findDistinctHashes(from: Word? = null): Flow<Word> {
