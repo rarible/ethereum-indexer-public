@@ -173,7 +173,6 @@ class OrderActivityConverter(
         val blockNumber = history.blockNumber ?: DEFAULT_BLOCK_NUMBER
         val logIndex = history.logIndex ?: DEFAULT_LOG_INDEX
         val event = history.data as PoolNftChange
-        logger.info("Pool activity: ${event.hash}")
         val pool = poolHistoryRepository.getPoolCreateEvent(event.hash)?.data as? PoolCreate ?: return null
         val nftAsset = Asset(Erc721AssetType(event.collection, event.tokenIds.first()), EthUInt256.ONE)
 

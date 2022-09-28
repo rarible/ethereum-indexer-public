@@ -66,7 +66,6 @@ class ProtocolOrderPublisher(
     }
 
     suspend fun publish(event: OrderActivityDto) {
-        logger.info("Publish activity: $event")
         val key = when (event) {
             is OrderActivityMatchDto -> event.transactionHash.toString()
             is OrderActivityBidDto -> event.hash.toString()
