@@ -21,6 +21,15 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.Platform.*
+import com.rarible.protocol.order.core.model.PoolActivityResult
+import com.rarible.protocol.order.core.model.PoolCreate
+import com.rarible.protocol.order.core.model.PoolDataUpdate
+import com.rarible.protocol.order.core.model.PoolHistory
+import com.rarible.protocol.order.core.model.PoolNftDeposit
+import com.rarible.protocol.order.core.model.PoolNftWithdraw
+import com.rarible.protocol.order.core.model.PoolTargetNftIn
+import com.rarible.protocol.order.core.model.PoolTargetNftOut
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -30,17 +39,18 @@ import java.math.BigDecimal
 @CaptureSpan(type = SpanType.APP)
 class OrderActivityConverter(
     private val priceNormalizer: PriceNormalizer,
-    private val assetDtoConverter: AssetDtoConverter
+    private val assetDtoConverter: AssetDtoConverter,
+    private val poolHistoryRepository: PoolHistoryRepository
 ) {
-
     suspend fun convert(ar: OrderActivityResult, reverted: Boolean = false): OrderActivityDto? {
         return when (ar) {
-            is OrderActivityResult.History -> convertHistory(ar.value, reverted)
+            is OrderActivityResult.History -> convertExchangeHistory(ar.value, reverted)
             is OrderActivityResult.Version -> convertVersion(ar.value, reverted)
+            is PoolActivityResult.History -> convertPoolHistory(ar.value, reverted)
         }
     }
 
-    private suspend fun convertHistory(history: LogEvent, reverted: Boolean): OrderActivityDto? {
+    private suspend fun convertExchangeHistory(history: LogEvent, reverted: Boolean): OrderActivityDto? {
         val transactionHash = history.transactionHash
         val blockHash = history.blockHash ?: DEFAULT_BLOCK_HASH
         val blockNumber = history.blockNumber ?: DEFAULT_BLOCK_NUMBER
@@ -50,7 +60,6 @@ class OrderActivityConverter(
         if (data.maker == null || data.make == null || data.take == null) {
             return null
         }
-
         return when (data) {
             is OrderSideMatch -> {
                 OrderActivityMatchDto(
@@ -152,6 +161,82 @@ class OrderActivityConverter(
                     lastUpdatedAt = history.updatedAt
                 )
             }
+        }
+    }
+
+    private suspend fun convertPoolHistory(history: LogEvent, reverted: Boolean): OrderActivityDto? {
+        val transactionHash = history.transactionHash
+        val blockHash = history.blockHash ?: DEFAULT_BLOCK_HASH
+        val blockNumber = history.blockNumber ?: DEFAULT_BLOCK_NUMBER
+        val logIndex = history.logIndex ?: DEFAULT_LOG_INDEX
+        val event = history.data as PoolHistory
+        val pool = poolHistoryRepository.getPoolCreateEvent(event.hash)?.data as? PoolCreate ?: return null
+
+        return when (event) {
+            is PoolTargetNftIn -> {
+                OrderActivityMatchDto(
+                    id = history.id.toString(),
+                    date = event.date,
+                    left = OrderActivityMatchSideDto(
+                        maker = pool.data.poolAddress,
+                        asset = assetDtoConverter.convert(pool.currencyAsset()),
+                        hash = pool.hash,
+                        type = OrderActivityMatchSideDto.Type.BID,
+                    ),
+                    right = OrderActivityMatchSideDto(
+                        maker = event.tokenRecipient,
+                        asset = assetDtoConverter.convert(pool.nftAsset()),
+                        hash = Word.apply(ByteArray(32)),
+                        type = OrderActivityMatchSideDto.Type.SELL
+                    ),
+                    price = price(pool.currencyAsset(), pool.nftAsset() /* NFT */),
+                    transactionHash = transactionHash,
+                    blockHash = blockHash,
+                    blockNumber = blockNumber,
+                    logIndex = logIndex,
+                    source = convert(event.source),
+                    type = OrderActivityMatchDto.Type.ACCEPT_BID,
+                    reverted = reverted,
+                    lastUpdatedAt = history.updatedAt,
+                    priceUsd = null,
+                    marketplaceMarker = null,
+                    counterMarketplaceMarker = null
+                )
+            }
+            is PoolTargetNftOut -> {
+                OrderActivityMatchDto(
+                    id = history.id.toString(),
+                    date = event.date,
+                    left = OrderActivityMatchSideDto(
+                        maker = pool.data.poolAddress,
+                        asset = assetDtoConverter.convert(pool.nftAsset()),
+                        hash = pool.hash,
+                        type = OrderActivityMatchSideDto.Type.SELL,
+                    ),
+                    right = OrderActivityMatchSideDto(
+                        maker = event.recipient,
+                        asset = assetDtoConverter.convert(pool.currencyAsset()),
+                        hash = Word.apply(ByteArray(32)),
+                        type = OrderActivityMatchSideDto.Type.BID
+                    ),
+                    price = price(pool.currencyAsset(), pool.nftAsset() /* NFT */),
+                    transactionHash = transactionHash,
+                    blockHash = blockHash,
+                    blockNumber = blockNumber,
+                    logIndex = logIndex,
+                    source = convert(event.source),
+                    type = OrderActivityMatchDto.Type.SELL,
+                    reverted = reverted,
+                    lastUpdatedAt = history.updatedAt,
+                    priceUsd = null,
+                    marketplaceMarker = null,
+                    counterMarketplaceMarker = null
+                )
+            }
+            is PoolDataUpdate,
+            is PoolCreate,
+            is PoolNftDeposit,
+            is PoolNftWithdraw -> null
         }
     }
 

@@ -15,6 +15,7 @@ import com.rarible.protocol.order.core.model.OrderActivityResult
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
@@ -33,7 +34,8 @@ internal class OrderActivityConverterTest {
     private val primeNormalizer = PriceNormalizer(mockk())
     private val assetDtoConverter = AssetDtoConverter(primeNormalizer)
     private val orderRepository: OrderRepository = mockk()
-    private val orderActivityConverter = OrderActivityConverter(primeNormalizer, assetDtoConverter)
+    private val poolHistoryRepository = mockk<PoolHistoryRepository>()
+    private val orderActivityConverter = OrderActivityConverter(primeNormalizer, assetDtoConverter, poolHistoryRepository)
 
     companion object {
         @JvmStatic
