@@ -21,7 +21,8 @@ class PoolActivityListener(
 
     override suspend fun onPoolEvent(event: LogEvent, reverted: Boolean) {
         val activity = when (event.data as PoolHistory) {
-            is PoolTargetNftIn, is PoolTargetNftOut -> PoolActivityResult.History(event)
+            is PoolTargetNftIn,
+            is PoolTargetNftOut -> PoolActivityResult.History(event)
             is PoolDataUpdate,
             is PoolCreate,
             is PoolNftDeposit,
