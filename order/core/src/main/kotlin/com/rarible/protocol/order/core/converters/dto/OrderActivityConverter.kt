@@ -32,6 +32,7 @@ import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
@@ -42,6 +43,8 @@ class OrderActivityConverter(
     private val assetDtoConverter: AssetDtoConverter,
     private val poolHistoryRepository: PoolHistoryRepository
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     suspend fun convert(ar: OrderActivityResult, reverted: Boolean = false): OrderActivityDto? {
         return when (ar) {
             is OrderActivityResult.History -> convertExchangeHistory(ar.value, reverted)
@@ -170,6 +173,7 @@ class OrderActivityConverter(
         val blockNumber = history.blockNumber ?: DEFAULT_BLOCK_NUMBER
         val logIndex = history.logIndex ?: DEFAULT_LOG_INDEX
         val event = history.data as PoolNftChange
+        logger.info("Pool activity: ${event.hash}")
         val pool = poolHistoryRepository.getPoolCreateEvent(event.hash)?.data as? PoolCreate ?: return null
         val nftAsset = Asset(Erc721AssetType(event.collection, event.tokenIds.first()), EthUInt256.ONE)
 

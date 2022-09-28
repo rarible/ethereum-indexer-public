@@ -33,6 +33,7 @@ import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.PublishProperties
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.ItemId
+import com.rarible.protocol.order.core.model.order.logger
 import org.springframework.stereotype.Component
 
 @Component
@@ -65,6 +66,7 @@ class ProtocolOrderPublisher(
     }
 
     suspend fun publish(event: OrderActivityDto) {
+        logger.info("Publish activity: $event")
         val key = when (event) {
             is OrderActivityMatchDto -> event.transactionHash.toString()
             is OrderActivityBidDto -> event.hash.toString()
