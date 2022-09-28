@@ -9,6 +9,8 @@ import com.rarible.protocol.order.core.repository.order.ActivityOrderVersionFilt
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.model.ActivitySort
 import com.rarible.protocol.order.core.model.OrderActivityResult
+import com.rarible.protocol.order.core.model.PoolActivityResult
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
@@ -18,7 +20,8 @@ import reactor.core.publisher.Flux
 @CaptureSpan(type = SpanType.APP)
 class OrderActivityService(
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
-    private val orderVersionRepository: OrderVersionRepository
+    private val orderVersionRepository: OrderVersionRepository,
+    private val poolHistoryRepository: PoolHistoryRepository
 ) {
     suspend fun search(
         historyFilters: List<ActivityExchangeHistoryFilter>,
@@ -45,7 +48,7 @@ class OrderActivityService(
     suspend fun findByIds(ids: List<ObjectId>) : List<OrderActivityResult> {
         val histories = exchangeHistoryRepository.findByIds(ids).map { OrderActivityResult.History(it) }
         val versions = orderVersionRepository.findByIds(ids).map { OrderActivityResult.Version(it) }
-
-        return Flux.merge(histories, versions).collectList().awaitFirst()
+        val pools = poolHistoryRepository.findByIds(ids).map { PoolActivityResult.History(it) }
+        return Flux.merge(histories, versions, pools).collectList().awaitFirst()
     }
 }
