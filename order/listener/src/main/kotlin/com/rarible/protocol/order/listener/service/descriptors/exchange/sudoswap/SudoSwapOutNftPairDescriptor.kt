@@ -71,7 +71,7 @@ class SudoSwapOutNftPairDescriptor(
                 details.nft
             }
         }
-        val outputValue = sudoSwapCurve.getSellOutputValues(
+        val outputValue = sudoSwapCurve.getBuyInputValues(
             curve = pollInfo.curve,
             spotPrice = pollInfo.spotPrice,
             delta = pollInfo.delta,

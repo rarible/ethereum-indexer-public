@@ -49,7 +49,7 @@ class SudoSwapInNftPairDescriptor(
             it[index]
         }
         val poolInfo = sudoSwapPoolInfoProvider.gePollInfo(log.address())
-        val outputValue = sudoSwapCurve.getBuyInputValues(
+        val outputValue = sudoSwapCurve.getSellOutputValues(
             curve = poolInfo.curve,
             spotPrice = poolInfo.spotPrice,
             delta = poolInfo.delta,
