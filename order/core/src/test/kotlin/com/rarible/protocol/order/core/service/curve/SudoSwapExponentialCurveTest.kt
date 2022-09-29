@@ -13,18 +13,37 @@ internal class SudoSwapExponentialCurveTest {
 
     @Test
     fun getBuyInfo() = runBlocking<Unit> {
+        val spotPrice = BigInteger("3").eth()
+        val delta = BigInteger("2").eth()
+        val numItems = BigInteger("5")
+        val feeMultiplier = BigDecimal("0.005").eth()
+        val protocolFeeMultiplier = BigDecimal("0.003").eth()
+
+        val expectedInputValue = BigDecimal("187.488").eth()
+
         val result = curve.getBuyInfo(
             curve = randomAddress(),
-            spotPrice = BigInteger("3").eth(),
-            delta = BigInteger("2").eth(),
-            numItems = BigInteger("5"),
-            feeMultiplier = BigInteger("5").eth()  / BigInteger.valueOf(1000),
-            protocolFeeMultiplier = BigInteger("3").eth()  / BigInteger.valueOf(1000)
+            spotPrice = spotPrice,
+            delta = delta,
+            numItems = numItems,
+            feeMultiplier = feeMultiplier,
+            protocolFeeMultiplier = protocolFeeMultiplier
         )
         Assertions.assertThat(result.newSpotPrice).isEqualTo(BigInteger("96").eth())
         Assertions.assertThat(result.newDelta).isEqualTo(BigInteger("2").eth())
-        Assertions.assertThat(result.inputValue).isEqualTo(BigDecimal("187.488").eth())
+        Assertions.assertThat(result.inputValue).isEqualTo(expectedInputValue)
         Assertions.assertThat(result.protocolFee).isEqualTo(BigDecimal("0.558").eth())
+
+        val inputValue = curve.getBuyInputValues(
+            curve = randomAddress(),
+            spotPrice = spotPrice,
+            delta = delta,
+            numItems = numItems.intValueExact(),
+            feeMultiplier = feeMultiplier,
+            protocolFeeMultiplier = protocolFeeMultiplier
+        ).sumOf { it.value }
+
+        Assertions.assertThat(inputValue).isEqualTo(expectedInputValue)
     }
 
     @Test
@@ -43,18 +62,38 @@ internal class SudoSwapExponentialCurveTest {
 
     @Test
     fun getSellInfo() = runBlocking<Unit> {
+        val spotPrice = BigInteger("3").eth()
+        val delta = BigInteger("2").eth()
+        val numItems = BigInteger("5")
+        val feeMultiplier = BigDecimal("0.005").eth()
+        val protocolFeeMultiplier = BigDecimal("0.003").eth()
+
+        val expectedOutputValue = BigDecimal("5.766").eth()
+
         val result = curve.getSellInfo(
             curve = randomAddress(),
-            spotPrice = BigInteger("3").eth(),
-            delta = BigInteger("2").eth(),
-            numItems = BigInteger("5"),
-            feeMultiplier = BigInteger("5").eth()  / BigInteger.valueOf(1000),
-            protocolFeeMultiplier = BigInteger("3").eth()  / BigInteger.valueOf(1000)
+            spotPrice = spotPrice,
+            delta = delta,
+            numItems = numItems,
+            feeMultiplier = feeMultiplier,
+            protocolFeeMultiplier = protocolFeeMultiplier
         )
         Assertions.assertThat(result.newSpotPrice).isEqualTo(BigDecimal("0.09375").eth())
         Assertions.assertThat(result.newDelta).isEqualTo(BigInteger("2").eth())
-        Assertions.assertThat(result.outputValue).isEqualTo(BigDecimal("5.766").eth())
+        Assertions.assertThat(result.outputValue).isEqualTo(expectedOutputValue)
         Assertions.assertThat(result.protocolFee).isEqualTo(BigDecimal("0.0174375").eth())
+
+        val inputValue = curve.getSellOutputValues(
+            curve = randomAddress(),
+            spotPrice = spotPrice,
+            delta = delta,
+            numItems = numItems.intValueExact(),
+            feeMultiplier = feeMultiplier,
+            protocolFeeMultiplier = protocolFeeMultiplier
+        ).sumOf { it.value }
+
+        Assertions.assertThat(inputValue).isEqualTo(expectedOutputValue)
+
     }
 
     @Test
