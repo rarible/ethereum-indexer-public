@@ -201,7 +201,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         val (poolAddress, orderHash) = createPool(
             userSender,
             token.address(),
-            spotPrice = BigDecimal("0.001").multiply(decimal).toBigInteger(),
+            spotPrice = BigDecimal("0.01").multiply(decimal).toBigInteger(),
             delta = BigDecimal("0.001").multiply(decimal).toBigInteger(),
             tokenIds = tokenIds)
 

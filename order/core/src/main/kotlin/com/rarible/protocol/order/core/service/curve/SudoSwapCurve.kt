@@ -32,6 +32,8 @@ interface SudoSwapCurve {
         spotPrice: BigInteger,
         delta: BigInteger,
         numItems: Int,
+        feeMultiplier: BigInteger = BigInteger.ZERO,
+        protocolFeeMultiplier: BigInteger = BigInteger.ZERO
     ): List<SudoSwapPurchaseValue>  {
         val values = mutableListOf<SudoSwapPurchaseValue>()
         var lastPurchaseValue = SudoSwapPurchaseValue(
@@ -45,8 +47,8 @@ interface SudoSwapCurve {
                 spotPrice = lastPurchaseValue.newSpotPrice,
                 delta = lastPurchaseValue.newDelta,
                 numItems = BigInteger.ONE,
-                feeMultiplier = BigInteger.ZERO,
-                protocolFeeMultiplier = BigInteger.ZERO
+                feeMultiplier = feeMultiplier,
+                protocolFeeMultiplier = protocolFeeMultiplier
             )
             lastPurchaseValue = SudoSwapPurchaseValue(
                 newSpotPrice = sudoSwapBuyInfo.newSpotPrice,
@@ -63,6 +65,8 @@ interface SudoSwapCurve {
         spotPrice: BigInteger,
         delta: BigInteger,
         numItems: Int,
+        feeMultiplier: BigInteger = BigInteger.ZERO,
+        protocolFeeMultiplier: BigInteger = BigInteger.ZERO
     ): List<SudoSwapPurchaseValue> {
         val values = mutableListOf<SudoSwapPurchaseValue>()
         var lastPurchaseValue = SudoSwapPurchaseValue(
@@ -76,8 +80,8 @@ interface SudoSwapCurve {
                 spotPrice = lastPurchaseValue.newSpotPrice,
                 delta = lastPurchaseValue.newDelta,
                 numItems = BigInteger.ONE,
-                feeMultiplier = BigInteger.ZERO,
-                protocolFeeMultiplier = BigInteger.ZERO
+                feeMultiplier = feeMultiplier,
+                protocolFeeMultiplier = protocolFeeMultiplier
             )
             lastPurchaseValue = SudoSwapPurchaseValue(
                 newSpotPrice = sudoSwapBuyInfo.newSpotPrice,

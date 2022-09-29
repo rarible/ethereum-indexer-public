@@ -40,9 +40,11 @@ class CompositeSudoSwapCurve(
         curve: Address,
         spotPrice: BigInteger,
         delta: BigInteger,
-        numItems: Int
+        numItems: Int,
+        feeMultiplier: BigInteger,
+        protocolFeeMultiplier: BigInteger
     ): List<SudoSwapPurchaseValue> {
-        return getCurve(curve).getBuyInputValues(curve, spotPrice, delta, numItems)
+        return getCurve(curve).getBuyInputValues(curve, spotPrice, delta, numItems, feeMultiplier, protocolFeeMultiplier)
     }
 
     override suspend fun getSellOutputValues(
@@ -50,8 +52,10 @@ class CompositeSudoSwapCurve(
         spotPrice: BigInteger,
         delta: BigInteger,
         numItems: Int,
+        feeMultiplier: BigInteger,
+        protocolFeeMultiplier: BigInteger
     ): List<SudoSwapPurchaseValue> {
-        return getCurve(curve).getSellOutputValues(curve, spotPrice, delta, numItems)
+        return getCurve(curve).getSellOutputValues(curve, spotPrice, delta, numItems, feeMultiplier, protocolFeeMultiplier)
     }
 
     override suspend fun getSellInfo(
