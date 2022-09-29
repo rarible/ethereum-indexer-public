@@ -18,6 +18,7 @@ import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolInfoProv
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import org.springframework.stereotype.Service
@@ -54,13 +55,13 @@ class SudoSwapOutNftPairDescriptor(
             it[index]
         }
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
-        val pollInfo = sudoSwapPoolInfoProvider.gePollInfo(log.address())
+        val poolInfo = sudoSwapPoolInfoProvider.gePollInfo(log.address())
         val tokenIds = when (details) {
             is SudoSwapAnyOutNftDetail -> {
                 logger.info("Detected swapTokenForAnyNFTs method call in tx=${transaction.hash()}")
                 val tokenIds = nftTransferDetector.detectNftTransfers(
                     sudoSwapNftOutPairLog = log,
-                    nftCollection = pollInfo.collection
+                    nftCollection = poolInfo.collection
                 )
                 require(tokenIds.size == details.numberNft.toInt()) {
                     "Found tokenIds amount (${tokenIds.size}) didn't much event nft out number (${details.numberNft.toInt()}), tx=${transaction.hash()}, logIndex=${log.logIndex()}"
@@ -72,15 +73,17 @@ class SudoSwapOutNftPairDescriptor(
             }
         }
         val outputValue = sudoSwapCurve.getBuyInputValues(
-            curve = pollInfo.curve,
-            spotPrice = pollInfo.spotPrice,
-            delta = pollInfo.delta,
+            curve = poolInfo.curve,
+            spotPrice = poolInfo.spotPrice,
+            delta = poolInfo.delta,
             numItems = tokenIds.size,
+            feeMultiplier = poolInfo.fee,
+            protocolFeeMultiplier = poolInfo.protocolFee,
         )
         return tokenIds.mapIndexed { i, tokenId ->
             PoolTargetNftOut(
                 hash = hash,
-                collection = pollInfo.collection,
+                collection = poolInfo.collection,
                 tokenIds = listOf(EthUInt256.of(tokenId)),
                 recipient = details.nftRecipient,
                 outputValue = EthUInt256.of(outputValue[i].value),
@@ -91,6 +94,6 @@ class SudoSwapOutNftPairDescriptor(
     }
 
     private companion object {
-        val logger = LoggerFactory.getLogger(SudoSwapOutNftPairDescriptor::class.java)
+        val logger: Logger = LoggerFactory.getLogger(SudoSwapOutNftPairDescriptor::class.java)
     }
 }

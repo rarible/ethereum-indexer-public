@@ -623,6 +623,8 @@ fun randomPoolInfo(): PoolInfo {
         curve = randomAddress(),
         spotPrice = randomBigInt(),
         delta = randomBigInt(),
+        fee = randomBigInt(),
+        protocolFee = randomBigInt(),
     )
 }
 

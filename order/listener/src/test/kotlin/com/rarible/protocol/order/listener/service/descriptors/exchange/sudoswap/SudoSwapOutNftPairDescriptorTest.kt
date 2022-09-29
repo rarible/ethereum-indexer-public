@@ -69,7 +69,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
             ""
         )
         coEvery { sudoSwapPoolInfoProvider.gePollInfo(log.address()) } returns poolInfo
-        coEvery { sudoSwapCurve.getBuyInputValues(poolInfo.curve, poolInfo.spotPrice, poolInfo.delta, 1) } returns listOf(purchaseValue)
+        coEvery { sudoSwapCurve.getBuyInputValues(poolInfo.curve, poolInfo.spotPrice, poolInfo.delta, 1, poolInfo.fee, poolInfo.protocolFee) } returns listOf(purchaseValue)
 
         val nftOut = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
         assertThat(nftOut).isInstanceOf(PoolTargetNftOut::class.java)
@@ -107,7 +107,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
         val expectedTokenId = randomBigInt()
         coEvery { sudoSwapPoolInfoProvider.gePollInfo(log.address()) } returns poolInfo
         coEvery { nftTransferDetector.detectNftTransfers(log, poolInfo.collection) } returns listOf(expectedTokenId)
-        coEvery { sudoSwapCurve.getBuyInputValues(poolInfo.curve, poolInfo.spotPrice, poolInfo.delta, 1) } returns listOf(purchaseValue)
+        coEvery { sudoSwapCurve.getBuyInputValues(poolInfo.curve, poolInfo.spotPrice, poolInfo.delta, 1, poolInfo.fee, poolInfo.protocolFee) } returns listOf(purchaseValue)
 
         val nftOut = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
 

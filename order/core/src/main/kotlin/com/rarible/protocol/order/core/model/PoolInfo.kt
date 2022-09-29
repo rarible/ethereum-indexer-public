@@ -8,4 +8,6 @@ data class PoolInfo(
     val curve: Address,
     val spotPrice: BigInteger,
     val delta: BigInteger,
+    val fee: BigInteger,
+    val protocolFee: BigInteger,
 )

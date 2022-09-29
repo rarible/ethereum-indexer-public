@@ -54,6 +54,8 @@ class SudoSwapInNftPairDescriptor(
             spotPrice = poolInfo.spotPrice,
             delta = poolInfo.delta,
             numItems = details.tokenIds.size,
+            feeMultiplier = poolInfo.fee,
+            protocolFeeMultiplier = poolInfo.protocolFee,
         )
         return details.tokenIds.mapIndexed { i, tokenId ->
             PoolTargetNftIn(

@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.service.sudoswap.SudoSwapProtocolFeeProvider
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
@@ -26,11 +27,13 @@ internal class SudoSwapPoolInfoProviderTest {
     private val sender = mockk<ReadOnlyMonoTransactionSender>()
     private val sudoSwapEventConverter = mockk<SudoSwapEventConverter>()
     private val orderRepository = mockk<OrderRepository>()
+    private val sudoSwapProtocolFeeProvider = mockk<SudoSwapProtocolFeeProvider>()
 
     private val sudoSwapPoolCollectionProvider = SudoSwapPoolInfoProvider(
         sender = sender,
         sudoSwapEventConverter = sudoSwapEventConverter,
-        orderRepository = orderRepository
+        orderRepository = orderRepository,
+        sudoSwapProtocolFeeProvider = sudoSwapProtocolFeeProvider
     )
 
     @Test
@@ -39,16 +42,20 @@ internal class SudoSwapPoolInfoProviderTest {
         val orderHash = Word.apply(randomWord())
         val collection = randomAddress()
         val data = createOrderSudoSwapAmmDataV1()
+        val protocolFee = randomBigInt()
         val order = createSellOrder().copy(make = randomAmmNftAsset(collection), data = data, type = OrderType.AMM)
 
         every { sudoSwapEventConverter.getPoolHash(poolAddress) } returns orderHash
         coEvery { orderRepository.findById(orderHash) } returns order
+        coEvery { sudoSwapProtocolFeeProvider.getProtocolFeeMultiplier(data.factory) } returns protocolFee
 
         val result = sudoSwapPoolCollectionProvider.gePollInfo(poolAddress)
         assertThat(result.collection).isEqualTo(collection)
         assertThat(result.curve).isEqualTo(data.bondingCurve)
         assertThat(result.spotPrice).isEqualTo(data.spotPrice)
         assertThat(result.delta).isEqualTo(data.delta)
+        assertThat(result.fee).isEqualTo(data.fee)
+        assertThat(result.protocolFee).isEqualTo(protocolFee)
     }
 
     @Test
@@ -60,9 +67,13 @@ internal class SudoSwapPoolInfoProviderTest {
         val curve = randomAddress()
         val spotPrice = randomBigInt()
         val delta = randomBigInt()
+        val factory = randomAddress()
+        val fee = randomBigInt()
+        val protocolFee = randomBigInt()
 
         every { sudoSwapEventConverter.getPoolHash(poolAddress) } returns orderHash
         coEvery { orderRepository.findById(orderHash) } returns null
+        coEvery { sudoSwapProtocolFeeProvider.getProtocolFeeMultiplier(factory) } returns protocolFee
 
         coEvery {
             sender.call(Transaction(
@@ -112,10 +123,36 @@ internal class SudoSwapPoolInfoProviderTest {
             ))
         } returns Mono.just(AddressType.encode(curve))
 
+        coEvery {
+            sender.call(Transaction(
+                poolAddress,
+                null,
+                null,
+                null,
+                null,
+                LSSVMPairV1.factorySignature().id(),
+                null
+            ))
+        } returns Mono.just(AddressType.encode(factory))
+
+        coEvery {
+            sender.call(Transaction(
+                poolAddress,
+                null,
+                null,
+                null,
+                null,
+                LSSVMPairV1.feeSignature().id(),
+                null
+            ))
+        } returns Mono.just(Uint256Type.encode(fee))
+
         val result = sudoSwapPoolCollectionProvider.gePollInfo(poolAddress)
         assertThat(result.collection).isEqualTo(collection)
         assertThat(result.curve).isEqualTo(curve)
         assertThat(result.spotPrice).isEqualTo(spotPrice)
         assertThat(result.delta).isEqualTo(delta)
+        assertThat(result.fee).isEqualTo(fee)
+        assertThat(result.protocolFee).isEqualTo(protocolFee)
     }
 }
