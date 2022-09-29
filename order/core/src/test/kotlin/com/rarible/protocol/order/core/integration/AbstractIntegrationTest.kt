@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
@@ -71,6 +72,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @Autowired
     protected lateinit var sudoSwapAddresses: SudoSwapAddresses
+
+    @Autowired
+    protected lateinit var orderStateRepository: OrderStateRepository
 
     private fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.block()

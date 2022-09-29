@@ -65,6 +65,7 @@ class GethTransactionTraceProvider(
         val to: Address?,
         val input: Binary,
         val value: String?,
+        val output: Binary?,
         val calls: List<TraceResult> = emptyList()
     ) {
         fun findTraces(to: Address, ids: Set<Binary>): List<TraceResult> {
@@ -80,7 +81,13 @@ class GethTransactionTraceProvider(
         }
 
         fun toSimpleTraceResult(): SimpleTraceResult {
-            return SimpleTraceResult(from, to, input, value?.fromHexToBigInteger())
+            return SimpleTraceResult(
+                from = from,
+                to = to,
+                input = input,
+                value = value?.fromHexToBigInteger(),
+                output = output
+            )
         }
     }
 }

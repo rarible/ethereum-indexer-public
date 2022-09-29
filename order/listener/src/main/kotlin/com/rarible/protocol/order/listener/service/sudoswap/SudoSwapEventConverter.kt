@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.sudoswap
 
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.LSSVMPairFactoryV1
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.LSSVMPairV1
 import com.rarible.protocol.order.core.misc.methodSignatureId
@@ -82,6 +83,7 @@ class SudoSwapEventConverter(
             LSSVMPairV1.swapTokenForAnyNFTsSignature().id()
         )
         return inputs.mapNotNull {
+            val outputValue = it.output?.toBigInteger()?.let { output -> EthUInt256.of(output) } ?: EthUInt256.ZERO
             when (it.input.methodSignatureId()) {
                 LSSVMPairV1.swapTokenForAnyNFTsSignature().id() -> {
                     val decoded = LSSVMPairV1.swapTokenForAnyNFTsSignature().`in`().decode(it.input, 4)
@@ -89,6 +91,7 @@ class SudoSwapEventConverter(
                         numberNft = decoded.value()._1(),
                         maxExpectedTokenInput = decoded.value()._2(),
                         nftRecipient = decoded.value()._3(),
+                        outputValue = outputValue,
                     )
                 }
                 LSSVMPairV1.swapTokenForSpecificNFTsSignature().id() -> {
@@ -97,6 +100,7 @@ class SudoSwapEventConverter(
                         nft = decoded.value()._1().toList(),
                         maxExpectedTokenInput = decoded.value()._2(),
                         nftRecipient = decoded.value()._3(),
+                        outputValue = outputValue,
                     )
                 }
                 else -> null

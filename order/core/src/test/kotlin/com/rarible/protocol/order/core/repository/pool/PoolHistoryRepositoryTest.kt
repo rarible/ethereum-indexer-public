@@ -15,6 +15,7 @@ import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
+import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.PoolNftChange
 import com.rarible.protocol.order.core.model.PoolNftWithdraw
@@ -146,7 +147,40 @@ internal class PoolHistoryRepositoryTest {
     }
 
     @Test
-    fun `should get all disctic hashes from pool history`() = runBlocking<Unit> {
+    fun `get pool creat event`() = runBlocking<Unit> {
+        val hash = Word.apply(randomWord())
+        save(
+            history = randomSellOnChainAmmOrder().copy(hash = hash),
+            blockNumber = 1,
+            logIndex = 1,
+            minorLogIndex = 0
+        )
+        save(
+            history = randomSellOnChainAmmOrder(),
+            blockNumber = 2,
+            logIndex = 1,
+            minorLogIndex = 0
+        )
+        save(
+            history = randomPoolTargetNftOut().copy(hash = hash),
+            blockNumber = 2,
+            logIndex = 1,
+            minorLogIndex = 0
+        )
+        save(
+            history = randomPoolTargetNftOut().copy(hash = hash),
+            blockNumber = 3,
+            logIndex = 1,
+            minorLogIndex = 0
+        )
+        val event = poolHistoryRepository.getPoolCreateEvent(hash)
+        assertThat(event).isNotNull
+        assertThat(event?.data).isInstanceOf(PoolCreate::class.java)
+        assertThat((event?.data as PoolCreate).hash).isEqualTo(hash)
+    }
+
+    @Test
+    fun `should get all distinct hashes from pool history`() = runBlocking<Unit> {
         val hashes = listOf(Word.apply(randomWord()), Word.apply(randomWord()), Word.apply(randomWord()))
         (1..10).forEach { index ->
             for (hash in hashes) {
@@ -163,7 +197,7 @@ internal class PoolHistoryRepositoryTest {
     }
 
     @Test
-    fun `should get all disctic hashes from target hash`() = runBlocking<Unit> {
+    fun `should get all distinct hashes from target hash`() = runBlocking<Unit> {
         val hash1 = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000001")
         val hash2 = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000002")
         val hashes = listOf(hash1, hash2)
