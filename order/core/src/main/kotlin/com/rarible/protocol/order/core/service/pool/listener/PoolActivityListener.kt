@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.service.pool.listener
 
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.core.model.PoolActivityResult
 import com.rarible.protocol.order.core.model.PoolCreate
@@ -19,7 +20,8 @@ class PoolActivityListener(
     private val orderActivityConverter: OrderActivityConverter
 ) : PoolEventListener {
 
-    override suspend fun onPoolEvent(event: LogEvent, reverted: Boolean) {
+    override suspend fun onPoolEvent(event: LogEvent) {
+        val reverted = event.status == LogEventStatus.REVERTED
         val activity = when (event.data as PoolHistory) {
             is PoolTargetNftIn,
             is PoolTargetNftOut -> PoolActivityResult.History(event)
