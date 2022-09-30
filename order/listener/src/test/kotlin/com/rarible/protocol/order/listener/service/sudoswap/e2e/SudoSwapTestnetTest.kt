@@ -5,7 +5,7 @@ import com.rarible.protocol.dto.OrderSudoSwapAmmDataV1Dto
 import com.rarible.protocol.dto.SudoSwapCurveTypeDto
 import com.rarible.protocol.dto.SudoSwapPoolTypeDto
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
-import com.rarible.protocol.order.core.service.curve.SudoSwapCurve.Companion.eth
+import com.rarible.protocol.order.core.service.curve.PoolCurve.Companion.eth
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.delay
 import org.assertj.core.api.Assertions.assertThat

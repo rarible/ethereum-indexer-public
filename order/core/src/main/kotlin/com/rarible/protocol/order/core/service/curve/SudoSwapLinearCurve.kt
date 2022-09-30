@@ -7,7 +7,7 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 @Component
-class SudoSwapLinearCurve : SudoSwapCurve {
+class SudoSwapLinearCurve : PoolCurve {
     override suspend fun getBuyInfo(
         curve: Address,
         spotPrice: BigInteger,
@@ -35,9 +35,9 @@ class SudoSwapLinearCurve : SudoSwapCurve {
         // because we have n instances of buy spot price, and then we sum up from delta to (n-1)*delta
         val inputValue = numItems * buySpotPrice + (numItems * (numItems - BigInteger.ONE) * delta) / BigInteger.valueOf(2);
         // Account for the protocol fee, a flat percentage of the buy amount
-        val protocolFee = (inputValue * protocolFeeMultiplier) / SudoSwapCurve.WAD
+        val protocolFee = (inputValue * protocolFeeMultiplier) / PoolCurve.WAD
         // Account for the trade fee, only for Trade pools
-        val tradeFee = (inputValue * feeMultiplier) / SudoSwapCurve.WAD
+        val tradeFee = (inputValue * feeMultiplier) / PoolCurve.WAD
         return SudoSwapBuyInfo(
             newSpotPrice = newSpotPrice,
             // Keep delta the same
@@ -79,9 +79,9 @@ class SudoSwapLinearCurve : SudoSwapCurve {
         // This is equal to n*(spot price) - (delta)*(n*(n-1))/2
         val outputValue = (newNumItems * spotPrice) - (newNumItems * (newNumItems - BigInteger.ONE) * delta) / BigInteger.valueOf(2);
         // Account for the protocol fee, a flat percentage of the sell amount
-        val protocolFee = (outputValue * protocolFeeMultiplier) / SudoSwapCurve.WAD
+        val protocolFee = (outputValue * protocolFeeMultiplier) / PoolCurve.WAD
         // Account for the trade fee, only for Trade pools
-        val tradeFee = (outputValue * feeMultiplier) / SudoSwapCurve.WAD
+        val tradeFee = (outputValue * feeMultiplier) / PoolCurve.WAD
         return SudoSwapSellInfo(
             newSpotPrice = newSpotPrice,
             newDelta = delta,

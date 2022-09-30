@@ -765,6 +765,12 @@ val Order.token: Address
         else -> throw IllegalArgumentException("Can't determine nft toke for order $this")
     }
 
+val Order.currency: AssetType
+    get() = when {
+        make.type.nft -> take.type
+        else -> make.type
+    }
+
 /**
  * All on-chain CryptoPunks orders have salt = 0.
  * We can't have a better salt for them, because there is nothing like "nonce"

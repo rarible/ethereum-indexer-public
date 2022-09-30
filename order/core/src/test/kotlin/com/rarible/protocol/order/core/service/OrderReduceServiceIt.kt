@@ -41,7 +41,7 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.PoolHistory
-import com.rarible.protocol.order.core.service.curve.SudoSwapCurve.Companion.eth
+import com.rarible.protocol.order.core.service.curve.PoolCurve.Companion.eth
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst

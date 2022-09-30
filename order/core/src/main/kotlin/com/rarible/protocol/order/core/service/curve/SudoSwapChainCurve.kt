@@ -11,7 +11,7 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
 import java.math.BigInteger
 
 @Component
-class SudoSwapChainCurve(ethereum: MonoEthereum) : SudoSwapCurve {
+class SudoSwapChainCurve(ethereum: MonoEthereum) : PoolCurve {
     private val sender = ReadOnlyMonoTransactionSender(ethereum, Address.ZERO())
 
     override suspend fun getBuyInfo(

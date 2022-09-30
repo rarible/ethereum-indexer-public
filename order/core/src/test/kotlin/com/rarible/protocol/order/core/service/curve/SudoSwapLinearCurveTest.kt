@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.service.curve
 
 import com.rarible.core.test.data.randomAddress
-import com.rarible.protocol.order.core.service.curve.SudoSwapCurve.Companion.eth
+import com.rarible.protocol.order.core.service.curve.PoolCurve.Companion.eth
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

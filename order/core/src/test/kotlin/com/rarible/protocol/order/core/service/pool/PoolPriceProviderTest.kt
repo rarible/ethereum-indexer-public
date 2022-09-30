@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.service.pool
 
 import com.rarible.core.test.data.randomBigInt
-import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.createSellOrder
@@ -11,8 +10,8 @@ import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.data.randomEth
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.service.PriceNormalizer
-import com.rarible.protocol.order.core.service.curve.SudoSwapCurve
-import com.rarible.protocol.order.core.service.curve.SudoSwapCurve.Companion.eth
+import com.rarible.protocol.order.core.service.curve.PoolCurve
+import com.rarible.protocol.order.core.service.curve.PoolCurve.Companion.eth
 import com.rarible.protocol.order.core.service.sudoswap.SudoSwapProtocolFeeProvider
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -22,7 +21,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 internal class PoolPriceProviderTest {
-    private val sudoSwapCurve = mockk<SudoSwapCurve>()
+    private val sudoSwapCurve = mockk<PoolCurve>()
     private val sudoSwapProtocolFeeProvider = mockk<SudoSwapProtocolFeeProvider>()
     private val normalizer = PriceNormalizer(mockk())
 
