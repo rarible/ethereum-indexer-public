@@ -1,12 +1,12 @@
 package com.rarible.protocol.order.api.service.order
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.LazyErc1155Dto
 import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.OrderFormDto
-import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
@@ -21,27 +21,28 @@ import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
-import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.PoolNftItemIds
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderAmmData
-import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.order.OrderFilter
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
-import com.rarible.protocol.order.core.model.PoolNftChange
-import com.rarible.protocol.order.core.model.PoolNftIn
-import com.rarible.protocol.order.core.model.PoolNftOut
+import com.rarible.protocol.order.core.model.PoolTradePrice
+import com.rarible.protocol.order.core.model.currency
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
+import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.core.service.pool.PoolOwnershipService
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
@@ -56,9 +57,10 @@ class OrderService(
     private val poolOwnershipService: PoolOwnershipService,
     private val orderValidator: OrderValidator,
     private val priceUpdateService: PriceUpdateService,
-    private val raribleOrderSaveMetric: RegisteredCounter
+    private val raribleOrderSaveMetric: RegisteredCounter,
+    private val poolCurve: PoolCurve,
+    private val poolInfoProvider: PoolInfoProvider
 ) {
-
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
         val maker = form.maker
         val make = checkLazyNftMake(maker, AssetConverter.convert(form.make))
@@ -116,16 +118,40 @@ class OrderService(
     }
 
     suspend fun getAmmOrderHoldItemIds(hash: Word, continuation: String?, size: Int): PoolNftItemIds {
-        val order = orderRepository.findById(hash) ?: throw EntityNotFoundApiException("Order", hash)
-        if (order.type != OrderType.AMM) throw OrderDataException("Order $hash type is not AMM")
-        if (order.data !is OrderAmmData) throw OrderDataException("Order $hash data is no AMM")
-        val pollAddress = (order.data as OrderAmmData).poolAddress
+        val (order, data) = getAmmOrder(hash)
+        val pollAddress = data.poolAddress
         val collection = when {
             order.make.type.nft -> order.make.type.token
             order.take.type.nft -> order.take.type.token
             else -> throw OrderDataException("AMM order $hash has not nft asset")
         }
         return poolOwnershipService.getPoolItemIds(pollAddress, collection, continuation, size)
+    }
+
+    suspend fun getAmmBuyInfo(hash: Word, nftCount: Int): List<PoolTradePrice> {
+        val (order, _) = getAmmOrder(hash)
+        val info = poolInfoProvider.gePollInfo(order) ?: error("Unexpectedly can't get pool info from $hash")
+        val inputValues = poolCurve.getBuyInputValues(
+            curve = info.curve,
+            spotPrice = info.protocolFee,
+            delta = info.delta,
+            numItems = nftCount,
+            feeMultiplier = info.fee,
+            protocolFeeMultiplier = info.protocolFee
+        )
+        return coroutineScope {
+            inputValues.map { inputValue ->
+                val value = inputValue.value
+                val currency = order.currency
+                async {
+                    PoolTradePrice(
+                        price = value,
+                        priceValue = priceUpdateService.getAssetValue(currency, value),
+                        priceUsd = priceUpdateService.getAssetUsdValue(currency, value, nowMillis()),
+                    )
+                }
+            }.awaitAll()
+        }
     }
 
     suspend fun getAmmOrdersByItemId(
@@ -136,6 +162,13 @@ class OrderService(
     ): List<Order> {
         val result = poolOwnershipService.getPoolHashesByItemId(contract, tokenId)
         return orderRepository.findAll(result).toList()
+    }
+
+    private suspend fun getAmmOrder(hash: Word): Pair<Order, OrderAmmData> {
+        val order = orderRepository.findById(hash) ?: throw EntityNotFoundApiException("Order", hash)
+        if (order.type != OrderType.AMM) throw OrderDataException("Order $hash type is not AMM")
+        if (order.data !is OrderAmmData) throw OrderDataException("Order $hash data is no AMM")
+        return order to order.data as OrderAmmData
     }
 
     private suspend fun checkLazyNftMake(maker: Address, asset: Asset): Asset {

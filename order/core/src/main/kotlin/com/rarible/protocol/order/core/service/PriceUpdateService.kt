@@ -39,6 +39,10 @@ class PriceUpdateService(
         return usdValue(usdRate, normalized)
     }
 
+    suspend fun getAssetValue(assetType: AssetType, value: BigInteger): BigDecimal {
+        return priceNormalizer.normalize(assetType, value)
+    }
+
     suspend fun getAssetsUsdValue(make: Asset, take: Asset, at: Instant): OrderUsdValue? {
         val normalizedMake = priceNormalizer.normalize(make)
         val normalizedTake = priceNormalizer.normalize(take)

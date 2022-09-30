@@ -9,13 +9,13 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
-internal class CompositeSudoSwapCurveTest {
+internal class CompositePoolCurveTest {
     private val addresses = SudoSwapAddresses(randomAddress(), randomAddress(), randomAddress())
     private val sudoSwapLinearCurve = mockk<SudoSwapLinearCurve>()
     private val sudoSwapExponentialCurve = mockk<SudoSwapExponentialCurve>()
     private val sudoSwapChainCurve = mockk<SudoSwapChainCurve>()
 
-    private val curve = CompositeSudoSwapCurve(
+    private val curve = CompositePoolCurve(
         sudoSwapAddresses = addresses,
         sudoSwapLinearCurve = sudoSwapLinearCurve,
         sudoSwapExponentialCurve = sudoSwapExponentialCurve,

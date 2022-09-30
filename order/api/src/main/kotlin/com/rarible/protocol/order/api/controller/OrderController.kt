@@ -2,6 +2,7 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.AmmTradeInfoDto
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.HoldNftItemIdsDto
 import com.rarible.protocol.dto.LegacyOrderFormDto
@@ -23,6 +24,7 @@ import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.continuation.page.PageSize
+import com.rarible.protocol.order.core.converters.dto.AmmTradeInfoDtoConverter
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.AssetTypeDtoConverter
 import com.rarible.protocol.order.core.converters.dto.BidStatusReverseConverter
@@ -196,6 +198,14 @@ class OrderController(
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
+    }
+
+    override suspend fun getAmmBuyInfo(
+        hash: String,
+        numNFTs: Int
+    ): ResponseEntity<AmmTradeInfoDto> {
+        val result = orderService.getAmmBuyInfo(Word.apply(hash), numNFTs)
+        return ResponseEntity.ok(AmmTradeInfoDtoConverter.convert(result))
     }
 
     override suspend fun getAmmOrderItemIds(

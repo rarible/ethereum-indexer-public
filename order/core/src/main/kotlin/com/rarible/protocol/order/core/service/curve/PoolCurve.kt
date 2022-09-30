@@ -7,7 +7,7 @@ import scalether.domain.Address
 import java.math.BigDecimal
 import java.math.BigInteger
 
-interface SudoSwapCurve {
+interface PoolCurve {
 
     suspend fun getSellInfo(
         curve: Address,
