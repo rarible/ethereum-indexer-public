@@ -13,7 +13,7 @@ import com.rarible.protocol.gateway.api.client.OrderControllerApi
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.SudoSwapBuyInfo
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
-import com.rarible.protocol.order.core.service.curve.SudoSwapCurve
+import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
@@ -369,7 +369,7 @@ abstract class AbstractSudoSwapTestnetTest {
         throw IllegalStateException("Can't geet Tx $value")
     }
 
-    fun SudoSwapBuyInfo.price(): BigDecimal = this.inputValue.toBigDecimal().divide(SudoSwapCurve.WAD.toBigDecimal()).stripTrailingZeros()
+    fun SudoSwapBuyInfo.price(): BigDecimal = this.inputValue.toBigDecimal().divide(PoolCurve.WAD.toBigDecimal()).stripTrailingZeros()
 
     private fun createEthereumOrderApi(endpoint: String): OrderControllerApi {
         return OrderControllerApi(ApiClient().setBasePath(endpoint))

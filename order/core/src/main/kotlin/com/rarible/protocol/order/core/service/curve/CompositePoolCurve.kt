@@ -11,12 +11,12 @@ import java.math.BigInteger
 
 @Component
 @Primary
-class CompositeSudoSwapCurve(
+class CompositePoolCurve(
     private val sudoSwapLinearCurve: SudoSwapLinearCurve,
     private val sudoSwapExponentialCurve: SudoSwapExponentialCurve,
     private val sudoSwapChainCurve: SudoSwapChainCurve,
     private val sudoSwapAddresses: SudoSwapAddresses,
-) : SudoSwapCurve {
+) : PoolCurve {
 
     override suspend fun getBuyInfo(
         curve: Address,
@@ -76,7 +76,7 @@ class CompositeSudoSwapCurve(
         )
     }
 
-    private fun getCurve(address: Address): SudoSwapCurve {
+    private fun getCurve(address: Address): PoolCurve {
         return when (address) {
             sudoSwapAddresses.linearCurveV1 -> sudoSwapLinearCurve
             sudoSwapAddresses.exponentialCurveV1 -> sudoSwapExponentialCurve

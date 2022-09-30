@@ -11,10 +11,10 @@ import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapTargetOutNftDetail
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
-import com.rarible.protocol.order.core.service.curve.SudoSwapCurve
+import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolInfoProvider
+import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -35,8 +35,8 @@ class SudoSwapOutNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val nftTransferDetector: SudoSwapNftTransferDetector,
     private val sudoSwapOutNftEventCounter: RegisteredCounter,
-    private val sudoSwapPoolInfoProvider: SudoSwapPoolInfoProvider,
-    private val sudoSwapCurve: SudoSwapCurve,
+    private val sudoSwapPoolInfoProvider: PoolInfoProvider,
+    private val poolCurve: PoolCurve,
 ): LogEventDescriptor<PoolTargetNftOut> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -55,7 +55,7 @@ class SudoSwapOutNftPairDescriptor(
             it[index]
         }
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
-        val poolInfo = sudoSwapPoolInfoProvider.gePollInfo(log.address())
+        val poolInfo = sudoSwapPoolInfoProvider.gePollInfo(hash, log.address())
         val tokenIds = when (details) {
             is SudoSwapAnyOutNftDetail -> {
                 logger.info("Detected swapTokenForAnyNFTs method call in tx=${transaction.hash()}")
@@ -72,7 +72,7 @@ class SudoSwapOutNftPairDescriptor(
                 details.nft
             }
         }
-        val outputValue = sudoSwapCurve.getBuyInputValues(
+        val outputValue = poolCurve.getBuyInputValues(
             curve = poolInfo.curve,
             spotPrice = poolInfo.spotPrice,
             delta = poolInfo.delta,

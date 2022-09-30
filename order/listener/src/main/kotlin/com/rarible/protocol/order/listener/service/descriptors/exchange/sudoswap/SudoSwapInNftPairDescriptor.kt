@@ -9,9 +9,9 @@ import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SwapNFTInPairEve
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
-import com.rarible.protocol.order.core.service.curve.SudoSwapCurve
+import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolInfoProvider
+import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -29,8 +29,8 @@ import scalether.domain.response.Transaction
 class SudoSwapInNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapInNftEventCounter: RegisteredCounter,
-    private val sudoSwapPoolInfoProvider: SudoSwapPoolInfoProvider,
-    private val sudoSwapCurve: SudoSwapCurve,
+    private val sudoSwapPoolInfoProvider: PoolInfoProvider,
+    private val sudoSwapCurve: PoolCurve,
 ): LogEventDescriptor<PoolTargetNftIn> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -48,7 +48,8 @@ class SudoSwapInNftPairDescriptor(
             assert(it.size == totalLogs)
             it[index]
         }
-        val poolInfo = sudoSwapPoolInfoProvider.gePollInfo(log.address())
+        val hash = sudoSwapEventConverter.getPoolHash(log.address())
+        val poolInfo = sudoSwapPoolInfoProvider.gePollInfo(hash, log.address())
         val outputValue = sudoSwapCurve.getSellOutputValues(
             curve = poolInfo.curve,
             spotPrice = poolInfo.spotPrice,

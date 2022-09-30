@@ -8,11 +8,11 @@ import com.rarible.protocol.order.core.data.randomPoolInfo
 import com.rarible.protocol.order.core.data.randomSudoSwapPurchaseValue
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
-import com.rarible.protocol.order.core.service.curve.SudoSwapCurve
+import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolInfoProvider
+import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -31,9 +31,9 @@ import java.time.temporal.ChronoUnit
 
 internal class SudoSwapInNftPairDescriptorTest {
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
-    private val sudoSwapPoolInfoProvider = mockk<SudoSwapPoolInfoProvider>()
+    private val sudoSwapPoolInfoProvider = mockk<PoolInfoProvider>()
     private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
-    private val sudoSwapCurve = mockk<SudoSwapCurve>()
+    private val sudoSwapCurve = mockk<PoolCurve>()
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
 
     private val descriptor = SudoSwapInNftPairDescriptor(
@@ -62,7 +62,9 @@ internal class SudoSwapInNftPairDescriptorTest {
             ),
             ""
         )
-        coEvery { sudoSwapPoolInfoProvider.gePollInfo(log.address()) } returns poolInfo
+        val orderHash = sudoSwapEventConverter.getPoolHash(log.address())
+
+        coEvery { sudoSwapPoolInfoProvider.gePollInfo(orderHash, log.address()) } returns poolInfo
         coEvery { sudoSwapCurve.getSellOutputValues(poolInfo.curve, poolInfo.spotPrice, poolInfo.delta, 1, poolInfo.fee, poolInfo.protocolFee) } returns listOf(purchaseValue)
         val nftOut = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
 

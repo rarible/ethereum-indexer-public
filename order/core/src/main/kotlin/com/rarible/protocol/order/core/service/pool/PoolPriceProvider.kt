@@ -9,13 +9,13 @@ import com.rarible.protocol.order.core.model.PoolBuyInfo
 import com.rarible.protocol.order.core.model.PoolSellInfo
 import com.rarible.protocol.order.core.model.orNull
 import com.rarible.protocol.order.core.service.PriceNormalizer
-import com.rarible.protocol.order.core.service.curve.SudoSwapCurve
+import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.sudoswap.SudoSwapProtocolFeeProvider
 import org.springframework.stereotype.Component
 
 @Component
 class PoolPriceProvider(
-    private val sudoSwapCurve: SudoSwapCurve,
+    private val sudoSwapCurve: PoolCurve,
     private val sudoSwapProtocolFeeProvider: SudoSwapProtocolFeeProvider,
     private val normalizer: PriceNormalizer
 ) {
