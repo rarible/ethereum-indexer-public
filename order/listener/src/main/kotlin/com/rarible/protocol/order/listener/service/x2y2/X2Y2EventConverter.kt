@@ -23,7 +23,6 @@ import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import java.math.BigInteger
 import java.time.Instant
 
 @Component
@@ -47,32 +46,54 @@ class X2Y2EventConverter(
     }
 
     suspend fun convert(event: EvInventoryEvent, date: Instant, input: Bytes): List<OrderSideMatch> {
-        if (event.detail()._1() != BigInteger.ONE) return emptyList()
+        val op = event.detail()._1().toInt()
+        if ((op == 1 || op == 2).not()) return emptyList()
+
         val maker = event.maker()
         val taker = event.taker()
         val tokenData = Tuples.addressUintType().decode(Binary(event.item()._2), 64).value()
-        val make = Asset(
+
+        val nft = Asset(
             type = Erc721AssetType(
                 token = tokenData._1,
                 tokenId = EthUInt256(tokenData._2)
             ),
             value = EthUInt256.ONE
         )
-        val currency = event.currency()
-        val take = Asset(
-            type = if (currency == Address.ZERO()) {
+        val currency = Asset(
+            type = if (event.currency() == Address.ZERO()) {
                 EthAssetType
-            } else Erc20AssetType(token = currency),
+            } else Erc20AssetType(token = event.currency()),
             value = EthUInt256(event.item()._1)
         )
-        val leftUsdValue = priceUpdateService.getAssetsUsdValue(make = make, take = take, at = date)
-        val rightUsdValue = priceUpdateService.getAssetsUsdValue(make = take, take = make, at = date)
-
         val fee = event.detail()._11().map {
             Part(account = it._2, value = EthUInt256(it._1))
         }
+        val (make, take) = when (op) {
+            /**
+             Op {
+                INVALID, (0)
+                // off-chain
+                COMPLETE_SELL_OFFER, (1)
+                COMPLETE_BUY_OFFER, (2)
+                CANCEL_OFFER,
+                // auction
+                BID,
+                COMPLETE_AUCTION,
+                REFUND_AUCTION,
+                REFUND_AUCTION_STUCK_ITEM
+             }
+             */
+            1 -> nft to currency //Sell
+            2 -> currency to nft // Bid
+            else -> throw UnsupportedOperationException("Unsupported operation")
+        }
+        val leftUsdValue = priceUpdateService.getAssetsUsdValue(make = make, take = take, at = date)
+        val rightUsdValue = priceUpdateService.getAssetsUsdValue(make = take, take = make, at = date)
+
         val hash = Word.apply(event.itemHash())
         val counterHash = keccak256(hash)
+
         val events = listOf(
             OrderSideMatch(
                 hash = hash,
@@ -92,8 +113,8 @@ class X2Y2EventConverter(
                 source = HistorySource.X2Y2,
                 date = date,
                 originFees = fee,
-                adhoc = true,
-                counterAdhoc = false,
+                adhoc = false,
+                counterAdhoc = true,
             ),
             OrderSideMatch(
                 hash = counterHash,
@@ -113,8 +134,8 @@ class X2Y2EventConverter(
                 source = HistorySource.X2Y2,
                 date = date,
                 originFees = fee,
-                adhoc = false,
-                counterAdhoc = true
+                adhoc = true,
+                counterAdhoc = false
             )
         )
         return OrderSideMatch.addMarketplaceMarker(events, input, wrapperX2Y2MatchEventMetric)
