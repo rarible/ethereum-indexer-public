@@ -3,8 +3,10 @@ package com.rarible.protocol.nft.api.controller.admin
 import com.rarible.core.task.Task
 import com.rarible.protocol.nft.api.converter.ItemIdConverter
 import com.rarible.protocol.nft.api.dto.AdminTaskDto
+import com.rarible.protocol.nft.api.dto.FixUserItemsResultDto
 import com.rarible.protocol.nft.api.dto.TokenDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
+import com.rarible.protocol.nft.api.service.admin.MaintenanceService
 import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -28,7 +30,8 @@ import scalether.domain.Address
 class AdminController(
     private val reindexTokenService: ReindexTokenService,
     private val tokenUpdateService: TokenUpdateService,
-    private val itemReduceService: ItemReduceService
+    private val itemReduceService: ItemReduceService,
+    private val maintenanceService: MaintenanceService,
 ) {
 
     @PostMapping(
@@ -150,6 +153,17 @@ class AdminController(
     ): ResponseEntity<AdminTaskDto> {
         val task = reindexTokenService.createReindexTokenItemRoyaltiesTask(collection, force ?: false)
         return ResponseEntity.ok().body(convert(task))
+    }
+
+    @GetMapping(
+        value = ["/admin/nft/user/{user}/fixItems"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    suspend fun fixUserItems(
+        @PathVariable("user") user: String,
+    ): ResponseEntity<FixUserItemsResultDto> {
+        val fixResult = maintenanceService.fixUserItems(user)
+        return ResponseEntity.ok().body(fixResult)
     }
 
     @GetMapping(

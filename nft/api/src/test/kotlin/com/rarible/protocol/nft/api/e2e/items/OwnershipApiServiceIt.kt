@@ -133,6 +133,20 @@ class OwnershipApiServiceIt : SpringContainerBaseTest() {
         }
     }
 
+    @Test
+    fun `should get all ownerships by owner`() = runBlocking<Unit> {
+        // given
+        val owner = Address.FOUR()
+        saveOwnership(Address.ONE(), Address.TWO(), owner)
+        saveOwnership(Address.TWO(), Address.THREE(), owner)
+
+        // when
+        val actual = ownershipApiService.getAllByOwner(owner.toString())
+
+        // then
+        assertThat(actual.map { it.token }).containsExactly(Address.TWO(), Address.ONE())
+    }
+
     @AfterEach
     fun afterEach() = runBlocking<Unit> {
         mongo.remove<Ownership>().all().awaitFirst()
