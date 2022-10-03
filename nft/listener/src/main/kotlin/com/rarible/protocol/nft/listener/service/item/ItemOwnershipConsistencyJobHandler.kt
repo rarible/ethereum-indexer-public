@@ -80,27 +80,16 @@ class ItemOwnershipConsistencyJobHandler(
                 checkResult = itemOwnershipConsistencyService.checkItem(fixedItem)
                 when (checkResult) {
                     is Failure -> {
-                        fixedItem = itemOwnershipConsistencyService.tryFix(fixedItem, deleteOwnerships = true)
-                        checkResult = itemOwnershipConsistencyService.checkItem(fixedItem)
-                        when (checkResult) {
-                            is Failure -> {
-                                inconsistentItemRepository.save(
-                                    InconsistentItem(
-                                        token = fixedItem.token,
-                                        tokenId = fixedItem.tokenId,
-                                        supply = checkResult.supply,
-                                        ownerships = checkResult.ownerships,
-                                        supplyValue = checkResult.supply.value.toLong(),
-                                        ownershipsValue = checkResult.ownerships.value.toLong()
-                                    )
-                                )
-                            }
-
-                            Success -> {
-                                logger.info("Item ${item.id} ownership consistency was fixed successfully after ownership deletion")
-                            }
-                        }
-
+                        inconsistentItemRepository.save(
+                            InconsistentItem(
+                                token = fixedItem.token,
+                                tokenId = fixedItem.tokenId,
+                                supply = checkResult.supply,
+                                ownerships = checkResult.ownerships,
+                                supplyValue = checkResult.supply.value.toLong(),
+                                ownershipsValue = checkResult.ownerships.value.toLong()
+                            )
+                        )
                     }
 
                     Success -> {
