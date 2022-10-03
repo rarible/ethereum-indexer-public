@@ -54,11 +54,12 @@ fun createItem(
     token: Address,
     tokenId: EthUInt256,
     owners: List<Address>,
+    supply: EthUInt256 = EthUInt256.ONE,
 ) = Item(
     token = token,
     tokenId = tokenId,
     creators = listOf(createPart(), createPart()),
-    supply = EthUInt256.ONE,
+    supply = supply,
     lazySupply = EthUInt256.ZERO,
     royalties = emptyList(),
     owners = owners,

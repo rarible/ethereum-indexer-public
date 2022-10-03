@@ -69,12 +69,12 @@ class MaintenanceServiceIt : SpringContainerBaseTest() {
 
     private suspend fun saveOwnership(itemId: ItemId, owner: Address) {
         ownershipRepository.save(
-            createOwnership(itemId.token, itemId.tokenId, creator = null, owner)
+            createOwnership(itemId.token, itemId.tokenId, creator = null, owner, value = EthUInt256.of(1))
         ).awaitFirst()
     }
 
     private suspend fun saveItem(itemId: ItemId, owner: Address): Item {
-        val item = createItem(itemId.token, itemId.tokenId, listOf(owner))
+        val item = createItem(itemId.token, itemId.tokenId, listOf(owner), supply = EthUInt256.of(1))
         itemRepository.save(item).awaitFirst()
         return item
     }
