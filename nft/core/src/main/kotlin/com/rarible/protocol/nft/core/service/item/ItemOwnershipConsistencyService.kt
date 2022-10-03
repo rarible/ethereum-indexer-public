@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.listener.service.item
+package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
@@ -9,8 +9,6 @@ import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
-import com.rarible.protocol.nft.core.service.item.ItemReduceService
-import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -21,10 +19,11 @@ import org.springframework.stereotype.Service
 @Service
 class ItemOwnershipConsistencyService(
     private val itemReduceService: ItemReduceService,
-    private val nftListenerProperties: NftListenerProperties,
     private val ownershipRepository: OwnershipRepository,
     private val itemRepository: ItemRepository,
 ) {
+
+    private val elementsFetchSize = 1000
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -36,14 +35,14 @@ class ItemOwnershipConsistencyService(
 
     suspend fun checkItem(item: Item): CheckResult {
         logger.info("Checking item<->ownership consistency for item ${item.id}")
-        val ownershipsSupply = getOwnershipsTotalSupply(item.id, nftListenerProperties.elementsFetchJobSize)
+        val ownershipsSupply = getOwnershipsTotalSupply(item.id, elementsFetchSize)
         return if (ownershipsSupply == item.supply) {
             logger.info("Consistency check passed for item ${item.id}, supply: ${item.supply}")
-            return CheckResult.Success
+            CheckResult.Success
         } else {
             logger.warn("Consistency check failed for item ${item.id}, " +
                     "item supply: ${item.supply}, ownerships supply: $ownershipsSupply")
-            return CheckResult.Failure(item.supply, ownershipsSupply)
+            CheckResult.Failure(item.supply, ownershipsSupply)
         }
     }
 

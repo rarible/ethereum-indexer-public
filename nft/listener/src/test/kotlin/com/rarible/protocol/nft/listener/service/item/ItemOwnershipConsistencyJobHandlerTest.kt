@@ -12,6 +12,7 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.repository.InconsistentItemRepository
 import com.rarible.protocol.nft.core.repository.JobStateRepository
+import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.data.createRandomItem
 import com.rarible.protocol.nft.listener.data.createRandomOwnership
@@ -103,8 +104,7 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         val item = createRandomItem().copy(supply = EthUInt256.ONE)
         itemRepository.save(item).awaitFirst()
         val ownerships = listOf(
-            createRandomOwnership().copy(token = item.token, tokenId = item.tokenId, value = EthUInt256.ONE),
-            createRandomOwnership().copy(token = item.token, tokenId = item.tokenId, value = EthUInt256.ONE)
+            createRandomOwnership().copy(token = item.token, tokenId = item.tokenId, value = EthUInt256.TEN),
         )
         ownerships.forEach { ownershipRepository.save(it).awaitFirst() }
         createValidLog(item, listOf(ownerships.first())).forEach {

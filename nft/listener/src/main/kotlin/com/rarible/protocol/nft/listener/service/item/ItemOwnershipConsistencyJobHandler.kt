@@ -10,9 +10,10 @@ import com.rarible.protocol.nft.core.repository.InconsistentItemRepository
 import com.rarible.protocol.nft.core.repository.JobStateRepository
 import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
-import com.rarible.protocol.nft.listener.service.item.ItemOwnershipConsistencyService.CheckResult.Failure
-import com.rarible.protocol.nft.listener.service.item.ItemOwnershipConsistencyService.CheckResult.Success
+import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.CheckResult.Failure
+import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.CheckResult.Success
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
