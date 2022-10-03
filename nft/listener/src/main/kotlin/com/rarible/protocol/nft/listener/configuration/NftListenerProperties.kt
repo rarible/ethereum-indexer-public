@@ -30,6 +30,7 @@ data class ActionExecuteProperties(
 
 data class ItemOwnershipConsistencyProperties(
     val autofix: Boolean = true,
+    val checkTimeOffset: Duration = Duration.ofMinutes(5),
     val daemon: DaemonWorkerProperties = DaemonWorkerProperties(
         pollingPeriod = Duration.ofMinutes(1),
         errorDelay = Duration.ofMinutes(1),
