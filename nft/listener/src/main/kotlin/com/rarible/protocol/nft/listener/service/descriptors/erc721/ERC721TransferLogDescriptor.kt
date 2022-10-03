@@ -14,6 +14,7 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEventDescriptor
+import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -25,14 +26,17 @@ import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
-class TransferLogDescriptor(
+class ERC721TransferLogDescriptor(
     private val tokenRegistrationService: TokenRegistrationService,
+    private val customMintDetector: CustomMintDetector,
     indexerProperties: NftIndexerProperties,
     listenerProperties: NftListenerProperties
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
 
     private val skipContracts = listenerProperties.skipTransferContracts.map { Address.apply(it) }
-    private val skipTransferContractTokens = indexerProperties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
+    private val skipTransferContractTokens = indexerProperties.scannerProperties.skipTransferContractTokens.map(
+        ItemIdFromStringConverter::convert
+    )
     private val ignoredStandards = listOf(TokenStandard.NONE, TokenStandard.CRYPTO_PUNKS)
 
     override val topic: Word = TransferEvent.id()
@@ -60,7 +64,8 @@ class TransferLogDescriptor(
                             token = log.address(),
                             tokenId = EthUInt256.of(e.tokenId()),
                             date = date,
-                            value = EthUInt256.of(1)
+                            value = EthUInt256.of(1),
+                            isMint = customMintDetector.isErc721Mint(e, transaction).takeIf { it }
                         ).toMono()
                     }
                 } else {
