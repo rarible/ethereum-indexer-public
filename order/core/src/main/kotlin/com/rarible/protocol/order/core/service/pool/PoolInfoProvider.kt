@@ -23,11 +23,11 @@ class PoolInfoProvider(
     private val orderRepository: OrderRepository,
     private val sudoSwapProtocolFeeProvider: SudoSwapProtocolFeeProvider,
 ) {
-    suspend fun gePollInfo(order: Order): PoolInfo? {
+    suspend fun getPollInfo(order: Order): PoolInfo? {
         return getInfoFromOrder(order)
     }
 
-    suspend fun gePollInfo(hash: Word, poolAddress: Address): PoolInfo {
+    suspend fun getPollInfo(hash: Word, poolAddress: Address): PoolInfo {
         val order = orderRepository.findById(hash)
         return order?.let { getInfoFromOrder(order) } ?: getInfoFromChain(poolAddress)
     }

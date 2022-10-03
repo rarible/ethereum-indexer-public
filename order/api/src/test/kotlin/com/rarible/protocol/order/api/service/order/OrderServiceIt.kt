@@ -1,16 +1,21 @@
 package com.rarible.protocol.order.api.service.order
 
+import com.nhaarman.mockitokotlin2.reset
 import com.rarible.contracts.test.erc1271.TestERC1271
+import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
+import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
+import com.rarible.protocol.currency.api.client.CurrencyControllerApi
+import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.Erc20DecimalBalanceDto
 import com.rarible.protocol.dto.LazyErc721Dto
@@ -24,14 +29,20 @@ import com.rarible.protocol.order.api.data.createOrder
 import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.integration.IntegrationTest
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.PlatformDtoConverter
 import com.rarible.protocol.order.core.converters.model.LazyAssetTypeToLazyNftConverter
 import com.rarible.protocol.order.core.data.createNftCollectionDto
 import com.rarible.protocol.order.core.data.createNftItemDto
 import com.rarible.protocol.order.core.data.createNftOwnershipDto
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
+import com.rarible.protocol.order.core.data.createSudoSwapPoolDataV1
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
+import com.rarible.protocol.order.core.data.randomErc20
+import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.data.randomEth
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
+import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
 import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.Asset
@@ -47,6 +58,7 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.order.OrderFilterAll
 import com.rarible.protocol.order.core.model.order.OrderFilterSell
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByCollection
@@ -55,6 +67,7 @@ import com.rarible.protocol.order.core.model.order.OrderFilterSellByMaker
 import com.rarible.protocol.order.core.model.order.OrderFilterSort
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
+import com.rarible.protocol.order.core.service.curve.PoolCurve.Companion.eth
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -76,7 +89,9 @@ import org.springframework.data.mongodb.core.allAndAwait
 import org.springframework.data.mongodb.core.remove
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
+import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.stream.Stream
 import kotlin.random.Random
@@ -96,6 +111,12 @@ class OrderServiceIt : AbstractOrderIt() {
 
     @Autowired
     private lateinit var nftOwnershipControllerApi: NftOwnershipControllerApi
+
+    @Autowired
+    private lateinit var orderIndexerProperties: OrderIndexerProperties
+
+    @Autowired
+    private lateinit var currencyControllerApi: CurrencyControllerApi
 
     @BeforeEach
     fun beforeEach() = runBlocking {
@@ -959,6 +980,49 @@ class OrderServiceIt : AbstractOrderIt() {
         val result = orderService.getAmmOrdersByItemId(collection, tokenId, continuation, size)
         assertThat(result).hasSize(1)
         assertThat(result.single().hash).isEqualTo(ammOrder.hash)
+    }
+
+    @Test
+    fun `should get amm buy info`() = runBlocking<Unit> {
+        val data = createOrderSudoSwapAmmDataV1().copy(
+            curveType = SudoSwapCurveType.LINEAR,
+            bondingCurve = randomAddress(),
+            fee = BigInteger.ZERO,
+            delta = BigDecimal("0.1").eth(),
+            spotPrice = BigDecimal("0.1").eth(),
+        )
+        val ammOrder = createOrder().copy(
+            make = randomErc721(),
+            take = randomEth(),
+            data = data,
+            type = OrderType.AMM
+        )
+        orderIndexerProperties.sudoSwapAddresses.linearCurveV1 = data.bondingCurve
+        orderRepository.save(ammOrder)
+
+        io.mockk.clearMocks(currencyControllerApi)
+
+        every {
+            currencyControllerApi.getCurrencyRate(any(), any(), any())
+        } returns Mono.just(
+            CurrencyRateDto(
+                    "from",
+                    "usd",
+                    BigDecimal("3"),
+                    nowMillis()
+                )
+        )
+        val nftCount = 2
+        val result = orderService.getAmmBuyInfo(ammOrder.hash, nftCount)
+        assertThat(result).hasSize(nftCount)
+
+        assertThat(result[0].price).isEqualTo(BigDecimal("0.1").eth())
+        assertThat(result[0].priceValue).isEqualTo(BigDecimal("0.100000000000000000"))
+        assertThat(result[0].priceUsd).isEqualTo(BigDecimal("0.300000000000000000"))
+
+        assertThat(result[1].price).isEqualTo(BigDecimal("0.2").eth())
+        assertThat(result[1].priceValue).isEqualTo(BigDecimal("0.200000000000000000"))
+        assertThat(result[1].priceUsd).isEqualTo(BigDecimal("0.600000000000000000"))
     }
 
     private suspend fun saveRandomOrderWithMakeBalance(): Order {

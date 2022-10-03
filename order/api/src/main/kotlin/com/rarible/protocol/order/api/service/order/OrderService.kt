@@ -130,7 +130,7 @@ class OrderService(
 
     suspend fun getAmmBuyInfo(hash: Word, nftCount: Int): List<PoolTradePrice> {
         val (order, _) = getAmmOrder(hash)
-        val info = poolInfoProvider.gePollInfo(order) ?: error("Unexpectedly can't get pool info from $hash")
+        val info = poolInfoProvider.getPollInfo(order) ?: error("Unexpectedly can't get pool info from $hash")
         val inputValues = poolCurve.getBuyInputValues(
             curve = info.curve,
             spotPrice = info.protocolFee,

@@ -45,7 +45,7 @@ internal class PoolInfoProviderTest {
         coEvery { orderRepository.findById(orderHash) } returns order
         coEvery { sudoSwapProtocolFeeProvider.getProtocolFeeMultiplier(data.factory) } returns protocolFee
 
-        val result = sudoSwapPoolCollectionProvider.gePollInfo(orderHash, poolAddress)
+        val result = sudoSwapPoolCollectionProvider.getPollInfo(orderHash, poolAddress)
         Assertions.assertThat(result.collection).isEqualTo(collection)
         Assertions.assertThat(result.curve).isEqualTo(data.bondingCurve)
         Assertions.assertThat(result.spotPrice).isEqualTo(data.spotPrice)
@@ -154,7 +154,7 @@ internal class PoolInfoProviderTest {
             )
         } returns Mono.just(Uint256Type.encode(fee))
 
-        val result = sudoSwapPoolCollectionProvider.gePollInfo(orderHash, poolAddress)
+        val result = sudoSwapPoolCollectionProvider.getPollInfo(orderHash, poolAddress)
         Assertions.assertThat(result.collection).isEqualTo(collection)
         Assertions.assertThat(result.curve).isEqualTo(curve)
         Assertions.assertThat(result.spotPrice).isEqualTo(spotPrice)

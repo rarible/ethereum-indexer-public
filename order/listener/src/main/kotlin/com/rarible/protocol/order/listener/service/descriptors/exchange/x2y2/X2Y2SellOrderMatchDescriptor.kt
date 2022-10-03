@@ -25,8 +25,10 @@ class X2Y2SellOrderMatchDescriptor(
     private val converter: X2Y2EventConverter,
     private val x2y2MatchEventCounter: RegisteredCounter,
 ): ItemExchangeHistoryLogEventDescriptor<OrderSideMatch> {
+
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION
+
     override val topic: Word
         get() = EvInventoryEvent.id()
 
