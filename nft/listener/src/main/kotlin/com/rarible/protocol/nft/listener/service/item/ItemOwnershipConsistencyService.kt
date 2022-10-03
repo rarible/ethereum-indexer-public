@@ -68,7 +68,7 @@ class ItemOwnershipConsistencyService(
                 sort = OwnershipFilter.Sort.LAST_UPDATE
             )
             val ownerships = ownershipRepository.search(filter.toCriteria(continuation = continuation, limit = limit))
-            continuation = if (ownerships.isEmpty() || ownerships.size < limit) null else ownerships.last()
+            continuation = if (ownerships.size < limit) null else ownerships.last()
                 .let { OwnershipContinuation(it.date, it.id) }
             value = ownerships.fold(value) { acc, ownership -> acc + ownership.value }
         } while (continuation != null)
