@@ -90,7 +90,6 @@ data class OrderIndexerProperties(
         val showLooksrareOrdersWithOtherPlatforms: Boolean = false,
         val showSudoSwapOrdersWithOtherPlatforms: Boolean = false,
         val hideOpenSeaSignatures: Boolean = false,
-        val hideInactiveOrders: Boolean = false,
         val maxOpenSeaNonceCalculation: Int = 10,
         val skipGetTrace: Boolean = false,
         @Deprecated("Need remove this flag in release 1.31")
