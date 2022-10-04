@@ -46,7 +46,7 @@ object JsonPropertiesMapper {
         "animationUrl"
     ).toTypedArray()
 
-    fun map(itemId: ItemId, node: ObjectNode): ItemProperties? {
+    fun map(itemId: ItemId, node: ObjectNode): ItemProperties {
         return ItemProperties(
             name = node.getText(*FIELD_NAME) ?: "",
             description = node.getText(*FIELD_DESCRIPTION),

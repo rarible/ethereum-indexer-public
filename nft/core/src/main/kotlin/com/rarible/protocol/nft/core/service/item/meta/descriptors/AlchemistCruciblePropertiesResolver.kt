@@ -29,11 +29,15 @@ class AlchemistCruciblePropertiesResolver(
         val resource = urlService.parseUrl(httpUrl, itemId.toString()) ?: return null
         val rawProperties = rawPropertiesProvider.getContent(itemId, resource) ?: return null
 
-        return ItemPropertiesParser.parse(
-            itemId = itemId,
-            httpUrl = urlService.resolveInternalHttpUrl(resource),
-            rawProperties = rawProperties
-        ) ?: throw ItemResolutionAbortedException()
+        return runCatching {
+            ItemPropertiesParser.parse(
+                itemId = itemId,
+                httpUrl = urlService.resolveInternalHttpUrl(resource),
+                rawProperties = rawProperties
+            )
+        }.getOrElse {
+            throw ItemResolutionAbortedException()
+        }
     }
 
     companion object {

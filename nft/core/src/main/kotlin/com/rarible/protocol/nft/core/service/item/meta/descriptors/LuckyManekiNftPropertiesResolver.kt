@@ -32,7 +32,7 @@ class LuckyManekiNftPropertiesResolver(
             logMetaLoading(itemId, "parsing properties by URI: $url")
 
             val json = JsonPropertiesParser.parse(itemId, rawProperties)
-            json?.let { map(itemId, json, rawProperties) }
+            map(itemId, json, rawProperties)
         } catch (e: Throwable) {
             logMetaLoading(itemId, "failed to parse properties by URI: $url", warn = true)
             null
