@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OpenSeaSigner
+import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
 import io.daonomic.rpc.domain.Binary
@@ -36,6 +37,7 @@ internal class OpenSeaOrderValidatorTest {
         seaportErrorCounter = OpenSeaOrderErrorMetric("", Blockchain.ETHEREUM).bind(
             SimpleMeterRegistry()
         ),
+        seaportLoadProperties = SeaportLoadProperties(),
         properties = properties
     )
 

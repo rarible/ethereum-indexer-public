@@ -49,7 +49,8 @@ data class SeaportLoadProperties(
     var maxAsyncRequests: Int = 5,
     val retryDelay: Duration = Duration.ofMillis(500),
     val pollingPeriod: Duration = Duration.ofSeconds(10),
-    val errorDelay: Duration = Duration.ofSeconds(5)
+    val errorDelay: Duration = Duration.ofSeconds(5),
+    val validateSignature: Boolean = true
 )
 
 data class LooksrareLoadProperties(

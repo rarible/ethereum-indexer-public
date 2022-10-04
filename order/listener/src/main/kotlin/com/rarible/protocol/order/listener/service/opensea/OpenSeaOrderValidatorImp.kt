@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OpenSeaSigner
+import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.misc.seaportError
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
@@ -20,6 +21,7 @@ class OpenSeaOrderValidatorImp(
     private val callDataEncoder: CallDataEncoder,
     private val openSeaErrorCounter: RegisteredCounter,
     private val seaportErrorCounter: RegisteredCounter,
+    private val seaportLoadProperties: SeaportLoadProperties,
     properties: OrderIndexerProperties
 ) : OpenSeaOrderValidator {
 
@@ -42,6 +44,9 @@ class OpenSeaOrderValidatorImp(
     }
 
     private fun innerSeaportValidate(order: OrderVersion): Boolean {
+        if (seaportLoadProperties.validateSignature.not()) {
+            return true
+        }
         val data = order.data as? OrderSeaportDataV1 ?: run {
             logger.seaportError("Invalid order (data): $order")
             return false
