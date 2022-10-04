@@ -1,4 +1,4 @@
-name: workflow
+name: security
 on: [pull_request]
 jobs:
   truffelhog:
@@ -6,13 +6,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@v3.7.3
+        uses: trufflesecurity/trufflehog@v3.10.3
         with:
           path: ./
-          base: ${{ github.event.pull_request.base.ref }}
-          head: ${{ github.event.pull_request.head.ref }}
+          base: ${{ github.event.pull_request.head.ref }}
+          head: ${{ github.event.pull_request.head.sha }}
+          extra_args: --debug
   gitleaks:
     runs-on: ubuntu-latest
     steps:
