@@ -37,6 +37,11 @@ class ExchangeV2MatchDescriptorTest : ExchangeV2BaseMatchDescriptorTests() {
     }
 
     @Test
+    fun `match order sell with zero right maker`() {
+        `test match order sell with zero right maker`()
+    }
+
+    @Test
     fun `partially match bid order - data V3`() = runBlocking<Unit> {
         `test partially match bid order - data V3`()
     }
