@@ -67,6 +67,7 @@ class ExchangeOrderMatchDescriptor(
 
         val leftMaker = getOriginMaker(transactionOrders.left.maker, transactionOrders.left.data)
         val rightMaker = getOriginMaker(transactionOrders.right.maker, transactionOrders.right.data)
+            .takeUnless { it == Address.ZERO() } ?: transaction.from()
         val leftAdhoc = transactionOrders.left.salt == EthUInt256.ZERO
         val rightAdhoc = transactionOrders.right.salt == EthUInt256.ZERO
 
@@ -110,7 +111,7 @@ class ExchangeOrderMatchDescriptor(
                 fill = rightFill,
                 make = rightMake,
                 take = rightTake,
-                maker = rightMaker.takeUnless { it == Address.ZERO() } ?: transaction.from(),
+                maker = rightMaker,
                 taker = leftMaker,
                 makeUsd = rightUsdValue?.makeUsd,
                 takeUsd = rightUsdValue?.takeUsd,
