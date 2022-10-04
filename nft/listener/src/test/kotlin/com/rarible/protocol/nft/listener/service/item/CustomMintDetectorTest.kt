@@ -39,6 +39,19 @@ internal class CustomMintDetectorTest {
     }
 
     @Test
+    fun `should detect mint by polygon mint method id`() {
+        val address = randomAddress()
+        val event = mockk<TransferSingleEvent> {
+            every { _from() } returns address
+        }
+        val transaction = mockk<Transaction> {
+            every { from() } returns address
+            every { input() } returns CustomMintDetector.POLYGON_MINT_METHOD_ID_SIGNATURE
+        }
+        assertThat(customMintDetector.isErc1155Mint(event, transaction)).isTrue
+    }
+
+    @Test
     fun `should detect mint by distribute nft method id`() {
         val token = randomAddress()
         val log = mockk<Log> {
