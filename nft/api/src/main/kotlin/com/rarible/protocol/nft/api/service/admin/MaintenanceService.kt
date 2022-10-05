@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyServic
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.CheckResult.Failure
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.function.Consumer
 import java.util.function.Supplier
@@ -20,21 +21,27 @@ class MaintenanceService(
     private val itemOwnershipConsistencyService: ItemOwnershipConsistencyService,
 ) {
 
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     suspend fun fixUserItems(owner: String): FixUserItemsResultDto {
         val resultValid = mutableSetOf<ItemId>()
         val resultFixed = mutableSetOf<ItemId>()
         val resultUnfixed = mutableSetOf<ItemId>()
 
         val ownerships = ownershipApiService.getAllByOwner(owner)
+        logger.info("Got ${ownerships.size} ownerships of owner $owner")
         val itemIds = ownerships.map { ItemId(it.token, it.tokenId) }.toSet()
         val itemIdsToFix = mutableSetOf<ItemId>()
 
+        logger.info("Initial validation of ${itemIds.size} itemIds of owner $owner")
         validateItemIds(itemIds, resultValid::add, itemIdsToFix::add)
 
         itemIdsToFix.forEach { itemId ->
+            logger.info("Attempting to fix itemId $itemId of owner $owner")
             itemReduceService.update(itemId.token, itemId.tokenId).then().awaitFirstOrNull()
         }
 
+        logger.info("Validation after fix of ${itemIdsToFix.size} itemIds of owner $owner")
         validateItemIds(itemIdsToFix, resultFixed::add, resultUnfixed::add)
 
         return FixUserItemsResultDto(
