@@ -53,7 +53,9 @@ class X2Y2OrderLoader(
                         chunk.map {
                             async {
                                 if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
-                                    orderUpdateService.save(it)
+                                    orderUpdateService.save(it).also {
+                                        orderUpdateService.updateMakeStock(it)
+                                    }
                                     x2y2SaveCounter.increment()
                                     logger.x2y2Info("Saved new order ${it.hash}")
                                 }

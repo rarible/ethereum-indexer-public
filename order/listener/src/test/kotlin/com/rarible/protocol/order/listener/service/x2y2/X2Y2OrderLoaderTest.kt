@@ -37,9 +37,11 @@ internal class X2Y2OrderLoaderTest {
     fun `should get filter save new seaport orders`() = runBlocking<Unit> {
         val validClientOrder1 = randomX2Y2Order()
         val validOrderVersion1 = createOrderVersion()
+        val validOrder1 = createOrder()
 
         val validClientOrder2 = randomX2Y2Order()
         val validOrderVersion2 = createOrderVersion()
+        val validOrder2 = createOrder()
 
         val validClientOrder3 = randomX2Y2Order()
         val validOrderVersion3 = createOrderVersion()
@@ -59,8 +61,10 @@ internal class X2Y2OrderLoaderTest {
         coEvery { orderRepository.findById(validOrderVersion2.hash) } returns null
         coEvery { orderRepository.findById(validOrderVersion3.hash) } returns createOrder()
 
-        coEvery { orderUpdateService.save(validOrderVersion1) } returns createOrder()
-        coEvery { orderUpdateService.save(validOrderVersion2) } returns createOrder()
+        coEvery { orderUpdateService.save(validOrderVersion1) } returns validOrder1
+        coEvery { orderUpdateService.updateMakeStock(validOrder1) } returns (validOrder1 to true)
+        coEvery { orderUpdateService.save(validOrderVersion2) } returns validOrder2
+        coEvery { orderUpdateService.updateMakeStock(validOrder2) } returns (validOrder2 to true)
         every { x2y2SaveCounter.increment() } returns Unit
 
         handler.load(null)

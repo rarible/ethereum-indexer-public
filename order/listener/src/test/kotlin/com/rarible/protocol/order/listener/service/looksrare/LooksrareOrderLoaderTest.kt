@@ -55,7 +55,9 @@ internal class LooksrareOrderLoaderTest {
         coEvery { looksrareOrderConverter.convert(looksrareOrder1) } returns orderVersion1
         coEvery { looksrareOrderConverter.convert(looksrareOrder2) } returns orderVersion2
         coEvery { orderUpdateService.save(orderVersion1) } returns order1
+        coEvery { orderUpdateService.updateMakeStock(order1) } returns (order1 to true)
         coEvery { orderUpdateService.save(orderVersion2) } returns order2
+        coEvery { orderUpdateService.updateMakeStock(order2) } returns (order2 to true)
 
         val orders = loader.load(listedAfter, listedBefore)
         assertThat(orders).containsExactlyInAnyOrder(looksrareOrder1.hash, looksrareOrder2.hash)
