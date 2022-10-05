@@ -1,3 +1,2 @@
 common:
-  #TODO PT-1246 check & cleanup consul
-  royaltyRegistryAddress: "0xdA8e7D4cF7BA4D5912a68c1e40d3D89828fA6EE8"
+  royaltyRegistryAddress: "0xfec0f8d936b9cba92a332bcb06dc7df4dde0c253"
