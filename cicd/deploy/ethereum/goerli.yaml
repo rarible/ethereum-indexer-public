@@ -1,6 +1,21 @@
 global:
   network: goerli
 
+ethereum-nft-listener:
+  livenessProbe:
+    initialDelaySeconds: 360
+  resources:
+    jvm:
+      xmx_megabytes: 2048
+      max_direct_memory_megabytes: 512
+
+ethereum-order-listener:
+  livenessProbe:
+    initialDelaySeconds: 360
+  resources:
+    jvm:
+      max_direct_memory_megabytes: 256
+
 ethereum-gateway:
   service:
     nodePort: 30716

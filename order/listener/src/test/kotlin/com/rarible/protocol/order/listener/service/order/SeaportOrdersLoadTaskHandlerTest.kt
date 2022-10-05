@@ -23,8 +23,8 @@ internal class SeaportOrdersLoadTaskHandlerTest {
         val result1 = SeaportOrders(next = cursor2, orders = listOf(randomSeaportOrder()), previous = null)
         val result2 = SeaportOrders(next = null, orders = listOf(randomSeaportOrder()), previous = null)
 
-        coEvery { loader.load(cursor1, false) } returns result1
-        coEvery { loader.load(cursor2, false) } returns result2
+        coEvery { loader.load(cursor1, false, any()) } returns result1
+        coEvery { loader.load(cursor2, false, any()) } returns result2
 
         val states = task.runLongTask(cursor1, "").toList()
         assertThat(states.single()).isEqualTo(cursor2)
@@ -36,7 +36,7 @@ internal class SeaportOrdersLoadTaskHandlerTest {
         val nexCursor = randomString()
         val result = SeaportOrders(next = nexCursor, orders = emptyList(), previous = null)
 
-        coEvery { loader.load(cursor, false) } returns result
+        coEvery { loader.load(cursor, false, any()) } returns result
 
         val states = task.runLongTask(cursor, "").toList()
         assertThat(states.single()).isEqualTo(nexCursor)
@@ -58,8 +58,8 @@ internal class SeaportOrdersLoadTaskHandlerTest {
         val result1 = SeaportOrders(next = cursor2, orders = order1, previous = null)
         val result2 = SeaportOrders(next = cursor3, orders = order2, previous = null)
 
-        coEvery { loader.load(cursor1, false) } returns result1
-        coEvery { loader.load(cursor2, false) } returns result2
+        coEvery { loader.load(cursor1, false, any()) } returns result1
+        coEvery { loader.load(cursor2, false, any()) } returns result2
 
         val listedAfter = Instant.ofEpochSecond(9)
         val states = task.runLongTask(cursor1, listedAfter.epochSecond.toString()).toList()

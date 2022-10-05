@@ -10,13 +10,14 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.TestPropertiesConfiguration
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
-import com.rarible.protocol.order.core.data.createSudoSwapPoolDataV1
 import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
+import com.rarible.protocol.order.core.data.randomPoolSpotPriceUpdate
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
 import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.PoolHistory
+import com.rarible.protocol.order.core.model.PoolHistoryType
 import com.rarible.protocol.order.core.model.PoolNftChange
 import com.rarible.protocol.order.core.model.PoolNftWithdraw
 import io.daonomic.rpc.domain.Word
@@ -147,6 +148,59 @@ internal class PoolHistoryRepositoryTest {
     }
 
     @Test
+    fun `get latest slot price change event for target pool`() = runBlocking<Unit> {
+        val hash = Word.apply(randomWord())
+        val priceUpdate1 = save(
+            history = randomPoolSpotPriceUpdate().copy(hash = hash),
+            blockNumber = 10,
+            logIndex = 1
+        )
+        save(
+            history = randomPoolTargetNftOut().copy(hash),
+            blockNumber = 10,
+            logIndex = 1
+        )
+        val priceUpdate2 = save(
+            history = randomPoolSpotPriceUpdate().copy(hash),
+            blockNumber = 9,
+            logIndex = 2
+        )
+        val priceUpdate3 = save(
+            history = randomPoolSpotPriceUpdate().copy(hash),
+            blockNumber = 9,
+            logIndex = 1
+        )
+        val priceUpdate4 = save(
+            history = randomPoolSpotPriceUpdate().copy(hash),
+            blockNumber = 3,
+            logIndex = 1
+        )
+        var event = poolHistoryRepository.getLatestPoolEvent(hash, PoolHistoryType.POOL_SPOT_PRICE_UPDATE, 11, 2)
+        assertThat(event?.id).isEqualTo(priceUpdate1.id)
+
+        event = poolHistoryRepository.getLatestPoolEvent(hash, PoolHistoryType.POOL_SPOT_PRICE_UPDATE, 10, 2)
+        assertThat(event?.id).isEqualTo(priceUpdate1.id)
+
+        event = poolHistoryRepository.getLatestPoolEvent(hash, PoolHistoryType.POOL_SPOT_PRICE_UPDATE, 10, 1)
+        assertThat(event?.id).isEqualTo(priceUpdate2.id)
+
+        event = poolHistoryRepository.getLatestPoolEvent(hash, PoolHistoryType.POOL_SPOT_PRICE_UPDATE, 9, 10)
+        assertThat(event?.id).isEqualTo(priceUpdate2.id)
+
+        event = poolHistoryRepository.getLatestPoolEvent(hash, PoolHistoryType.POOL_SPOT_PRICE_UPDATE, 9, 2)
+        assertThat(event?.id).isEqualTo(priceUpdate3.id)
+
+        event = poolHistoryRepository.getLatestPoolEvent(hash, PoolHistoryType.POOL_SPOT_PRICE_UPDATE, 9, 0)
+        assertThat(event?.id).isEqualTo(priceUpdate4.id)
+
+        event = poolHistoryRepository.getLatestPoolEvent(hash, PoolHistoryType.POOL_SPOT_PRICE_UPDATE, 3, 2)
+        assertThat(event?.id).isEqualTo(priceUpdate4.id)
+
+        event = poolHistoryRepository.getLatestPoolEvent(hash, PoolHistoryType.POOL_SPOT_PRICE_UPDATE, 3, 0)
+        assertThat(event).isNull()
+    }
+
+    @Test
     fun `get pool creat event`() = runBlocking<Unit> {
         val hash = Word.apply(randomWord())
         save(
@@ -220,8 +274,8 @@ internal class PoolHistoryRepositoryTest {
         blockNumber: Long = 0,
         logIndex: Int = 0,
         minorLogIndex: Int = 0
-    ) {
-        poolHistoryRepository.save(
+    ): LogEvent {
+        return poolHistoryRepository.save(
             LogEvent(
                 data = history,
                 address = randomAddress(),

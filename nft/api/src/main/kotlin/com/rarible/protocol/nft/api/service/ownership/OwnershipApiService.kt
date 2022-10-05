@@ -2,10 +2,12 @@ package com.rarible.protocol.nft.api.service.ownership
 
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipFilter
+import com.rarible.protocol.nft.core.model.OwnershipFilterByOwner
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
@@ -29,6 +31,20 @@ class OwnershipApiService(
     suspend fun get(ids: List<OwnershipId>): List<NftOwnershipDto> =
         ownershipRepository.findAll(ids)
             .map { conversionService.convert(it) }
+
+    suspend fun getAllByOwner(owner: String): List<Ownership> {
+        var continuation: String? = null
+        val result = mutableListOf<Ownership>()
+        val requestLimit = 1000
+        val filter = OwnershipFilterByOwner(OwnershipFilter.Sort.LAST_UPDATE, AddressParser.parse(owner))
+        do {
+            val ownerships = search(filter, continuation?.let { OwnershipContinuation.parse(it) })
+            result.addAll(ownerships)
+            val last = if (ownerships.isEmpty() || ownerships.size < requestLimit) null else ownerships.last()
+            continuation = last?.let { OwnershipContinuation(it.date, it.id).toString() }
+        } while (continuation != null)
+        return result
+    }
 
     suspend fun search(
         filter: OwnershipFilter,

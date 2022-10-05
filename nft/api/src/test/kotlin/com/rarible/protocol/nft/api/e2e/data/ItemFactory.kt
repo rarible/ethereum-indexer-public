@@ -3,9 +3,17 @@ package com.rarible.protocol.nft.api.e2e.data
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemId
 import scalether.domain.Address
 import java.time.Instant
 import java.util.concurrent.ThreadLocalRandom
+
+fun randomItemId(): ItemId {
+    return ItemId(
+        createAddress(),
+        EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000)),
+    )
+}
 
 fun createItem(): Item {
     val token = createAddress()
@@ -39,5 +47,23 @@ fun createItem(
     owners = owners,
     date = date,
     deleted = deleted,
+    isRaribleContract = false
+)
+
+fun createItem(
+    token: Address,
+    tokenId: EthUInt256,
+    owners: List<Address>,
+    supply: EthUInt256 = EthUInt256.ONE,
+) = Item(
+    token = token,
+    tokenId = tokenId,
+    creators = listOf(createPart(), createPart()),
+    supply = supply,
+    lazySupply = EthUInt256.ZERO,
+    royalties = emptyList(),
+    owners = owners,
+    date = nowMillis(),
+    deleted = false,
     isRaribleContract = false
 )

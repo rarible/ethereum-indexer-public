@@ -25,10 +25,14 @@ class SeaportOrderLoader(
     private val properties: SeaportLoadProperties,
     private val seaportSaveCounter: RegisteredCounter
 ) {
-    suspend fun load(cursor: String?, loadAhead: Boolean) = coroutineScope {
+    suspend fun load(
+        cursor: String?,
+        loadAhead: Boolean,
+        fetchCursor: (SeaportOrders) -> String? = { it.previous }
+    ) = coroutineScope {
         var lastSeaResult: SeaportOrders? = null
         val handlesAsync = mutableListOf<Deferred<Unit?>>()
-        for (result in produceNextSellOrders(cursor, loadAhead, properties.maxLoadResults)) {
+        for (result in produceNextSellOrders(cursor, fetchCursor, loadAhead, properties.maxLoadResults)) {
             lastSeaResult = result
 
             val handleAsync = async {
@@ -79,6 +83,7 @@ class SeaportOrderLoader(
     @Suppress("EXPERIMENTAL_API_USAGE", "OPT_IN_USAGE")
     private fun CoroutineScope.produceNextSellOrders(
         cursor: String?,
+        fetchCursor: (SeaportOrders) -> String?,
         loadAhead: Boolean,
         maxLoadResults: Int
     ) = produce(capacity = maxLoadResults) {
@@ -87,7 +92,7 @@ class SeaportOrderLoader(
         do {
             try {
                 val result = openSeaOrderService.getNextSellOrders(previous, loadAhead)
-                previous = result.previous
+                previous = fetchCursor(result)
                 results += 1
                 send(result)
             } catch (ex: Throwable) {

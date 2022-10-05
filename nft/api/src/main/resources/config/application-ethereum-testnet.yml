@@ -1,5 +1,4 @@
 api:
-  chain-id: 4
+  chain-id: 5
 common:
-  #TODO PT-1246 check & cleanup consul
-  openseaLazyMintAddress: "0x88b48f654c30e99bc2e4a1559b4dcf1ad93fa656"
+  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"

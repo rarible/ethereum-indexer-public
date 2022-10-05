@@ -270,6 +270,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
 
             assertThat(left.hash).isEqualTo(sellOrder.hash)
             assertThat(left.maker).isEqualTo(sellOrder.maker)
+            assertThat(left.taker).isEqualTo(userSender2.from())
             assertThat(left.fill).isEqualTo(EthUInt256.TEN)
             assertThat(left.side).isEqualTo(OrderSide.LEFT)
             assertThat(left.adhoc).isFalse
@@ -280,6 +281,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             }
             assertThat(right.hash).isEqualTo(rightOrderHash)
             assertThat(right.maker).isEqualTo(userSender2.from())
+            assertThat(right.taker).isEqualTo(sellOrder.maker)
             assertThat(right.fill).isEqualTo(EthUInt256.TEN)
             assertThat(right.side).isEqualTo(OrderSide.RIGHT)
             assertThat(right.adhoc).isTrue
@@ -432,6 +434,90 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
                 assertThat(it.right.hash).isEqualTo(rightOrderHash)
                 assertThat(it.right.type).isEqualTo(OrderActivityMatchSideDto.Type.BID)
             }
+        }
+    }
+
+    fun `test match order sell with zero right maker`() = runBlocking {
+        val data = OrderRaribleV2DataV3Sell(
+            originFeeFirst = null,
+            originFeeSecond = null,
+            maxFeesBasePoint = EthUInt256.of(1000),
+            marketplaceMarker = Word.apply(randomWord()),
+            payout = null,
+        )
+        val sellOrder = OrderVersion(
+            maker = userSender1.from(),
+            taker = null,
+            make = Asset(Erc1155AssetType(token1155.address(), EthUInt256.ONE), EthUInt256.TEN),
+            take = Asset(Erc20AssetType(token2.address()), EthUInt256.of(100)),
+            type = OrderType.RARIBLE_V2,
+            salt = EthUInt256.TEN,
+            start = null,
+            end = null,
+            data = data,
+            signature = null,
+            createdAt = nowMillis(),
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
+            makeUsd = null,
+            takeUsd = null
+        )
+        // to make the makeStock = 10
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(sellOrder.make.value)
+        orderUpdateService.save(sellOrder).let {
+            assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
+        }
+
+        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value, ByteArray(0))
+            .execute().verifySuccess()
+        token2.mint(userSender2.from(), sellOrder.take.value.value)
+            .execute().verifySuccess()
+
+        val signature = hashToSign(Order.hash(sellOrder)).sign(privateKey1)
+
+        val prepared = prepareTxService.prepareTransaction(
+            sellOrder.copy(signature = signature).toOrderExactFields(),
+            PrepareOrderTxFormDto(
+                maker = Address.ZERO(),
+                amount = sellOrder.make.value.value,
+                payouts = emptyList(),
+                originFees = emptyList()
+            )
+        )
+
+        // Imitate the balance of the seller: 0 ERC1155
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(EthUInt256.ZERO)
+
+        userSender2.sendTransaction(
+            Transaction(
+                exchangeAddress(),
+                userSender2.from(),
+                500000.toBigInteger(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                prepared.transaction.data,
+                null
+            )
+        ).verifySuccess()
+
+        Wait.waitAssert {
+            val historyItems = exchangeHistoryRepository.findByItemType(ItemType.ORDER_SIDE_MATCH).collectList().awaitFirst()
+            assertThat(historyItems).hasSize(2)
+
+            val (left, right) = historyItems.map { it.data as OrderSideMatch }
+                .associateBy { it.side }
+                .let { it[OrderSide.LEFT] to it[OrderSide.RIGHT] }
+
+            assertThat(left).isNotNull; left!!
+            assertThat(right).isNotNull; right!!
+
+            assertThat(left.maker).isEqualTo(sellOrder.maker)
+            assertThat(left.taker).isEqualTo(userSender2.from())
+
+            assertThat(right.maker).isEqualTo(userSender2.from())
+            assertThat(right.taker).isEqualTo(sellOrder.maker)
         }
     }
 

@@ -65,7 +65,7 @@ class ERC1155TransferLogDescriptor(
                             tokenId = EthUInt256.of(e._id()),
                             date = date,
                             value = EthUInt256.of(e._value()),
-                            isMint = customMintDetector.isMint(e, transaction).takeIf { it }
+                            isMint = customMintDetector.isErc1155Mint(e, transaction).takeIf { it }
                         ).toMono()
                     }
                 } else {

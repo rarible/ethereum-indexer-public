@@ -7,13 +7,10 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.PoolDataUpdate
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.PoolHistoryType
 import com.rarible.protocol.order.core.model.PoolNftChange
-import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository.Indexes.HASH_DEFINITION
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +25,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.findOne
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -122,20 +120,30 @@ class PoolHistoryRepository(
         return template.find<LogEvent>(query, COLLECTION).collectList().awaitFirst()
     }
 
-    suspend fun getLatestPoolDelta(hash: Word, blockNumber: Long, logIndex: Int): List<LogEvent> {
+    suspend fun getLatestPoolEvent(
+        hash: Word,
+        type: PoolHistoryType,
+        blockNumber: Long,
+        logIndex: Int
+    ): LogEvent? {
         val criteria = Criteria().andOperator(
             LogEvent::data / PoolDataUpdate::hash isEqualTo hash,
-            LogEvent::data / PoolDataUpdate::type isEqualTo PoolHistoryType.POOL_DELTA_UPDATE,
-            LogEvent::blockNumber lte blockNumber,
-            LogEvent::logIndex lt logIndex,
+            LogEvent::data / PoolDataUpdate::type isEqualTo type,
             LogEvent::status isEqualTo LogEventStatus.CONFIRMED,
+            Criteria().orOperator(
+                Criteria().andOperator(
+                    LogEvent::blockNumber isEqualTo blockNumber,
+                    LogEvent::logIndex lt logIndex
+                ),
+                LogEvent::blockNumber lt blockNumber,
+            )
         )
         val query = Query(criteria)
             .with(POOL_CHANGE_SORT_DESC)
-            .withHint(Indexes.NFT_CHANGES_POOL_ITEM_IDS_DEFINITION.indexKeys)
+            .withHint(Indexes.HASH_DEFINITION.indexKeys)
             .limit(1)
 
-        return template.find<LogEvent>(query, COLLECTION).collectList().awaitFirst()
+        return template.findOne<LogEvent>(query, COLLECTION).awaitFirstOrNull()
     }
 
     fun findAll(): Flux<LogEvent> {

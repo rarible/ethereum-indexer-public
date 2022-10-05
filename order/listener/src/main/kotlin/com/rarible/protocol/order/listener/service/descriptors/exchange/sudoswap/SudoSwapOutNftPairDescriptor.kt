@@ -55,7 +55,7 @@ class SudoSwapOutNftPairDescriptor(
             it[index]
         }
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
-        val poolInfo = sudoSwapPoolInfoProvider.gePollInfo(hash, log.address())
+        val poolInfo = sudoSwapPoolInfoProvider.getPollInfo(hash, log.address())
         val tokenIds = when (details) {
             is SudoSwapAnyOutNftDetail -> {
                 logger.info("Detected swapTokenForAnyNFTs method call in tx=${transaction.hash()}")

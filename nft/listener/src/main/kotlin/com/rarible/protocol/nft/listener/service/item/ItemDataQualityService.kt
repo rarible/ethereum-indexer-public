@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
+@Deprecated("Use ItemOwnershipConsistencyService and ItemOwnershipConsistencyJobHandler")
 class ItemDataQualityService(
     private val itemRepository: ItemRepository,
     private val ownershipRepository: OwnershipRepository,
