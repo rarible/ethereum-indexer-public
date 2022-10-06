@@ -6,7 +6,18 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
+import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
+import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OpenSeaSigner
@@ -24,13 +35,23 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 internal class OpenSeaOrderValidatorTest {
+    private val propertiesFeatureFlags = OrderIndexerProperties.FeatureFlags()
     private val properties = mockk<OrderIndexerProperties> {
         every { chainId } returns 4
+        every { featureFlags } returns propertiesFeatureFlags
     }
     private val openSeaOrderValidator = OpenSeaOrderValidatorImp(
         commonSigner = CommonSigner(),
         callDataEncoder = CallDataEncoder(),
-        openSeaSigner = OpenSeaSigner(CommonSigner(), EIP712Domain("Wyvern Exchange Contract", "2.3", BigInteger.valueOf(4), Address.apply("0xdd54d660178b28f6033a953b0e55073cfa7e3744"))),
+        openSeaSigner = OpenSeaSigner(
+            CommonSigner(),
+            EIP712Domain(
+                "Wyvern Exchange Contract",
+                "2.3",
+                BigInteger.valueOf(4),
+                Address.apply("0xdd54d660178b28f6033a953b0e55073cfa7e3744")
+            )
+        ),
         openSeaErrorCounter = OpenSeaOrderErrorMetric("", Blockchain.ETHEREUM).bind(
             SimpleMeterRegistry()
         ),
@@ -70,6 +91,21 @@ internal class OpenSeaOrderValidatorTest {
     }
 
     @Test
+    fun `should validate opensea order with price less 1000 wei`() {
+        val seaportOrder = createOrderVersion().copy(
+            hash = Word.apply("0xc3c0b20b40fde2ae91cd324dca5c95f2227e0825b6eef8e298ff5b5352313727"),
+            maker = Address.apply("0x54b126961a8f2ba34654a4cb7c89ce3a9421e6a9"),
+            type = OrderType.SEAPORT_V1,
+            makePrice = propertiesFeatureFlags.minSeaportMakePrice,
+            data = createOrderBasicSeaportDataV1().copy(
+                protocol = Address.apply("0x00000000006c3852cbef3e08e8df289169ede581")
+            ),
+            signature = Binary.apply("0x038e202fa2f1a7ac7944cd404057f4f9d945c9e2a1d4e8dd251592aa9f55587c11b2710f56474dbcd285035c4be1d61516e4c69e2ad9512baa0f699b43637fee1c")
+        )
+        assertThat(openSeaOrderValidator.validate(seaportOrder)).isFalse
+    }
+
+    @Test
     fun `should validate seaport order with compact signature and v = 27`() {
         val seaportOrder = createOrderVersion().copy(
             hash = Word.apply("0x36c136ce4db81f5b04f9b7fdabdba241720382b6f4366b1459bde9f3698f21d9"),
@@ -92,7 +128,8 @@ internal class OpenSeaOrderValidatorTest {
                 Erc20AssetType(
                     Address.apply("0xc778417e063141139fce010982780140aa0cd5ab")
                 ),
-                EthUInt256.of(13000000000000000)),
+                EthUInt256.of(13000000000000000)
+            ),
             take = Asset(
                 Erc721AssetType(
                     Address.apply("0x509fd4cdaa29be7b1fad251d8ea0fca2ca91eb60"),
