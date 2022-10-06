@@ -6,10 +6,13 @@ import com.rarible.core.test.data.randomBinary
 import com.rarible.core.test.data.randomBoolean
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomLong
+import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.looksrare.client.model.v1.LooksrareOrder
 import com.rarible.looksrare.client.model.v1.Status
 import com.rarible.x2y2.client.model.ErcType
+import com.rarible.x2y2.client.model.Event
+import com.rarible.x2y2.client.model.EventType
 import com.rarible.x2y2.client.model.Order
 import com.rarible.x2y2.client.model.OrderStatus
 import com.rarible.x2y2.client.model.OrderType
@@ -42,5 +45,22 @@ fun randomX2Y2Order(): Order {
             ercType = ErcType.values().random()
         ),
         updatedAt = Instant.now()
+    )
+}
+
+fun randomX2Y2Event(): Event {
+    return Event(
+        id = randomBigInt(),
+        createdAt = Instant.now(),
+        type = EventType.values().random(),
+        token = Token(
+            contract = randomAddress(),
+            tokenId = randomBigInt(),
+            ercType = ErcType.values().random()
+        ),
+        order = randomX2Y2Order(),
+        fromAddress = randomAddress(),
+        toAddress = randomAddress(),
+        tx = randomString()
     )
 }

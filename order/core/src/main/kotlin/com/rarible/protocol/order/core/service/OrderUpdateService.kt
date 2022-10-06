@@ -61,7 +61,7 @@ class OrderUpdateService(
         val updatedOrder = optimisticLock {
             orderReduceService.updateOrder(hash)
         }
-        if (updatedOrder != null) {
+        if (updatedOrder != null && updatedOrder.isNotEmptyOrder) {
             orderListener.onOrder(updatedOrder)
         }
     }
@@ -128,4 +128,7 @@ class OrderUpdateService(
         if (date2 == null) return date1
         return maxOf(date1, date2)
     }
+
+    private val Order.isNotEmptyOrder: Boolean
+        get() = this.hash != OrderReduceService.EMPTY_ORDER_HASH
 }

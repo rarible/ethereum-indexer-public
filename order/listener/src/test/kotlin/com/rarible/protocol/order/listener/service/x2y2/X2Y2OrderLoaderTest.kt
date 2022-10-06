@@ -3,7 +3,7 @@ package com.rarible.protocol.order.listener.service.x2y2
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.listener.configuration.X2Y2LoadProperties
+import com.rarible.protocol.order.listener.configuration.X2Y2OrderLoadProperties
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.data.randomX2Y2Order
@@ -17,14 +17,14 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
 internal class X2Y2OrderLoaderTest {
-    private val x2y2OrderService = mockk<X2Y2OrderService>()
+    private val x2y2OrderService = mockk<X2Y2Service>()
     private val x2Y2OrderConverter = mockk<X2Y2OrderConverter>()
     private val orderRepository = mockk<OrderRepository>()
     private val orderUpdateService = mockk<OrderUpdateService>()
-    private val properties = X2Y2LoadProperties(saveEnabled = true)
+    private val properties = X2Y2OrderLoadProperties(saveEnabled = true)
     private val x2y2SaveCounter = mockk<RegisteredCounter>()
 
-    private val handler =  X2Y2OrderLoader(
+    private val handler = X2Y2OrderLoader(
         x2y2OrderService,
         x2Y2OrderConverter,
         orderRepository,
