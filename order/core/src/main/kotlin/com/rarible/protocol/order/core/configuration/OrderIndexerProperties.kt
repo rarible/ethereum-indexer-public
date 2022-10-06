@@ -7,7 +7,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.NestedConfigurationProperty
 import scalether.domain.Address
-import java.math.BigDecimal
 import java.time.Duration
 
 const val RARIBLE_PROTOCOL_ORDER_INDEXER = "common"
@@ -96,11 +95,7 @@ data class OrderIndexerProperties(
         val skipGetTrace: Boolean = false,
         @Deprecated("Need remove this flag in release 1.31")
         val pendingDisabled: Boolean = true
-    ) {
-        //1000 Wei = 0.000000000000001 ETH
-        val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong())
-            .multiply(BigDecimal.valueOf(1, 18))
-    }
+    )
 
     data class RaribleOrderExpirationProperties(
         val bidExpirePeriod: Duration = Duration.ofDays(60L),

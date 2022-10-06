@@ -36,6 +36,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.util.Hash
+import java.math.BigDecimal
 import java.time.Instant
 
 @Component
@@ -362,7 +363,10 @@ class OrderReduceService(
         if (this.type != OrderType.SEAPORT_V1) return this
         logger.info("Cancel order $hash as Seaport with small price")
 
-        if (this.makePrice != null && (this.makePrice <= featureFlags.minSeaportMakePrice)) {
+        val sum =
+            (this.makePrice ?: BigDecimal.ZERO) * BigDecimal.valueOf(1, -18) * this.make.value.value.toBigDecimal()
+
+        if (sum.toInt() <= featureFlags.minSeaportMakeWeiPrice) {
             return this.copy(
                 cancelled = true,
                 status = OrderStatus.CANCELLED

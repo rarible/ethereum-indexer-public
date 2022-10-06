@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 
 @Component
 class CancelOpenSeaSmallOrdersTaskHandler(
@@ -38,10 +39,10 @@ class CancelOpenSeaSmallOrdersTaskHandler(
     }
 
     private fun isSmallMakePrice(order: Order): Boolean {
+        val sum =
+            (order.makePrice ?: BigDecimal.ZERO) * BigDecimal.valueOf(1, -18) * order.make.value.value.toBigDecimal()
 
-        if (order.type == OrderType.SEAPORT_V1 && order.makePrice != null
-            && (order.makePrice!! <= properties.featureFlags.minSeaportMakePrice)
-        ) {
+        if (order.type == OrderType.SEAPORT_V1 && sum.toInt() <= properties.featureFlags.minSeaportMakeWeiPrice) {
             return true
         }
         return false
