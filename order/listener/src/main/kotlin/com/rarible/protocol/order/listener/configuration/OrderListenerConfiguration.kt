@@ -276,7 +276,7 @@ class OrderListenerConfiguration(
         meterRegistry: MeterRegistry,
         stateRepository: AggregatorStateRepository,
         x2y2OrderLoader: X2Y2OrderLoader,
-        properties: X2Y2LoadProperties
+        properties: X2Y2OrderLoadProperties
     ): X2Y2OrdersFetchWorker {
         val handler = X2Y2OrderLoadHandler(
             stateRepository,
