@@ -21,6 +21,7 @@ data class OrderIndexerProperties(
     val openseaEip712DomainName: String,
     val openseaEip712DomainVersion: String,
     var openSeaNonceIncrement: Long = 0,
+    val minSeaportMakeWeiPrice: Int = 1000,
     val chainId: Int,
     var operatorPrivateKey: Binary,
     val protocolCommission: Int,
@@ -91,7 +92,6 @@ data class OrderIndexerProperties(
         val showSudoSwapOrdersWithOtherPlatforms: Boolean = false,
         val hideOpenSeaSignatures: Boolean = false,
         val maxOpenSeaNonceCalculation: Int = 10,
-        val minSeaportMakeWeiPrice: Int = 1000,
         val skipGetTrace: Boolean = false,
         @Deprecated("Need remove this flag in release 1.31")
         val pendingDisabled: Boolean = true

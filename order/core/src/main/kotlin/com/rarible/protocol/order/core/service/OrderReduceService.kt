@@ -51,7 +51,7 @@ class OrderReduceService(
     private val priceNormalizer: PriceNormalizer,
     private val priceUpdateService: PriceUpdateService,
     private val nonceService: NonceService,
-    indexerProperties: OrderIndexerProperties,
+    private  val indexerProperties: OrderIndexerProperties,
     private val approvalHistoryRepository: ApprovalHistoryRepository,
     private val poolReducer: EventPoolReducer,
     private val poolPriceProvider: PoolPriceProvider,
@@ -59,7 +59,6 @@ class OrderReduceService(
 ) {
     private val exchangeContractAddresses = indexerProperties.exchangeContractAddresses
     private val raribleOrderExpiration = indexerProperties.raribleOrderExpiration
-    private val featureFlags = indexerProperties.featureFlags
 
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
@@ -366,7 +365,7 @@ class OrderReduceService(
         val sum =
             (this.makePrice ?: BigDecimal.ZERO) * BigDecimal.valueOf(1, -18) * this.make.value.value.toBigDecimal()
 
-        if (sum.toInt() <= featureFlags.minSeaportMakeWeiPrice) {
+        if (sum.toInt() <= indexerProperties.minSeaportMakeWeiPrice) {
             return this.copy(
                 cancelled = true,
                 status = OrderStatus.CANCELLED

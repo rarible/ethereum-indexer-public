@@ -42,7 +42,7 @@ class CancelOpenSeaSmallOrdersTaskHandler(
         val sum =
             (order.makePrice ?: BigDecimal.ZERO) * BigDecimal.valueOf(1, -18) * order.make.value.value.toBigDecimal()
 
-        if (order.type == OrderType.SEAPORT_V1 && sum.toInt() <= properties.featureFlags.minSeaportMakeWeiPrice) {
+        if (order.type == OrderType.SEAPORT_V1 && sum.toInt() <= properties.minSeaportMakeWeiPrice) {
             return true
         }
         return false

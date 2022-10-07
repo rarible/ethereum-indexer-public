@@ -36,10 +36,9 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 internal class OpenSeaOrderValidatorTest {
-    private val propertiesFeatureFlags = OrderIndexerProperties.FeatureFlags()
     private val properties = mockk<OrderIndexerProperties> {
         every { chainId } returns 4
-        every { featureFlags } returns propertiesFeatureFlags
+        every { minSeaportMakeWeiPrice } returns 1000
     }
     private val openSeaOrderValidator = OpenSeaOrderValidatorImp(
         commonSigner = CommonSigner(),
@@ -97,7 +96,7 @@ internal class OpenSeaOrderValidatorTest {
             hash = Word.apply("0xc3c0b20b40fde2ae91cd324dca5c95f2227e0825b6eef8e298ff5b5352313727"),
             maker = Address.apply("0x54b126961a8f2ba34654a4cb7c89ce3a9421e6a9"),
             type = OrderType.SEAPORT_V1,
-            makePrice = BigDecimal.valueOf(1, -15),
+            makePrice = BigDecimal.valueOf(1, 15),
             data = createOrderBasicSeaportDataV1().copy(
                 protocol = Address.apply("0x00000000006c3852cbef3e08e8df289169ede581")
             ),

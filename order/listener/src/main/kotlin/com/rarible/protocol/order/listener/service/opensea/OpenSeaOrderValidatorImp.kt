@@ -68,11 +68,11 @@ class OpenSeaOrderValidatorImp(
         )
 
         val sum =
-            (order.makePrice ?: BigDecimal.ZERO) * BigDecimal.valueOf(1, -18) * order.make.value.value.toBigDecimal()
+            (order.makePrice ?: BigDecimal.ZERO) / BigDecimal.valueOf(1, 18) / order.make.value.value.toBigDecimal()
 
 
-        if (sum.toInt() <= properties.featureFlags.minSeaportMakeWeiPrice) {
-            logger.info("Invalid OpenSea order makePrice (${properties.featureFlags.minSeaportMakeWeiPrice}): $sum")
+        if (sum.toInt() <= properties.minSeaportMakeWeiPrice) {
+            logger.info("Invalid OpenSea order makePrice (${properties.minSeaportMakeWeiPrice}): $sum")
             return false
         }
         return try {
