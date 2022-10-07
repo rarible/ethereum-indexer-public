@@ -15,7 +15,6 @@ import com.rarible.protocol.order.listener.misc.seaportError
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.math.BigDecimal
 import java.math.BigInteger
 
 @Component
@@ -67,12 +66,8 @@ class OpenSeaOrderValidatorImp(
             verifyingContract = data.protocol
         )
 
-        val sum =
-            (order.makePrice ?: BigDecimal.ZERO) / BigDecimal.valueOf(1, 18) / order.make.value.value.toBigDecimal()
-
-
-        if (sum.toInt() <= properties.minSeaportMakeWeiPrice) {
-            logger.info("Invalid OpenSea order makePrice (${properties.minSeaportMakeWeiPrice}): $sum")
+        if (order.makePrice != null && order.makePrice!! <= properties.minSeaportMakePrice) {
+            logger.info("Invalid OpenSea order makePrice (${properties.minSeaportMakePrice}): ${order.makePrice}")
             return false
         }
         return try {

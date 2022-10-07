@@ -4,7 +4,6 @@ import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
-import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -15,7 +14,6 @@ import kotlinx.coroutines.flow.map
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.math.BigDecimal
 
 @Component
 class CancelOpenSeaSmallOrdersTaskHandler(
@@ -39,10 +37,7 @@ class CancelOpenSeaSmallOrdersTaskHandler(
     }
 
     private fun isSmallMakePrice(order: Order): Boolean {
-        val sum =
-            (order.makePrice ?: BigDecimal.ZERO) * BigDecimal.valueOf(1, -18) * order.make.value.value.toBigDecimal()
-
-        if (order.type == OrderType.SEAPORT_V1 && sum.toInt() <= properties.minSeaportMakeWeiPrice) {
+        if (order.makePrice != null && order.makePrice!! <= properties.minSeaportMakePrice) {
             return true
         }
         return false

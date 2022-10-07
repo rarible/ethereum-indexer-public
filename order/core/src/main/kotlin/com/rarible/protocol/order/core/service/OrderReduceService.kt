@@ -36,7 +36,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.util.Hash
-import java.math.BigDecimal
 import java.time.Instant
 
 @Component
@@ -51,7 +50,7 @@ class OrderReduceService(
     private val priceNormalizer: PriceNormalizer,
     private val priceUpdateService: PriceUpdateService,
     private val nonceService: NonceService,
-    private  val indexerProperties: OrderIndexerProperties,
+    private val indexerProperties: OrderIndexerProperties,
     private val approvalHistoryRepository: ApprovalHistoryRepository,
     private val poolReducer: EventPoolReducer,
     private val poolPriceProvider: PoolPriceProvider,
@@ -69,9 +68,17 @@ class OrderReduceService(
             orderUpdateComparator,
             orderVersionRepository.findAllByHash(orderHash, fromOrderHash, platforms)
                 .map { OrderUpdate.ByOrderVersion(it) },
-            exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash, platforms?.map(PlatformToHistorySourceConverter::convert))
+            exchangeHistoryRepository.findLogEvents(
+                orderHash,
+                fromOrderHash,
+                platforms?.map(PlatformToHistorySourceConverter::convert)
+            )
                 .map { OrderUpdate.ByExchangeLogEvent(it) },
-            poolHistoryRepository.findLogEvents(orderHash, fromOrderHash, platforms?.map(PlatformToHistorySourceConverter::convert))
+            poolHistoryRepository.findLogEvents(
+                orderHash,
+                fromOrderHash,
+                platforms?.map(PlatformToHistorySourceConverter::convert)
+            )
                 .map { OrderUpdate.ByPoolLogEvent(it) },
         )
             .windowUntilChanged { it.orderHash }
@@ -362,10 +369,7 @@ class OrderReduceService(
         if (this.type != OrderType.SEAPORT_V1) return this
         logger.info("Cancel order $hash as Seaport with small price")
 
-        val sum =
-            (this.makePrice ?: BigDecimal.ZERO) * BigDecimal.valueOf(1, -18) * this.make.value.value.toBigDecimal()
-
-        if (sum.toInt() <= indexerProperties.minSeaportMakeWeiPrice) {
+        if (this.makePrice != null && this.makePrice <= indexerProperties.minSeaportMakePrice) {
             return this.copy(
                 cancelled = true,
                 status = OrderStatus.CANCELLED

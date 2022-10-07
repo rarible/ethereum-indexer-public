@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.NestedConfigurationProperty
 import scalether.domain.Address
+import java.math.BigDecimal
 import java.time.Duration
 
 const val RARIBLE_PROTOCOL_ORDER_INDEXER = "common"
@@ -45,6 +46,8 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val sudoSwapAddresses: SudoSwapAddresses = SudoSwapAddresses()
 ) {
+    val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong()) * BigDecimal.valueOf(1, 18);
+
     data class CurrencyContractAddresses(
         var weth: Address
     )

@@ -38,7 +38,7 @@ import java.math.BigInteger
 internal class OpenSeaOrderValidatorTest {
     private val properties = mockk<OrderIndexerProperties> {
         every { chainId } returns 4
-        every { minSeaportMakeWeiPrice } returns 1000
+        every { minSeaportMakePrice } returns BigDecimal.valueOf(1, 15)
     }
     private val openSeaOrderValidator = OpenSeaOrderValidatorImp(
         commonSigner = CommonSigner(),
