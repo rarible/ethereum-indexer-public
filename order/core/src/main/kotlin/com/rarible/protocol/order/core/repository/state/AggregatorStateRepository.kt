@@ -34,7 +34,7 @@ class AggregatorStateRepository(
     }
 
     suspend fun getX2Y2CancelListEventState(): X2Y2CancelListEventFetchState? {
-        return get(X2Y2FetchState.ID, X2Y2CancelListEventFetchState::class.java)
+        return get(X2Y2CancelListEventFetchState.ID, X2Y2CancelListEventFetchState::class.java)
     }
 
     private suspend fun <T: AggregatorFetchState> get(id: String, type: Class<T>): T? {
