@@ -3,7 +3,10 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderSeaportDataV1
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OpenSeaSigner
@@ -22,12 +25,13 @@ class OpenSeaOrderValidatorImp(
     private val openSeaErrorCounter: RegisteredCounter,
     private val seaportErrorCounter: RegisteredCounter,
     private val seaportLoadProperties: SeaportLoadProperties,
-    properties: OrderIndexerProperties
+    private val properties: OrderIndexerProperties
 ) : OpenSeaOrderValidator {
 
     private val chainId = BigInteger.valueOf(properties.chainId.toLong())
 
     override fun validate(order: OrderVersion): Boolean {
+
         return when (order.type) {
             OrderType.OPEN_SEA_V1 -> {
                 val result = innerOpenSeaValidate(order)
@@ -61,6 +65,11 @@ class OpenSeaOrderValidatorImp(
             chainId = chainId,
             verifyingContract = data.protocol
         )
+
+        if (order.makePrice != null && order.makePrice!! <= properties.minSeaportMakePrice) {
+            logger.info("Invalid OpenSea order makePrice (${properties.minSeaportMakePrice}): ${order.makePrice}")
+            return false
+        }
         return try {
             val hashToSign = domain.hashToSign(order.hash)
             val result = commonSigner.recover(hashToSign, signature) == order.maker
@@ -89,7 +98,8 @@ class OpenSeaOrderValidatorImp(
             logger.info("Invalid OpenSea order (empty signature): $order")
             return false
         }
-        val hashToSign: Word = if (data.nonce != null) order.hash else openSeaSigner.openSeaHashToSign(order.hash, false)
+        val hashToSign: Word =
+            if (data.nonce != null) order.hash else openSeaSigner.openSeaHashToSign(order.hash, false)
         try {
             if (commonSigner.recover(hashToSign, signature) != order.maker) {
                 logger.info("Invalid OpenSea order (signature): $order")

@@ -22,7 +22,6 @@ import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.core.service.pool.EventPoolReducer
 import com.rarible.protocol.order.core.service.pool.PoolPriceProvider
 import io.daonomic.rpc.domain.Word
-import java.time.Instant
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
@@ -37,6 +36,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.util.Hash
+import java.time.Instant
 
 @Component
 @CaptureSpan(type = SpanType.APP)
@@ -50,13 +50,15 @@ class OrderReduceService(
     private val priceNormalizer: PriceNormalizer,
     private val priceUpdateService: PriceUpdateService,
     private val nonceService: NonceService,
-    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val raribleOrderExpiration: OrderIndexerProperties.RaribleOrderExpirationProperties,
+    private val indexerProperties: OrderIndexerProperties,
     private val approvalHistoryRepository: ApprovalHistoryRepository,
     private val poolReducer: EventPoolReducer,
     private val poolPriceProvider: PoolPriceProvider,
     private val orderStateRepository: OrderStateRepository,
 ) {
+    private val exchangeContractAddresses = indexerProperties.exchangeContractAddresses
+    private val raribleOrderExpiration = indexerProperties.raribleOrderExpiration
+
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
     fun update(orderHash: Word? = null, fromOrderHash: Word? = null, platforms: List<Platform>? = null): Flux<Order> {
@@ -66,9 +68,17 @@ class OrderReduceService(
             orderUpdateComparator,
             orderVersionRepository.findAllByHash(orderHash, fromOrderHash, platforms)
                 .map { OrderUpdate.ByOrderVersion(it) },
-            exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash, platforms?.map(PlatformToHistorySourceConverter::convert))
+            exchangeHistoryRepository.findLogEvents(
+                orderHash,
+                fromOrderHash,
+                platforms?.map(PlatformToHistorySourceConverter::convert)
+            )
                 .map { OrderUpdate.ByExchangeLogEvent(it) },
-            poolHistoryRepository.findLogEvents(orderHash, fromOrderHash, platforms?.map(PlatformToHistorySourceConverter::convert))
+            poolHistoryRepository.findLogEvents(
+                orderHash,
+                fromOrderHash,
+                platforms?.map(PlatformToHistorySourceConverter::convert)
+            )
                 .map { OrderUpdate.ByPoolLogEvent(it) },
         )
             .windowUntilChanged { it.orderHash }
@@ -311,7 +321,6 @@ class OrderReduceService(
             this
         }
         return copy.withMakeBalance(makeBalance.value, protocolCommissionProvider.get())
-
     }
 
     private suspend fun Order.withNewPrice(): Order {
@@ -356,6 +365,21 @@ class OrderReduceService(
         }
     }
 
+    private suspend fun Order.withCancelSmallPriceSeaport(): Order {
+        if (this.type != OrderType.SEAPORT_V1) return this
+        logger.info("Cancel order $hash as Seaport with small price")
+
+        if (this.makePrice != null && this.makePrice <= indexerProperties.minSeaportMakePrice) {
+            return this.copy(
+                cancelled = true,
+                status = OrderStatus.CANCELLED,
+                lastEventId = accumulateEventId(this.lastEventId, lastUpdateAt.toString())
+            )
+        }
+
+        return this
+    }
+
     private suspend fun Order.withBidExpire(): Order {
         val expiredDate = Instant.now() - raribleOrderExpiration.bidExpirePeriod
 
@@ -389,7 +413,7 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withSellApproval(): Order {
-        val collection = when(val assetType = this.make.type) {
+        val collection = when (val assetType = this.make.type) {
             is Erc721AssetType -> assetType.token
             is CollectionAssetType -> assetType.token
             is GenerativeArtAssetType -> assetType.token
@@ -401,7 +425,7 @@ class OrderReduceService(
         }
         val lastApprovalEvent = approvalHistoryRepository.lastApprovalLogEvent(collection, this.maker) ?: return this
         val approveInfo = lastApprovalEvent.data as ApprovalHistory
-        return if(approveInfo.approved != this.approved) {
+        return if (approveInfo.approved != this.approved) {
             logger.info("Change order $hash approval to ${approveInfo.approved}!")
             this.copy(
                 approved = approveInfo.approved,
@@ -421,6 +445,7 @@ class OrderReduceService(
             .withCancelOpenSea()
             .withApproval()
             .withBidExpire()
+            .withCancelSmallPriceSeaport()
             .withFinalState()
 
         val saved = orderRepository.save(order)

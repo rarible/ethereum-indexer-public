@@ -160,7 +160,6 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(recalculatedOrder.lastEventId).isEqualTo(order.lastEventId)
     }
 
-
     @Test
     fun `should not change lastEventId with orderVersions and logEvents`() = runBlocking<Unit> {
         val hash = Word.apply(randomWord())
@@ -374,6 +373,45 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         )
         val updated = orderReduceService.updateOrder(hash)!!
         assertThat(updated.status).isNotEqualTo(OrderStatus.CANCELLED)
+        assertThat(updated.lastUpdateAt).isEqualTo(orderVersion.createdAt)
+    }
+
+    @Test
+    internal fun `should  cancel Seaport order if price are so small`() = runBlocking<Unit> {
+        val now = nowMillis()
+        val data = createOrderBasicSeaportDataV1().copy(counter = 1)
+        val orderVersion = createOrderVersion().copy(
+            type = OrderType.SEAPORT_V1,
+            data = data,
+            createdAt = now,
+            makePrice = BigDecimal.valueOf(1, 18)
+        )
+        val hash = orderVersion.hash
+        orderUpdateService.save(orderVersion)
+
+        val nonce = ChangeNonceHistory(
+            maker = orderVersion.maker,
+            newNonce = EthUInt256.ONE,
+            date = now + Duration.ofMinutes(10),
+            source = HistorySource.OPEN_SEA
+        )
+        nonceHistoryRepository.save(
+            LogEvent(
+                data = nonce,
+                address = data.protocol,
+                topic = Word.apply(randomWord()),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 0,
+                minorLogIndex = 0,
+                index = 0,
+                createdAt = now,
+                updatedAt = now,
+            )
+        )
+        val updated = orderReduceService.updateOrder(hash)!!
+        assertThat(updated.status).isEqualTo(OrderStatus.CANCELLED)
         assertThat(updated.lastUpdateAt).isEqualTo(orderVersion.createdAt)
     }
 
