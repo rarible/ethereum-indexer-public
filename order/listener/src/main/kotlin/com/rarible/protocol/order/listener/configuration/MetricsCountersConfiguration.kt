@@ -43,6 +43,9 @@ import com.rarible.protocol.order.listener.misc.SeaportOrderLoadMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderSaveMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderTaskLoadMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderTaskSaveMetric
+import com.rarible.protocol.order.listener.misc.X2Y2EventDelayMetric
+import com.rarible.protocol.order.listener.misc.X2Y2EventLoadMetric
+import com.rarible.protocol.order.listener.misc.X2Y2OffChainOrderCancelMetric
 import com.rarible.protocol.order.listener.misc.X2Y2OrderCancelEventMetric
 import com.rarible.protocol.order.listener.misc.X2Y2OrderDelayMetric
 import com.rarible.protocol.order.listener.misc.X2Y2OrderLoadErrorMetric
@@ -223,6 +226,10 @@ class MetricsCountersConfiguration(
         X2Y2OrderLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
 
     @Bean
+    fun x2y2EventLoadCounter(): RegisteredCounter =
+        X2Y2EventLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
     fun x2y2LoadErrorCounter(): RegisteredCounter =
         X2Y2OrderLoadErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
 
@@ -232,8 +239,17 @@ class MetricsCountersConfiguration(
     }
 
     @Bean
+    fun x2y2EventDelayGauge(): RegisteredGauge<Long> {
+        return X2Y2EventDelayMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
     fun x2y2CancelEventCounter(): RegisteredCounter =
         X2Y2OrderCancelEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun x2y2OffChainOrderCancelCounter(): RegisteredCounter =
+        X2Y2OffChainOrderCancelMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
 
     @Bean
     fun x2y2MatchEventCounter(): RegisteredCounter =

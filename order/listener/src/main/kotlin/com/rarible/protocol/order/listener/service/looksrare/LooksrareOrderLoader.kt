@@ -43,7 +43,9 @@ class LooksrareOrderLoader(
                             }
                             val order = looksrareOrderConverter.convert(it)
                             if (order != null && properties.saveEnabled) {
-                                orderUpdateService.save(order)
+                                orderUpdateService.save(order).also {
+                                    orderUpdateService.updateMakeStock(it)
+                                }
                                 looksrareSaveCounter.increment()
                                 logger.looksrareInfo("Saved new order ${it.hash}")
                             }

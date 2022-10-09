@@ -7,7 +7,7 @@ import com.rarible.ethereum.listener.log.OnLogEventListener
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.OrderUpdateService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactor.mono
@@ -18,8 +18,9 @@ import reactor.core.publisher.Mono
 @CaptureSpan(type = SpanType.EVENT)
 class ApprovalAllLogListener(
     private val orderRepository: OrderRepository,
-    private val orderReduceService: OrderReduceService
+    private val orderUpdateService: OrderUpdateService
 ) : OnLogEventListener {
+
     override val topics: List<Word>
         get() = listOf(ApprovalForAllEvent.id())
 
@@ -32,8 +33,8 @@ class ApprovalAllLogListener(
     }.then()
 
     private suspend fun reduceOrders(history: ApprovalHistory) {
-        orderRepository.findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection).collect {
-            orderReduceService.updateOrder(it)
-        }
+        orderRepository
+            .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection)
+            .collect { orderUpdateService.update(it) }
     }
 }

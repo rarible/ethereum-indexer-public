@@ -28,7 +28,8 @@ data class OrderListenerProperties(
     val raribleExpiredBidWorker: RaribleExpiredBidWorkerProperties = RaribleExpiredBidWorkerProperties(),
     val seaportLoad: SeaportLoadProperties = SeaportLoadProperties(),
     val looksrareLoad: LooksrareLoadProperties = LooksrareLoadProperties(),
-    val x2y2Load: X2Y2LoadProperties = X2Y2LoadProperties(),
+    val x2y2Load: X2Y2OrderLoadProperties = X2Y2OrderLoadProperties(),
+    val x2y2CancelListEventLoad: X2Y2EventLoadProperties = X2Y2EventLoadProperties(),
     val startEndWorker: StartEndWorkerProperties = StartEndWorkerProperties()
 ) {
     enum class OrderSide {
@@ -115,12 +116,28 @@ data class StartEndWorkerProperties(
     val errorDelay: Duration = Duration.ofMinutes(2)
 )
 
-data class X2Y2LoadProperties(
-    val enabled: Boolean = false,
+sealed class X2Y2LoadProperties {
+    abstract val enabled: Boolean
+    abstract val startCursor: Long?
+    abstract val retryDelay: Duration
+    abstract val pollingPeriod: Duration
+    abstract val errorDelay: Duration
+}
+
+data class X2Y2OrderLoadProperties(
+    override val enabled: Boolean = false,
     val saveEnabled: Boolean = false,
     val saveBatchSize: Int = 50,
-    val startCursor: Long? = 1657843200000, // Friday, July 15, 2022 12:00:00 AM
-    val retryDelay: Duration = Duration.ofMillis(500),
-    val pollingPeriod: Duration = Duration.ofSeconds(10),
-    val errorDelay: Duration = Duration.ofSeconds(5),
-)
+    override val startCursor: Long? = 1657843200000, // Friday, July 15, 2022 12:00:00 AM
+    override val retryDelay: Duration = Duration.ofMillis(500),
+    override val pollingPeriod: Duration = Duration.ofSeconds(10),
+    override val errorDelay: Duration = Duration.ofSeconds(5),
+) : X2Y2LoadProperties()
+
+data class X2Y2EventLoadProperties(
+    override val enabled: Boolean = false,
+    override val startCursor: Long? = 1657843200, // Friday, July 15, 2022 12:00:00 AM
+    override val retryDelay: Duration = Duration.ofMillis(500),
+    override val pollingPeriod: Duration = Duration.ofSeconds(10),
+    override val errorDelay: Duration = Duration.ofSeconds(5),
+) : X2Y2LoadProperties()
