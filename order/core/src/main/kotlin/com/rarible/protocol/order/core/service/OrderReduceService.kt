@@ -372,7 +372,8 @@ class OrderReduceService(
         if (this.makePrice != null && this.makePrice <= indexerProperties.minSeaportMakePrice) {
             return this.copy(
                 cancelled = true,
-                status = OrderStatus.CANCELLED
+                status = OrderStatus.CANCELLED,
+                lastEventId = accumulateEventId(this.lastEventId, lastUpdateAt.toString())
             )
         }
 
