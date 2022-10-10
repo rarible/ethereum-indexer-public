@@ -14,6 +14,7 @@ import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyServic
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.CheckResult.Failure
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.CheckResult.Success
+import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -28,7 +29,12 @@ class ItemOwnershipConsistencyJobHandler(
     private val nftListenerProperties: NftListenerProperties,
     private val itemOwnershipConsistencyService: ItemOwnershipConsistencyService,
     private val inconsistentItemRepository: InconsistentItemRepository,
+    metricsFactory: NftListenerMetricsFactory,
 ) : JobHandler {
+
+    private val checkedCounter = metricsFactory.itemOwnershipConsistencyJobCheckedCounter()
+    private val fixedCounter = metricsFactory.itemOwnershipConsistencyJobFixedCounter()
+    private val unfixedCounter = metricsFactory.itemOwnershipConsistencyJobUnfixedCounter()
 
     private val properties = nftListenerProperties.itemOwnershipConsistency
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -44,6 +50,7 @@ class ItemOwnershipConsistencyJobHandler(
             do {
                 val items = getItemsBatch(state.continuation)
                 logger.info("Got ${items.size} items to check")
+                logger.info("Items: $items")
                 if (items.isEmpty()) {
                     state.continuation = null
                     state.latestChecked = Instant.now()
@@ -51,6 +58,7 @@ class ItemOwnershipConsistencyJobHandler(
                 }
 
                 items.forEach { item -> checkAndFixItem(item) }
+                checkedCounter.increment(items.size.toLong())
 
                 state.latestChecked = items.last().date
                 state.continuation = items.last().let { item -> ItemContinuation(item.date, item.id).toString() }
@@ -91,9 +99,11 @@ class ItemOwnershipConsistencyJobHandler(
                                 ownershipsValue = checkResult.ownerships.value.toLong()
                             )
                         )
+                        unfixedCounter.increment()
                     }
 
                     Success -> {
+                        fixedCounter.increment()
                         logger.info("Item ${item.id} ownership consistency was fixed successfully")
                     }
                 }
