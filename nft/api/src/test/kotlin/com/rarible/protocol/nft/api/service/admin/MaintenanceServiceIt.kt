@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
 import com.rarible.protocol.nft.api.e2e.data.randomItemId
+import com.rarible.protocol.nft.api.model.ItemProblemType
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -63,13 +64,39 @@ class MaintenanceServiceIt : SpringContainerBaseTest() {
 
         // then
         assertThat(actual.valid).containsExactly(validItemId.toString())
-        assertThat(actual.fixed).containsExactly(fixableItemId.toString())
-        assertThat(actual.unfixed).containsExactly(unfixableItemId.toString())
+        assertThat(actual.fixed).isEqualTo(mapOf(fixableItemId.toString() to ItemProblemType.NOT_FOUND))
+        assertThat(actual.unfixed).isEqualTo(mapOf(unfixableItemId.toString() to ItemProblemType.NOT_FOUND))
     }
 
-    private suspend fun saveOwnership(itemId: ItemId, owner: Address) {
+    @Test
+    fun `should check user items`() = runBlocking<Unit> {
+        // given
+        val user = createAddress()
+        val validItemId = randomItemId()
+        val invalidItemId1 = randomItemId()
+        val invalidItemId2 = randomItemId()
+        saveItem(validItemId, user)
+        saveItem(invalidItemId2, user)
+        saveOwnership(validItemId, user)
+        saveOwnership(invalidItemId1, user)
+        saveOwnership(invalidItemId2, user, 2)
+
+        // when
+        val actual = service.checkUserItems(user.toString())
+
+        // then
+        assertThat(actual.valid).containsExactly(validItemId.toString())
+        assertThat(actual.invalid).containsExactlyInAnyOrderEntriesOf(
+            mapOf(
+                invalidItemId1.toString() to ItemProblemType.NOT_FOUND,
+                invalidItemId2.toString() to ItemProblemType.SUPPLY_MISMATCH,
+            )
+        )
+    }
+
+    private suspend fun saveOwnership(itemId: ItemId, owner: Address, value: Int = 1) {
         ownershipRepository.save(
-            createOwnership(itemId.token, itemId.tokenId, creator = null, owner, value = EthUInt256.of(1))
+            createOwnership(itemId.token, itemId.tokenId, creator = null, owner, value = EthUInt256.of(value))
         ).awaitFirst()
     }
 

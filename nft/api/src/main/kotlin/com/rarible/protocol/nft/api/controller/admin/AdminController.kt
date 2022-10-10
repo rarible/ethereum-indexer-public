@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.api.controller.admin
 import com.rarible.core.task.Task
 import com.rarible.protocol.nft.api.converter.ItemIdConverter
 import com.rarible.protocol.nft.api.dto.AdminTaskDto
+import com.rarible.protocol.nft.api.dto.CheckUserItemsResultDto
 import com.rarible.protocol.nft.api.dto.FixUserItemsResultDto
 import com.rarible.protocol.nft.api.dto.TokenDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
@@ -169,6 +170,19 @@ class AdminController(
         val fixResult = maintenanceService.fixUserItems(user)
         logger.info("fixItems result user $user is $fixResult")
         return ResponseEntity.ok().body(fixResult)
+    }
+
+    @GetMapping(
+        value = ["/admin/nft/user/{user}/checkItems"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    suspend fun checkUserItems(
+        @PathVariable("user") user: String,
+    ): ResponseEntity<CheckUserItemsResultDto> {
+        logger.info("Checking user items for user $user")
+        val checkResult = maintenanceService.checkUserItems(user)
+        logger.info("checkItems result user $user is $checkResult")
+        return ResponseEntity.ok().body(checkResult)
     }
 
     @GetMapping(
