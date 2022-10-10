@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.TestPropertiesConfiguration
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.model.LooksrareFetchState
 import com.rarible.protocol.order.core.model.SeaportFetchState
+import com.rarible.protocol.order.core.model.X2Y2CancelListEventFetchState
 import com.rarible.protocol.order.core.model.X2Y2FetchState
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
@@ -60,6 +61,24 @@ internal class AggregatorStateRepositoryTest {
         repository.save(newState)
 
         currentState = repository.getX2Y2State()
+        Assertions.assertThat(currentState).isEqualTo(newState)
+    }
+
+    @Test
+    fun `should save and get x2y2 cancel event state`() = runBlocking<Unit> {
+        val noState = repository.getX2Y2CancelListEventState()
+        Assertions.assertThat(noState).isNull()
+
+        val initState = X2Y2CancelListEventFetchState("1")
+        repository.save(initState)
+
+        var currentState = repository.getX2Y2CancelListEventState()
+        Assertions.assertThat(currentState).isEqualTo(initState)
+
+        val newState = X2Y2CancelListEventFetchState("2")
+        repository.save(newState)
+
+        currentState = repository.getX2Y2CancelListEventState()
         Assertions.assertThat(currentState).isEqualTo(newState)
     }
 

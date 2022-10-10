@@ -27,6 +27,7 @@ import com.rarible.protocol.order.listener.job.LooksrareOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.OrderStartEndCheckerWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
+import com.rarible.protocol.order.listener.job.X2Y2CancelEventsFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2OrdersFetchWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
@@ -41,6 +42,8 @@ import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoader
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import com.rarible.protocol.order.listener.service.order.OrderStartEndCheckerHandler
 import com.rarible.protocol.order.listener.service.order.SeaportOrdersLoadTaskHandler
+import com.rarible.protocol.order.listener.service.x2y2.X2Y2CancelEventsLoadHandler
+import com.rarible.protocol.order.listener.service.x2y2.X2Y2CancelListEventLoader
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoadHandler
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoader
 import io.micrometer.core.instrument.MeterRegistry
@@ -98,8 +101,13 @@ class OrderListenerConfiguration(
     }
 
     @Bean
-    fun x2y2LoadProperties(): X2Y2LoadProperties {
+    fun x2y2OrderLoadProperties(): X2Y2OrderLoadProperties {
         return listenerProperties.x2y2Load
+    }
+
+    @Bean
+    fun x2y2CancelListEventLoadProperties(): X2Y2EventLoadProperties {
+        return listenerProperties.x2y2CancelListEventLoad
     }
 
     @Bean
@@ -268,7 +276,7 @@ class OrderListenerConfiguration(
         meterRegistry: MeterRegistry,
         stateRepository: AggregatorStateRepository,
         x2y2OrderLoader: X2Y2OrderLoader,
-        properties: X2Y2LoadProperties
+        properties: X2Y2OrderLoadProperties
     ): X2Y2OrdersFetchWorker {
         val handler = X2Y2OrderLoadHandler(
             stateRepository,
@@ -278,6 +286,30 @@ class OrderListenerConfiguration(
         return X2Y2OrdersFetchWorker(
             handler = handler,
             properties = listenerProperties.x2y2Load,
+            meterRegistry = meterRegistry
+        ).apply { start() }
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER,
+        name = ["x2y2-cancel-list-event-load.enabled"],
+        havingValue = "true"
+    )
+    fun x2y2CancelListFetchWorker(
+        meterRegistry: MeterRegistry,
+        stateRepository: AggregatorStateRepository,
+        x2y2CancelListEventLoader: X2Y2CancelListEventLoader,
+        properties: X2Y2EventLoadProperties
+    ): X2Y2CancelEventsFetchWorker {
+        val handler = X2Y2CancelEventsLoadHandler(
+            stateRepository,
+            x2y2CancelListEventLoader,
+            properties
+        )
+        return X2Y2CancelEventsFetchWorker(
+            handler = handler,
+            properties = listenerProperties.x2y2CancelListEventLoad,
             meterRegistry = meterRegistry
         ).apply { start() }
     }

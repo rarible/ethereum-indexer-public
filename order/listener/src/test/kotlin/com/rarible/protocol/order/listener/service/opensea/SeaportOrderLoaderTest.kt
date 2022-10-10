@@ -43,6 +43,7 @@ internal class SeaportOrderLoaderTest {
     fun `should get filter save new seaport orders`() = runBlocking<Unit> {
         val validClientOrder1 = randomSeaportOrder()
         val validOrderVersion1 = createOrderVersion()
+        val order1 = createOrder()
 
         val validClientOrder2 = randomSeaportOrder()
         val validOrderVersion2 = createOrderVersion()
@@ -69,8 +70,8 @@ internal class SeaportOrderLoaderTest {
         coEvery { orderRepository.findById(validOrderVersion1.hash) } returns null
         coEvery { orderRepository.findById(validOrderVersion2.hash) } returns createOrder()
 
-        coEvery { orderUpdateService.save(validOrderVersion1) } returns createOrder()
-        coEvery { orderUpdateService.updateMakeStock(validOrderVersion1.hash) } returns mockk()
+        coEvery { orderUpdateService.save(validOrderVersion1) } returns order1
+        coEvery { orderUpdateService.updateMakeStock(order1) } returns (order1 to true)
         every { seaportSaveCounter.increment() } returns Unit
 
         handler.load(null, false)
@@ -92,12 +93,15 @@ internal class SeaportOrderLoaderTest {
     fun `should get and save all new seaport orders while previas is not null`() = runBlocking<Unit> {
         val clientOrder1 = randomSeaportOrder()
         val orderVersion1 = createOrderVersion()
+        val order1 = createOrder()
 
         val clientOrder2 = randomSeaportOrder()
         val orderVersion2 = createOrderVersion()
+        val order2 = createOrder()
 
         val clientOrder3 = randomSeaportOrder()
         val orderVersion3 = createOrderVersion()
+        val order3 = createOrder()
 
         val previous = "previous0"
 
@@ -132,13 +136,13 @@ internal class SeaportOrderLoaderTest {
         coEvery { orderRepository.findById(orderVersion2.hash) } returns null
         coEvery { orderRepository.findById(orderVersion3.hash) } returns null
 
-        coEvery { orderUpdateService.save(orderVersion1) } returns createOrder()
-        coEvery { orderUpdateService.save(orderVersion2) } returns createOrder()
-        coEvery { orderUpdateService.save(orderVersion3) } returns createOrder()
+        coEvery { orderUpdateService.save(orderVersion1) } returns order1
+        coEvery { orderUpdateService.save(orderVersion2) } returns order2
+        coEvery { orderUpdateService.save(orderVersion3) } returns order3
 
-        coEvery { orderUpdateService.updateMakeStock(orderVersion1.hash) } returns mockk()
-        coEvery { orderUpdateService.updateMakeStock(orderVersion2.hash) } returns mockk()
-        coEvery { orderUpdateService.updateMakeStock(orderVersion3.hash) } returns mockk()
+        coEvery { orderUpdateService.updateMakeStock(order1) } returns (order1 to true)
+        coEvery { orderUpdateService.updateMakeStock(order2) } returns (order2 to true)
+        coEvery { orderUpdateService.updateMakeStock(order3) } returns (order3 to true)
         every { seaportSaveCounter.increment() } returns Unit
 
         val result = handler.load(previous, false)
@@ -188,6 +192,7 @@ internal class SeaportOrderLoaderTest {
         for (i in 1..(properties.maxLoadResults * 2)) {
             val clientOrder = randomSeaportOrder()
             val orderVersion = createOrderVersion()
+            val order = createOrder()
 
             val seaportOrders = SeaportOrders(
                 next = "next$i",
@@ -198,8 +203,8 @@ internal class SeaportOrderLoaderTest {
             coEvery { openSeaOrderConverter.convert(clientOrder) } returns orderVersion
             every { openSeaOrderValidator.validate(orderVersion) } returns true
             coEvery { orderRepository.findById(orderVersion.hash) } returns null
-            coEvery { orderUpdateService.save(orderVersion) } returns createOrder()
-            coEvery { orderUpdateService.updateMakeStock(orderVersion.hash) } returns mockk()
+            coEvery { orderUpdateService.save(orderVersion) } returns order
+            coEvery { orderUpdateService.updateMakeStock(order) } returns (order to true)
         }
         every { seaportSaveCounter.increment() } returns Unit
 

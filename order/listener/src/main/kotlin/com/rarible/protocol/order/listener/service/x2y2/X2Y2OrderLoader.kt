@@ -4,6 +4,7 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.X2Y2LoadProperties
+import com.rarible.protocol.order.listener.configuration.X2Y2OrderLoadProperties
 import com.rarible.protocol.order.listener.misc.seaportInfo
 import com.rarible.protocol.order.listener.misc.x2y2Error
 import com.rarible.protocol.order.listener.misc.x2y2Info
@@ -18,11 +19,11 @@ import org.springframework.stereotype.Component
 
 @Component
 class X2Y2OrderLoader(
-    private val x2y2OrderService: X2Y2OrderService,
+    private val x2y2OrderService: X2Y2Service,
     private val x2Y2OrderConverter: X2Y2OrderConverter,
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
-    private val properties: X2Y2LoadProperties,
+    private val properties: X2Y2OrderLoadProperties,
     private val x2y2SaveCounter: RegisteredCounter
 ) {
     suspend fun load(cursor: String?): ApiListResponse<Order> {
@@ -53,7 +54,9 @@ class X2Y2OrderLoader(
                         chunk.map {
                             async {
                                 if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
-                                    orderUpdateService.save(it)
+                                    orderUpdateService.save(it).also {
+                                        orderUpdateService.updateMakeStock(it)
+                                    }
                                     x2y2SaveCounter.increment()
                                     logger.x2y2Info("Saved new order ${it.hash}")
                                 }

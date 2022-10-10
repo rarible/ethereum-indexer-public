@@ -1,46 +1,30 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
-import com.rarible.core.daemon.job.JobHandler
-import com.rarible.protocol.order.core.model.X2Y2FetchState
+import com.rarible.protocol.order.core.model.AggregatorFetchState
+import com.rarible.protocol.order.core.model.X2Y2CancelListEventFetchState
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.listener.configuration.X2Y2LoadProperties
-import com.rarible.protocol.order.listener.misc.x2y2Info
-import kotlinx.coroutines.time.delay
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import com.rarible.x2y2.client.model.ApiListResponse
+import com.rarible.x2y2.client.model.Order
 import java.time.Instant
-import java.util.*
 
 class X2Y2OrderLoadHandler(
     private val aggregatorStateRepository: AggregatorStateRepository,
     private val x2y2OrderLoader: X2Y2OrderLoader,
     private val properties: X2Y2LoadProperties
-) : JobHandler {
+) : AbstractX2Y2LoadHandler<Order>(aggregatorStateRepository, properties) {
 
-    override suspend fun handle() {
-        val state = aggregatorStateRepository.getX2Y2State() ?: getDefaultFetchState()
-        val result = x2y2OrderLoader.load(state.cursor)
-
-        val next = result.next
-        val (nextCursor, needDelay) = if (next == null) {
-            logger.x2y2Info("Previous cursor (${state.cursor}) is not finalized, reuse it")
-            state.cursor to true
-        } else {
-            logger.x2y2Info("Use next cursor $next")
-            next to false
-        }
-        aggregatorStateRepository.save(state.withCursor(nextCursor))
-        if (result.data.isEmpty() || needDelay) delay(properties.pollingPeriod)
+    override suspend fun getState(): AggregatorFetchState? {
+        return aggregatorStateRepository.getX2Y2State()
     }
 
-    private fun getDefaultFetchState(): X2Y2FetchState {
-        return X2Y2FetchState(
-            cursor = (properties.startCursor ?: Instant.now().toEpochMilli()).let { Base64.getEncoder().encodeToString("[${it}]".toByteArray()) }
+    override suspend fun getResult(cursor: String): ApiListResponse<Order> {
+        return x2y2OrderLoader.load(cursor)
+    }
+
+    override fun getDefaultFetchState(): AggregatorFetchState {
+        return X2Y2CancelListEventFetchState(
+            cursor = codeCursor((properties.startCursor ?: Instant.now().toEpochMilli()))
         )
-    }
-
-    private companion object {
-
-        val logger: Logger = LoggerFactory.getLogger(X2Y2OrderLoadHandler::class.java)
     }
 }

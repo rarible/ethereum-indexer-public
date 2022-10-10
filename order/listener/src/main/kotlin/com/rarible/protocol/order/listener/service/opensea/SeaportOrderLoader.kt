@@ -63,9 +63,10 @@ class SeaportOrderLoader(
                                     openSeaOrderValidator.validate(order) &&
                                     orderRepository.findById(order.hash) == null
                                 ) {
-                                    orderUpdateService.save(order)
+                                    orderUpdateService.save(order).also {
+                                        orderUpdateService.updateMakeStock(it)
+                                    }
                                     seaportSaveCounter.increment()
-                                    orderUpdateService.updateMakeStock(order.hash)
                                     logger.seaportInfo("Saved new order ${order.hash}")
                                 }
                             }

@@ -61,7 +61,7 @@ class OrderUpdateService(
         val updatedOrder = optimisticLock {
             orderReduceService.updateOrder(hash)
         }
-        if (updatedOrder != null) {
+        if (updatedOrder != null && updatedOrder.isNotEmptyOrder) {
             orderListener.onOrder(updatedOrder)
         }
     }
@@ -71,15 +71,21 @@ class OrderUpdateService(
         makeBalanceState: MakeBalanceState? = null
     ): Order? = updateMakeStockFull(hash, makeBalanceState).first
 
-    /**
-     * Updates the order's make stock and prices without calling the OrderReduceService.
-     */
     suspend fun updateMakeStockFull(
         hash: Word,
         makeBalanceState: MakeBalanceState? = null
-    ): Pair<Order?, Boolean> = optimisticLock {
-        val order = orderRepository.findById(hash) ?: return@optimisticLock null to false
+    ): Pair<Order?, Boolean>  {
+        val order = orderRepository.findById(hash) ?: return null to false
+        return updateMakeStock(order, makeBalanceState)
+    }
 
+    /**
+     * Updates the order's make stock and prices without calling the OrderReduceService.
+     */
+    suspend fun updateMakeStock(
+        order: Order,
+        makeBalanceState: MakeBalanceState? = null
+    ): Pair<Order?, Boolean> = optimisticLock {
         val makeBalance = makeBalanceState ?: assetMakeBalanceProvider.getMakeBalance(order)
         val knownMakeBalance = makeBalance.value
 
@@ -122,4 +128,7 @@ class OrderUpdateService(
         if (date2 == null) return date1
         return maxOf(date1, date2)
     }
+
+    private val Order.isNotEmptyOrder: Boolean
+        get() = this.hash != OrderReduceService.EMPTY_ORDER_HASH
 }

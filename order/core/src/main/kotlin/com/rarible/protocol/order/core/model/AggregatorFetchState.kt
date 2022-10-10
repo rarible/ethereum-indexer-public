@@ -8,6 +8,7 @@ interface AggregatorFetchState {
     val id: String
     val cursor: String
 
+    fun withCursor(cursor: String): AggregatorFetchState
 }
 
 data class SeaportFetchState(
@@ -15,7 +16,7 @@ data class SeaportFetchState(
     @Id
     override val id: String = ID
 ) : AggregatorFetchState {
-    fun withCursor(cursor: String): SeaportFetchState {
+    override fun withCursor(cursor: String): SeaportFetchState {
         return copy(cursor = cursor)
     }
     companion object {
@@ -34,7 +35,11 @@ data class LooksrareFetchState(
         get() = Instant.ofEpochSecond(cursor.toLong())
 
     fun withListedAfter(listedAfter: Instant): LooksrareFetchState {
-        return copy(cursor = listedAfter.epochSecond.toString())
+        return withCursor(listedAfter.epochSecond.toString())
+    }
+
+    override fun withCursor(cursor: String): LooksrareFetchState {
+        return copy(cursor = cursor)
     }
 
     companion object {
@@ -51,10 +56,23 @@ data class X2Y2FetchState(
     @Id
     override val id: String = ID
 ) : AggregatorFetchState {
-    fun withCursor(cursor: String): X2Y2FetchState {
+    override fun withCursor(cursor: String): X2Y2FetchState {
         return copy(cursor = cursor)
     }
     companion object {
         const val ID = "x2y2-order-fetch"
+    }
+}
+
+data class X2Y2CancelListEventFetchState(
+    override val cursor: String,
+    @Id
+    override val id: String = ID
+) : AggregatorFetchState {
+    override fun withCursor(cursor: String): X2Y2CancelListEventFetchState {
+        return copy(cursor = cursor)
+    }
+    companion object {
+        const val ID = "x2y2-cancel-list-event-fetch"
     }
 }
