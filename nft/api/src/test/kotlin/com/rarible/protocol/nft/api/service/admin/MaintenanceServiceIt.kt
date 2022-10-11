@@ -9,6 +9,8 @@ import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
 import com.rarible.protocol.nft.api.e2e.data.randomItemId
 import com.rarible.protocol.nft.api.model.ItemProblemType
+import com.rarible.protocol.nft.api.model.ItemResult
+import com.rarible.protocol.nft.api.model.ItemStatus
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -63,9 +65,11 @@ class MaintenanceServiceIt : SpringContainerBaseTest() {
         val actual = service.fixUserItems(user.toString())
 
         // then
-        assertThat(actual.valid).containsExactly(validItemId.toString())
-        assertThat(actual.fixed).isEqualTo(mapOf(fixableItemId.toString() to ItemProblemType.NOT_FOUND))
-        assertThat(actual.unfixed).isEqualTo(mapOf(unfixableItemId.toString() to ItemProblemType.NOT_FOUND))
+        assertThat(actual).containsExactlyInAnyOrder(
+            ItemResult(validItemId, ItemStatus.VALID),
+            ItemResult(fixableItemId, ItemStatus.FIXED, ItemProblemType.NOT_FOUND),
+            ItemResult(unfixableItemId, ItemStatus.UNFIXED, ItemProblemType.NOT_FOUND),
+        )
     }
 
     @Test
@@ -85,12 +89,10 @@ class MaintenanceServiceIt : SpringContainerBaseTest() {
         val actual = service.checkUserItems(user.toString())
 
         // then
-        assertThat(actual.valid).containsExactly(validItemId.toString())
-        assertThat(actual.invalid).containsExactlyInAnyOrderEntriesOf(
-            mapOf(
-                invalidItemId1.toString() to ItemProblemType.NOT_FOUND,
-                invalidItemId2.toString() to ItemProblemType.SUPPLY_MISMATCH,
-            )
+        assertThat(actual).containsExactlyInAnyOrder(
+            ItemResult(validItemId, ItemStatus.VALID),
+            ItemResult(invalidItemId1, ItemStatus.INVALID, ItemProblemType.NOT_FOUND),
+            ItemResult(invalidItemId2, ItemStatus.INVALID, ItemProblemType.SUPPLY_MISMATCH),
         )
     }
 

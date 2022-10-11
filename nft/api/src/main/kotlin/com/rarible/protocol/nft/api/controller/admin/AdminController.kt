@@ -3,10 +3,10 @@ package com.rarible.protocol.nft.api.controller.admin
 import com.rarible.core.task.Task
 import com.rarible.protocol.nft.api.converter.ItemIdConverter
 import com.rarible.protocol.nft.api.dto.AdminTaskDto
-import com.rarible.protocol.nft.api.dto.CheckUserItemsResultDto
-import com.rarible.protocol.nft.api.dto.FixUserItemsResultDto
+import com.rarible.protocol.nft.api.dto.ItemMaintenanceResultDto
 import com.rarible.protocol.nft.api.dto.TokenDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
+import com.rarible.protocol.nft.api.model.sorted
 import com.rarible.protocol.nft.api.service.admin.MaintenanceService
 import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
 import com.rarible.protocol.nft.core.model.Token
@@ -165,11 +165,11 @@ class AdminController(
     )
     suspend fun fixUserItems(
         @PathVariable("user") user: String,
-    ): ResponseEntity<FixUserItemsResultDto> {
+    ): ResponseEntity<ItemMaintenanceResultDto> {
         logger.info("Fixing user items for user $user")
-        val fixResult = maintenanceService.fixUserItems(user)
+        val fixResult = maintenanceService.fixUserItems(user).sorted()
         logger.info("fixItems result user $user is $fixResult")
-        return ResponseEntity.ok().body(fixResult)
+        return ResponseEntity.ok().body(ItemMaintenanceResultDto(fixResult))
     }
 
     @GetMapping(
@@ -178,11 +178,11 @@ class AdminController(
     )
     suspend fun checkUserItems(
         @PathVariable("user") user: String,
-    ): ResponseEntity<CheckUserItemsResultDto> {
+    ): ResponseEntity<ItemMaintenanceResultDto> {
         logger.info("Checking user items for user $user")
-        val checkResult = maintenanceService.checkUserItems(user)
+        val checkResult = maintenanceService.checkUserItems(user).sorted()
         logger.info("checkItems result user $user is $checkResult")
-        return ResponseEntity.ok().body(checkResult)
+        return ResponseEntity.ok().body(ItemMaintenanceResultDto(checkResult))
     }
 
     @GetMapping(
