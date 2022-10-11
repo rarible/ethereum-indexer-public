@@ -367,9 +367,9 @@ class OrderReduceService(
 
     private suspend fun Order.withCancelSmallPriceSeaport(): Order {
         if (this.type != OrderType.SEAPORT_V1) return this
-        logger.info("Cancel order $hash as Seaport with small price")
 
         if (this.makePrice != null && this.makePrice <= indexerProperties.minSeaportMakePrice) {
+            logger.info("Cancel order $hash as Seaport with small price")
             return this.copy(
                 cancelled = true,
                 status = OrderStatus.CANCELLED,
