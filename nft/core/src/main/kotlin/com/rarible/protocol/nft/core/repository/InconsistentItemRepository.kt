@@ -20,8 +20,15 @@ class InconsistentItemRepository(
         mongo.dropCollection(COLLECTION).awaitFirstOrNull()
     }
 
-    suspend fun save(inconsistentItem: InconsistentItem): InconsistentItem {
-        return mongo.save(inconsistentItem, COLLECTION).awaitFirst()
+    /**
+     * Returns true if item was not in the collection before
+     */
+    suspend fun save(inconsistentItem: InconsistentItem): Boolean {
+        if (get(inconsistentItem.id) == null) {
+            mongo.insert(inconsistentItem, COLLECTION).awaitFirstOrNull()
+            return true
+        }
+        return false
     }
 
     suspend fun get(itemId: ItemId): InconsistentItem? {

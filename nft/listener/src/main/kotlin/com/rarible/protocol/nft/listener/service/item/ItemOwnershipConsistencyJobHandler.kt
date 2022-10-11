@@ -89,7 +89,7 @@ class ItemOwnershipConsistencyJobHandler(
                 checkResult = itemOwnershipConsistencyService.checkItem(fixedItem)
                 when (checkResult) {
                     is Failure -> {
-                        inconsistentItemRepository.save(
+                        if (inconsistentItemRepository.save(
                             InconsistentItem(
                                 token = fixedItem.token,
                                 tokenId = fixedItem.tokenId,
@@ -98,8 +98,9 @@ class ItemOwnershipConsistencyJobHandler(
                                 supplyValue = checkResult.supply.value.toLong(),
                                 ownershipsValue = checkResult.ownerships.value.toLong()
                             )
-                        )
-                        unfixedCounter.increment()
+                        )) {
+                            unfixedCounter.increment()
+                        }
                     }
 
                     Success -> {
