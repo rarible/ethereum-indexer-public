@@ -14,6 +14,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 @FlowPreview
 @IntegrationTest
@@ -60,12 +61,12 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         val error = RuntimeException("loading-error")
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error
 
-        assertThat(
+        assertThrows<RuntimeException> {
             itemMetaService.getMeta(
                 itemId = itemId,
                 demander = "test"
             )
-        ).isNull()
+        }
     }
 
     @Disabled //TODO: Need fix tests

@@ -6,6 +6,7 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.looksrare.v1.TakerAskEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
@@ -16,6 +17,8 @@ import scalether.domain.response.Log
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class LooksrareV1ExchangeTakerAskDescriptor(
+    orderRepository: OrderRepository,
+    looksrareCancelOrdersEventMetric: RegisteredCounter,
     looksrareTakeAskEventMetric: RegisteredCounter,
     wrapperLooksrareMatchEventMetric: RegisteredCounter,
     tokenStandardProvider: TokenStandardProvider,
@@ -24,6 +27,8 @@ class LooksrareV1ExchangeTakerAskDescriptor(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     currencyContractAddresses: OrderIndexerProperties.CurrencyContractAddresses
 ) : AbstractLooksrareV1ExchangeTakerDescriptor(
+    orderRepository,
+    looksrareCancelOrdersEventMetric,
     looksrareTakeAskEventMetric,
     wrapperLooksrareMatchEventMetric,
     tokenStandardProvider,
@@ -40,6 +45,7 @@ class LooksrareV1ExchangeTakerAskDescriptor(
             taker = event.taker(),
             maker = event.maker(),
             orderHash = Word.apply(event.orderHash()),
+            orderNonce = event.orderNonce().toLong(),
             currency = event.currency(),
             collection = event.collection(),
             tokenId = EthUInt256.of(event.tokenId()),
