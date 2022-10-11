@@ -74,8 +74,8 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
     )
     private val descriptorAsk = LooksrareV1ExchangeTakerAskDescriptor(
         orderRepository,
-        looksrareTakeEventMetric,
         looksrareCancelOrdersEventMetric,
+        looksrareTakeEventMetric,
         wrapperLooksrareMetric,
         tokenStandardProvider,
         priceUpdateService,
@@ -295,8 +295,10 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
         val bidOrderUsd = randomBidOrderUsdValue()
         val sellOrderUsd = randomSellOrderUsdValue()
         val maker = Address.apply("0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9")
+        val hash = Word.apply("0xa04ce3cc6721c3a7882a76705f77b4ce17a006b7cec01ac5a033f36f08184772")
 
-        val existingOrder = createSellOrder()
+        val previousOrder = createSellOrder()
+        val currentOrder = createSellOrder().copy(hash = hash)
 
         val log = log(
             listOf(
@@ -326,16 +328,16 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
         coEvery { tokenStandardProvider.getTokenStandard(nftAssetType.token) } returns TokenStandard.ERC721
         coEvery {
             orderRepository.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(1L))
-        } returns flowOf(existingOrder)
+        } returns flowOf(previousOrder, currentOrder)
 
         val events = descriptorAsk.convert(log, transaction, date.epochSecond, 0, 0).toFlux().collectList()
             .awaitFirst()
 
-        // 2 side matches, 1 cancel
+        // 2 side matches, 1 cancel (for current order cancel event should not be emitted)
         assertThat(events).hasSize(3)
 
         val cancel = events.filterIsInstance<OrderCancel>().first()
 
-        assertThat(cancel.hash).isEqualTo(existingOrder.hash)
+        assertThat(cancel.hash).isEqualTo(previousOrder.hash)
     }
 }

@@ -139,6 +139,9 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
         )
 
         val cancelEvents = cancelUserOrders(date, event.maker, listOf(event.orderNonce))
+            // All orders with same nonce should be cancelled, except executed one
+            .filter { it.hash != event.orderHash }
+
         return matchEvents + cancelEvents
     }
 
