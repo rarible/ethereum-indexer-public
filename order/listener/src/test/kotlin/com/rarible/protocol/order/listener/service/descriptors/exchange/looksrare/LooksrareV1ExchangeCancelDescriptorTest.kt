@@ -23,14 +23,15 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 internal class LooksrareV1ExchangeCancelDescriptorTest {
+
     private val exchangeContractAddresses = mockk<OrderIndexerProperties.ExchangeContractAddresses>()
-    private val looksrareCancelOrdersEventMetric = mockk<RegisteredCounter> { every { increment() } returns Unit }
+    private val looksrareCancelOrdersEventMetric = mockk<RegisteredCounter> { every { increment(any()) } returns Unit }
     private val orderRepository = mockk<OrderRepository>()
 
     private val descriptor = LooksrareV1ExchangeCancelDescriptor(
         exchangeContractAddresses,
+        orderRepository,
         looksrareCancelOrdersEventMetric,
-        orderRepository
     )
 
     @Test
@@ -45,7 +46,11 @@ internal class LooksrareV1ExchangeCancelDescriptorTest {
             ),
             "000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002"
         )
-        coEvery { orderRepository.findByMakeAndByCounters(Platform.LOOKSRARE, order.maker, listOf(2)) } returns flow { emit(order) }
+        coEvery {
+            orderRepository.findByMakeAndByCounters(
+                Platform.LOOKSRARE, order.maker, listOf(2)
+            )
+        } returns flow { emit(order) }
         val cancels = descriptor.convert(log, transaction, data.epochSecond, 0, 0).toFlux().collectList().awaitFirst()
         assertThat(cancels).hasSize(1)
         assertThat(cancels.single().hash).isEqualTo(order.hash)

@@ -3,7 +3,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.looksra
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.common.keccak256
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
@@ -11,10 +10,12 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.TokenStandard
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.misc.looksrareError
@@ -31,6 +32,8 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
+    orderRepository: OrderRepository,
+    looksrareCancelOrdersEventMetric: RegisteredCounter,
     private val looksrareTakeEventMetric: RegisteredCounter,
     private val wrapperLooksrareMatchEventMetric: RegisteredCounter,
     private val tokenStandardProvider: TokenStandardProvider,
@@ -38,7 +41,10 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
     private val prizeNormalizer: PriceNormalizer,
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val currencyContractAddresses: OrderIndexerProperties.CurrencyContractAddresses
-) : LogEventDescriptor<OrderSideMatch> {
+) : AbstractLooksrareExchangeDescriptor<OrderExchangeHistory>(
+    orderRepository,
+    looksrareCancelOrdersEventMetric
+) {
 
     private val logger = LoggerFactory.getLogger(javaClass::class.java)
     protected abstract fun getTakeEvent(log: Log): TakeEvent
@@ -52,11 +58,11 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
         timestamp: Long,
         index: Int,
         totalLogs: Int
-    ): Publisher<OrderSideMatch> {
+    ): Publisher<OrderExchangeHistory> {
         return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
+    private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
         val event = getTakeEvent(log)
         val collectionType = tokenStandardProvider.getTokenStandard(event.collection)
         val taker = OrderSideMatch.getRealTaker(event.taker, transaction)
@@ -125,7 +131,15 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
             )
         )
         looksrareTakeEventMetric.increment()
-        return OrderSideMatch.addMarketplaceMarker(events, transaction.input(), wrapperLooksrareMatchEventMetric)
+
+        val matchEvents = OrderSideMatch.addMarketplaceMarker(
+            events,
+            transaction.input(),
+            wrapperLooksrareMatchEventMetric
+        )
+
+        val cancelEvents = cancelUserOrders(date, event.maker, listOf(event.orderNonce))
+        return matchEvents + cancelEvents
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(
@@ -136,6 +150,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
         val maker: Address,
         val taker: Address,
         val orderHash: Word,
+        val orderNonce: Long,
         val currency: Address,
         val collection: Address,
         val tokenId: EthUInt256,
