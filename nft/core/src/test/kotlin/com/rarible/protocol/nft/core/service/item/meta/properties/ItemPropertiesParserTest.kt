@@ -2,8 +2,10 @@ package com.rarible.protocol.nft.core.service.item.meta.properties
 
 import com.rarible.core.test.data.randomString
 import com.rarible.protocol.nft.core.data.createRandomItemId
+import com.rarible.protocol.nft.core.service.item.meta.MetaException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class ItemPropertiesParserTest {
 
@@ -26,7 +28,6 @@ class ItemPropertiesParserTest {
 
     @Test
     fun `failed - broken json`() {
-        val result = ItemPropertiesParser.parse(itemId, url, "{something}")
-        assertThat(result).isNull()
+        assertThrows<MetaException> { ItemPropertiesParser.parse(itemId, url, "{something}") }
     }
 }

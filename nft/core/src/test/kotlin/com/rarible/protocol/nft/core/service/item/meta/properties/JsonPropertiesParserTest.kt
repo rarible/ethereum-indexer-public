@@ -1,16 +1,18 @@
 package com.rarible.protocol.nft.core.service.item.meta.properties
 
 import com.rarible.protocol.nft.core.data.createRandomItemId
+import com.rarible.protocol.nft.core.service.item.meta.MetaException
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class JsonPropertiesParserTest {
 
     @Test
     fun `not a json`() {
         val data = "abc"
-        assertThat(JsonPropertiesParser.parse(createRandomItemId(), data)).isNull()
+        assertThrows<MetaException> { JsonPropertiesParser.parse(createRandomItemId(), data) }
     }
 
     @Test
