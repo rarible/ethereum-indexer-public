@@ -11,11 +11,16 @@ import com.rarible.protocol.nft.core.repository.JobStateRepository
 import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService
-import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.CheckResult.Failure
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.CheckResult.Success
+import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -43,8 +48,10 @@ class ItemOwnershipConsistencyJobHandler(
         showDeleted = false,
     )
 
-    override suspend fun handle() {
+    override suspend fun handle() = coroutineScope {
         logger.info("ItemOwnershipConsistencyHandler handle() called")
+        val itemsChannel = Channel<Item>(properties.parallelism)
+        repeat(properties.parallelism) { launchItemWorker(itemsChannel) }
         val state = getState()
         try {
             do {
@@ -57,8 +64,10 @@ class ItemOwnershipConsistencyJobHandler(
                     break
                 }
 
-                items.forEach { item -> checkAndFixItem(item) }
-                checkedCounter.increment(items.size.toLong())
+                items.forEach {
+                    itemsChannel.send(it)
+                    checkedCounter.increment()
+                }
 
                 state.latestChecked = items.last().date
                 state.continuation = items.last().let { item -> ItemContinuation(item.date, item.id).toString() }
@@ -67,6 +76,7 @@ class ItemOwnershipConsistencyJobHandler(
             } while (state.latestChecked < Instant.now().minus(properties.checkTimeOffset))
         } finally {
             saveState(state)
+            itemsChannel.close()
         }
     }
 
@@ -123,6 +133,14 @@ class ItemOwnershipConsistencyJobHandler(
 
     private suspend fun saveState(state: ItemOwnershipConsistencyJobState) {
         jobStateRepository.save(ITEM_OWNERSHIP_CONSISTENCY_JOB, state)
+    }
+
+    private fun CoroutineScope.launchItemWorker(channel: ReceiveChannel<Item>) {
+        launch {
+            for (item in channel) {
+                checkAndFixItem(item)
+            }
+        }
     }
 
     data class ItemOwnershipConsistencyJobState(
