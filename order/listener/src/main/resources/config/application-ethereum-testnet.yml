@@ -10,6 +10,10 @@ common:
     zeroEx: "0x0000000000000000000000000000000000000000"
     looksrareV1: "0x0000000000000000000000000000000000000000"
     x2y2V1: "0x0000000000000000000000000000000000000000"
+  sudo-swap-addresses:
+    pair-factory-v1: "0x25b4efc43c9dcae134233cd577ffca7cfad6748f"
+    exponential-curve-v1: "0x0d807bd5ff2c4ef298755be30e22926b33244b0c"
+    linear-curve-v1: "0xac6dcff6e13132f075e36ca3a7f403236f869438"
   auction-contract-addresses:
     v1: "0x0000000000000000000000000000000000000000"
   transfer-proxy-addresses:
@@ -20,3 +24,7 @@ common:
     crypto-punks-transfer-proxy: "0x0000000000000000000000000000000000000000"
   currency-contract-addresses:
     weth: "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6"
+  feature-flags:
+    showSudoSwapOrdersWithOtherPlatforms: true
+  publish:
+    publishAmmOrders: true
