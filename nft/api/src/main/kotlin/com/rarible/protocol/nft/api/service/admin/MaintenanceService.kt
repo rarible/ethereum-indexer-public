@@ -1,11 +1,11 @@
 package com.rarible.protocol.nft.api.service.admin
 
-import com.rarible.protocol.nft.api.model.ItemProblemType
 import com.rarible.protocol.nft.api.model.ItemResult
 import com.rarible.protocol.nft.api.model.ItemStatus
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemProblemType
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.CheckResult.Failure
 import com.rarible.protocol.nft.core.service.item.ItemReduceService

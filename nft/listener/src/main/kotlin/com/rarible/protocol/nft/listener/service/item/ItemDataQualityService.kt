@@ -1,8 +1,10 @@
 package com.rarible.protocol.nft.listener.service.item
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.InconsistentItem
+import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
@@ -86,7 +88,10 @@ class ItemDataQualityService(
                                                     supply = afterDeleteCheck.supply,
                                                     ownerships = afterDeleteCheck.ownerships,
                                                     supplyValue = afterDeleteCheck.supply.value.toLong(),
-                                                    ownershipsValue = afterDeleteCheck.ownerships.value.toLong()
+                                                    ownershipsValue = afterDeleteCheck.ownerships.value.toLong(),
+                                                    fixVersionApplied = 1,
+                                                    lastUpdatedAt = nowMillis(),
+                                                    status = InconsistentItemStatus.UNFIXED,
                                                 )
                                             )
                                             itemDataQualityErrorRegisteredCounter.increment()

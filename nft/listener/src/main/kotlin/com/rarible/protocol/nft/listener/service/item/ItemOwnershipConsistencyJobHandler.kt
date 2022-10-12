@@ -1,7 +1,9 @@
 package com.rarible.protocol.nft.listener.service.item
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.job.JobHandler
 import com.rarible.protocol.nft.core.model.InconsistentItem
+import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
@@ -95,20 +97,24 @@ class ItemOwnershipConsistencyJobHandler(
             is Failure -> {
                 if (!properties.autofix) return
 
-                var fixedItem = itemOwnershipConsistencyService.tryFix(item)
+                val fixedItem = itemOwnershipConsistencyService.tryFix(item)
                 checkResult = itemOwnershipConsistencyService.checkItem(fixedItem)
                 when (checkResult) {
                     is Failure -> {
                         if (inconsistentItemRepository.save(
-                            InconsistentItem(
-                                token = fixedItem.token,
-                                tokenId = fixedItem.tokenId,
-                                supply = checkResult.supply,
-                                ownerships = checkResult.ownerships,
-                                supplyValue = checkResult.supply.value.toLong(),
-                                ownershipsValue = checkResult.ownerships.value.toLong()
+                                InconsistentItem(
+                                    token = fixedItem.token,
+                                    tokenId = fixedItem.tokenId,
+                                    supply = checkResult.supply,
+                                    ownerships = checkResult.ownerships,
+                                    supplyValue = checkResult.supply.value.toLong(),
+                                    ownershipsValue = checkResult.ownerships.value.toLong(),
+                                    fixVersionApplied = 1,
+                                    status = InconsistentItemStatus.UNFIXED,
+                                    lastUpdatedAt = nowMillis(),
+                                )
                             )
-                        )) {
+                        ) {
                             unfixedCounter.increment()
                         }
                     }

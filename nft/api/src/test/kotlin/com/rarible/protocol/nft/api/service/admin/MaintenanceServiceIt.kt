@@ -8,11 +8,11 @@ import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
 import com.rarible.protocol.nft.api.e2e.data.randomItemId
-import com.rarible.protocol.nft.api.model.ItemProblemType
 import com.rarible.protocol.nft.api.model.ItemResult
 import com.rarible.protocol.nft.api.model.ItemStatus
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemProblemType
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
