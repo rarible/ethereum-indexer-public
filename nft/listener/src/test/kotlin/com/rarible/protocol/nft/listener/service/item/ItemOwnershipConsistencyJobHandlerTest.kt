@@ -122,8 +122,7 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         val invalidItems = inconsistentItemRepository.findAll().toList()
         assertThat(invalidItems).hasSize(1)
         assertThat(invalidItems.single().id).isEqualTo(invalidItem.id)
-        verify(exactly = 4) {
-            // Fixed item got updated, thus gets in second fetch once again, so 3 + 1
+        verify(exactly = 3) {
             checkedCounter.increment()
         }
         verify { fixedCounter.increment() }
