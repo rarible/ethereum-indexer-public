@@ -6,8 +6,8 @@ import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.ItemId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.stereotype.Component
 
@@ -24,11 +24,12 @@ class InconsistentItemRepository(
      * Returns true if item was not in the collection before
      */
     suspend fun save(inconsistentItem: InconsistentItem): Boolean {
-        if (get(inconsistentItem.id) == null) {
+        return try {
             mongo.insert(inconsistentItem, COLLECTION).awaitFirstOrNull()
-            return true
+            true
+        } catch (e: DuplicateKeyException) {
+            false
         }
-        return false
     }
 
     suspend fun get(itemId: ItemId): InconsistentItem? {
