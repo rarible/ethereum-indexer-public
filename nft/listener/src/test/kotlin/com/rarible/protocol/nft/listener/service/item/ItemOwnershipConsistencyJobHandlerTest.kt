@@ -32,7 +32,6 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.query.Query
@@ -123,10 +122,8 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         val invalidItems = inconsistentItemRepository.findAll().toList()
         assertThat(invalidItems).hasSize(1)
         assertThat(invalidItems.single().id).isEqualTo(invalidItem.id)
-        verify {
-            checkedCounter.increment(2L)
-            // Fixed item got updated, thus gets in second fetch once again, so 1 + 1
-            checkedCounter.increment(2L)
+        verify(exactly = 3) {
+            checkedCounter.increment()
         }
         verify { fixedCounter.increment() }
         verify { unfixedCounter.increment() }
