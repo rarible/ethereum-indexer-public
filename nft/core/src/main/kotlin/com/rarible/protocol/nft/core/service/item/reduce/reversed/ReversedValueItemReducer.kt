@@ -4,11 +4,14 @@ import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardValueItemReducer
+import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import org.springframework.stereotype.Component
 
 @Component
-class ReversedValueItemReducer : Reducer<ItemEvent, Item> {
-    private val forwardValueItemReducer = ForwardValueItemReducer()
+class ReversedValueItemReducer(
+    private val tokenRegistrationService: TokenRegistrationService
+) : Reducer<ItemEvent, Item> {
+    private val forwardValueItemReducer = ForwardValueItemReducer(tokenRegistrationService)
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
         return when (event) {

@@ -1,19 +1,20 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.data.*
-import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.data.createRandomBurnItemEvent
+import com.rarible.protocol.nft.core.data.createRandomItem
+import com.rarible.protocol.nft.core.data.createRandomLazyBurnItemEvent
+import com.rarible.protocol.nft.core.data.createRandomLazyMintItemEvent
+import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardValueItemReducer
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
 internal class BlockchainItemReducerTest {
-    private val itemBlockchainItemReducer = ForwardValueItemReducer()
+    private val itemBlockchainItemReducer = ForwardValueItemReducer(mockk())
 
     @Test
     fun `should reduce mint event`() = runBlocking<Unit> {

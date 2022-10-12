@@ -4,12 +4,13 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomBurnItemEvent
 import com.rarible.protocol.nft.core.data.createRandomItem
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
 internal class ReversedValueItemReducerTest {
-    private val reversedValueItemReducer = ReversedValueItemReducer()
+    private val reversedValueItemReducer = ReversedValueItemReducer(mockk())
 
     @Test
     fun `should calculate supply on revert mint event`() = runBlocking<Unit> {
