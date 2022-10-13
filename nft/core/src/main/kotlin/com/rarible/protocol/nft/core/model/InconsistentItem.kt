@@ -5,20 +5,21 @@ import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import scalether.domain.Address
+import java.math.BigInteger
 import java.time.Instant
 
 
 data class InconsistentItem(
     val token: Address,
     val tokenId: EthUInt256,
-    val status: InconsistentItemStatus?,
+    val status: InconsistentItemStatus? = InconsistentItemStatus.UNFIXED,
     val type: ItemProblemType = ItemProblemType.SUPPLY_MISMATCH,
     val fixVersionApplied: Int? = 1,
     val lastUpdatedAt: Instant?,
     val supply: EthUInt256?,
     val ownerships: EthUInt256?,
-    val supplyValue: Long?,
-    val ownershipsValue: Long?,
+    val supplyValue: BigInteger?,
+    val ownershipsValue: BigInteger?,
 ) {
     @Transient
     private val _id: ItemId = ItemId(token, tokenId)
