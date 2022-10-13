@@ -51,7 +51,7 @@ class ItemOwnershipConsistencyJobHandler(
     )
 
     override suspend fun handle() = coroutineScope {
-        logger.info("ItemOwnershipConsistencyHandler handle() called")
+        logger.info("ItemOwnershipConsistencyHandler handle() called, properties $properties")
         val itemsChannel = Channel<Item>(properties.parallelism)
         repeat(properties.parallelism) { launchItemWorker(itemsChannel) }
         val state = getState()
