@@ -67,7 +67,8 @@ class OrderDtoConverter(
                 status = orderStatus,
                 start = source.start,
                 end = source.end,
-                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
+                optionalRoyalties = source.isOptionalRoyalties(),
             )
             OrderType.RARIBLE_V2 -> RaribleV2OrderDto(
                 maker = source.maker,
@@ -97,7 +98,8 @@ class OrderDtoConverter(
                 status = orderStatus,
                 start = source.start,
                 end = source.end,
-                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
+                optionalRoyalties = source.isOptionalRoyalties(),
             )
             OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderDto(
                 maker = source.maker,
@@ -127,7 +129,8 @@ class OrderDtoConverter(
                 status = OrderStatusDtoConverter.convert(source.status),
                 start = source.start,
                 end = source.end,
-                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
+                optionalRoyalties = source.isOptionalRoyalties(),
             )
             OrderType.SEAPORT_V1 -> SeaportV1OrderDto(
                 maker = source.maker,
@@ -157,7 +160,8 @@ class OrderDtoConverter(
                 status = OrderStatusDtoConverter.convert(source.status),
                 start = source.start,
                 end = source.end,
-                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
+                optionalRoyalties = source.isOptionalRoyalties(),
             )
             OrderType.CRYPTO_PUNKS -> CryptoPunkOrderDto(
                 maker = source.maker,
@@ -187,7 +191,8 @@ class OrderDtoConverter(
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 status = orderStatus,
-                data = OrderDataDtoConverter.convert(source.data) as OrderCryptoPunksDataDto
+                data = OrderDataDtoConverter.convert(source.data) as OrderCryptoPunksDataDto,
+                optionalRoyalties = source.isOptionalRoyalties(),
             )
 
             OrderType.X2Y2 -> X2Y2OrderDto(
@@ -219,7 +224,8 @@ class OrderDtoConverter(
                 takePriceUsd = null,
                 pending = null,
                 status = orderStatus,
-                data = OrderDataDtoConverter.convert(source.data) as OrderX2Y2DataDto
+                data = OrderDataDtoConverter.convert(source.data) as OrderX2Y2DataDto,
+                optionalRoyalties = source.isOptionalRoyalties(),
             )
             OrderType.LOOKSRARE -> LooksRareOrderDto(
                 maker = source.maker,
@@ -250,7 +256,8 @@ class OrderDtoConverter(
                 status = OrderStatusDtoConverter.convert(source.status),
                 start = source.start,
                 end = source.end,
-                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
+                optionalRoyalties = source.isOptionalRoyalties(),
             )
             OrderType.AMM -> AmmOrderDto(
                 maker = source.maker,
@@ -282,6 +289,7 @@ class OrderDtoConverter(
                 start = source.start,
                 end = source.end,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
+                optionalRoyalties = source.isOptionalRoyalties(),
             )
         }
     }

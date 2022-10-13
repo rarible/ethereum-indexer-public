@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.api.service.order
 
-import com.nhaarman.mockitokotlin2.reset
 import com.rarible.contracts.test.erc1271.TestERC1271
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
@@ -9,7 +8,6 @@ import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
-import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -36,13 +34,10 @@ import com.rarible.protocol.order.core.data.createNftCollectionDto
 import com.rarible.protocol.order.core.data.createNftItemDto
 import com.rarible.protocol.order.core.data.createNftOwnershipDto
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
-import com.rarible.protocol.order.core.data.createSudoSwapPoolDataV1
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
-import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.data.randomEth
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
-import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
 import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.Asset
@@ -89,7 +84,6 @@ import org.springframework.data.mongodb.core.allAndAwait
 import org.springframework.data.mongodb.core.remove
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
-import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
