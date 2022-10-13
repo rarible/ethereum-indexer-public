@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -44,6 +45,7 @@ class CancelOpenSeaSmallOrdersTaskHandler(
     }
 
     private suspend fun updateOrder(order: Order): String {
+        OrderReduceService.logger.info("Cancel order ${order.hash} as Seaport with small price by job")
         orderUpdateService.update(order.hash)
         return order.hash.toString()
     }

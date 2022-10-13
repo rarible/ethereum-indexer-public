@@ -1,6 +1,8 @@
 package com.rarible.protocol.nft.listener.service.item
 
+import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.common.nowMillis
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomWord
@@ -18,8 +20,13 @@ import com.rarible.protocol.nft.listener.data.createRandomItem
 import com.rarible.protocol.nft.listener.data.createRandomOwnership
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
+import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.verify
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -51,8 +58,25 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var jobStateRepository: JobStateRepository
 
+    @MockkBean(relaxed = true)
+    private lateinit var metricsFactory: NftListenerMetricsFactory
+
+    @RelaxedMockK
+    private lateinit var checkedCounter: RegisteredCounter
+    @RelaxedMockK
+    private lateinit var fixedCounter: RegisteredCounter
+    @RelaxedMockK
+    private lateinit var unfixedCounter: RegisteredCounter
+
     @Autowired
     private lateinit var itemOwnershipConsistencyService: ItemOwnershipConsistencyService
+
+    @BeforeEach
+    fun prepareMocks() {
+        every { metricsFactory.itemOwnershipConsistencyJobCheckedCounter() } returns checkedCounter
+        every { metricsFactory.itemOwnershipConsistencyJobFixedCounter() } returns fixedCounter
+        every { metricsFactory.itemOwnershipConsistencyJobUnfixedCounter() } returns unfixedCounter
+    }
 
     @Test
     fun `should save invalid items that can't be fixed to corresponding repo`() = runBlocking<Unit> {
@@ -64,14 +88,15 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
             NftListenerProperties().copy(elementsFetchJobSize = 2),
             itemOwnershipConsistencyService,
             inconsistentItemRepository,
+            metricsFactory,
         )
 
         val validItem =
-            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(1))
+            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(10))
         val fixableItem =
-            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(2))
+            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(20))
         val invalidItem =
-            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(3))
+            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(30))
         listOf(
             validItem,
             fixableItem,
@@ -97,6 +122,12 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         val invalidItems = inconsistentItemRepository.findAll().toList()
         assertThat(invalidItems).hasSize(1)
         assertThat(invalidItems.single().id).isEqualTo(invalidItem.id)
+        verify(exactly = 3) {
+            checkedCounter.increment()
+        }
+        verify { fixedCounter.increment() }
+        verify { unfixedCounter.increment() }
+        confirmVerified(checkedCounter, fixedCounter, unfixedCounter)
     }
 
     @Test
@@ -117,6 +148,7 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
             NftListenerProperties().copy(elementsFetchJobSize = 2),
             itemOwnershipConsistencyService,
             inconsistentItemRepository,
+            metricsFactory,
         )
 
         handler.handle()
