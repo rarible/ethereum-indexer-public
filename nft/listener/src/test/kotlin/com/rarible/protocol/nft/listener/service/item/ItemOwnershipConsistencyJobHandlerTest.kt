@@ -9,6 +9,7 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
@@ -91,6 +92,8 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
             metricsFactory,
         )
 
+        val tooFreshItem =
+            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now)
         val validItem =
             createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(10))
         val fixableItem =
@@ -98,6 +101,7 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         val invalidItem =
             createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(30))
         listOf(
+            tooFreshItem,
             validItem,
             fixableItem,
             invalidItem
@@ -132,7 +136,7 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
 
     @Test
     internal fun `should fix item`() = runBlocking<Unit> {
-        val item = createRandomItem().copy(supply = EthUInt256.ONE)
+        val item = createRandomItem().copy(supply = EthUInt256.ONE, date = nowMillis() - Duration.ofMinutes(10))
         itemRepository.save(item).awaitFirst()
         val ownerships = listOf(
             createRandomOwnership().copy(token = item.token, tokenId = item.tokenId, value = EthUInt256.TEN),
@@ -161,6 +165,50 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         )
         assertThat(owners).hasSize(1)
         assertThat(result).isEqualTo(ItemOwnershipConsistencyService.CheckResult.Success)
+    }
+
+    @Test
+    internal fun `should not fix item if it is already in inconsistent_items col`() = runBlocking<Unit> {
+        val item = createRandomItem().copy(supply = EthUInt256.ONE, date = nowMillis() - Duration.ofMinutes(10))
+        itemRepository.save(item).awaitFirst()
+        val ownerships = listOf(
+            createRandomOwnership().copy(token = item.token, tokenId = item.tokenId, value = EthUInt256.TEN),
+        )
+        ownerships.forEach { ownershipRepository.save(it).awaitFirst() }
+        createValidLog(item, listOf(ownerships.first())).forEach {
+            nftItemHistoryRepository.save(it).awaitFirst()
+        }
+        inconsistentItemRepository.save(
+            InconsistentItem(
+                token = item.token,
+                tokenId = item.tokenId,
+                supply = null,
+                lastUpdatedAt = nowMillis(),
+                ownerships = null,
+                ownershipsValue = null,
+                supplyValue = null
+            )
+        )
+
+        handler = ItemOwnershipConsistencyJobHandler(
+            jobStateRepository,
+            itemRepository,
+            NftListenerProperties().copy(elementsFetchJobSize = 2),
+            itemOwnershipConsistencyService,
+            inconsistentItemRepository,
+            metricsFactory,
+        )
+
+        handler.handle()
+        val result = itemOwnershipConsistencyService.checkItem(item)
+
+        val owners = ownershipRepository.search(
+            Query(
+                where(Ownership::token).isEqualTo(item.token).and(Ownership::tokenId).isEqualTo(item.tokenId)
+            )
+        )
+        assertThat(owners).hasSize(1)
+        assertThat(result).isExactlyInstanceOf(ItemOwnershipConsistencyService.CheckResult.Failure::class.java)
     }
 
 

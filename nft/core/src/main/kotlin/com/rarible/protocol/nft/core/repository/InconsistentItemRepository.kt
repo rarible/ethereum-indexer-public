@@ -9,7 +9,9 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.data.mongodb.core.findById
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
 
 @Component
 @CaptureSpan(type = SpanType.DB)
@@ -32,8 +34,8 @@ class InconsistentItemRepository(
         }
     }
 
-    suspend fun get(itemId: ItemId): InconsistentItem? {
-        return mongo.findById(itemId.stringValue, InconsistentItem::class.java).awaitFirstOrNull()
+    suspend fun get(id: ItemId): InconsistentItem? {
+        return mongo.findById<InconsistentItem>(id, COLLECTION).awaitFirstOrNull()
     }
 
     fun findAll(): Flow<InconsistentItem> {
