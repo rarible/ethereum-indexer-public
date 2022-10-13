@@ -56,7 +56,8 @@ class ItemOwnershipConsistencyJobHandler(
         repeat(properties.parallelism) { launchItemWorker(itemsChannel) }
         val state = getState()
         try {
-            do {
+            mainLoop@ do {
+                val timeThreshold = Instant.now().minus(properties.checkTimeOffset)
                 val items = getItemsBatch(state.continuation)
                 logger.info("Got ${items.size} items to check")
                 logger.info("Items: $items")
@@ -66,16 +67,18 @@ class ItemOwnershipConsistencyJobHandler(
                     break
                 }
 
-                items.forEach {
-                    itemsChannel.send(it)
+                for (item in items) {
+                    if (item.date > timeThreshold) {
+                        updateState(state, item)
+                        break@mainLoop
+                    }
+                    itemsChannel.send(item)
                     checkedCounter.increment()
                 }
 
-                state.latestChecked = items.last().date
-                state.continuation = items.last().let { item -> ItemContinuation(item.date, item.id).toString() }
-
+                updateState(state, items.last())
                 saveState(state)
-            } while (state.latestChecked < Instant.now().minus(properties.checkTimeOffset))
+            } while (true)
         } finally {
             saveState(state)
             itemsChannel.close()
@@ -92,6 +95,9 @@ class ItemOwnershipConsistencyJobHandler(
     }
 
     private suspend fun checkAndFixItem(item: Item) {
+        if (inconsistentItemRepository.get(item.id) != null) {
+            return
+        }
         var checkResult = itemOwnershipConsistencyService.checkItem(item)
         when (checkResult) {
             is Failure -> {
@@ -107,8 +113,8 @@ class ItemOwnershipConsistencyJobHandler(
                                     tokenId = fixedItem.tokenId,
                                     supply = checkResult.supply,
                                     ownerships = checkResult.ownerships,
-                                    supplyValue = checkResult.supply.value.toLong(),
-                                    ownershipsValue = checkResult.ownerships.value.toLong(),
+                                    supplyValue = checkResult.supply.value,
+                                    ownershipsValue = checkResult.ownerships.value,
                                     fixVersionApplied = 1,
                                     status = InconsistentItemStatus.UNFIXED,
                                     lastUpdatedAt = nowMillis(),
@@ -130,6 +136,11 @@ class ItemOwnershipConsistencyJobHandler(
                 // Do nothing, item<->ownerships is consistent, info logged
             }
         }
+    }
+
+    private suspend fun updateState(state: ItemOwnershipConsistencyJobState, item: Item) {
+        state.latestChecked = item.date
+        state.continuation = ItemContinuation(item.date, item.id).toString()
     }
 
     private suspend fun getState(): ItemOwnershipConsistencyJobState {

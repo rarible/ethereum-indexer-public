@@ -12,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigInteger
 
 @IntegrationTest
 class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
@@ -55,7 +56,7 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
         type = ItemProblemType.SUPPLY_MISMATCH,
         supply = EthUInt256.TEN,
         ownerships = EthUInt256.TEN,
-        supplyValue = 10,
-        ownershipsValue = 10,
+        supplyValue = BigInteger.TEN,
+        ownershipsValue = BigInteger.TEN,
     )
 }
