@@ -13,18 +13,17 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
-@Component
-class CompositeUpdateService(
+sealed class CompositeUpdateService(
     private val itemUpdateService: ItemUpdateService,
     private val ownershipUpdateService: OwnershipUpdateService,
-    private val properties: NftIndexerProperties
+    private val properties: NftIndexerProperties,
+    private val updateNotChanged: Boolean
 ) : EntityService<ItemId, CompositeEntity> {
 
     private val logger = LoggerFactory.getLogger(CompositeUpdateService::class.java)
-
-    private val updateIfNothingChanged = true
 
     override suspend fun get(id: ItemId): CompositeEntity? {
         return null
@@ -54,7 +53,7 @@ class CompositeUpdateService(
         val safeVersion = reducedItem.version ?: existItem?.version
 
         // Item doesn't exist, which means we have to update it anyway
-        if (existItem == null || updateIfNothingChanged) {
+        if (existItem == null || updateNotChanged) {
             return itemUpdateService.update(reducedItem.withVersion(safeVersion))
         }
 
@@ -76,7 +75,7 @@ class CompositeUpdateService(
         val existOwnership = ownershipUpdateService.get(reducedOwnership.id)
         val safeVersion = reducedOwnership.version ?: existOwnership?.version
 
-        if (existOwnership == null || updateIfNothingChanged) {
+        if (existOwnership == null || updateNotChanged) {
             return ownershipUpdateService.update(reducedOwnership.withVersion(safeVersion))
         }
 
@@ -96,3 +95,19 @@ class CompositeUpdateService(
         }
     }
 }
+
+@Component
+@Qualifier("SilentCompositeUpdateService")
+class SilentCompositeUpdateService(
+    itemUpdateService: ItemUpdateService,
+    ownershipUpdateService: OwnershipUpdateService,
+    properties: NftIndexerProperties
+) : CompositeUpdateService(itemUpdateService, ownershipUpdateService, properties, false)
+
+@Component
+@Qualifier("VerboseCompositeUpdateService")
+class VerboseCompositeUpdateService(
+    itemUpdateService: ItemUpdateService,
+    ownershipUpdateService: OwnershipUpdateService,
+    properties: NftIndexerProperties
+) : CompositeUpdateService(itemUpdateService, ownershipUpdateService, properties, true)
