@@ -14,7 +14,8 @@ interface ItemReduceService {
         token: Address? = null,
         tokenId: EthUInt256? = null,
         from: ItemId? = null,
-        to: ItemId? = null
+        to: ItemId? = null,
+        updateNotChanged: Boolean = true
     ): Flux<ItemId>
 }
 

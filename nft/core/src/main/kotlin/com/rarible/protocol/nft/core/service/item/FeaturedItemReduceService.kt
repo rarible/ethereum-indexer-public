@@ -22,8 +22,20 @@ class FeaturedItemReduceService(
         return getReducer().onItemHistories(logs)
     }
 
-    override fun update(token: Address?, tokenId: EthUInt256?, from: ItemId?, to: ItemId?): Flux<ItemId> {
-        return getReducer().update(token, tokenId, from = from, to = to)
+    override fun update(
+        token: Address?,
+        tokenId: EthUInt256?,
+        from: ItemId?,
+        to: ItemId?,
+        updateNotChanged: Boolean
+    ): Flux<ItemId> {
+        return getReducer().update(
+            token = token,
+            tokenId = tokenId,
+            from = from,
+            to = to,
+            updateNotChanged = updateNotChanged
+        )
     }
 
     fun getReducer(): ItemReduceService {
