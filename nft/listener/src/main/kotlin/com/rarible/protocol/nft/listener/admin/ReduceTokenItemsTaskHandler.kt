@@ -38,7 +38,7 @@ class ReduceTokenItemsTaskHandler(
         val itemId = from?.let { ItemId.parseId(it) }
 
         return itemReduceService
-            .update(token = params.oneToken, tokenId = null, from = itemId)
+            .update(token = params.oneToken, tokenId = null, from = itemId, updateNotChanged = false)
             .map { it.stringValue }
             .asFlow()
     }
