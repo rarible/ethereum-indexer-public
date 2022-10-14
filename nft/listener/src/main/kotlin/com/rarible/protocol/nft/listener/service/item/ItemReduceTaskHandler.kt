@@ -6,8 +6,6 @@ import com.rarible.core.task.TaskRepository
 import com.rarible.core.task.TaskStatus
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
-import com.rarible.protocol.dto.parser.AddressParser
-import com.rarible.protocol.dto.parser.parse
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemType
@@ -39,8 +37,11 @@ class ItemReduceTaskHandler(
     override fun runLongTask(from: ItemReduceState?, param: String): Flow<ItemReduceState> {
         val to = if (param.isNotBlank()) ItemId(Address.apply(param), EthUInt256.ZERO) else null
 
-        return itemReduceService.update(from = from?.let { ItemId(it.token, it.tokenId) }, to = to)
-            .map { (token, tokenId) -> ItemReduceState(token, tokenId) }
+        return itemReduceService.update(
+            from = from?.let { ItemId(it.token, it.tokenId) },
+            to = to,
+            updateNotChanged = false
+        ).map { (token, tokenId) -> ItemReduceState(token, tokenId) }
             .windowTimeout(Int.MAX_VALUE, Duration.ofSeconds(5))
             .flatMap {
                 it.next()
@@ -63,6 +64,7 @@ class ItemReduceTaskHandler(
     }
 
     companion object {
+
         const val ITEM_REDUCE = "ITEM_REDUCE"
     }
 }
