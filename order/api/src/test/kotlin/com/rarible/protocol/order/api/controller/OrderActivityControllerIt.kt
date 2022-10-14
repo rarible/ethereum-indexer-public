@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @IntegrationTest
-class OrderActivityControllerIt: AbstractIntegrationTest()  {
+class OrderActivityControllerIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var controller: OrderActivityController
@@ -37,6 +37,24 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
 
         Assertions.assertThat(orderList?.map { it.id })
             .containsExactlyInAnyOrder(activity1.id.toHexString(), activity3.id.toHexString())
+    }
+
+    @Test
+    fun `should get all right history activities - asc`() = runBlocking<Unit> {
+        val size = 10
+        val activity1 = createLogEvent(orderErc1155SellSideMatch().copy(side = OrderSide.LEFT))
+        val activity2 = createLogEvent(orderErc1155SellSideMatch().copy(side = OrderSide.RIGHT))
+        val activity3 = createLogEvent(orderErc1155SellSideMatch().copy(side = OrderSide.RIGHT))
+        val activity4 = createLogEvent(orderErc1155SellCancel())
+        listOf(activity1, activity2, activity3, activity4).forEach {
+            exchangeHistoryRepository.save(it).awaitFirst()
+        }
+        val dto = controller.getOrderSellRightActivities(null, size)
+        val orderList = dto.body?.items
+
+        Assertions.assertThat(orderList).hasSize(2)
+
+        Assertions.assertThat(orderList?.map { it.id }).containsExactlyInAnyOrder(activity2.id.toHexString(),activity3.id.toHexString())
     }
 
     @Test
@@ -64,14 +82,14 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
         val ordersQuantity = 30 //must be even
         val ordersChunk = 5
 
-        repeat(ordersQuantity/2) {
+        repeat(ordersQuantity / 2) {
             val historySave = exchangeHistoryRepository.save(createLogEvent(orderErc1155SellSideMatch()))
             val versionSave = orderVersionRepository.save(createOrderVersion())
             historySave.awaitFirst()
             versionSave.awaitFirst()
         }
 
-        var continuation : String? = null
+        var continuation: String? = null
         var pageCounter = 0
         val receivedOrders = mutableListOf<OrderActivityDto>()
 
@@ -82,7 +100,7 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
             pageCounter += 1
         } while (continuation != null)
 
-        Assertions.assertThat(pageCounter).isEqualTo(ordersQuantity/ordersChunk + 1)
+        Assertions.assertThat(pageCounter).isEqualTo(ordersQuantity / ordersChunk + 1)
         Assertions.assertThat(receivedOrders).hasSize(ordersQuantity)
         Assertions.assertThat(receivedOrders)
             .isSortedAccordingTo { o1, o2 -> compareValues(o2.lastUpdatedAt, o1.lastUpdatedAt) }
@@ -93,14 +111,14 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
         val ordersQuantity = 30 //must be even
         val ordersChunk = 5
 
-        repeat(ordersQuantity/2) {
+        repeat(ordersQuantity / 2) {
             val historySave = exchangeHistoryRepository.save(createLogEvent(orderErc1155SellSideMatch()))
             val versionSave = orderVersionRepository.save(createOrderVersion())
             historySave.awaitFirst()
             versionSave.awaitFirst()
         }
 
-        var continuation : String? = null
+        var continuation: String? = null
         var pageCounter = 0
         val receivedOrders = mutableListOf<OrderActivityDto>()
 
@@ -111,10 +129,9 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
             pageCounter += 1
         } while (continuation != null)
 
-        Assertions.assertThat(pageCounter).isEqualTo(ordersQuantity/ordersChunk + 1)
+        Assertions.assertThat(pageCounter).isEqualTo(ordersQuantity / ordersChunk + 1)
         Assertions.assertThat(receivedOrders).hasSize(ordersQuantity)
         Assertions.assertThat(receivedOrders)
             .isSortedAccordingTo { o1, o2 -> compareValues(o1.lastUpdatedAt, o2.lastUpdatedAt) }
     }
-
 }
