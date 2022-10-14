@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.api.model
 
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemProblemType
 
 data class ItemResult(
     val itemId: ItemId,

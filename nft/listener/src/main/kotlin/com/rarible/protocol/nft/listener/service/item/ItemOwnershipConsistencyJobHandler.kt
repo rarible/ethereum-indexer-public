@@ -1,7 +1,9 @@
 package com.rarible.protocol.nft.listener.service.item
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.job.JobHandler
 import com.rarible.protocol.nft.core.model.InconsistentItem
+import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
@@ -49,12 +51,13 @@ class ItemOwnershipConsistencyJobHandler(
     )
 
     override suspend fun handle() = coroutineScope {
-        logger.info("ItemOwnershipConsistencyHandler handle() called")
+        logger.info("ItemOwnershipConsistencyHandler handle() called, properties $properties")
         val itemsChannel = Channel<Item>(properties.parallelism)
         repeat(properties.parallelism) { launchItemWorker(itemsChannel) }
         val state = getState()
         try {
-            do {
+            mainLoop@ do {
+                val timeThreshold = Instant.now().minus(properties.checkTimeOffset)
                 val items = getItemsBatch(state.continuation)
                 logger.info("Got ${items.size} items to check")
                 logger.info("Items: $items")
@@ -64,16 +67,18 @@ class ItemOwnershipConsistencyJobHandler(
                     break
                 }
 
-                items.forEach {
-                    itemsChannel.send(it)
+                for (item in items) {
+                    if (item.date > timeThreshold) {
+                        updateState(state, item)
+                        break@mainLoop
+                    }
+                    itemsChannel.send(item)
                     checkedCounter.increment()
                 }
 
-                state.latestChecked = items.last().date
-                state.continuation = items.last().let { item -> ItemContinuation(item.date, item.id).toString() }
-
+                updateState(state, items.last())
                 saveState(state)
-            } while (state.latestChecked < Instant.now().minus(properties.checkTimeOffset))
+            } while (true)
         } finally {
             saveState(state)
             itemsChannel.close()
@@ -90,25 +95,32 @@ class ItemOwnershipConsistencyJobHandler(
     }
 
     private suspend fun checkAndFixItem(item: Item) {
+        if (inconsistentItemRepository.get(item.id) != null) {
+            return
+        }
         var checkResult = itemOwnershipConsistencyService.checkItem(item)
         when (checkResult) {
             is Failure -> {
                 if (!properties.autofix) return
 
-                var fixedItem = itemOwnershipConsistencyService.tryFix(item)
+                val fixedItem = itemOwnershipConsistencyService.tryFix(item)
                 checkResult = itemOwnershipConsistencyService.checkItem(fixedItem)
                 when (checkResult) {
                     is Failure -> {
                         if (inconsistentItemRepository.save(
-                            InconsistentItem(
-                                token = fixedItem.token,
-                                tokenId = fixedItem.tokenId,
-                                supply = checkResult.supply,
-                                ownerships = checkResult.ownerships,
-                                supplyValue = checkResult.supply.value.toLong(),
-                                ownershipsValue = checkResult.ownerships.value.toLong()
+                                InconsistentItem(
+                                    token = fixedItem.token,
+                                    tokenId = fixedItem.tokenId,
+                                    supply = checkResult.supply,
+                                    ownerships = checkResult.ownerships,
+                                    supplyValue = checkResult.supply.value,
+                                    ownershipsValue = checkResult.ownerships.value,
+                                    fixVersionApplied = 1,
+                                    status = InconsistentItemStatus.UNFIXED,
+                                    lastUpdatedAt = nowMillis(),
+                                )
                             )
-                        )) {
+                        ) {
                             unfixedCounter.increment()
                         }
                     }
@@ -124,6 +136,11 @@ class ItemOwnershipConsistencyJobHandler(
                 // Do nothing, item<->ownerships is consistent, info logged
             }
         }
+    }
+
+    private suspend fun updateState(state: ItemOwnershipConsistencyJobState, item: Item) {
+        state.latestChecked = item.date
+        state.continuation = ItemContinuation(item.date, item.id).toString()
     }
 
     private suspend fun getState(): ItemOwnershipConsistencyJobState {
