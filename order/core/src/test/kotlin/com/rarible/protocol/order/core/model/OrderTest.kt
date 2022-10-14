@@ -14,11 +14,22 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
+import java.util.stream.Stream
 
 class OrderTest {
+    private companion object {
+        @JvmStatic
+        fun optionalRoyaltiesByPlatform(): Stream<Arguments> = Stream.concat(
+            Stream.of(Arguments.of(Platform.SUDOSWAP, true)),
+            Platform.values().toList().stream().filter { it != Platform.SUDOSWAP }.map { Arguments.of(it, false) }
+        )
+    }
 
     @Test
     fun `openSea order hash is calculated correctly`() {
@@ -462,6 +473,14 @@ class OrderTest {
 
         assertThat(order.withMakeBalance(EthUInt256.of(75), EthUInt256.of(3000)).makeStock)
             .isEqualTo(EthUInt256.of(25))
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("optionalRoyaltiesByPlatform")
+    fun `should get right flag for royalties`(platform: Platform, expectedValue: Boolean) {
+        val order = createOrder().copy(platform = platform)
+        assertThat(order.isOptionalRoyalties()).isEqualTo(expectedValue)
     }
 
     @Nested

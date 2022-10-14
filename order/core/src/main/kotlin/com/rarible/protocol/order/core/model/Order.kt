@@ -82,7 +82,7 @@ data class Order(
     /**
      * Has been ApproveForAll or Approve event applied for sale/bid token
      */
-    val approved: Boolean = true
+    val approved: Boolean = true,
 ) {
     init {
         status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data, approved)
@@ -154,6 +154,17 @@ data class Order(
     }
 
     fun isEnded() = Companion.isEnded(end)
+
+    fun isOptionalRoyalties(): Boolean {
+        return when (platform) {
+            Platform.SUDOSWAP -> true
+            Platform.RARIBLE,
+            Platform.OPEN_SEA,
+            Platform.CRYPTO_PUNKS,
+            Platform.LOOKSRARE,
+            Platform.X2Y2 -> false
+        }
+    }
 
     fun isLegacyOpenSea(exchange: Address): Boolean {
         return if (this.type == OrderType.OPEN_SEA_V1) {

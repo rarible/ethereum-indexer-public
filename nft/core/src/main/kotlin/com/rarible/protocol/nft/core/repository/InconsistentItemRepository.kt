@@ -6,10 +6,12 @@ import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.ItemId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.data.mongodb.core.findById
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
 
 @Component
 @CaptureSpan(type = SpanType.DB)
@@ -20,12 +22,20 @@ class InconsistentItemRepository(
         mongo.dropCollection(COLLECTION).awaitFirstOrNull()
     }
 
-    suspend fun save(inconsistentItem: InconsistentItem): InconsistentItem {
-        return mongo.save(inconsistentItem, COLLECTION).awaitFirst()
+    /**
+     * Returns true if item was not in the collection before
+     */
+    suspend fun save(inconsistentItem: InconsistentItem): Boolean {
+        return try {
+            mongo.insert(inconsistentItem, COLLECTION).awaitFirstOrNull()
+            true
+        } catch (e: DuplicateKeyException) {
+            false
+        }
     }
 
-    suspend fun get(itemId: ItemId): InconsistentItem? {
-        return mongo.findById(itemId.stringValue, InconsistentItem::class.java).awaitFirstOrNull()
+    suspend fun get(id: ItemId): InconsistentItem? {
+        return mongo.findById<InconsistentItem>(id, COLLECTION).awaitFirstOrNull()
     }
 
     fun findAll(): Flow<InconsistentItem> {

@@ -12,7 +12,8 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.composit.CompositeFullReduceService
+import com.rarible.protocol.nft.core.service.composit.SilentCompositeFullReduceService
+import com.rarible.protocol.nft.core.service.composit.VerboseCompositeFullReduceService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
@@ -28,7 +29,8 @@ import scalether.domain.Address
 @Component
 class ItemReduceServiceV2(
     private val skipTokens: ReduceSkipTokens,
-    private val compositeFullReduceService: CompositeFullReduceService,
+    private val silentFullReduceService: SilentCompositeFullReduceService,
+    private val verboseFullReduceService: VerboseCompositeFullReduceService,
     private val historyRepository: NftItemHistoryRepository,
     private val lazyHistoryRepository: LazyNftItemHistoryRepository,
     private val ownershipEventConverter: OwnershipEventConverter,
@@ -48,7 +50,13 @@ class ItemReduceServiceV2(
             .then()
     }
 
-    override fun update(token: Address?, tokenId: EthUInt256?, from: ItemId?, to: ItemId?): Flux<ItemId> = flux {
+    override fun update(
+        token: Address?,
+        tokenId: EthUInt256?,
+        from: ItemId?,
+        to: ItemId?,
+        updateNotChanged: Boolean
+    ): Flux<ItemId> = flux {
         logger.info("Update token=$token, tokenId=$tokenId from=$from to=$to")
         val events = Flux.mergeComparing(
             compareBy<HistoryLog>(
@@ -69,10 +77,13 @@ class ItemReduceServiceV2(
             }
         }.filter {
             it.itemEvent != null || it.ownershipEvents.isNotEmpty()
+        }.onErrorContinue { ex, event ->
+            logger.error("Cause of error is $event", ex)
         }
-            .onErrorContinue { ex, event -> logger.error("Cause of error is $event", ex) }
 
-        compositeFullReduceService.reduce(events.asFlow()).collect { entity ->
+        val fullReduceService = if (updateNotChanged) verboseFullReduceService else silentFullReduceService
+
+        fullReduceService.reduce(events.asFlow()).collect { entity ->
             send(entity.id)
         }
     }
@@ -99,6 +110,7 @@ class ItemReduceServiceV2(
     }
 
     companion object {
+
         val WORD_ZERO: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
         private val logger = LoggerFactory.getLogger(ItemReduceServiceV2::class.java)
     }
