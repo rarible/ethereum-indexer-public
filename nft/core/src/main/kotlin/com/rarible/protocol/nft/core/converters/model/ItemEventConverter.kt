@@ -12,6 +12,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.ItemRoyalty
 import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -27,6 +28,17 @@ class ItemEventConverter(
         return (source.data as? ItemHistory)?.let { it.owner?.let { owner -> OwnershipId(it.token, it.tokenId, owner) } }
     }
 
+    fun convertToMintEvent(source: OwnershipEvent.TransferToEvent): ItemEvent.ItemMintEvent {
+        return OwnershipId.parseId(source.entityId).let {
+            ItemEvent.ItemMintEvent(
+                supply = source.value,
+                owner = it.owner,
+                entityId = entityId(it.token, it.tokenId),
+                log = source.log,
+            )
+        }
+    }
+
     fun convert(source: ReversedEthereumLogRecord): ItemEvent? {
         return when (val data = source.data as? ItemHistory) {
             is ItemTransfer -> {
@@ -38,7 +50,7 @@ class ItemEventConverter(
                             supply = data.value,
                             owner = data.owner,
                             log = source.log,
-                            entityId = ItemId(data.token, data.tokenId).stringValue,
+                            entityId = entityId(data.token, data.tokenId),
                             tokenUri = data.tokenUri
                         )
 
@@ -47,7 +59,7 @@ class ItemEventConverter(
                             supply = data.value,
                             owner = data.from,
                             log = source.log,
-                            entityId = ItemId(data.token, data.tokenId).stringValue
+                            entityId = entityId(data.token, data.tokenId)
                         )
 
                     source.log.address == openSeaLazyMintAddress && isLazyMintTokenAddress(data.tokenId) ->
@@ -55,7 +67,7 @@ class ItemEventConverter(
                             from = data.from,
                             supply = data.value,
                             log = source.log,
-                            entityId = ItemId(data.token, data.tokenId).stringValue
+                            entityId = entityId(data.token, data.tokenId)
                         )
 
                     else -> null
@@ -66,21 +78,21 @@ class ItemEventConverter(
                     supply = data.value,
                     creators = data.creators,
                     log = source.log,
-                    entityId = ItemId(data.token, data.tokenId).stringValue
+                    entityId = entityId(data.token, data.tokenId)
                 )
             }
             is BurnItemLazyMint -> {
                 ItemEvent.LazyItemBurnEvent(
                     supply = data.value,
                     log = source.log,
-                    entityId = ItemId(data.token, data.tokenId).stringValue
+                    entityId = entityId(data.token, data.tokenId)
                 )
             }
             is ItemCreators -> {
                 ItemEvent.ItemCreatorsEvent(
                     creators = data.creators,
                     log = source.log,
-                    entityId = ItemId(data.token, data.tokenId).stringValue
+                    entityId = entityId(data.token, data.tokenId)
                 )
             }
             is ItemRoyalty, null -> null
@@ -94,4 +106,6 @@ class ItemEventConverter(
     private fun isLazyMintTokenAddress(tokenId: EthUInt256): Boolean {
         return (tokenId.value < BigInteger.valueOf(2).pow(96)).not()
     }
+
+    private fun entityId(token: Address, tokenId: EthUInt256) = ItemId(token, tokenId).stringValue
 }
