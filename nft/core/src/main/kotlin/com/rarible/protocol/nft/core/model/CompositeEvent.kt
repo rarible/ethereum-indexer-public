@@ -7,17 +7,24 @@ data class CompositeEvent(
     constructor(itemEvent: ItemEvent): this(itemEvent, emptyList())
     constructor(ownershipEvents: List<OwnershipEvent>): this(null, ownershipEvents)
 
+    fun isConfirmed(): Boolean {
+        return getEventLog(this).isConfirmed()
+    }
+
     override fun compareTo(other: CompositeEvent): Int {
         val event = getEventLog(this)
         val otherEvent = getEventLog(other)
-        return EthereumEntityEvent.confirmBlockComparator.compare(event, otherEvent)
+        return event.compareTo(otherEvent)
     }
 
     companion object {
-        private fun getEventLog(event: CompositeEvent): EthereumEntityEvent<*> {
-            val itemEvent = event.itemEvent?.takeIf { it.isConfirmed() }
-            val ownershipEvent = event.ownershipEvents.firstOrNull()?.takeIf { it.isConfirmed() }
-            return itemEvent ?: ownershipEvent ?: throw IllegalStateException("Empty composite event $event")
+        @Suppress("UNCHECKED_CAST")
+        private fun getEventLog(event: CompositeEvent): EthereumEntityEvent<Any> {
+            val itemEvent = event.itemEvent
+            val ownershipEvent = event.ownershipEvents.firstOrNull()
+            return (itemEvent ?: ownershipEvent)
+                ?.let { it as EthereumEntityEvent<Any> }
+                ?: throw IllegalStateException("Empty composite event $event")
         }
     }
 }

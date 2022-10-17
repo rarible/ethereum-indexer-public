@@ -34,8 +34,13 @@ class CompositeReducer(
                 id = entity.id,
                 item = reducedItem ?: entity.item,
                 ownerships = entity.ownerships,
-                firstEvent = entity.firstEvent?.let { minOf(it, event) } ?: event
+                firstEvent = getFirstEvent(entity.firstEvent, event)
             )
         }
+    }
+
+    private fun getFirstEvent(previous: CompositeEvent?, event: CompositeEvent): CompositeEvent? {
+        val next = event.takeIf { it.isConfirmed() } ?: return previous
+        return previous?.let { minOf(next, previous) } ?: next
     }
 }
