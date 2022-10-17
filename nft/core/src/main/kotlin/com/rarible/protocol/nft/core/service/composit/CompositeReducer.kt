@@ -25,7 +25,6 @@ class CompositeReducer(
                 val item = entity.item ?: itemTemplateProvider.getEntityTemplate(entity.id)
                 itemReducer.reduce(item, itemEvent)
             }
-
             event.ownershipEvents.forEach { ownershipEvent ->
                 val eventOwnershipId = OwnershipId.parseId(ownershipEvent.entityId)
                 val ownership = entity.ownerships[eventOwnershipId.owner] ?: ownershipTemplateProvider.getEntityTemplate(eventOwnershipId)
@@ -34,7 +33,8 @@ class CompositeReducer(
             CompositeEntity(
                 id = entity.id,
                 item = reducedItem ?: entity.item,
-                ownerships = entity.ownerships
+                ownerships = entity.ownerships,
+                firstEvent = entity.firstEvent?.let { minOf(it, event) } ?: event
             )
         }
     }

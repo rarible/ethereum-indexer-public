@@ -218,11 +218,21 @@ fun createRandomLazyBurnItemEvent(): ItemEvent.LazyItemBurnEvent {
     )
 }
 
-fun createRandomOwnershipTransferToEvent(): OwnershipEvent.TransferToEvent {
+fun createRandomOwnershipTransferToEvent(
+    owner: Address = randomAddress(),
+    from: Address = randomAddress(),
+    token: Address = randomAddress(),
+    tokenId: EthUInt256 = EthUInt256.of(randomBigInt())
+): OwnershipEvent.TransferToEvent {
+    val entityId = OwnershipId(
+        token = token,
+        tokenId = tokenId,
+        owner = owner
+    )
     return OwnershipEvent.TransferToEvent(
-        from = randomAddress(),
+        from = from,
         value = EthUInt256.of(randomInt()),
-        entityId = randomString(),
+        entityId = entityId.stringValue,
         log = createRandomEthereumLog()
     )
 }

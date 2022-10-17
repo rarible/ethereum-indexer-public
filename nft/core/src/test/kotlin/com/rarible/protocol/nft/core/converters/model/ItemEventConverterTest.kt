@@ -1,9 +1,12 @@
 package com.rarible.protocol.nft.core.converters.model
 
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomEthereumLog
 import com.rarible.protocol.nft.core.data.createRandomItemTransfer
+import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferFromEvent
+import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferToEvent
 import com.rarible.protocol.nft.core.data.createRandomReversedEthereumLogRecord
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
@@ -119,5 +122,22 @@ internal class ItemEventConverterTest {
 
         val openSeaLazyMintEvent = converter.convert(logRecord)
         assertThat(openSeaLazyMintEvent).isNull()
+    }
+
+    @Test
+    fun `should convert ownership from event to mint event`() {
+        val owner = randomAddress()
+        val token = randomAddress()
+        val tokenId = EthUInt256.of(randomBigInt())
+        val ownershipEvent = createRandomOwnershipTransferToEvent(
+            owner = owner,
+            token = token,
+            tokenId = tokenId
+        )
+        val mintEvent = converter.convertToMintEvent(ownershipEvent)
+        assertThat(mintEvent.owner).isEqualTo(owner)
+        assertThat(mintEvent.supply).isEqualTo(ownershipEvent.value)
+        assertThat(mintEvent.log).isEqualTo(ownershipEvent.log)
+        assertThat(mintEvent.entityId).isEqualTo(ItemId(token, tokenId).stringValue)
     }
 }
