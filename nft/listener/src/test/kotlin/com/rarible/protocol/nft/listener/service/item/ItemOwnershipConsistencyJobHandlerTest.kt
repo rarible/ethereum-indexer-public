@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.listener.service.item
 import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomWord
@@ -68,6 +69,8 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
     private lateinit var fixedCounter: RegisteredCounter
     @RelaxedMockK
     private lateinit var unfixedCounter: RegisteredCounter
+    @RelaxedMockK
+    private lateinit var delayGauge: RegisteredGauge<Long>
 
     @Autowired
     private lateinit var itemOwnershipConsistencyService: ItemOwnershipConsistencyService
@@ -77,6 +80,7 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         every { metricsFactory.itemOwnershipConsistencyJobCheckedCounter() } returns checkedCounter
         every { metricsFactory.itemOwnershipConsistencyJobFixedCounter() } returns fixedCounter
         every { metricsFactory.itemOwnershipConsistencyJobUnfixedCounter() } returns unfixedCounter
+        every { metricsFactory.itemOwnershipConsistencyJobDelayGauge() } returns delayGauge
     }
 
     @Test
@@ -131,7 +135,12 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         }
         verify { fixedCounter.increment() }
         verify { unfixedCounter.increment() }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter)
+        verify {
+            delayGauge.set(invalidItem.date.toEpochMilli())
+            delayGauge.set(fixableItem.date.toEpochMilli())
+            delayGauge.set(validItem.date.toEpochMilli())
+        }
+        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
     }
 
     @Test

@@ -1,7 +1,9 @@
 package com.rarible.protocol.nft.listener.metrics
 
 import com.rarible.core.telemetry.metrics.CountingMetric
+import com.rarible.core.telemetry.metrics.LongGaugeMetric
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import io.micrometer.core.instrument.MeterRegistry
@@ -26,6 +28,13 @@ class NftListenerMetricsFactory(
     fun itemOwnershipConsistencyJobUnfixedCounter(): RegisteredCounter {
         return ItemOwnershipConsistencyJobUnfixedMetric(properties.metricRootPath, properties.blockchain)
             .bind(meterRegistry)
+    }
+
+    fun itemOwnershipConsistencyJobDelayGauge(): RegisteredGauge<Long> {
+        return object : LongGaugeMetric(
+            name = "${properties.metricRootPath}.item.ownership.consistency.job.delay",
+            tag("blockchain", properties.blockchain)
+        ){}.bind(meterRegistry)
     }
 
     private class ItemOwnershipConsistencyJobCheckedMetric(root: String, blockchain: Blockchain) : CountingMetric(

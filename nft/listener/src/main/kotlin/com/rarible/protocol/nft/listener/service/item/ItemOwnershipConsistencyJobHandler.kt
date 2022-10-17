@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -42,6 +43,7 @@ class ItemOwnershipConsistencyJobHandler(
     private val checkedCounter = metricsFactory.itemOwnershipConsistencyJobCheckedCounter()
     private val fixedCounter = metricsFactory.itemOwnershipConsistencyJobFixedCounter()
     private val unfixedCounter = metricsFactory.itemOwnershipConsistencyJobUnfixedCounter()
+    private val delayMetric = metricsFactory.itemOwnershipConsistencyJobDelayGauge()
 
     private val properties = nftListenerProperties.itemOwnershipConsistency
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -53,14 +55,22 @@ class ItemOwnershipConsistencyJobHandler(
     override suspend fun handle() = coroutineScope {
         logger.info("ItemOwnershipConsistencyHandler handle() called, properties $properties")
         val itemsChannel = Channel<Item>(properties.parallelism)
-        repeat(properties.parallelism) { launchItemWorker(itemsChannel) }
+        val semaphore = Semaphore(properties.parallelism)
+        repeat(properties.parallelism) { launchItemWorker(itemsChannel, semaphore) }
         val state = getState()
+        var running = true
+        lateinit var lastItem: Item
         try {
-            mainLoop@ do {
-                val timeThreshold = Instant.now().minus(properties.checkTimeOffset)
-                val items = getItemsBatch(state.continuation)
-                logger.info("Got ${items.size} items to check")
-                logger.info("Items: $items")
+            do {
+                val timeThreshold = Instant
+                    .now().minus(properties.checkTimeOffset)
+                val allItems = getItemsBatch(state.continuation)
+                val inconsistentItemIds = inconsistentItemRepository.searchByIds(allItems.map { it.id }.toSet())
+                    .map { it.id }
+                    .toSet()
+
+                val items = allItems.filterNot { inconsistentItemIds.contains(it.id) }
+                logger.info("Got ${items.size} items to check (${inconsistentItemIds.size} skipped as already inconsistent)")
                 if (items.isEmpty()) {
                     state.continuation = null
                     state.latestChecked = Instant.now()
@@ -68,17 +78,22 @@ class ItemOwnershipConsistencyJobHandler(
                 }
 
                 for (item in items) {
+                    lastItem = item
                     if (item.date > timeThreshold) {
-                        updateState(state, item)
-                        break@mainLoop
+                        running = false
+                        break
+                    } else {
+                        itemsChannel.send(item)
+                        checkedCounter.increment()
+                        delayMetric.set(item.date.toEpochMilli())
                     }
-                    itemsChannel.send(item)
-                    checkedCounter.increment()
                 }
 
-                updateState(state, items.last())
+                // wait for workers to finish last items in batch, only then update & save state
+                semaphore.waitUntilAvailable(properties.parallelism)
+                updateState(state, lastItem)
                 saveState(state)
-            } while (true)
+            } while (running)
         } finally {
             saveState(state)
             itemsChannel.close()
@@ -152,12 +167,19 @@ class ItemOwnershipConsistencyJobHandler(
         jobStateRepository.save(ITEM_OWNERSHIP_CONSISTENCY_JOB, state)
     }
 
-    private fun CoroutineScope.launchItemWorker(channel: ReceiveChannel<Item>) {
+    private fun CoroutineScope.launchItemWorker(channel: ReceiveChannel<Item>, semaphore: Semaphore) {
         launch {
             for (item in channel) {
+                semaphore.acquire()
                 checkAndFixItem(item)
+                semaphore.release()
             }
         }
+    }
+
+    private suspend fun Semaphore.waitUntilAvailable(permits: Int) {
+        repeat(permits) { acquire() }
+        repeat(permits) { release() }
     }
 
     data class ItemOwnershipConsistencyJobState(

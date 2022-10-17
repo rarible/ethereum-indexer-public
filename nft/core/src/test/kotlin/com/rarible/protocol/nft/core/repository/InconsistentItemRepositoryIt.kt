@@ -47,6 +47,21 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
         assertThat(actual).isEqualTo(inconsistentItem)
     }
 
+    @Test
+    fun `should find by ids`() = runBlocking<Unit> {
+        // given
+        val item1 = randomInconsistentItem()
+        val item2 = randomInconsistentItem()
+        inconsistentItemRepository.save(item1)
+        inconsistentItemRepository.save(item2)
+
+        // when
+        val actual = inconsistentItemRepository.searchByIds(setOf(item1.id, item2.id))
+
+        // then
+        assertThat(actual).containsExactlyInAnyOrder(item1, item2)
+    }
+
     private fun randomInconsistentItem() = InconsistentItem(
         token = randomAddress(),
         tokenId = EthUInt256.TEN,
