@@ -21,3 +21,8 @@ spring:
         pool:
           max-life-time: 800s
           max-idle-time: 90s
+
+rarible:
+  core:
+    client:
+      k8s: true

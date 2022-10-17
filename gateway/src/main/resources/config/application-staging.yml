@@ -1,4 +1,1 @@
-rarible:
-  core:
-    client:
-      k8s: true
+

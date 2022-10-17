@@ -23,6 +23,7 @@ rarible:
   core:
     client:
       name: rarible-protocol
+      k8s: true
   ethereum:
     converter:
       enabled: true
