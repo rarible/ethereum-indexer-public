@@ -28,6 +28,7 @@ import io.daonomic.rpc.domain.WordFactory
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.mockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
@@ -42,6 +43,7 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.where
 import scalether.domain.Address
 import java.time.Duration
+import java.time.Instant
 
 @IntegrationTest
 class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
@@ -72,6 +74,8 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
     @RelaxedMockK
     private lateinit var delayGauge: RegisteredGauge<Long>
 
+    private val now = Instant.ofEpochMilli(2_000_000)
+
     @Autowired
     private lateinit var itemOwnershipConsistencyService: ItemOwnershipConsistencyService
 
@@ -81,6 +85,9 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         every { metricsFactory.itemOwnershipConsistencyJobFixedCounter() } returns fixedCounter
         every { metricsFactory.itemOwnershipConsistencyJobUnfixedCounter() } returns unfixedCounter
         every { metricsFactory.itemOwnershipConsistencyJobDelayGauge() } returns delayGauge
+
+//        mockkStatic("com.rarible.core.common.DateUtilKt")
+//        every { nowMillis() } returns now
     }
 
     @Test
@@ -135,10 +142,8 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         }
         verify { fixedCounter.increment() }
         verify { unfixedCounter.increment() }
-        verify {
-            delayGauge.set(invalidItem.date.toEpochMilli())
-            delayGauge.set(fixableItem.date.toEpochMilli())
-            delayGauge.set(validItem.date.toEpochMilli())
+        verify(exactly = 3) {
+            delayGauge.set(any())
         }
         confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
     }

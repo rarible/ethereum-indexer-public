@@ -85,7 +85,7 @@ class ItemOwnershipConsistencyJobHandler(
                     } else {
                         itemsChannel.send(item)
                         checkedCounter.increment()
-                        delayMetric.set(item.date.toEpochMilli())
+                        delayMetric.set((nowMillis().toEpochMilli() - item.date.toEpochMilli()))
                     }
                 }
 
@@ -130,7 +130,7 @@ class ItemOwnershipConsistencyJobHandler(
                                     ownerships = checkResult.ownerships,
                                     supplyValue = checkResult.supply.value,
                                     ownershipsValue = checkResult.ownerships.value,
-                                    fixVersionApplied = 1,
+                                    fixVersionApplied = 2,
                                     status = InconsistentItemStatus.UNFIXED,
                                     lastUpdatedAt = nowMillis(),
                                 )
