@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.listener.service.item
 import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomWord
@@ -27,6 +28,7 @@ import io.daonomic.rpc.domain.WordFactory
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.mockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
@@ -41,6 +43,7 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.where
 import scalether.domain.Address
 import java.time.Duration
+import java.time.Instant
 
 @IntegrationTest
 class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
@@ -68,6 +71,10 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
     private lateinit var fixedCounter: RegisteredCounter
     @RelaxedMockK
     private lateinit var unfixedCounter: RegisteredCounter
+    @RelaxedMockK
+    private lateinit var delayGauge: RegisteredGauge<Long>
+
+    private val now = Instant.ofEpochMilli(2_000_000)
 
     @Autowired
     private lateinit var itemOwnershipConsistencyService: ItemOwnershipConsistencyService
@@ -77,6 +84,10 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         every { metricsFactory.itemOwnershipConsistencyJobCheckedCounter() } returns checkedCounter
         every { metricsFactory.itemOwnershipConsistencyJobFixedCounter() } returns fixedCounter
         every { metricsFactory.itemOwnershipConsistencyJobUnfixedCounter() } returns unfixedCounter
+        every { metricsFactory.itemOwnershipConsistencyJobDelayGauge() } returns delayGauge
+
+//        mockkStatic("com.rarible.core.common.DateUtilKt")
+//        every { nowMillis() } returns now
     }
 
     @Test
@@ -131,7 +142,10 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         }
         verify { fixedCounter.increment() }
         verify { unfixedCounter.increment() }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter)
+        verify(exactly = 3) {
+            delayGauge.set(any())
+        }
+        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
     }
 
     @Test

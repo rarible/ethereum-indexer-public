@@ -2,7 +2,10 @@ package com.rarible.protocol.nft.api.service.admin
 
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
+import com.rarible.protocol.nft.core.misc.splitToRanges
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
+import com.rarible.protocol.nft.core.model.ReduceTokenRangeTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams
 import com.rarible.protocol.nft.core.model.ReindexCryptoPunksTaskParam
 import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam
@@ -14,6 +17,7 @@ import com.rarible.protocol.nft.core.model.TokenTaskParam
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
@@ -27,6 +31,7 @@ class ReindexTokenService(
     private val tokenRegistrationService: TokenRegistrationService,
     private val taskRepository: TempTaskRepository
 ) {
+
     suspend fun getTokenTasks(): List<Task> {
         return taskRepository.findByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS).toList() +
             taskRepository.findByType(ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS).toList() +
@@ -52,10 +57,18 @@ class ReindexTokenService(
             throw IllegalArgumentException("All tokens must be the same standard: ${formatToString(tokenStandardMap)}")
         }
         if (standards.first() !in SUPPORTED_REINDEX_TOKEN_STANDARD) {
-            throw IllegalArgumentException("Reindex support only $SUPPORTED_REINDEX_TOKEN_STANDARD, but you have ${formatToString(tokenStandardMap)}")
+            throw IllegalArgumentException(
+                "Reindex support only $SUPPORTED_REINDEX_TOKEN_STANDARD, but you have ${
+                    formatToString(
+                        tokenStandardMap
+                    )
+                }"
+            )
         }
         val params = ReindexTokenItemsTaskParams(standards.first(), tokens)
-        if (!force) checkOtherTasksAreNotProcessingTheSameTokens(params, ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS)
+        if (!force) checkOtherTasksAreNotProcessingTheSameTokens(
+            params, ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS
+        )
         return saveTask(
             param = params.toParamString(),
             type = ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS,
@@ -76,13 +89,44 @@ class ReindexTokenService(
 
     suspend fun createReduceTokenItemsTask(token: Address, force: Boolean): Task {
         val params = ReduceTokenItemsTaskParams(token)
-        if (!force) checkOtherTasksAreNotProcessingTheSameTokens(params, ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
+        if (!force) checkOtherTasksAreNotProcessingTheSameTokens(
+            params, ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS
+        )
         return saveTask(
             param = params.toParamString(),
             type = ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS,
             state = null,
             force = force
         )
+    }
+
+    suspend fun createReduceTokenRangeTask(from: ItemId, to: ItemId, taskCount: Int, force: Boolean = false) {
+        val parent = "${from.stringValue}..${to.stringValue}"
+
+        val withSameParent = taskRepository.findByType(ReduceTokenRangeTaskParams.ADMIN_REDUCE_TOKEN_RANGE)
+            .filter { ReduceTokenRangeTaskParams.parse(it.param).parent == parent }
+            .toList()
+
+        val notCompleted = withSameParent.filter { it.lastStatus != TaskStatus.COMPLETED }
+        if (notCompleted.isNotEmpty() && !force) {
+            throw java.lang.IllegalArgumentException(
+                "Can't start ReduceTokenRangeTasks with range $parent," +
+                    " there are still ${notCompleted.size} not completed tasks"
+            )
+        }
+
+        withSameParent.forEach { taskRepository.delete(it.id) }
+
+        splitToRanges(from, to, taskCount)
+            .map { ReduceTokenRangeTaskParams(parent, it.first.stringValue, it.second.stringValue) }
+            .forEach {
+                saveTask(
+                    param = it.toParamString(),
+                    type = ReduceTokenRangeTaskParams.ADMIN_REDUCE_TOKEN_RANGE,
+                    state = null,
+                    force = false
+                )
+            }
     }
 
     suspend fun createReindexTokenItemRoyaltiesTask(token: Address, force: Boolean): Task {
@@ -126,7 +170,9 @@ class ReindexTokenService(
                 val tokensBeingIndexed = TokenTaskParam.fromParamString(params::class, task.param)
                     .tokens.filter { it in params.tokens }
                 if (tokensBeingIndexed.isNotEmpty()) {
-                    throw IllegalArgumentException("Tokens $tokensBeingIndexed are already being indexed in another task ${task.id}: $task")
+                    throw IllegalArgumentException(
+                        "Tokens $tokensBeingIndexed are already being indexed in another task ${task.id}: $task"
+                    )
                 }
             }
         }

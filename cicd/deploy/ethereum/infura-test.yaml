@@ -5,7 +5,6 @@ sharedEnvironments: &sharedEnvironments
   SPRING_CLOUD_CONSUL_ENABLED: false
   SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   RARIBLE_CORE_APM_AGENT_ENABLED: false
-  RARIBLE_CORE_CLIENT_K8S: true
   LOGGING_LOGSTASH_TCPSOCKET_ENABLED: true
   RARIBLE_ETHEREUM_MAXFRAMESIZE: 10485760
   COMMON_CRYPTOPUNKSCONTRACTADDRESS: '0x73AEc342B748095Ad26b6B90038944a742a6151E'

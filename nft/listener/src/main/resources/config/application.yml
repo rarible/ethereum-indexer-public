@@ -33,6 +33,7 @@ rarible:
         packages: com.rarible.protocol.nft.listener
     client:
       name: rarible-protocol
+      k8s: true
   ethereum:
     max-frame-size: 104857600
     converter:

@@ -65,8 +65,8 @@ class ItemReduceServiceV2(
                 { it.log.blockNumber },
                 { it.log.logIndex }
             ),
-            findLazyItemsHistory(token, tokenId, from),
-            historyRepository.findItemsHistory(token, tokenId, from = from, to = to)
+            findLazyItemsHistory(token, tokenId, from, to),
+            historyRepository.findItemsHistory(token, tokenId, from, to)
         ).concatMap {
             logger.info("Item reduce HistoryLog=$it")
             mono {
@@ -88,8 +88,10 @@ class ItemReduceServiceV2(
         }
     }
 
-    private fun findLazyItemsHistory(token: Address?, tokenId: EthUInt256?, from: ItemId?): Flux<HistoryLog> {
-        return lazyHistoryRepository.find(token, tokenId, from).map {
+    private fun findLazyItemsHistory(
+        token: Address?, tokenId: EthUInt256?, from: ItemId?, to: ItemId?
+    ): Flux<HistoryLog> {
+        return lazyHistoryRepository.find(token, tokenId, from, to).map {
             HistoryLog(
                 item = it,
                 log = LogEvent(

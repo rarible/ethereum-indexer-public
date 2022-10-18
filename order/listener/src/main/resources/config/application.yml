@@ -38,6 +38,7 @@ rarible:
       enabled: true
     client:
       name: rarible-protocol
+      k8s: true
 
 protocol:
   nft:

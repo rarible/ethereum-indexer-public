@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.api.controller.admin
 
 import com.rarible.core.task.Task
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.api.converter.ItemIdConverter
 import com.rarible.protocol.nft.api.dto.AdminTaskDto
 import com.rarible.protocol.nft.api.dto.ItemMaintenanceResultDto
@@ -9,6 +10,7 @@ import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.model.sorted
 import com.rarible.protocol.nft.api.service.admin.MaintenanceService
 import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
@@ -48,6 +50,30 @@ class AdminController(
     ): ResponseEntity<Void> {
         val id = ItemIdConverter.convert(itemId)
         itemReduceService.update(id.token, id.tokenId).subscribe()
+        return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping(
+        value = ["/admin/nft/items/reduce"],
+        produces = ["application/json"],
+        consumes = ["application/json"]
+    )
+    suspend fun reduceItemsInRange(
+        @RequestParam(value = "from", required = false) from: String?,
+        @RequestParam(value = "to", required = false) to: String?,
+        @RequestParam(value = "tasks", required = false) tasks: Int = 1
+    ): ResponseEntity<Void> {
+
+        val fromItemId = from?.let { ItemIdConverter.convert(it) }
+            ?: ItemId(Address.ZERO(), EthUInt256.ZERO)
+
+        val toItemId = to?.let { ItemIdConverter.convert(it) }
+            ?: ItemId(
+                Address.apply("0xffffffffffffffffffffffffffffffffffffffff"),
+                EthUInt256.of("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+            )
+
+        reindexTokenService.createReduceTokenRangeTask(fromItemId, toItemId, tasks)
         return ResponseEntity.noContent().build()
     }
 

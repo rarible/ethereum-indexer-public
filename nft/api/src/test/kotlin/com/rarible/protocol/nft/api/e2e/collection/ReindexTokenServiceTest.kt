@@ -2,16 +2,23 @@ package com.rarible.protocol.nft.api.e2e.collection
 
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
+import com.rarible.core.test.data.randomBigInt
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
+import com.rarible.protocol.nft.core.model.ReduceTokenRangeTaskParams
 import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam
 import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.reactor.mono
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -19,10 +26,16 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.math.BigInteger
 
 class ReindexTokenServiceTest {
+
     private val tokenRegistrationService = mockk<TokenRegistrationService>()
-    private val taskRepository = mockk<TempTaskRepository>()
+    private val taskRepository = mockk<TempTaskRepository>() {
+        coEvery { save(any()) } coAnswers { firstArg() }
+        coEvery { delete(any()) } returns Unit
+
+    }
 
     private val service = ReindexTokenService(tokenRegistrationService, taskRepository)
 
@@ -33,7 +46,6 @@ class ReindexTokenServiceTest {
 
         mockTokenRegistrationService(token1, TokenStandard.ERC721)
         mockTokenRegistrationService(token2, TokenStandard.ERC721)
-        mockTokenRepositorySave()
         mockTaskRepositoryFindNothingByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS)
 
         val task = service.createReindexTokenItemsTask(listOf(token1, token2), 100, false)
@@ -51,7 +63,6 @@ class ReindexTokenServiceTest {
     fun `should create token reduce task`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
 
-        mockTokenRepositorySave()
         mockTaskRepositoryFindNothingByType(ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
 
         val task = service.createReduceTokenItemsTask(targetToken, false)
@@ -74,7 +85,6 @@ class ReindexTokenServiceTest {
             running = false,
             lastStatus = TaskStatus.COMPLETED
         )
-        mockTokenRepositorySave()
 
         val task = service.createReduceTokenItemsTask(targetToken, true)
         assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
@@ -90,7 +100,6 @@ class ReindexTokenServiceTest {
     fun `should create token items royalties reindex task`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
 
-        mockTokenRepositorySave()
         mockTaskRepositoryFindNothingByType(ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES)
 
         val task = service.createReindexTokenItemRoyaltiesTask(targetToken, false)
@@ -152,12 +161,88 @@ class ReindexTokenServiceTest {
         }
     }
 
-    private fun mockTokenRegistrationService(token: Address, standard: TokenStandard) {
-        coEvery { tokenRegistrationService.getTokenStandard(eq(token)) } returns mono { standard }
+    @Test
+    fun `reduce in range - tasks created`() = runBlocking<Unit> {
+        val from = Address.ZERO()
+        val fromTokenId = randomBigInt()
+
+        val to = Address.TWO()
+        val toTokenId = randomBigInt()
+
+        val fromItemId = ItemId(from, EthUInt256(fromTokenId))
+        val toItemId = ItemId(to, EthUInt256(toTokenId))
+        val midItemId = ItemId(Address.ONE(), EthUInt256(BigInteger.ZERO))
+
+        coEvery { taskRepository.findByType(ReduceTokenRangeTaskParams.ADMIN_REDUCE_TOKEN_RANGE) } returns emptyFlow()
+
+        service.createReduceTokenRangeTask(fromItemId, toItemId, 2)
+
+        coVerify(exactly = 2) { taskRepository.save(any()) }
+
+        coVerify(exactly = 1) {
+            taskRepository.save(match {
+                val params = ReduceTokenRangeTaskParams.parse(it.param)
+                params.from == fromItemId.stringValue && params.to == midItemId.stringValue
+            })
+        }
+
+        coVerify(exactly = 1) {
+            taskRepository.save(match {
+                val params = ReduceTokenRangeTaskParams.parse(it.param)
+                params.from == midItemId.stringValue && params.to == toItemId.stringValue
+            })
+        }
     }
 
-    private fun mockTokenRepositorySave() {
-        coEvery { taskRepository.save(any()) } coAnswers { firstArg() }
+    @Test
+    fun `reduce in range - already in progress`() = runBlocking<Unit> {
+        val fromItemId = ItemId(Address.ZERO(), EthUInt256(randomBigInt()))
+        val toItemId = ItemId(Address.TWO(), EthUInt256(randomBigInt()))
+        val parent = "${fromItemId.stringValue}..${toItemId.stringValue}"
+
+        val exists = Task(
+            type = ReduceTokenRangeTaskParams.ADMIN_REDUCE_TOKEN_RANGE,
+            param = ReduceTokenRangeTaskParams(parent, fromItemId.stringValue, toItemId.stringValue).toParamString(),
+            state = "",
+            running = false,
+            lastStatus = TaskStatus.NONE
+        )
+
+        coEvery {
+            taskRepository.findByType(ReduceTokenRangeTaskParams.ADMIN_REDUCE_TOKEN_RANGE)
+        } returns flowOf(exists)
+
+        assertThrows<java.lang.IllegalArgumentException> {
+            service.createReduceTokenRangeTask(fromItemId, toItemId, 2)
+        }
+    }
+
+    @Test
+    fun `reduce in range - remove completed on restart`() = runBlocking<Unit> {
+        val fromItemId = ItemId(Address.ZERO(), EthUInt256(randomBigInt()))
+        val toItemId = ItemId(Address.TWO(), EthUInt256(randomBigInt()))
+        val parent = "${fromItemId.stringValue}..${toItemId.stringValue}"
+
+        val exists = Task(
+            type = ReduceTokenRangeTaskParams.ADMIN_REDUCE_TOKEN_RANGE,
+            param = ReduceTokenRangeTaskParams(parent, fromItemId.stringValue, toItemId.stringValue).toParamString(),
+            state = "",
+            running = false,
+            lastStatus = TaskStatus.COMPLETED
+        )
+
+        coEvery {
+            taskRepository.findByType(ReduceTokenRangeTaskParams.ADMIN_REDUCE_TOKEN_RANGE)
+        } returns flowOf(exists)
+
+        service.createReduceTokenRangeTask(fromItemId, toItemId, 2)
+
+        coVerify(exactly = 2) { taskRepository.save(any()) }
+        coVerify(exactly = 1) { taskRepository.delete(exists.id) }
+    }
+
+    private fun mockTokenRegistrationService(token: Address, standard: TokenStandard) {
+        coEvery { tokenRegistrationService.getTokenStandard(eq(token)) } returns mono { standard }
     }
 
     private fun mockTaskRepositoryFindNothingByType(type: String) {

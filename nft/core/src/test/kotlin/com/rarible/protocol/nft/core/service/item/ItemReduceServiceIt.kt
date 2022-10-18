@@ -118,10 +118,17 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         )
         saveItemHistory(transfer, logIndex = 0, from = owner, blockTimestamp = blockTimestamp)
 
-        itemReduceService.update(token, tokenId).awaitFirstOrNull()
+        // First time all changes should be applied and item should be updated (since it has been changed)
+        itemReduceService.update(token, tokenId, updateNotChanged = false).awaitFirstOrNull()
 
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
         assertThat(item.version).isEqualTo(existedItem.version!! + 1)
+
+        // But if we call reduce second time in silent mode, item should stay the same since nothing changed
+        itemReduceService.update(token, tokenId, updateNotChanged = false).awaitFirstOrNull()
+
+        val notUpdatedItem = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
+        assertThat(notUpdatedItem.version).isEqualTo(item.version)
     }
 
     @Test
