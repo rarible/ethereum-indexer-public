@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.model
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import scalether.domain.Address
 import kotlin.reflect.KClass
 
@@ -12,11 +14,12 @@ sealed class TokenTaskParam {
         @Suppress("UNCHECKED_CAST")
         fun <P : TokenTaskParam> fromParamString(paramType: KClass<P>, param: String): P = when (paramType) {
             ReindexTokenItemsTaskParams::class -> ReindexTokenItemsTaskParams.fromParamString(param)
-            ReduceTokenItemsTaskParams::class -> ReduceTokenItemsTaskParams.fromParamString(param)
             ReindexTokenItemRoyaltiesTaskParam::class -> ReindexTokenItemRoyaltiesTaskParam.fromParamString(param)
             ReindexTokenTaskParams::class -> ReindexTokenTaskParams.fromParamString(param)
-            ReduceTokenTaskParams::class -> ReduceTokenTaskParams.fromParamString(param)
             ReindexCryptoPunksTaskParam::class -> ReindexCryptoPunksTaskParam.fromParamString(param)
+
+            ReduceTokenTaskParams::class -> ReduceTokenTaskParams.fromParamString(param)
+            ReduceTokenItemsTaskParams::class -> ReduceTokenItemsTaskParams.fromParamString(param)
             else -> error("Unknown param type $paramType")
         } as P
     }
@@ -122,3 +125,29 @@ data class ReindexCryptoPunksTaskParam(val event: PunkEvent, val from: Long) : T
         ASSIGN
     }
 }
+
+data class ReduceTokenRangeTaskParams(
+    // This param originally is not needed, but we can use it in mongo queries
+    // In case of manually created tasks we can omit it
+    val parent: String?,
+    val from: String,
+    val to: String
+) {
+
+    fun toParamString(): String {
+        return mapper.writeValueAsString(this)
+    }
+
+    companion object {
+
+        const val ADMIN_REDUCE_TOKEN_RANGE = "ADMIN_REDUCE_TOKEN_RANGE"
+
+        private val mapper = ObjectMapper().registerKotlinModule()
+
+        fun parse(param: String): ReduceTokenRangeTaskParams {
+            return mapper.readValue(param, ReduceTokenRangeTaskParams::class.java)
+        }
+
+    }
+}
+

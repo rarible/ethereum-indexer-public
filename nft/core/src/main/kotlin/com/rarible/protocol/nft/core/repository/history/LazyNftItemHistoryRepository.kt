@@ -7,7 +7,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.LazyItemHistory
-import com.rarible.protocol.nft.core.repository.CollectionStatRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
@@ -24,6 +23,7 @@ import scalether.domain.Address
 class LazyNftItemHistoryRepository(
     private val mongo: ReactiveMongoOperations
 ) {
+
     fun save(lazyItemHistory: LazyItemHistory): Mono<LazyItemHistory> {
         return mongo.save(lazyItemHistory, COLLECTION)
     }
@@ -42,9 +42,10 @@ class LazyNftItemHistoryRepository(
     fun find(
         token: Address? = null,
         tokenId: EthUInt256? = null,
-        from: ItemId? = null
+        from: ItemId? = null,
+        to: ItemId? = null
     ): Flux<LazyItemHistory> {
-        val c = tokenCriteria(token, tokenId, from)
+        val c = tokenCriteria(token, tokenId, from, to)
         return mongo.find(Query(c).with(LOG_SORT_ASC), LazyItemHistory::class.java, COLLECTION)
     }
 
@@ -54,7 +55,12 @@ class LazyNftItemHistoryRepository(
         }
     }
 
-    private fun tokenCriteria(token: Address?, tokenId: EthUInt256?, from: ItemId? = null): Criteria {
+    private fun tokenCriteria(
+        token: Address?,
+        tokenId: EthUInt256?,
+        from: ItemId? = null,
+        to: ItemId? = null
+    ): Criteria {
         return when {
             token != null && tokenId != null ->
                 Criteria.where(DATA_TOKEN).`is`(token).and(DATA_TOKEN_ID).`is`(tokenId)
@@ -62,17 +68,33 @@ class LazyNftItemHistoryRepository(
                 Criteria.where(DATA_TOKEN).`is`(token).and(DATA_TOKEN_ID).gt(from.tokenId)
             token != null ->
                 Criteria.where(DATA_TOKEN).`is`(token)
-            from != null ->
-                Criteria().orOperator(
-                    Criteria.where(DATA_TOKEN).`is`(from.token).and(DATA_TOKEN_ID).gt(from.tokenId),
-                    Criteria.where(DATA_TOKEN).gt(from.token)
-                )
+            from != null && to == null ->
+                fromCriteria(from)
+            from == null && to != null ->
+                toCriteria(to)
+            from != null && to != null ->
+                Criteria().andOperator(fromCriteria(from), toCriteria(to))
             else ->
                 Criteria()
         }
     }
 
+    private fun fromCriteria(from: ItemId): Criteria {
+        return Criteria().orOperator(
+            Criteria.where(DATA_TOKEN).`is`(from.token).and(DATA_TOKEN_ID).gt(from.tokenId),
+            Criteria.where(DATA_TOKEN).gt(from.token)
+        )
+    }
+
+    private fun toCriteria(to: ItemId): Criteria {
+        return Criteria().orOperator(
+            Criteria.where(DATA_TOKEN).`is`(to.token).and(DATA_TOKEN_ID).lte(to.tokenId),
+            Criteria.where(DATA_TOKEN).lt(to.token)
+        )
+    }
+
     companion object {
+
         const val COLLECTION = "lazy_nft_item_history"
 
         val DATA_TOKEN = LazyItemHistory::token.name

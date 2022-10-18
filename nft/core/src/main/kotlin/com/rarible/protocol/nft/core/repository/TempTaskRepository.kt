@@ -6,8 +6,11 @@ import com.rarible.core.task.Task
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.find
+import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
@@ -30,5 +33,10 @@ class TempTaskRepository(
             }
         }
         return template.find<Task>(Query.query(criteria)).asFlow()
+    }
+
+    suspend fun delete(id: ObjectId) {
+        val criteria = Criteria("_id").isEqualTo(id)
+        template.remove(Query(criteria), Task::class.java).awaitFirstOrNull()
     }
 }
