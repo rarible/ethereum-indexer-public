@@ -1,7 +1,11 @@
 package com.rarible.protocol.nft.core.repository.history
 
 import com.rarible.core.common.nowMillis
-import com.rarible.core.test.data.*
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomInt
+import com.rarible.core.test.data.randomLong
+import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -209,7 +213,9 @@ class HistoryRepositoryIt : AbstractIntegrationTest() {
             val logs = nftItemHistoryRepository
                 .findItemsHistory(from = ItemId(token0Max, maxTokenId), to = ItemId(token2Min, minTokenId))
                 .collectList().awaitFirst()
-            assertThat(logs.map { ItemId(it.item.token, it.item.tokenId) }).containsExactly(item10, item11, item12, item13)
+            assertThat(logs.map { ItemId(it.item.token, it.item.tokenId) }).containsExactly(
+                item10, item11, item12, item13, item21
+            )
         }
     }
 

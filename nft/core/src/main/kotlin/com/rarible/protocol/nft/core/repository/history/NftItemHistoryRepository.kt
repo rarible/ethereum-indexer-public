@@ -28,6 +28,7 @@ import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
+import org.springframework.data.mongodb.core.query.lte
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -140,7 +141,13 @@ class NftItemHistoryRepository(
     }
 
     private fun toCriteria(to: ItemId): Criteria {
-        return LogEvent::data / ItemHistory::token lt to.token
+        return Criteria().orOperator(
+            Criteria().andOperator(
+                LogEvent::data / ItemHistory::token isEqualTo to.token,
+                LogEvent::data / ItemHistory::tokenId lte to.tokenId
+            ),
+            LogEvent::data / ItemHistory::token lt to.token
+        )
     }
 
     suspend fun search(query: Query): List<LogEvent> {
