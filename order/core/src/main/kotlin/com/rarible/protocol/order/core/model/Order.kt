@@ -12,7 +12,12 @@ import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
-import scala.*
+import scala.Tuple10
+import scala.Tuple22
+import scala.Tuple3
+import scala.Tuple4
+import scala.Tuple5
+import scala.Tuple9
 import scalether.abi.AddressType
 import scalether.abi.Uint256Type
 import scalether.abi.Uint8Type
@@ -190,7 +195,16 @@ data class Order(
         return copy(version = version)
     }
 
+    fun withFinalState(state: OrderState): Order {
+        return copy(
+            cancelled = state.canceled,
+            lastUpdateAt = maxOf(lastUpdateAt, state.lastUpdateAt),
+            lastEventId = accumulateEventId(lastEventId, state.id.prefixed())
+        )
+    }
+
     companion object {
+
         /**
          * Maximum size of [priceHistory]
          */
@@ -698,6 +712,10 @@ data class Order(
                 take is Erc1155AssetType -> FeeSide.TAKE
                 else -> FeeSide.NONE
             }
+        }
+
+        fun accumulateEventId(lastEventId: String?, eventId: String): String {
+            return Hash.sha3((lastEventId ?: "") + eventId)
         }
     }
 }
