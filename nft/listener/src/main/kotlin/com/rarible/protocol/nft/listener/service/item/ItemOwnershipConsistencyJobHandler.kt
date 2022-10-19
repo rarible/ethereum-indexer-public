@@ -72,8 +72,8 @@ class ItemOwnershipConsistencyJobHandler(
                 val items = allItems.filterNot { inconsistentItemIds.contains(it.id) }
                 logger.info("Got ${items.size} items to check (${inconsistentItemIds.size} skipped as already inconsistent)")
                 if (items.isEmpty()) {
-                    state.continuation = null
                     state.latestChecked = Instant.now()
+                    delayMetric.set(0)
                     break
                 }
 
