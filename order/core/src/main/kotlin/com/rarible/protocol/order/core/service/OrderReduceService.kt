@@ -35,7 +35,6 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
-import scalether.util.Hash
 import java.time.Instant
 
 @Component
@@ -400,11 +399,7 @@ class OrderReduceService(
 
     private suspend fun Order.withFinalState(): Order {
         val state = orderStateRepository.getById(hash) ?: return this
-        return copy(
-            cancelled = state.canceled,
-            lastUpdateAt = maxOf(lastUpdateAt, state.lastUpdateAt),
-            lastEventId = accumulateEventId(lastEventId, state.id.prefixed())
-        )
+        return this.withFinalState(state)
     }
 
     private suspend fun Order.withApproval(): Order {
@@ -502,7 +497,7 @@ class OrderReduceService(
         )
 
         private fun accumulateEventId(lastEventId: String?, eventId: String): String {
-            return Hash.sha3((lastEventId ?: "") + eventId)
+            return Order.accumulateEventId(lastEventId, eventId)
         }
 
         /**

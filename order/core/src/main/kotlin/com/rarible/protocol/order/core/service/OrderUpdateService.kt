@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
+import com.rarible.protocol.order.core.service.updater.CustomOrderUpdater
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
@@ -33,8 +34,10 @@ class OrderUpdateService(
     private val protocolCommissionProvider: ProtocolCommissionProvider,
     private val priceUpdateService: PriceUpdateService,
     private val orderVersionListener: OrderVersionListener,
-    private val orderListener: OrderListener
+    private val orderListener: OrderListener,
+    private val customUpdaters: List<CustomOrderUpdater>
 ) {
+
     private val logger = LoggerFactory.getLogger(OrderUpdateService::class.java)
 
     /**
@@ -74,7 +77,7 @@ class OrderUpdateService(
     suspend fun updateMakeStockFull(
         hash: Word,
         makeBalanceState: MakeBalanceState? = null
-    ): Pair<Order?, Boolean>  {
+    ): Pair<Order?, Boolean> {
         val order = orderRepository.findById(hash) ?: return null to false
         return updateMakeStock(order, makeBalanceState)
     }
@@ -108,14 +111,28 @@ class OrderUpdateService(
         // We need to allow updates even if only lastUpdatedAt has been changed
         // otherwise we won't be able to update some of existing orders by background reduce job
         if (order.makeStock != updated.makeStock || order.lastUpdateAt != updated.lastUpdateAt) {
-            val savedOrder = orderRepository.save(updated)
-            orderListener.onOrder(savedOrder)
-            logger.info("Make stock of order updated ${savedOrder.hash}: makeStock=${savedOrder.makeStock}, old makeStock=${order.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${savedOrder.cancelled}")
+            val savedOrder = updateOrder(updated, makeBalanceState)
+            logger.info(
+                "Make stock of order updated ${savedOrder.hash}: makeStock=${savedOrder.makeStock}," +
+                    " old makeStock=${order.makeStock}, makeBalance=$makeBalance," +
+                    " knownMakeBalance=$knownMakeBalance, cancelled=${savedOrder.cancelled}"
+            )
             savedOrder to true
         } else {
-            logger.info("Make stock of order did not change ${updated.hash}: makeStock=${updated.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${updated.cancelled}")
+            logger.info(
+                "Make stock of order did not change ${updated.hash}: makeStock=${updated.makeStock}, " +
+                    "makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance," +
+                    " cancelled=${updated.cancelled}"
+            )
             order to false
         }
+    }
+
+    private suspend fun updateOrder(updated: Order, makeBalanceState: MakeBalanceState?): Order {
+        val result = customUpdaters.fold(updated) { order, updater -> updater.update(order, makeBalanceState) }
+        val savedOrder = orderRepository.save(result)
+        orderListener.onOrder(savedOrder)
+        return savedOrder
     }
 
     private fun isFinished(order: Order): Boolean {
