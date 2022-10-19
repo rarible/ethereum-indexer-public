@@ -62,36 +62,35 @@ class ItemOwnershipConsistencyJobHandler(
         lateinit var lastItem: Item
         try {
             do {
-                val timeThreshold = Instant
-                    .now().minus(properties.checkTimeOffset)
+                val timeThreshold = Instant.now().minus(properties.checkTimeOffset)
+
                 val allItems = getItemsBatch(state.continuation)
+                if (allItems.isEmpty()) {
+                    state.latestChecked = Instant.now()
+                    delayMetric.set(0)
+                    break
+                }
+                lastItem = allItems.last()
+                updateState(state, lastItem)
+
                 val inconsistentItemIds = inconsistentItemRepository.searchByIds(allItems.map { it.id }.toSet())
                     .map { it.id }
                     .toSet()
 
                 val items = allItems.filterNot { inconsistentItemIds.contains(it.id) }
                 logger.info("Got ${items.size} items to check (${inconsistentItemIds.size} skipped as already inconsistent)")
-                if (items.isEmpty()) {
-                    state.latestChecked = Instant.now()
-                    delayMetric.set(0)
-                    break
-                }
-
                 for (item in items) {
-                    lastItem = item
                     if (item.date > timeThreshold) {
                         running = false
                         break
                     } else {
                         itemsChannel.send(item)
-                        checkedCounter.increment()
-                        delayMetric.set((nowMillis().toEpochMilli() - item.date.toEpochMilli()))
                     }
                 }
 
-                // wait for workers to finish last items in batch, only then update & save state
+                // wait for workers to finish last items in batch, only then save state
                 semaphore.waitUntilAvailable(properties.parallelism)
-                updateState(state, lastItem)
+                delayMetric.set((nowMillis().toEpochMilli() - lastItem.date.toEpochMilli()))
                 saveState(state)
             } while (running)
         } finally {
@@ -161,6 +160,7 @@ class ItemOwnershipConsistencyJobHandler(
             for (item in channel) {
                 semaphore.acquire()
                 checkAndFixItem(item)
+                checkedCounter.increment()
                 semaphore.release()
             }
         }
@@ -173,7 +173,7 @@ class ItemOwnershipConsistencyJobHandler(
 
     private suspend fun saveToInconsistentItems(
         item: Item,
-        checkResult:  ItemOwnershipConsistencyService.CheckResult.Failure,
+        checkResult: Failure,
         triedToFix: Boolean,
     ) {
         if (inconsistentItemRepository.save(
