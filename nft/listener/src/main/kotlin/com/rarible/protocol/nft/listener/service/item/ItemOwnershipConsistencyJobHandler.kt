@@ -58,8 +58,6 @@ class ItemOwnershipConsistencyJobHandler(
         val semaphore = Semaphore(properties.parallelism)
         repeat(properties.parallelism) { launchItemWorker(itemsChannel, semaphore) }
         val state = getState()
-        var running = true
-        lateinit var lastItem: Item
         try {
             do {
                 val timeThreshold = Instant.now().minus(properties.checkTimeOffset)
@@ -67,11 +65,9 @@ class ItemOwnershipConsistencyJobHandler(
                 val allItems = getItemsBatch(state.continuation).filter { it.date < timeThreshold }
                 if (allItems.isEmpty()) {
                     state.latestChecked = timeThreshold
-                    delayMetric.set(properties.checkTimeOffset.toMillis())
                     break
                 }
-                lastItem = allItems.last()
-                updateState(state, lastItem)
+                updateState(state, allItems.last())
 
                 val inconsistentItemIds = inconsistentItemRepository.searchByIds(allItems.map { it.id }.toSet())
                     .map { it.id }
@@ -85,9 +81,8 @@ class ItemOwnershipConsistencyJobHandler(
 
                 // wait for workers to finish last items in batch, only then save state
                 semaphore.waitUntilAvailable(properties.parallelism)
-                delayMetric.set((nowMillis().toEpochMilli() - lastItem.date.toEpochMilli()))
                 saveState(state)
-            } while (running)
+            } while (true)
         } finally {
             saveState(state)
             itemsChannel.close()
@@ -148,6 +143,7 @@ class ItemOwnershipConsistencyJobHandler(
     private suspend fun saveState(state: ItemOwnershipConsistencyJobState) {
         logger.info("Saving state $state")
         jobStateRepository.save(ITEM_OWNERSHIP_CONSISTENCY_JOB, state)
+        delayMetric.set((nowMillis().toEpochMilli() - state.latestChecked.toEpochMilli()))
     }
 
     private fun CoroutineScope.launchItemWorker(channel: ReceiveChannel<Item>, semaphore: Semaphore) {
