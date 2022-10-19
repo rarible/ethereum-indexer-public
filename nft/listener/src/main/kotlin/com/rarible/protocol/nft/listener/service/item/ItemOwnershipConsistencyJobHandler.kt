@@ -116,28 +116,16 @@ class ItemOwnershipConsistencyJobHandler(
         var checkResult = itemOwnershipConsistencyService.checkItem(item)
         when (checkResult) {
             is Failure -> {
-                if (!properties.autofix) return
+                if (!properties.autofix) {
+                    saveToInconsistentItems(item, checkResult, triedToFix = false)
+                    return
+                }
 
                 val fixedItem = itemOwnershipConsistencyService.tryFix(item)
                 checkResult = itemOwnershipConsistencyService.checkItem(fixedItem)
                 when (checkResult) {
                     is Failure -> {
-                        if (inconsistentItemRepository.save(
-                                InconsistentItem(
-                                    token = fixedItem.token,
-                                    tokenId = fixedItem.tokenId,
-                                    supply = checkResult.supply,
-                                    ownerships = checkResult.ownerships,
-                                    supplyValue = checkResult.supply.value,
-                                    ownershipsValue = checkResult.ownerships.value,
-                                    fixVersionApplied = 2,
-                                    status = InconsistentItemStatus.UNFIXED,
-                                    lastUpdatedAt = nowMillis(),
-                                )
-                            )
-                        ) {
-                            unfixedCounter.increment()
-                        }
+                        saveToInconsistentItems(item, checkResult, triedToFix = true)
                     }
 
                     Success -> {
@@ -180,6 +168,32 @@ class ItemOwnershipConsistencyJobHandler(
     private suspend fun Semaphore.waitUntilAvailable(permits: Int) {
         repeat(permits) { acquire() }
         repeat(permits) { release() }
+    }
+
+    private suspend fun saveToInconsistentItems(
+        item: Item,
+        checkResult:  ItemOwnershipConsistencyService.CheckResult.Failure,
+        triedToFix: Boolean,
+    ) {
+        if (inconsistentItemRepository.save(
+                InconsistentItem(
+                    token = item.token,
+                    tokenId = item.tokenId,
+                    supply = checkResult.supply,
+                    ownerships = checkResult.ownerships,
+                    supplyValue = checkResult.supply.value,
+                    ownershipsValue = checkResult.ownerships.value,
+                    fixVersionApplied = if (triedToFix) 2 else null,
+                    status = if (triedToFix) InconsistentItemStatus.UNFIXED else InconsistentItemStatus.NEW,
+                    lastUpdatedAt = nowMillis(),
+                )
+            )
+        ) {
+            logger.info("Saved $item to inconsistent_items")
+            unfixedCounter.increment()
+        } else {
+            logger.info("Couldn't save $item to inconsistent_items, as it's already there")
+        }
     }
 
     data class ItemOwnershipConsistencyJobState(
