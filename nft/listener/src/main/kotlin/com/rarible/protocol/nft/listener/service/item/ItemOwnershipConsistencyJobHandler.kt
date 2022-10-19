@@ -152,6 +152,7 @@ class ItemOwnershipConsistencyJobHandler(
     }
 
     private suspend fun saveState(state: ItemOwnershipConsistencyJobState) {
+        logger.info("Saving state $state")
         jobStateRepository.save(ITEM_OWNERSHIP_CONSISTENCY_JOB, state)
     }
 
