@@ -64,10 +64,10 @@ class ItemOwnershipConsistencyJobHandler(
             do {
                 val timeThreshold = Instant.now().minus(properties.checkTimeOffset)
 
-                val allItems = getItemsBatch(state.continuation)
+                val allItems = getItemsBatch(state.continuation).filter { it.date < timeThreshold }
                 if (allItems.isEmpty()) {
-                    state.latestChecked = Instant.now()
-                    delayMetric.set(0)
+                    state.latestChecked = timeThreshold
+                    delayMetric.set(properties.checkTimeOffset.toMillis())
                     break
                 }
                 lastItem = allItems.last()
@@ -80,12 +80,7 @@ class ItemOwnershipConsistencyJobHandler(
                 val items = allItems.filterNot { inconsistentItemIds.contains(it.id) }
                 logger.info("Got ${items.size} items to check (${inconsistentItemIds.size} skipped as already inconsistent)")
                 for (item in items) {
-                    if (item.date > timeThreshold) {
-                        running = false
-                        break
-                    } else {
-                        itemsChannel.send(item)
-                    }
+                    itemsChannel.send(item)
                 }
 
                 // wait for workers to finish last items in batch, only then save state

@@ -142,7 +142,7 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         }
         verify { fixedCounter.increment() }
         verify { unfixedCounter.increment() }
-        verify(exactly = 2) {
+        verify(exactly = 3) {
             delayGauge.set(any())
         }
         confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
