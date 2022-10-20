@@ -4,6 +4,7 @@ import com.rarible.core.cache.Cache
 import com.rarible.core.task.RunTask
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.TokenMeta
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService.Companion.TOKEN_METADATA_COLLECTION
 import kotlinx.coroutines.flow.Flow
@@ -42,9 +43,14 @@ class TokenMetaRepairTaskHandler(
         val query = Query(criteria).with(Sort.by(Sort.Direction.ASC, "_id"))
 
         return mongo.find<Cache>(query, TOKEN_METADATA_COLLECTION).asFlow().map {
-            val address = Address.apply(it.id)
-            tokenPropertiesService.reset(address)
-            tokenPropertiesService.resolve(address)
+            val properties = (it.data as TokenPropertiesService.CachedTokenProperties?)?.properties
+
+            if (properties == null || properties.name == TokenMeta.EMPTY.properties.name || properties.content.imageOriginal == null) {
+                val address = Address.apply(it.id)
+                tokenPropertiesService.reset(address)
+                tokenPropertiesService.resolve(address)
+            }
+
             it.id
         }
     }
