@@ -5,6 +5,7 @@ import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import scalether.domain.Address
@@ -55,6 +56,16 @@ class UtilsTest {
     }
 
     @Test
+    fun `should split to ranges, single token`() {
+        val from = Address.THREE()
+        val to = Address.THREE()
+
+        val range = splitToRanges(from, to, 3)
+
+        assertThat(range).containsExactly(from)
+    }
+
+    @Test
     fun `split to ranges - tokens, single`() {
         val from = Address.ZERO()
         val to = Address.apply("0xffffffffffffffffffffffffffffffffffffffff")
@@ -67,10 +78,9 @@ class UtilsTest {
 
     @Test
     fun `split to ranges - tokens, incorrect`() {
-        val from = randomAddress()
-
-        assertThrows<IllegalArgumentException> { splitToRanges(from, from, 1) }
-        assertThrows<IllegalArgumentException> { splitToRanges(Address.ZERO(), Address.FOUR(), 0) }
+        assertThatCode {
+            splitToRanges(Address.ZERO(), Address.FOUR(), 0)
+        }.isExactlyInstanceOf(IllegalArgumentException::class.java)
     }
 
     @Test

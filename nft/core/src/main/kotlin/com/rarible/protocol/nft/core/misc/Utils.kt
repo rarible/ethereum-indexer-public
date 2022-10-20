@@ -49,6 +49,10 @@ fun splitToRanges(from: Address, to: Address, count: Int): List<Address> {
         )
     }
 
+    if (from == to) {
+        return listOf(from)
+    }
+
     val fromInt = from.toBigInteger()
     val toInt = to.toBigInteger()
     val delta = toInt.minus(fromInt).divide(count.toBigInteger())
