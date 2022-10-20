@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.listener.admin
 
 import com.rarible.core.cache.Cache
+import com.rarible.core.task.RunTask
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
@@ -13,7 +14,6 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
@@ -30,8 +30,13 @@ class TokenMetaRepairTaskHandler(
         return ff.enableTokenMetaSelfRepair
     }
 
+    override fun getAutorunParams(): List<RunTask> {
+        return listOf(RunTask(""))
+    }
+
     override fun runLongTask(from: String?, param: String): Flow<String> {
-        val filter = Criteria("data.properties.name").isEqualTo("Untitled")
+        //val filter = Criteria("data.properties.name").isEqualTo("Untitled")
+        val filter = Criteria()
         val criteria = from?.let { filter.and("_id").gt(from) } ?: filter
 
         val query = Query(criteria).with(Sort.by(Sort.Direction.ASC, "_id"))
