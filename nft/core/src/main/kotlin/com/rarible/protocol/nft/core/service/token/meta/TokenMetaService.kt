@@ -24,7 +24,11 @@ class TokenMetaService(
 
         val imageOriginal = properties?.content?.imageOriginal
 
-        if (properties == null || imageOriginal == null || imageOriginal.url.cleanUrl() == null) return TokenMeta.EMPTY
+        if (properties == null) return TokenMeta.EMPTY
+
+        if (imageOriginal == null || imageOriginal.url.cleanUrl() == null) {
+            return TokenMeta(properties)
+        }
 
         mediaMetaService.getMediaMetaFromCache(imageOriginal.url, id.prefixed())
         return TokenMeta(
