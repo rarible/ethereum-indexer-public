@@ -42,7 +42,7 @@ class OpenseaTokenPropertiesResolver(
         }
     }
 
-    override val order get() = Int.MAX_VALUE
+    override val order get() = Int.MIN_VALUE
 
     private fun map(json: ObjectNode): TokenProperties {
         return TokenProperties(

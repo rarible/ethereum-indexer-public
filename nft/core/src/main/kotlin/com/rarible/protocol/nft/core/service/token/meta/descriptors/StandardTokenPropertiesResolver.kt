@@ -34,7 +34,7 @@ class StandardTokenPropertiesResolver(
         return request(id, url)?.copy(tokenUri = uri)
     }
 
-    override val order get() = Int.MIN_VALUE
+    override val order get() = Int.MAX_VALUE
 
     private suspend fun request(id: Address, url: String): TokenProperties? {
         val rawProperties = externalHttpClient.getBody(url = url, id = id.prefixed()) ?: return null
