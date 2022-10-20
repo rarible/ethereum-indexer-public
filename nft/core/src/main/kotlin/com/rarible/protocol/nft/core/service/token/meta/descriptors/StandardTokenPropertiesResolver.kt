@@ -52,7 +52,7 @@ class StandardTokenPropertiesResolver(
 
     private fun map(json: ObjectNode): TokenProperties {
         return TokenProperties(
-            name = json.getText("name") ?: "Untitled",
+            name = json.getText("name") ?: TokenProperties.EMPTY.name,
             description = json.getText("description"),
             externalUri = json.getText("external_link"),
             sellerFeeBasisPoints = json.getInt("seller_fee_basis_points"),

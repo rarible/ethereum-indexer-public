@@ -90,7 +90,16 @@ class TestPropertiesConfiguration {
     fun testTokenPropertiesService(
         @Qualifier("mockStandardTokenPropertiesResolver") mockStandardTokenPropertiesResolver: StandardTokenPropertiesResolver
     ): TokenPropertiesService {
-        return object : TokenPropertiesService(60000, mockk(), listOf(mockStandardTokenPropertiesResolver)) {
+        return object : TokenPropertiesService(
+            60000,
+            mockk(),
+            listOf(mockStandardTokenPropertiesResolver),
+            // TODO remove later
+            mockk(),
+            mockk(),
+            mockk(),
+            mockk()
+        ) {
             override suspend fun resolve(id: Address): TokenProperties? {
                 return super.doResolve(id)
             }

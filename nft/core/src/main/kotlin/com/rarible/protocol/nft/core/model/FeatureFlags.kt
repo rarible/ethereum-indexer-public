@@ -10,5 +10,6 @@ data class FeatureFlags(
     val enableMetaRawPropertiesCache: Boolean = true,
     val enableProxyForMetaDownload: Boolean = false,
     @Deprecated("Need remove this flag in release 1.31")
-    val pendingDisabled: Boolean = true
+    val pendingDisabled: Boolean = true,
+    val enableTokenMetaSelfRepair: Boolean = false
 )
