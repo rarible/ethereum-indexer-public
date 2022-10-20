@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.api.e2e
 
 import com.rarible.core.cache.CacheService
 import com.rarible.ethereum.nft.validation.LazyNftValidator
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
 import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
@@ -54,7 +55,11 @@ class TestPropertiesConfiguration {
         return TokenPropertiesService(
             Long.MAX_VALUE,
             cacheService,
-            listOf(standardPropertiesResolver, openseaPropertiesResolver)
+            listOf(standardPropertiesResolver, openseaPropertiesResolver),
+            mockk(),
+            mockk(),
+            mockk(),
+            FeatureFlags().copy(enableTokenMetaSelfRepair = false)
         )
     }
 

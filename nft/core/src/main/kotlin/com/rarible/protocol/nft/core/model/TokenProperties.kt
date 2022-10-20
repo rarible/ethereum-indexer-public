@@ -20,7 +20,9 @@ data class TokenProperties(
     val tokenUri: String? = null,
     val content: TokenMetaContent = TokenMetaContent()
 ) {
+
     companion object {
+
         val EMPTY = TokenProperties(
             name = "Untitled",
             description = null,
@@ -28,6 +30,10 @@ data class TokenProperties(
             feeRecipient = null,
             sellerFeeBasisPoints = null
         )
+    }
+
+    fun isEmpty(): Boolean {
+        return this == EMPTY
     }
 }
 

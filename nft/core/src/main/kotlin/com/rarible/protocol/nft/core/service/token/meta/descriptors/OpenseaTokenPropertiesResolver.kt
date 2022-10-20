@@ -46,7 +46,7 @@ class OpenseaTokenPropertiesResolver(
 
     private fun map(json: ObjectNode): TokenProperties {
         return TokenProperties(
-            name = getName(json) ?: "Untitled",
+            name = getName(json) ?: TokenProperties.EMPTY.name,
             description = json.getText("description"),
             externalUri = json.getText("external_link"),
             sellerFeeBasisPoints = json.getInt("opensea_seller_fee_basis_points"),
