@@ -78,8 +78,8 @@ class TokenPropertiesService(
 
         val result = regularResolve(id)
 
-        val current = cachedDeferred.await()?.data as TokenProperties?
-        if (current != result) {
+        val current = cachedDeferred.await()?.data as CachedTokenProperties?
+        if (result != null && current?.properties != result) {
             logger.info("Meta of collection [{}] changed, trigger update event", id.prefixed())
             tokenRepository.findById(id).awaitFirstOrNull()?.let {
                 tokenEventListener.onTokenChanged(it)
