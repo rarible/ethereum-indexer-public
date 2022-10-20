@@ -78,12 +78,10 @@ sealed class CompositeUpdateService(
         if (existOwnership == null || updateNotChanged) {
             return ownershipUpdateService.update(reducedOwnership.withVersion(safeVersion))
         }
-
         val safeCompareOwnership = reducedOwnership.copy(
             version = existOwnership.version,
-            lastUpdatedAt = existOwnership.date
+            lastUpdatedAt = existOwnership.lastUpdatedAt
         )
-
         return if (safeCompareOwnership != existOwnership) {
             ownershipUpdateService.update(reducedOwnership.withVersion(safeVersion))
         } else {
