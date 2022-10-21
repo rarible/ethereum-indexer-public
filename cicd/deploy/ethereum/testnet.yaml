@@ -14,6 +14,7 @@ ethereum-order-listener:
     initialDelaySeconds: 360
   resources:
     jvm:
+      xmx_megabytes: 512
       max_direct_memory_megabytes: 256
 
 ethereum-gateway:
