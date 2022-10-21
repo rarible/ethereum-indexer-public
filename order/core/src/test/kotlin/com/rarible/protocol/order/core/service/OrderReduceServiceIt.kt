@@ -6,6 +6,7 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderCancel
@@ -18,6 +19,7 @@ import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.data.createOrderX2Y2DataV1
 import com.rarible.protocol.order.core.data.createSudoSwapPoolDataV1
+import com.rarible.protocol.order.core.data.randomApproveHistory
 import com.rarible.protocol.order.core.data.randomErc1155
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
@@ -41,6 +43,7 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.PoolHistory
+import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.service.curve.PoolCurve.Companion.eth
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
@@ -583,6 +586,25 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         orderStateRepository.save(OrderState(saved.hash, canceled = true))
         val updated = orderReduceService.updateOrder(order.hash)
         assertThat(updated?.status).isEqualTo(OrderStatus.CANCELLED)
+    }
+
+    @Test
+    fun `should make sell order inactive if no approval`() = runBlocking<Unit> {
+        val order = createOrderVersion().copy(make = randomErc721(), take = randomErc20(), platform = Platform.RARIBLE)
+        val saved = orderUpdateService.save(order)
+        assertThat(saved.status).isEqualTo(OrderStatus.ACTIVE)
+
+        val approval = randomApproveHistory(
+            collection = order.make.type.token,
+            owner = order.maker,
+            operator = transferProxyAddresses.transferProxy,
+            approved = false
+        )
+        approvalHistoryRepository.save(createLogEvent(approval))
+
+        val updated = orderReduceService.updateOrder(order.hash)
+        assertThat(updated?.status).isEqualTo(OrderStatus.INACTIVE)
+        assertThat(updated?.approved).isFalse
     }
 
     private suspend fun prepareStorage(status: LogEventStatus, vararg histories: OrderExchangeHistory) {

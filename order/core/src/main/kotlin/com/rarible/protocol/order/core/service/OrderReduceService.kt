@@ -9,15 +9,16 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PlatformToHistorySourceConverter
+import com.rarible.protocol.order.core.misc.nftId
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
-import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
+import com.rarible.protocol.order.core.service.approve.ApproveService
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.core.service.pool.EventPoolReducer
 import com.rarible.protocol.order.core.service.pool.PoolPriceProvider
@@ -50,7 +51,7 @@ class OrderReduceService(
     private val priceUpdateService: PriceUpdateService,
     private val nonceService: NonceService,
     private val indexerProperties: OrderIndexerProperties,
-    private val approvalHistoryRepository: ApprovalHistoryRepository,
+    private val approveService: ApproveService,
     private val poolReducer: EventPoolReducer,
     private val poolPriceProvider: PoolPriceProvider,
     private val orderStateRepository: OrderStateRepository,
@@ -408,23 +409,24 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withSellApproval(): Order {
-        val collection = when (val assetType = this.make.type) {
-            is Erc721AssetType -> assetType.token
-            is CollectionAssetType -> assetType.token
-            is GenerativeArtAssetType -> assetType.token
-            is CryptoPunksAssetType -> assetType.token
-            is Erc1155AssetType -> assetType.token
-            is Erc1155LazyAssetType -> assetType.token
-            is Erc721LazyAssetType -> assetType.token
-            else -> return this
+        val nftAsset: NftCollectionAssetType = when (make.type) {
+            is Erc721AssetType -> make.type
+            is Erc1155AssetType -> make.type
+            is Erc1155LazyAssetType -> make.type
+            is Erc721LazyAssetType -> make.type
+            is CollectionAssetType -> make.type
+            is CryptoPunksAssetType -> make.type
+            is AmmNftAssetType,
+            is Erc20AssetType,
+            is EthAssetType,
+            is GenerativeArtAssetType -> return this
         }
-        val lastApprovalEvent = approvalHistoryRepository.lastApprovalLogEvent(collection, this.maker) ?: return this
-        val approveInfo = lastApprovalEvent.data as ApprovalHistory
-        return if (approveInfo.approved != this.approved) {
-            logger.info("Change order $hash approval to ${approveInfo.approved}!")
+        val hasApproved = approveService.hasNftCollectionApprove(maker, nftAsset, platform)
+        return if (hasApproved != this.approved) {
+            logger.info("Change order $hash approval to $hasApproved!")
             this.copy(
-                approved = approveInfo.approved,
-                lastEventId = accumulateEventId(this.lastEventId, lastApprovalEvent.id.toHexString())
+                approved = hasApproved,
+                lastEventId = accumulateEventId(this.lastEventId, nftAsset.token.prefixed())
             )
         } else this
     }

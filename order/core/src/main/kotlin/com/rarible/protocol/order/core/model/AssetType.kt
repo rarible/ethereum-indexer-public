@@ -78,12 +78,20 @@ sealed class AssetType(
 /**
  * Base class for NFT-like AssetType-s (ERC721, ERC1155, etc).
  */
-sealed class NftAssetType(
+
+sealed class NftCollectionAssetType(
     type: Binary,
     data: Binary,
     nft: Boolean
 ) : AssetType(type, data, nft) {
     abstract val token: Address
+}
+
+sealed class NftAssetType(
+    type: Binary,
+    data: Binary,
+    nft: Boolean
+) : NftCollectionAssetType(type, data, nft) {
     abstract val tokenId: EthUInt256
 }
 
@@ -224,7 +232,7 @@ data class CryptoPunksAssetType(
     }
 }
 
-data class CollectionAssetType(val token: Address) : AssetType(COLLECTION, AddressType.encode(token), true) {
+data class CollectionAssetType(override val token: Address) : NftCollectionAssetType(COLLECTION, AddressType.encode(token), true) {
     constructor(data: Binary) : this(AddressType.decode(data, 0).value())
 }
 
