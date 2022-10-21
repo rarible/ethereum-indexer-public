@@ -40,9 +40,10 @@ class ApprovalHistoryRepository(
         return template.findAll(LogEvent::class.java, COLLECTION).asFlow()
     }
 
-    suspend fun lastApprovalLogEvent(collection: Address, owner: Address): LogEvent? {
+    suspend fun lastApprovalLogEvent(collection: Address, owner: Address, operator: Address): LogEvent? {
         val criteria: Criteria = where(LogEvent::data / ApprovalHistory::collection).isEqualTo(collection)
             .and(LogEvent::data / ApprovalHistory::owner).isEqualTo(owner)
+            .and(LogEvent::data / ApprovalHistory::operator).isEqualTo(operator)
             .and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
 
         val query = Query.query(criteria)
