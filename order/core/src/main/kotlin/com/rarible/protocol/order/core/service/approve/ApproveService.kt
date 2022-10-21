@@ -27,45 +27,61 @@ class ApproveService(
         nftAssetType: NftCollectionAssetType,
         platform: Platform
     ): Boolean {
-        suspend fun hasMakerApprove(proxy: Address): Boolean {
-            return hasApprove(proxy = proxy, maker = maker, collection = nftAssetType.token)
-        }
-        fun getUnsupportedAssetException(): Throwable {
-            return UnsupportedOperationException("Unsupported assert type $nftAssetType for platform $platform")
-        }
         val proxy = when (platform) {
-            Platform.RARIBLE -> when (nftAssetType) {
-                is Erc1155AssetType,
-                is Erc721AssetType,
-                is CollectionAssetType -> transferProxyAddresses.transferProxy
-                is Erc1155LazyAssetType,
-                is Erc721LazyAssetType -> return true
-                is CryptoPunksAssetType -> throw getUnsupportedAssetException()
-            }
-            Platform.LOOKSRARE -> when (nftAssetType) {
-                is Erc721AssetType -> {
-                    return coroutineScope {
-                        val erc721Approve = async {
-                            hasMakerApprove(transferProxyAddresses.looksrareTransferManagerERC721)
-                        }
-                        val nonCompliantErc721Approve = async {
-                            hasMakerApprove(transferProxyAddresses.looksrareTransferManagerNonCompliantERC721)
-                        }
-                        erc721Approve.await() || nonCompliantErc721Approve.await()
-                    }
-                }
-                is Erc1155AssetType -> transferProxyAddresses.looksrareTransferManagerERC1155
-                is CollectionAssetType,
-                is CryptoPunksAssetType,
-                is Erc1155LazyAssetType,
-                is Erc721LazyAssetType -> throw getUnsupportedAssetException()
-            }
-            Platform.X2Y2 -> exchangeContractAddresses.x2y2V1
             Platform.OPEN_SEA -> transferProxyAddresses.seaportTransferProxy
+            Platform.X2Y2 -> exchangeContractAddresses.x2y2V1
             Platform.CRYPTO_PUNKS -> transferProxyAddresses.cryptoPunksTransferProxy
+            Platform.RARIBLE -> return handleRarible(maker, nftAssetType)
+            Platform.LOOKSRARE -> return handleLooksrare(maker, nftAssetType)
             Platform.SUDOSWAP -> return true
         }
-        return hasMakerApprove(proxy)
+        return hasApprove(proxy, maker, nftAssetType.token)
+    }
+
+    private suspend fun handleRarible(
+        maker: Address,
+        nftAssetType: NftCollectionAssetType,
+    ): Boolean {
+        return when (nftAssetType) {
+            is Erc1155AssetType,
+            is Erc721AssetType,
+            is CollectionAssetType -> {
+                hasApprove(transferProxyAddresses.transferProxy, maker, nftAssetType.token)
+            }
+            is Erc1155LazyAssetType,
+            is Erc721LazyAssetType -> true
+            is CryptoPunksAssetType -> throw getUnsupportedAssetException(nftAssetType, Platform.RARIBLE)
+        }
+    }
+
+    private suspend fun handleLooksrare(
+        maker: Address,
+        nftAssetType: NftCollectionAssetType,
+    ): Boolean {
+        return when (nftAssetType) {
+            is Erc721AssetType -> {
+                return coroutineScope {
+                    val erc721Approve = async {
+                        hasApprove(transferProxyAddresses.looksrareTransferManagerERC721, maker, nftAssetType.token)
+                    }
+                    val nonCompliantErc721Approve = async {
+                        hasApprove(transferProxyAddresses.looksrareTransferManagerNonCompliantERC721, maker, nftAssetType.token)
+                    }
+                    erc721Approve.await() || nonCompliantErc721Approve.await()
+                }
+            }
+            is Erc1155AssetType -> {
+                hasApprove(transferProxyAddresses.looksrareTransferManagerERC1155, maker, nftAssetType.token)
+            }
+            is CollectionAssetType,
+            is CryptoPunksAssetType,
+            is Erc1155LazyAssetType,
+            is Erc721LazyAssetType -> throw getUnsupportedAssetException(nftAssetType, Platform.LOOKSRARE)
+        }
+    }
+
+    fun getUnsupportedAssetException(nftAssetType: NftCollectionAssetType, platform: Platform): Throwable {
+        return UnsupportedOperationException("Unsupported assert type $nftAssetType for platform $platform")
     }
 
     private suspend fun hasApprove(proxy: Address, maker: Address, collection: Address): Boolean {
@@ -73,6 +89,6 @@ class ApproveService(
             collection = collection,
             owner = maker,
             operator = proxy
-        )?.let { (it.data as ApprovalHistory).approved } ?: true //TODO: Need to make false
+        )?.let { (it.data as ApprovalHistory).approved } ?: true
     }
 }
