@@ -110,6 +110,13 @@
             <artifactId>rarible-ethereum-contracts-test</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-nft-indexer-core</artifactId>
+            <classifier>tests</classifier>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.mockk</groupId>
             <artifactId>mockk</artifactId>
             <scope>test</scope>

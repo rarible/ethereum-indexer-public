@@ -8,7 +8,8 @@ sealed class OwnershipFilter {
     abstract val showDeleted: Boolean
 
     enum class Sort {
-        LAST_UPDATE
+        LAST_UPDATE,
+        LAST_UPDATE_ASC
     }
 }
 
