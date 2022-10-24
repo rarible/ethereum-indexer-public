@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -47,14 +48,18 @@ class ItemOwnershipConsistencyService(
     }
 
     suspend fun tryFix(item: Item, deleteOwnerships: Boolean = false): Item {
-        logger.info("Attempting to fix item<->ownership consistency for item ${item.id}")
+        return tryFix(item.id, deleteOwnerships) ?: item
+    }
+
+    suspend fun tryFix(itemId: ItemId, deleteOwnerships: Boolean = false): Item? {
+        logger.info("Attempting to fix item<->ownership consistency for item $itemId")
         if (deleteOwnerships) {
-            val deleted = ownershipRepository.deleteAllByItemId(itemId = item.id).asFlow().toList()
+            val deleted = ownershipRepository.deleteAllByItemId(itemId = itemId).asFlow().toList()
             logger.info("Deleted ${deleted.size} ownerships")
         }
-        itemReduceService.update(item.token, item.tokenId).awaitFirstOrNull()
-        logger.info("Attempt finished for item ${item.id}")
-        return itemRepository.findById(item.id).awaitSingle()
+        itemReduceService.update(itemId.token, itemId.tokenId).awaitFirstOrNull()
+        logger.info("Attempt finished for item $itemId")
+        return itemRepository.findById(itemId).awaitSingleOrNull()
     }
 
     private suspend fun getOwnershipsTotalSupply(itemId: ItemId, limit: Int): EthUInt256 {

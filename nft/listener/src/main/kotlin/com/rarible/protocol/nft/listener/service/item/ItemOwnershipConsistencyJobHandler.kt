@@ -58,42 +58,31 @@ class ItemOwnershipConsistencyJobHandler(
         val semaphore = Semaphore(properties.parallelism)
         repeat(properties.parallelism) { launchItemWorker(itemsChannel, semaphore) }
         val state = getState()
-        var running = true
-        lateinit var lastItem: Item
         try {
             do {
-                val timeThreshold = Instant
-                    .now().minus(properties.checkTimeOffset)
-                val allItems = getItemsBatch(state.continuation)
+                val timeThreshold = Instant.now().minus(properties.checkTimeOffset)
+
+                val allItems = getItemsBatch(state.continuation).filter { it.date < timeThreshold }
+                if (allItems.isEmpty()) {
+                    state.latestChecked = timeThreshold
+                    break
+                }
+                updateState(state, allItems.last())
+
                 val inconsistentItemIds = inconsistentItemRepository.searchByIds(allItems.map { it.id }.toSet())
                     .map { it.id }
                     .toSet()
 
                 val items = allItems.filterNot { inconsistentItemIds.contains(it.id) }
                 logger.info("Got ${items.size} items to check (${inconsistentItemIds.size} skipped as already inconsistent)")
-                if (items.isEmpty()) {
-                    state.continuation = null
-                    state.latestChecked = Instant.now()
-                    break
-                }
-
                 for (item in items) {
-                    lastItem = item
-                    if (item.date > timeThreshold) {
-                        running = false
-                        break
-                    } else {
-                        itemsChannel.send(item)
-                        checkedCounter.increment()
-                        delayMetric.set((nowMillis().toEpochMilli() - item.date.toEpochMilli()))
-                    }
+                    itemsChannel.send(item)
                 }
 
-                // wait for workers to finish last items in batch, only then update & save state
+                // wait for workers to finish last items in batch, only then save state
                 semaphore.waitUntilAvailable(properties.parallelism)
-                updateState(state, lastItem)
                 saveState(state)
-            } while (running)
+            } while (true)
         } finally {
             saveState(state)
             itemsChannel.close()
@@ -116,28 +105,16 @@ class ItemOwnershipConsistencyJobHandler(
         var checkResult = itemOwnershipConsistencyService.checkItem(item)
         when (checkResult) {
             is Failure -> {
-                if (!properties.autofix) return
+                if (!properties.autofix) {
+                    saveToInconsistentItems(item, checkResult, triedToFix = false)
+                    return
+                }
 
                 val fixedItem = itemOwnershipConsistencyService.tryFix(item)
                 checkResult = itemOwnershipConsistencyService.checkItem(fixedItem)
                 when (checkResult) {
                     is Failure -> {
-                        if (inconsistentItemRepository.save(
-                                InconsistentItem(
-                                    token = fixedItem.token,
-                                    tokenId = fixedItem.tokenId,
-                                    supply = checkResult.supply,
-                                    ownerships = checkResult.ownerships,
-                                    supplyValue = checkResult.supply.value,
-                                    ownershipsValue = checkResult.ownerships.value,
-                                    fixVersionApplied = 2,
-                                    status = InconsistentItemStatus.UNFIXED,
-                                    lastUpdatedAt = nowMillis(),
-                                )
-                            )
-                        ) {
-                            unfixedCounter.increment()
-                        }
+                        saveToInconsistentItems(item, checkResult, triedToFix = true)
                     }
 
                     Success -> {
@@ -164,7 +141,9 @@ class ItemOwnershipConsistencyJobHandler(
     }
 
     private suspend fun saveState(state: ItemOwnershipConsistencyJobState) {
+        logger.info("Saving state $state")
         jobStateRepository.save(ITEM_OWNERSHIP_CONSISTENCY_JOB, state)
+        delayMetric.set((nowMillis().toEpochMilli() - state.latestChecked.toEpochMilli()))
     }
 
     private fun CoroutineScope.launchItemWorker(channel: ReceiveChannel<Item>, semaphore: Semaphore) {
@@ -172,6 +151,7 @@ class ItemOwnershipConsistencyJobHandler(
             for (item in channel) {
                 semaphore.acquire()
                 checkAndFixItem(item)
+                checkedCounter.increment()
                 semaphore.release()
             }
         }
@@ -180,6 +160,32 @@ class ItemOwnershipConsistencyJobHandler(
     private suspend fun Semaphore.waitUntilAvailable(permits: Int) {
         repeat(permits) { acquire() }
         repeat(permits) { release() }
+    }
+
+    private suspend fun saveToInconsistentItems(
+        item: Item,
+        checkResult: Failure,
+        triedToFix: Boolean,
+    ) {
+        if (inconsistentItemRepository.save(
+                InconsistentItem(
+                    token = item.token,
+                    tokenId = item.tokenId,
+                    supply = checkResult.supply,
+                    ownerships = checkResult.ownerships,
+                    supplyValue = checkResult.supply.value,
+                    ownershipsValue = checkResult.ownerships.value,
+                    fixVersionApplied = if (triedToFix) 2 else null,
+                    status = if (triedToFix) InconsistentItemStatus.UNFIXED else InconsistentItemStatus.NEW,
+                    lastUpdatedAt = nowMillis(),
+                )
+            )
+        ) {
+            logger.info("Saved $item to inconsistent_items")
+            unfixedCounter.increment()
+        } else {
+            logger.info("Couldn't save $item to inconsistent_items, as it's already there")
+        }
     }
 
     data class ItemOwnershipConsistencyJobState(

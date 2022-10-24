@@ -2,8 +2,10 @@ package com.rarible.protocol.order.core.integration
 
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -75,6 +77,12 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @Autowired
     protected lateinit var orderStateRepository: OrderStateRepository
+
+    @Autowired
+    protected lateinit var approvalHistoryRepository: ApprovalHistoryRepository
+
+    @Autowired
+    protected lateinit var transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses
 
     private fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.block()

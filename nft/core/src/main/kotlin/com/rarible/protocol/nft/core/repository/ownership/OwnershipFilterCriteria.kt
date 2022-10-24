@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
@@ -28,7 +29,7 @@ object OwnershipFilterCriteria {
             is OwnershipFilterByCreator -> byCreator(creator)
             is OwnershipFilterByOwner -> byOwner(owner, collection)
             is OwnershipFilterByItem -> byItem(contract, EthUInt256(tokenId))
-        } showDeleted showDeleted scrollTo continuation
+        }.showDeleted(showDeleted).scrollTo(continuation, this.sort)
 
         return Query.query(criteria).with(
             this.sort.toMongoSort() ?: Sort.by(
@@ -67,19 +68,36 @@ object OwnershipFilterCriteria {
                 Sort.Order.desc(Ownership::date.name),
                 Sort.Order.desc(Ownership::id.name)
             )
+            OwnershipFilter.Sort.LAST_UPDATE_ASC -> Sort.by(
+                Sort.Order.asc(Ownership::date.name),
+                Sort.Order.asc(Ownership::id.name)
+            )
         }
 
-    private infix fun Criteria.scrollTo(continuation: OwnershipContinuation?): Criteria =
+    private fun Criteria.scrollTo(continuation: OwnershipContinuation?, sort: OwnershipFilter.Sort): Criteria =
         if (continuation == null) {
             this
         } else {
-            this.orOperator(
-                Ownership::date lt continuation.afterDate,
-                Criteria().andOperator(
-                    Ownership::date isEqualTo continuation.afterDate,
-                    Ownership::id lt continuation.afterId
-                )
-            )
+            when (sort) {
+                OwnershipFilter.Sort.LAST_UPDATE_ASC -> {
+                    this.orOperator(
+                        Ownership::date gt continuation.afterDate,
+                        Criteria().andOperator(
+                            Ownership::date isEqualTo continuation.afterDate,
+                            Ownership::id gt continuation.afterId
+                        )
+                    )
+                }
+                OwnershipFilter.Sort.LAST_UPDATE -> {
+                    this.orOperator(
+                        Ownership::date lt continuation.afterDate,
+                        Criteria().andOperator(
+                            Ownership::date isEqualTo continuation.afterDate,
+                            Ownership::id lt continuation.afterId
+                        )
+                    )
+                }
+            }
         }
 
     private infix fun Criteria.showDeleted(showDeleted: Boolean): Criteria {

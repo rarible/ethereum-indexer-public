@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.repository.ownership
 
+import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomOwnership
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
@@ -8,6 +9,10 @@ import com.rarible.protocol.nft.core.misc.isEqualToItem
 import com.rarible.protocol.nft.core.misc.isEqualToOwnership
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.OwnershipContinuation
+import com.rarible.protocol.nft.core.model.OwnershipFilter
+import com.rarible.protocol.nft.core.model.OwnershipFilterAll
+import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -19,6 +24,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
+import java.time.Duration
 
 @IntegrationTest
 internal class OwnershipRepositoryIt : AbstractIntegrationTest() {
@@ -77,5 +83,36 @@ internal class OwnershipRepositoryIt : AbstractIntegrationTest() {
             ownership.tokenId,
             EthUInt256.Companion.of(document.getString(Ownership::tokenId.name))
         )
+    }
+
+    @Test
+    fun `should search ownerships with continuation and sort by ascending`() = runBlocking<Unit> {
+        // given
+        val first = createRandomOwnership().copy(date = nowMillis() - Duration.ofMinutes(60))
+        val second = createRandomOwnership().copy(date = nowMillis() - Duration.ofMinutes(50))
+        val third = createRandomOwnership().copy(date = nowMillis() - Duration.ofMinutes(40))
+        val fourth = createRandomOwnership().copy(date = nowMillis() - Duration.ofMinutes(30))
+        val fifth = createRandomOwnership().copy(date = nowMillis() - Duration.ofMinutes(20))
+        listOf(first, second, third, fourth, fifth).forEach { ownershipRepository.save(it).awaitFirst() }
+        val filter = OwnershipFilterAll(
+            sort = OwnershipFilter.Sort.LAST_UPDATE_ASC,
+            showDeleted = false,
+        )
+
+        // when
+        var continuation: String? = null
+        val criteria1 = filter.toCriteria(OwnershipContinuation.parse(continuation), 3)
+        val result1 = ownershipRepository.search(criteria1)
+        continuation = OwnershipContinuation(result1.last().date, result1.last().id).toString()
+        val criteria2 = filter.toCriteria(OwnershipContinuation.parse(continuation), 3)
+        val result2 = ownershipRepository.search(criteria2)
+        continuation = OwnershipContinuation(result2.last().date, result2.last().id).toString()
+        val criteria3 = filter.toCriteria(OwnershipContinuation.parse(continuation), 3)
+        val result3 = ownershipRepository.search(criteria3)
+
+        // then
+        assertThat(result1).usingRecursiveComparison().ignoringFields("version").isEqualTo(listOf(first, second, third))
+        assertThat(result2).usingRecursiveComparison().ignoringFields("version").isEqualTo(listOf(fourth, fifth))
+        assertThat(result3).isEmpty()
     }
 }

@@ -27,7 +27,11 @@ class ApprovalForAllDescriptor(
         properties.transferProxyAddresses.transferProxy,
         properties.transferProxyAddresses.erc1155LazyTransferProxy,
         properties.transferProxyAddresses.erc721LazyTransferProxy,
-        properties.transferProxyAddresses.seaportTransferProxy
+        properties.transferProxyAddresses.seaportTransferProxy,
+        properties.transferProxyAddresses.looksrareTransferManagerERC721,
+        properties.transferProxyAddresses.looksrareTransferManagerERC1155,
+        properties.transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
+        properties.exchangeContractAddresses.x2y2V1 //X2Y2 use exchange contract as transfer proxy
     )
 
     override val collection: String = ApprovalHistoryRepository.COLLECTION

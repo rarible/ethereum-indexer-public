@@ -42,11 +42,11 @@ class OpenseaTokenPropertiesResolver(
         }
     }
 
-    override val order get() = Int.MAX_VALUE
+    override val order get() = Int.MIN_VALUE
 
     private fun map(json: ObjectNode): TokenProperties {
         return TokenProperties(
-            name = getName(json) ?: "Untitled",
+            name = getName(json) ?: TokenProperties.EMPTY.name,
             description = json.getText("description"),
             externalUri = json.getText("external_link"),
             sellerFeeBasisPoints = json.getInt("opensea_seller_fee_basis_points"),

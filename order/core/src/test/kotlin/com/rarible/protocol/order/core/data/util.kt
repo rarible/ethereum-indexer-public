@@ -425,9 +425,13 @@ fun randomErc20() = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of
 
 fun randomEth() = Asset(EthAssetType, EthUInt256.of(randomInt()))
 
-fun randomErc1155(value: EthUInt256) = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256(randomBigInt())), value)
+fun randomErc721Type() = Erc721AssetType(AddressFactory.create(), EthUInt256(randomBigInt()))
 
-fun randomErc721() = Asset(Erc721AssetType(AddressFactory.create(), EthUInt256(randomBigInt())), EthUInt256.ONE)
+fun randomErc1155Type() = Erc1155AssetType(AddressFactory.create(), EthUInt256(randomBigInt()))
+
+fun randomErc1155(value: EthUInt256) = Asset(randomErc1155Type(), value)
+
+fun randomErc721() = Asset(randomErc721Type(), EthUInt256.ONE)
 
 fun randomAmmNftAsset(token: Address = randomAddress()) = Asset(AmmNftAssetType(token), EthUInt256.ONE)
 
@@ -633,6 +637,20 @@ fun randomSudoSwapPurchaseValue(): SudoSwapPurchaseValue {
         newSpotPrice = randomBigInt(),
         newDelta = randomBigInt(),
         value = randomBigInt(),
+    )
+}
+
+fun randomApproveHistory(
+    collection: Address = randomAddress(),
+    owner: Address = randomAddress(),
+    operator: Address = randomAddress(),
+    approved: Boolean = true
+): ApprovalHistory {
+    return ApprovalHistory(
+        collection = collection,
+        owner = owner,
+        operator = operator,
+        approved = approved,
     )
 }
 

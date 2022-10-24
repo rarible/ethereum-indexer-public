@@ -21,6 +21,7 @@ data class NftListenerProperties(
     var elementsFetchJobSize: Int = 1000,
     val actionExecute: ActionExecuteProperties = ActionExecuteProperties(),
     val itemOwnershipConsistency: ItemOwnershipConsistencyProperties = ItemOwnershipConsistencyProperties(),
+    val ownershipItemConsistency: OwnershipItemConsistencyProperties = OwnershipItemConsistencyProperties(),
 )
 
 data class ActionExecuteProperties(
@@ -29,6 +30,16 @@ data class ActionExecuteProperties(
 )
 
 data class ItemOwnershipConsistencyProperties(
+    val autofix: Boolean = true,
+    val checkTimeOffset: Duration = Duration.ofSeconds(30),
+    val parallelism: Int = 16,
+    val daemon: DaemonWorkerProperties = DaemonWorkerProperties(
+        pollingPeriod = Duration.ofMinutes(1),
+        errorDelay = Duration.ofMinutes(1),
+    ),
+)
+
+data class OwnershipItemConsistencyProperties(
     val autofix: Boolean = true,
     val checkTimeOffset: Duration = Duration.ofSeconds(30),
     val parallelism: Int = 16,

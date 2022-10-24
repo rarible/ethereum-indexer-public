@@ -32,7 +32,8 @@ internal class OrderUpdateServiceTest {
         protocolCommissionProvider,
         priceUpdateService,
         orderVersionListener,
-        orderListener
+        orderListener,
+        emptyList()
     )
 
     @Test

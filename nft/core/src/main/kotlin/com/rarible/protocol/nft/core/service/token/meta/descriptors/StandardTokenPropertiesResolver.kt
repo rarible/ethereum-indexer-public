@@ -34,7 +34,7 @@ class StandardTokenPropertiesResolver(
         return request(id, url)?.copy(tokenUri = uri)
     }
 
-    override val order get() = Int.MIN_VALUE
+    override val order get() = Int.MAX_VALUE
 
     private suspend fun request(id: Address, url: String): TokenProperties? {
         val rawProperties = externalHttpClient.getBody(url = url, id = id.prefixed()) ?: return null
@@ -52,7 +52,7 @@ class StandardTokenPropertiesResolver(
 
     private fun map(json: ObjectNode): TokenProperties {
         return TokenProperties(
-            name = json.getText("name") ?: "Untitled",
+            name = json.getText("name") ?: TokenProperties.EMPTY.name,
             description = json.getText("description"),
             externalUri = json.getText("external_link"),
             sellerFeeBasisPoints = json.getInt("seller_fee_basis_points"),
