@@ -32,9 +32,9 @@ class X2Y2OrderUpdaterTest {
         coEvery { orderStateRepository.getById(order.hash) } returns null
         coEvery { orderStateRepository.save(any()) } answers { it.invocation.args[0] as OrderState }
 
-        val updated = updater.update(order, null)
+        val updated = updater.update(order)
 
-        assertThat(updated.cancelled).isTrue()
+        assertThat(updated.cancelled).isTrue
         assertThat(updated.status).isEqualTo(OrderStatus.CANCELLED)
 
         coVerify(exactly = 1) {
@@ -48,12 +48,12 @@ class X2Y2OrderUpdaterTest {
     fun `non-target orders not affected`() = runBlocking<Unit> {
         // Not x2y2 order, skipped
         val raribleOrder = createOrder().copy(platform = Platform.RARIBLE, makeStock = EthUInt256.ZERO)
-        val updatedRaribleOrder = updater.update(raribleOrder, null)
+        val updatedRaribleOrder = updater.update(raribleOrder)
         assertThat(updatedRaribleOrder).isEqualTo(raribleOrder)
 
         // Active order, skipped
         val activeOrder = createOrder().copy(platform = Platform.X2Y2)
-        val updatedActiveOrder = updater.update(activeOrder, null)
+        val updatedActiveOrder = updater.update(activeOrder)
         assertThat(activeOrder).isEqualTo(updatedActiveOrder)
     }
 

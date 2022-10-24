@@ -19,18 +19,42 @@ import scalether.domain.Address
 @Component
 class ApproveService(
     private val approveRepository: ApprovalHistoryRepository,
-    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
+    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
 ) {
+    private val raribleTransferProxy = transferProxyAddresses.transferProxy
+    private val seaportTransferProxy = transferProxyAddresses.seaportTransferProxy
+    private val x2y2TransferProxy = exchangeContractAddresses.x2y2V1
+    private val cryptoPunksTransferProxy = transferProxyAddresses.cryptoPunksTransferProxy
+    private val looksrareTransferProxyErc721 = transferProxyAddresses.looksrareTransferManagerERC721
+    private val looksrareTransferProxyErc1155 = transferProxyAddresses.looksrareTransferManagerERC1155
+    private val looksrareTransferProxyNonCompliantErc721 = transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+
+    private val platformOperators: Map<Address, Platform> = mapOf(
+        raribleTransferProxy to Platform.RARIBLE,
+        seaportTransferProxy to Platform.OPEN_SEA,
+        x2y2TransferProxy to Platform.X2Y2,
+        cryptoPunksTransferProxy to Platform.CRYPTO_PUNKS,
+        looksrareTransferProxyErc721 to Platform.LOOKSRARE,
+        looksrareTransferProxyErc1155 to Platform.LOOKSRARE,
+        looksrareTransferProxyNonCompliantErc721 to Platform.LOOKSRARE
+    )
+
+    val operators: Set<Address> = platformOperators.keys
+
+    fun getPlatform(operator: Address): Platform? {
+        return platformOperators[operator]
+    }
+
     suspend fun hasNftCollectionApprove(
         maker: Address,
         nftAssetType: NftCollectionAssetType,
         platform: Platform
     ): Boolean {
         val proxy = when (platform) {
-            Platform.OPEN_SEA -> transferProxyAddresses.seaportTransferProxy
-            Platform.X2Y2 -> exchangeContractAddresses.x2y2V1
-            Platform.CRYPTO_PUNKS -> transferProxyAddresses.cryptoPunksTransferProxy
+            Platform.OPEN_SEA -> seaportTransferProxy
+            Platform.X2Y2 -> x2y2TransferProxy
+            Platform.CRYPTO_PUNKS -> cryptoPunksTransferProxy
             Platform.RARIBLE -> return handleRarible(maker, nftAssetType)
             Platform.LOOKSRARE -> return handleLooksrare(maker, nftAssetType)
             Platform.SUDOSWAP -> return true
@@ -46,7 +70,7 @@ class ApproveService(
             is Erc1155AssetType,
             is Erc721AssetType,
             is CollectionAssetType -> {
-                hasApprove(transferProxyAddresses.transferProxy, maker, nftAssetType.token)
+                hasApprove(raribleTransferProxy, maker, nftAssetType.token)
             }
             is Erc1155LazyAssetType,
             is Erc721LazyAssetType -> true
@@ -62,16 +86,16 @@ class ApproveService(
             is Erc721AssetType -> {
                 return coroutineScope {
                     val erc721Approve = async {
-                        hasApprove(transferProxyAddresses.looksrareTransferManagerERC721, maker, nftAssetType.token)
+                        hasApprove(looksrareTransferProxyErc721, maker, nftAssetType.token)
                     }
                     val nonCompliantErc721Approve = async {
-                        hasApprove(transferProxyAddresses.looksrareTransferManagerNonCompliantERC721, maker, nftAssetType.token)
+                        hasApprove(looksrareTransferProxyNonCompliantErc721, maker, nftAssetType.token)
                     }
                     erc721Approve.await() || nonCompliantErc721Approve.await()
                 }
             }
             is Erc1155AssetType -> {
-                hasApprove(transferProxyAddresses.looksrareTransferManagerERC1155, maker, nftAssetType.token)
+                hasApprove(looksrareTransferProxyErc1155, maker, nftAssetType.token)
             }
             is CollectionAssetType,
             is CryptoPunksAssetType,
@@ -89,6 +113,8 @@ class ApproveService(
             collection = collection,
             owner = maker,
             operator = proxy
-        )?.let { (it.data as ApprovalHistory).approved } ?: true
+        )?.let {
+            (it.data as ApprovalHistory).approved
+        } ?: true
     }
 }

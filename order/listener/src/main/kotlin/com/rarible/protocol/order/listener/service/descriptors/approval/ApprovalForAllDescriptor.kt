@@ -5,9 +5,9 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.ApprovalForAllByTopicsEvent
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
+import com.rarible.protocol.order.core.service.approve.ApproveService
 import io.daonomic.rpc.domain.Word
 import org.reactivestreams.Publisher
 import org.springframework.stereotype.Service
@@ -20,19 +20,8 @@ import scalether.domain.response.Transaction
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class ApprovalForAllDescriptor(
-    properties: OrderIndexerProperties
+    private val approveService: ApproveService
 ) : LogEventDescriptor<ApprovalHistory> {
-
-    private val trackedOperators = listOfNotNull(
-        properties.transferProxyAddresses.transferProxy,
-        properties.transferProxyAddresses.erc1155LazyTransferProxy,
-        properties.transferProxyAddresses.erc721LazyTransferProxy,
-        properties.transferProxyAddresses.seaportTransferProxy,
-        properties.transferProxyAddresses.looksrareTransferManagerERC721,
-        properties.transferProxyAddresses.looksrareTransferManagerERC1155,
-        properties.transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
-        properties.exchangeContractAddresses.x2y2V1 //X2Y2 use exchange contract as transfer proxy
-    )
 
     override val collection: String = ApprovalHistoryRepository.COLLECTION
 
@@ -48,7 +37,7 @@ class ApprovalForAllDescriptor(
         totalLogs: Int
     ): Publisher<ApprovalHistory> {
         val eventData = convert(log)
-        return if (eventData.operator in trackedOperators) {
+        return if (eventData.operator in approveService.operators) {
             eventData.toMono()
         } else Mono.empty()
     }

@@ -69,6 +69,12 @@ class OrderUpdateService(
         }
     }
 
+    suspend fun updateApproval(order: Order, approved: Boolean) {
+        val updated = order.withApproved(approved)
+        val result = customUpdaters.fold(updated) { update, updater -> updater.update(update) }
+        update(result.hash)
+    }
+
     suspend fun updateMakeStock(
         hash: Word,
         makeBalanceState: MakeBalanceState? = null
@@ -111,7 +117,7 @@ class OrderUpdateService(
         // We need to allow updates even if only lastUpdatedAt has been changed
         // otherwise we won't be able to update some of existing orders by background reduce job
         if (order.makeStock != updated.makeStock || order.lastUpdateAt != updated.lastUpdateAt) {
-            val savedOrder = updateOrder(updated, makeBalanceState)
+            val savedOrder = updateOrder(updated)
             logger.info(
                 "Make stock of order updated ${savedOrder.hash}: makeStock=${savedOrder.makeStock}," +
                     " old makeStock=${order.makeStock}, makeBalance=$makeBalance," +
@@ -128,8 +134,8 @@ class OrderUpdateService(
         }
     }
 
-    private suspend fun updateOrder(updated: Order, makeBalanceState: MakeBalanceState?): Order {
-        val result = customUpdaters.fold(updated) { order, updater -> updater.update(order, makeBalanceState) }
+    private suspend fun updateOrder(updated: Order): Order {
+        val result = customUpdaters.fold(updated) { order, updater -> updater.update(order) }
         val savedOrder = orderRepository.save(result)
         orderListener.onOrder(savedOrder)
         return savedOrder

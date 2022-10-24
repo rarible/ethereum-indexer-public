@@ -62,7 +62,7 @@ interface OrderRepository {
 
     fun findAllLiveBidsHashesLastUpdatedBefore(before: Instant): Flow<Word>
 
-    fun findActiveSaleOrdersHashesByMakerAndToken(maker: Address, token: Address): Flow<Word>
+    fun findActiveSaleOrdersHashesByMakerAndToken(maker: Address, token: Address, platform: Platform): Flow<Order>
 
     fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<Long>): Flow<Order>
 
