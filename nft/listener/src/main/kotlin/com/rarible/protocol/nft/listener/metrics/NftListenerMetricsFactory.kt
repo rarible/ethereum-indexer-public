@@ -2,6 +2,8 @@ package com.rarible.protocol.nft.listener.metrics
 
 import com.rarible.core.telemetry.metrics.CountingMetric
 import com.rarible.core.telemetry.metrics.LongGaugeMetric
+import com.rarible.core.telemetry.metrics.Metric
+import com.rarible.core.telemetry.metrics.Metric.Companion.tag
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.ethereum.domain.Blockchain
@@ -16,17 +18,32 @@ class NftListenerMetricsFactory(
 ) {
 
     fun itemOwnershipConsistencyJobCheckedCounter(): RegisteredCounter {
-        return ItemOwnershipConsistencyJobCheckedMetric(properties.metricRootPath, properties.blockchain)
+        return countingMetric("item.ownership.consistency.job.checked")
             .bind(meterRegistry)
     }
 
     fun itemOwnershipConsistencyJobFixedCounter(): RegisteredCounter {
-        return ItemOwnershipConsistencyJobFixedMetric(properties.metricRootPath, properties.blockchain)
+        return countingMetric("item.ownership.consistency.job.fixed")
             .bind(meterRegistry)
     }
 
     fun itemOwnershipConsistencyJobUnfixedCounter(): RegisteredCounter {
-        return ItemOwnershipConsistencyJobUnfixedMetric(properties.metricRootPath, properties.blockchain)
+        return countingMetric("item.ownership.consistency.job.unfixed")
+            .bind(meterRegistry)
+    }
+
+    fun ownershipItemConsistencyJobCheckedCounter(): RegisteredCounter {
+        return countingMetric("ownership.item.consistency.job.checked")
+            .bind(meterRegistry)
+    }
+
+    fun ownershipItemConsistencyJobFixedCounter(): RegisteredCounter {
+        return countingMetric("ownership.item.consistency.job.fixed")
+            .bind(meterRegistry)
+    }
+
+    fun ownershipItemConsistencyJobUnfixedCounter(): RegisteredCounter {
+        return countingMetric("ownership.item.consistency.job.unfixed")
             .bind(meterRegistry)
     }
 
@@ -37,15 +54,18 @@ class NftListenerMetricsFactory(
         ){}.bind(meterRegistry)
     }
 
-    private class ItemOwnershipConsistencyJobCheckedMetric(root: String, blockchain: Blockchain) : CountingMetric(
-        "$root.item.ownership.consistency.job.checked", tag("blockchain", blockchain.value)
-    )
+    fun ownershipItemConsistencyJobDelayGauge(): RegisteredGauge<Long> {
+        return object : LongGaugeMetric(
+            name = "${properties.metricRootPath}.ownership.item.consistency.job.delay",
+            tag("blockchain", properties.blockchain)
+        ){}.bind(meterRegistry)
+    }
 
-    private class ItemOwnershipConsistencyJobFixedMetric(root: String, blockchain: Blockchain) : CountingMetric(
-        "$root.item.ownership.consistency.job.fixed", tag("blockchain", blockchain.value)
-    )
-
-    private class ItemOwnershipConsistencyJobUnfixedMetric(root: String, blockchain: Blockchain) : CountingMetric(
-        "$root.item.ownership.consistency.job.unfixed", tag("blockchain", blockchain.value)
-    )
+    private fun countingMetric(suffix: String): CountingMetric {
+        val root = properties.metricRootPath
+        val blockchain = properties.blockchain
+        return object : CountingMetric(
+            "$root.$suffix", tag("blockchain", blockchain.value)
+        ) {}
+    }
 }

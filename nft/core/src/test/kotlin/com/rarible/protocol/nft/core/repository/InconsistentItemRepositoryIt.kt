@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.repository
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.data.createRandomInconsistentItem
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.InconsistentItem
@@ -23,7 +24,7 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
     @Test
     fun `should save and return if was inserted`() = runBlocking<Unit> {
         // given
-        val inconsistentItem = randomInconsistentItem()
+        val inconsistentItem = createRandomInconsistentItem()
 
         // when
         val inserted1 = inconsistentItemRepository.save(inconsistentItem)
@@ -37,7 +38,7 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
     @Test
     fun `should save and get by id`() = runBlocking<Unit> {
         // given
-        val inconsistentItem = randomInconsistentItem()
+        val inconsistentItem = createRandomInconsistentItem()
         inconsistentItemRepository.save(inconsistentItem)
 
         // when
@@ -50,8 +51,8 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
     @Test
     fun `should find by ids`() = runBlocking<Unit> {
         // given
-        val item1 = randomInconsistentItem()
-        val item2 = randomInconsistentItem()
+        val item1 = createRandomInconsistentItem()
+        val item2 = createRandomInconsistentItem()
         inconsistentItemRepository.save(item1)
         inconsistentItemRepository.save(item2)
 
@@ -61,17 +62,4 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
         // then
         assertThat(actual).containsExactlyInAnyOrder(item1, item2)
     }
-
-    private fun randomInconsistentItem() = InconsistentItem(
-        token = randomAddress(),
-        tokenId = EthUInt256.TEN,
-        status = InconsistentItemStatus.UNFIXED,
-        fixVersionApplied = 1,
-        lastUpdatedAt = nowMillis(),
-        type = ItemProblemType.SUPPLY_MISMATCH,
-        supply = EthUInt256.TEN,
-        ownerships = EthUInt256.TEN,
-        supplyValue = BigInteger.TEN,
-        ownershipsValue = BigInteger.TEN,
-    )
 }

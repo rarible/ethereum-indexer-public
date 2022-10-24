@@ -15,9 +15,12 @@ import com.rarible.protocol.nft.core.model.ActionState
 import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.BurnItemActionEvent
 import com.rarible.protocol.nft.core.model.EventData
+import com.rarible.protocol.nft.core.model.InconsistentItem
+import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemProblemType
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
@@ -416,3 +419,16 @@ fun randomTokenProperties(): TokenProperties {
         )
     )
 }
+
+fun createRandomInconsistentItem() = InconsistentItem(
+    token = randomAddress(),
+    tokenId = EthUInt256.TEN,
+    status = InconsistentItemStatus.UNFIXED,
+    fixVersionApplied = 1,
+    lastUpdatedAt = nowMillis(),
+    type = ItemProblemType.SUPPLY_MISMATCH,
+    supply = EthUInt256.TEN,
+    ownerships = EthUInt256.TEN,
+    supplyValue = BigInteger.TEN,
+    ownershipsValue = BigInteger.TEN,
+)

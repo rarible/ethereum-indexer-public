@@ -74,8 +74,6 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
     @RelaxedMockK
     private lateinit var delayGauge: RegisteredGauge<Long>
 
-    private val now = Instant.ofEpochMilli(2_000_000)
-
     @Autowired
     private lateinit var itemOwnershipConsistencyService: ItemOwnershipConsistencyService
 
@@ -85,9 +83,6 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         every { metricsFactory.itemOwnershipConsistencyJobFixedCounter() } returns fixedCounter
         every { metricsFactory.itemOwnershipConsistencyJobUnfixedCounter() } returns unfixedCounter
         every { metricsFactory.itemOwnershipConsistencyJobDelayGauge() } returns delayGauge
-
-//        mockkStatic("com.rarible.core.common.DateUtilKt")
-//        every { nowMillis() } returns now
     }
 
     @Test
