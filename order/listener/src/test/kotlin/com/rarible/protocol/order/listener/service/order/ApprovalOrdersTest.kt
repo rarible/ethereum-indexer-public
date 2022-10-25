@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -64,7 +65,8 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
                 takeUsd = order.takeUsd,
                 onChainOrderKey = null,
                 start = order.start,
-                signature = order.signature
+                signature = order.signature,
+                platform = Platform.RARIBLE
             )
 
             val saved = orderUpdateService.save(version)

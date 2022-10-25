@@ -31,10 +31,9 @@ import scalether.domain.Address
 import java.util.stream.Stream
 
 internal class ApproveServiceTest {
+    private val exchangeContractAddresses = randomContractAddresses()
+    private val transferProxyAddresses = randomProxyAddresses()
     private val approveRepository = mockk<ApprovalHistoryRepository>()
-    private val exchangeContractAddresses = mockk<OrderIndexerProperties.ExchangeContractAddresses>()
-    private val transferProxyAddresses = mockk<OrderIndexerProperties.TransferProxyAddresses>()
-
     private val approveService = ApproveService(approveRepository, exchangeContractAddresses, transferProxyAddresses)
 
     private companion object {
@@ -56,15 +55,11 @@ internal class ApproveServiceTest {
     @MethodSource("rarible")
     fun `should approve for rarible platform`(nftAssetType: NftCollectionAssetType) = runBlocking<Unit> {
         val maker = randomAddress()
-        val proxy = randomAddress()
+        val proxy = transferProxyAddresses.transferProxy
         val expectedApproval = randomBoolean()
-
-        mockGetProxyByPlatform(Platform.RARIBLE, proxy = proxy)
         mockGetLogEvent(nftAssetType.token, maker, proxy, expectedApproval)
         val result = approveService.hasNftCollectionApprove(maker, nftAssetType, Platform.RARIBLE)
         assertThat(result).isEqualTo(expectedApproval)
-
-        verify { transferProxyAddresses.transferProxy }
         coVerify { approveRepository.lastApprovalLogEvent(nftAssetType.token, maker, proxy) }
     }
 
@@ -73,46 +68,36 @@ internal class ApproveServiceTest {
     fun `should approve lazy for rarible platform`(nftAssetType: NftCollectionAssetType) = runBlocking<Unit> {
         val result = approveService.hasNftCollectionApprove(randomAddress(), nftAssetType, Platform.RARIBLE)
         assertThat(result).isTrue
-
-        verify(exactly = 0) { transferProxyAddresses.transferProxy }
         coVerify(exactly = 0) { approveRepository.lastApprovalLogEvent(any(), any(), any()) }
     }
 
     @Test
     fun `should approve for x2y2 platforms`() = runBlocking<Unit> {
-        testApproval(Platform.X2Y2)
-        verify { exchangeContractAddresses.x2y2V1 }
+        testApproval(Platform.X2Y2, exchangeContractAddresses.x2y2V1)
     }
 
     @Test
     fun `should approve for seaport platforms`() = runBlocking<Unit> {
-        testApproval(Platform.OPEN_SEA)
-        verify { transferProxyAddresses.seaportTransferProxy }
+        testApproval(Platform.OPEN_SEA, transferProxyAddresses.seaportTransferProxy)
     }
 
     @Test
     fun `should approve for crypto punks platforms`() = runBlocking<Unit> {
-        testApproval(Platform.CRYPTO_PUNKS)
-        verify { transferProxyAddresses.cryptoPunksTransferProxy }
+        testApproval(Platform.CRYPTO_PUNKS, transferProxyAddresses.cryptoPunksTransferProxy)
     }
 
     @Test
     fun `should approve for looksrare erc721`() = runBlocking<Unit> {
         val maker = randomAddress()
-        val proxy1: Address = randomAddress()
-        val proxy2: Address = randomAddress()
+        val proxy1: Address = transferProxyAddresses.looksrareTransferManagerERC721
+        val proxy2: Address = transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
         val asset: NftCollectionAssetType = randomErc721Type()
-
-        every { transferProxyAddresses.looksrareTransferManagerERC721 } returns proxy1
-        every { transferProxyAddresses.looksrareTransferManagerNonCompliantERC721 } returns proxy2
 
         mockGetLogEvent(asset.token, maker, proxy1, true)
         mockGetLogEvent(asset.token, maker, proxy2, false)
         val result = approveService.hasNftCollectionApprove(maker, asset, Platform.LOOKSRARE)
         assertThat(result).isEqualTo(true)
 
-        verify { transferProxyAddresses.looksrareTransferManagerERC721 }
-        verify { transferProxyAddresses.looksrareTransferManagerNonCompliantERC721 }
         coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxy1) }
         coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxy2) }
     }
@@ -120,43 +105,42 @@ internal class ApproveServiceTest {
     @Test
     fun `should approve for looksrare erc1155`() = runBlocking<Unit> {
         val maker = randomAddress()
-        val proxy: Address = randomAddress()
+        val proxy: Address = transferProxyAddresses.looksrareTransferManagerERC1155
         val asset: NftCollectionAssetType = randomErc1155Type()
-
-        every { transferProxyAddresses.looksrareTransferManagerERC1155 } returns proxy
 
         mockGetLogEvent(asset.token, maker, proxy, true)
         val result = approveService.hasNftCollectionApprove(maker, asset, Platform.LOOKSRARE)
         assertThat(result).isEqualTo(true)
-
-        verify { transferProxyAddresses.looksrareTransferManagerERC1155 }
         coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxy) }
     }
 
-    private suspend fun testApproval(platform: Platform) {
+    private suspend fun testApproval(platform: Platform, proxy: Address) {
         val maker = randomAddress()
         val expectedApproval = randomBoolean()
-        val proxy: Address = randomAddress()
         val asset: NftCollectionAssetType = Erc721AssetType(randomAddress(), EthUInt256.of(randomInt()))
-        mockGetProxyByPlatform(platform, proxy = proxy)
         mockGetLogEvent(asset.token, maker, proxy, expectedApproval)
         val result = approveService.hasNftCollectionApprove(maker, asset, platform)
         assertThat(result).isEqualTo(expectedApproval)
         coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxy) }
     }
 
-    private fun mockGetProxyByPlatform(
+    private fun mockProxyByPlatform(
         platform: Platform,
-        proxy: Address = randomAddress(),
+        commonProxy: Address = randomAddress(),
+        lrErc721Proxy: Address = randomAddress(),
+        lrErc115Proxy: Address = randomAddress(),
+        lrErc721NoneProxy: Address = randomAddress(),
     ) {
-        when (platform) {
-            Platform.RARIBLE -> every { transferProxyAddresses.transferProxy } returns proxy
-            Platform.OPEN_SEA -> every { transferProxyAddresses.seaportTransferProxy } returns proxy
-            Platform.CRYPTO_PUNKS -> every { transferProxyAddresses.cryptoPunksTransferProxy } returns proxy
-            Platform.X2Y2 -> every { exchangeContractAddresses.x2y2V1 } returns proxy
-            Platform.SUDOSWAP -> { }
-            Platform.LOOKSRARE -> { }
+        fun proxy(mockPlatform: Platform, proxy: Address): Address {
+            return if (mockPlatform == platform) proxy else randomAddress()
         }
+        every { transferProxyAddresses.transferProxy } returns proxy(Platform.RARIBLE, commonProxy)
+        every { transferProxyAddresses.seaportTransferProxy } returns proxy(Platform.OPEN_SEA, commonProxy)
+        every { transferProxyAddresses.cryptoPunksTransferProxy } returns proxy(Platform.CRYPTO_PUNKS, commonProxy)
+        every { exchangeContractAddresses.x2y2V1 } returns proxy(Platform.X2Y2, commonProxy)
+        every { transferProxyAddresses.looksrareTransferManagerERC721 } returns proxy(Platform.LOOKSRARE, lrErc721Proxy)
+        every { transferProxyAddresses.looksrareTransferManagerERC1155 } returns proxy(Platform.LOOKSRARE, lrErc115Proxy)
+        every { transferProxyAddresses.looksrareTransferManagerNonCompliantERC721 } returns proxy(Platform.LOOKSRARE, lrErc721NoneProxy)
     }
 
     private fun mockGetLogEvent(collection: Address, maker: Address, proxy: Address, expectedApproval: Boolean) {
@@ -164,4 +148,28 @@ internal class ApproveServiceTest {
     }
 
     private fun logEvent(approved: Boolean) = createLogEvent(randomApproveHistory(approved = approved))
+
+    private fun randomContractAddresses() = OrderIndexerProperties.ExchangeContractAddresses(
+        v1 = randomAddress(),
+        v1Old = randomAddress(),
+        v2 = randomAddress(),
+        openSeaV1 = randomAddress(),
+        openSeaV2 = randomAddress(),
+        seaportV1 = randomAddress(),
+        cryptoPunks = randomAddress(),
+        zeroEx = randomAddress(),
+        looksrareV1 = randomAddress(),
+        x2y2V1 = randomAddress(),
+    )
+    private fun randomProxyAddresses() =OrderIndexerProperties.TransferProxyAddresses(
+        transferProxy = randomAddress(),
+        erc20TransferProxy = randomAddress(),
+        erc721LazyTransferProxy = randomAddress(),
+        erc1155LazyTransferProxy = randomAddress(),
+        cryptoPunksTransferProxy = randomAddress(),
+        seaportTransferProxy = randomAddress(),
+        looksrareTransferManagerERC721 = randomAddress(),
+        looksrareTransferManagerERC1155 = randomAddress(),
+        looksrareTransferManagerNonCompliantERC721 = randomAddress()
+    )
 }
