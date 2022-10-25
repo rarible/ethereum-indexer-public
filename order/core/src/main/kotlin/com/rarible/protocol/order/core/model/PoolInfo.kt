@@ -10,4 +10,11 @@ data class PoolInfo(
     val delta: BigInteger,
     val fee: BigInteger,
     val protocolFee: BigInteger,
-)
+    val token: Address
+) {
+    val currencyAssetType
+        get() = when (token) {
+            Address.ZERO() -> EthAssetType
+            else -> Erc20AssetType(token)
+        }
+}

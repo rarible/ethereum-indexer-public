@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.model
 import com.rarible.ethereum.domain.EthUInt256
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
 
@@ -51,6 +52,7 @@ data class PoolTargetNftOut(
     override val tokenIds: List<EthUInt256>,
     override val date: Instant,
     override val source: HistorySource,
+    val priceUsd: BigDecimal? = null,
     val recipient: Address,
     val outputValue: EthUInt256 = EthUInt256.ZERO,
 ) : PoolNftOut(PoolHistoryType.POOL_NFT_OUT)
@@ -69,6 +71,7 @@ data class PoolTargetNftIn(
     override val collection: Address,
     override val date: Instant,
     override val source: HistorySource,
+    val priceUsd: BigDecimal? = null,
     val tokenRecipient: Address,
     val inputValue: EthUInt256 = EthUInt256.ZERO,
 ) : PoolNftIn(PoolHistoryType.POOL_NFT_IN)

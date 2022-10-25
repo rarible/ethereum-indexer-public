@@ -9,6 +9,7 @@ import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SwapNFTInPairEve
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
@@ -31,6 +32,7 @@ class SudoSwapInNftPairDescriptor(
     private val sudoSwapInNftEventCounter: RegisteredCounter,
     private val sudoSwapPoolInfoProvider: PoolInfoProvider,
     private val sudoSwapCurve: PoolCurve,
+    private val priceUpdateService: PriceUpdateService
 ): LogEventDescriptor<PoolTargetNftIn> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -59,14 +61,17 @@ class SudoSwapInNftPairDescriptor(
             protocolFeeMultiplier = poolInfo.protocolFee,
         )
         return details.tokenIds.mapIndexed { i, tokenId ->
+            val amount = EthUInt256.of(outputValue[i].value)
+
             PoolTargetNftIn(
                 hash = sudoSwapEventConverter.getPoolHash(log.address()),
                 collection = poolInfo.collection,
                 tokenIds = listOf(EthUInt256.of(tokenId)),
                 tokenRecipient = details.tokenRecipient,
-                inputValue = EthUInt256.of(outputValue[i].value),
+                inputValue = amount,
                 date = date,
-                source = HistorySource.SUDOSWAP
+                source = HistorySource.SUDOSWAP,
+                priceUsd = priceUpdateService.getAssetUsdValue(poolInfo.currencyAssetType, amount.value, date)
             )
         }.also { sudoSwapInNftEventCounter.increment() }
     }

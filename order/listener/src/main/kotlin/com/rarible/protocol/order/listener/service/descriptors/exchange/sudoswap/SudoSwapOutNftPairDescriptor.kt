@@ -11,23 +11,24 @@ import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapTargetOutNftDetail
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
-import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
-import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
+import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
+import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.Instant
 import org.springframework.stereotype.Service
-import reactor.kotlin.core.publisher.toFlux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -37,6 +38,7 @@ class SudoSwapOutNftPairDescriptor(
     private val sudoSwapOutNftEventCounter: RegisteredCounter,
     private val sudoSwapPoolInfoProvider: PoolInfoProvider,
     private val poolCurve: PoolCurve,
+    private val priceUpdateService: PriceUpdateService
 ): LogEventDescriptor<PoolTargetNftOut> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -81,14 +83,17 @@ class SudoSwapOutNftPairDescriptor(
             protocolFeeMultiplier = poolInfo.protocolFee,
         )
         return tokenIds.mapIndexed { i, tokenId ->
+            val amount = EthUInt256.of(outputValue[i].value)
+
             PoolTargetNftOut(
                 hash = hash,
                 collection = poolInfo.collection,
                 tokenIds = listOf(EthUInt256.of(tokenId)),
                 recipient = details.nftRecipient,
-                outputValue = EthUInt256.of(outputValue[i].value),
+                outputValue = amount,
                 date = date,
-                source = HistorySource.SUDOSWAP
+                source = HistorySource.SUDOSWAP,
+                priceUsd = priceUpdateService.getAssetUsdValue(poolInfo.currencyAssetType, amount.value, date)
             )
         }.also { sudoSwapOutNftEventCounter.increment() }
     }
