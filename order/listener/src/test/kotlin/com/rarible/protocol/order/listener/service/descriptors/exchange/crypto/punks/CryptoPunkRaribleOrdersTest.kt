@@ -213,7 +213,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertTrue(this is OrderActivityListDto)
             listActivity as OrderActivityListDto
             assertEquals(sellOrder.hash, listActivity.hash)
-            assertEquals(OrderActivityDto.Source.RARIBLE, listActivity.source)
+            assertEquals(OrderActivityDto.Source.CRYPTO_PUNKS, listActivity.source)
         }
 
         checkActivityWasPublished {
