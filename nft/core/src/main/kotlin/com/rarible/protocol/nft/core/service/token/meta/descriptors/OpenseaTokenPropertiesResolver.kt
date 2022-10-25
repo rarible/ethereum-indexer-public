@@ -50,7 +50,7 @@ class OpenseaTokenPropertiesResolver(
             description = json.getText("description"),
             externalUri = json.getText("external_link"),
             sellerFeeBasisPoints = json.getInt("opensea_seller_fee_basis_points"),
-            feeRecipient = json.getText("payout_address")?.let { Address.apply(it) },
+            feeRecipient = json.getText("payout_address")?.let { if (it.isNotBlank()) Address.apply(it) else null },
             content = ContentBuilder.getTokenMetaContent(
                 imageOriginal = json.getText("image_url")
             )
