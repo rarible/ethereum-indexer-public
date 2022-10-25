@@ -10,7 +10,7 @@ data class HeadTransaction(
     val hash: Word,
     val input: Binary,
     val from: Address,
-    val to: Address,
+    val to: Address?,
     val value: BigInteger
 ) {
     companion object {
