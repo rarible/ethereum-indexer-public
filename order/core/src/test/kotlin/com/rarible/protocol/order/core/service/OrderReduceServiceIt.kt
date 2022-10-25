@@ -533,7 +533,9 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 delta = BigInteger("3").eth(),
                 fee = BigInteger.ZERO
             )
-        val onChainAmmOrder = randomSellOnChainAmmOrder(poolData).copy(currency = Address.ZERO())
+        val onChainAmmOrder = randomSellOnChainAmmOrder(poolData)
+            .copy(currency = Address.ZERO(), source = HistorySource.SUDOSWAP)
+
         prepareStorage(onChainAmmOrder)
         val result = orderReduceService.updateOrder(onChainAmmOrder.hash)!!
         assertThat(result.hash).isEqualTo(onChainAmmOrder.hash)
@@ -591,16 +593,25 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun `should make sell order inactive if no approval`() = runBlocking<Unit> {
         val order = createOrderVersion().copy(make = randomErc721(), take = randomErc20(), platform = Platform.RARIBLE)
+
+        val approvalTrue = randomApproveHistory(
+            collection = order.make.type.token,
+            owner = order.maker,
+            operator = transferProxyAddresses.transferProxy,
+            approved = true
+        )
+        approvalHistoryRepository.save(createLogEvent(approvalTrue, blockNumber = 1))
+
         val saved = orderUpdateService.save(order)
         assertThat(saved.status).isEqualTo(OrderStatus.ACTIVE)
 
-        val approval = randomApproveHistory(
+        val approvalFalse = randomApproveHistory(
             collection = order.make.type.token,
             owner = order.maker,
             operator = transferProxyAddresses.transferProxy,
             approved = false
         )
-        approvalHistoryRepository.save(createLogEvent(approval))
+        approvalHistoryRepository.save(createLogEvent(approvalFalse, blockNumber = 2))
 
         val updated = orderReduceService.updateOrder(order.hash)
         assertThat(updated?.status).isEqualTo(OrderStatus.INACTIVE)

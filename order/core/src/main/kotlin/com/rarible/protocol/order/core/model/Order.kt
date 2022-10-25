@@ -88,8 +88,6 @@ data class Order(
      * Has been ApproveForAll or Approve event applied for sale/bid token
      */
     val approved: Boolean = true,
-
-    val approveBlock: Long? = null,
 ) {
     init {
         status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data, approved)

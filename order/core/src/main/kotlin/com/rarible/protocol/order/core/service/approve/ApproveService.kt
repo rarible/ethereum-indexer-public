@@ -1,27 +1,29 @@
 package com.rarible.protocol.order.core.service.approve
 
+import com.rarible.contracts.erc721.IERC721
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.ApprovalHistory
-import com.rarible.protocol.order.core.model.CollectionAssetType
-import com.rarible.protocol.order.core.model.CryptoPunksAssetType
-import com.rarible.protocol.order.core.model.Erc1155AssetType
-import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
-import com.rarible.protocol.order.core.model.Erc721AssetType
-import com.rarible.protocol.order.core.model.Erc721LazyAssetType
-import com.rarible.protocol.order.core.model.NftCollectionAssetType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.stereotype.Component
+import scalether.core.MonoEthereum
 import scalether.domain.Address
+import scalether.transaction.ReadOnlyMonoTransactionSender
+import java.lang.IllegalArgumentException
 
 @Component
+@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class ApproveService(
     private val approveRepository: ApprovalHistoryRepository,
+    ethereum: MonoEthereum,
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
 ) {
+    private val sender = ReadOnlyMonoTransactionSender(ethereum, Address.ZERO())
     private val raribleTransferProxy = transferProxyAddresses.transferProxy
     private val seaportTransferProxy = transferProxyAddresses.seaportTransferProxy
     private val x2y2TransferProxy = exchangeContractAddresses.x2y2V1
@@ -30,7 +32,7 @@ class ApproveService(
     private val looksrareTransferProxyErc1155 = transferProxyAddresses.looksrareTransferManagerERC1155
     private val looksrareTransferProxyNonCompliantErc721 = transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
 
-    private val platformOperators: Map<Address, Platform> = mapOf(
+    private val platformByOperatorMap: Map<Address, Platform> = mapOf(
         raribleTransferProxy to Platform.RARIBLE,
         seaportTransferProxy to Platform.OPEN_SEA,
         x2y2TransferProxy to Platform.X2Y2,
@@ -39,84 +41,61 @@ class ApproveService(
         looksrareTransferProxyErc1155 to Platform.LOOKSRARE,
         looksrareTransferProxyNonCompliantErc721 to Platform.LOOKSRARE
     )
-
-    val operators: Set<Address> = platformOperators.keys
+    private val operatorsByPlatformMap = platformByOperatorMap.entries.groupBy(
+        { it.value }, { it.key }
+    )
+    val operators: Set<Address> = platformByOperatorMap.keys
 
     fun getPlatform(operator: Address): Platform? {
-        return platformOperators[operator]
+        return platformByOperatorMap[operator]
     }
 
-    suspend fun hasNftCollectionApprove(
-        maker: Address,
-        nftAssetType: NftCollectionAssetType,
+    suspend fun checkOnChainApprove(
+        owner: Address,
+        collection: Address,
         platform: Platform
     ): Boolean {
-        val proxy = when (platform) {
-            Platform.OPEN_SEA -> seaportTransferProxy
-            Platform.X2Y2 -> x2y2TransferProxy
-            Platform.CRYPTO_PUNKS -> cryptoPunksTransferProxy
-            Platform.RARIBLE -> return handleRarible(maker, nftAssetType)
-            Platform.LOOKSRARE -> return handleLooksrare(maker, nftAssetType)
-            Platform.SUDOSWAP -> return true
-        }
-        return hasApproveOrDefault(proxy, maker, nftAssetType.token)
+        val contract = IERC721(collection, sender)
+        return checkPlatformApprove(platform) {  contract.isApprovedForAll(owner, it).awaitFirst() } ?: error("Can't be null")
     }
 
-    private suspend fun handleRarible(
-        maker: Address,
-        nftAssetType: NftCollectionAssetType,
+    suspend fun checkApprove(
+        owner: Address,
+        collection: Address,
+        platform: Platform,
+        default: Boolean = false,
     ): Boolean {
-        return when (nftAssetType) {
-            is Erc1155AssetType,
-            is Erc721AssetType,
-            is CollectionAssetType -> {
-                hasApproveOrDefault(raribleTransferProxy, maker, nftAssetType.token)
-            }
-            is Erc1155LazyAssetType,
-            is Erc721LazyAssetType -> true
-            is CryptoPunksAssetType -> throw getUnsupportedAssetException(nftAssetType, Platform.RARIBLE)
-        }
+        return checkPlatformApprove(platform) { hasApprove(owner, it, collection)  } ?: default
     }
 
-    private suspend fun handleLooksrare(
-        maker: Address,
-        nftAssetType: NftCollectionAssetType,
-    ): Boolean {
-        return when (nftAssetType) {
-            is Erc721AssetType,
-            is Erc1155AssetType -> {
+    private suspend fun checkPlatformApprove(
+        platform: Platform,
+        check: suspend (Address) -> Boolean?
+    ): Boolean? {
+        return when (platform) {
+            Platform.RARIBLE,
+            Platform.OPEN_SEA,
+            Platform.CRYPTO_PUNKS,
+            Platform.LOOKSRARE,
+            Platform.X2Y2 -> {
+                val operators = operatorsByPlatformMap[platform]
+                    ?: throw IllegalArgumentException("Can't find operators for platform $platform")
                 coroutineScope {
-                    val erc721Approve = async {
-                        hasApproveOrDefault(looksrareTransferProxyErc721, maker, nftAssetType.token)
-                    }
-                    val erc1155Approve = async {
-                        hasApprove(looksrareTransferProxyErc1155, maker, nftAssetType.token)
-                    }
-                    val nonCompliantErc721Approve = async {
-                        hasApprove(looksrareTransferProxyNonCompliantErc721, maker, nftAssetType.token)
-                    }
-                    erc1155Approve.await() ?: nonCompliantErc721Approve.await() ?: erc721Approve.await()
+                    operators
+                        .map { operator -> async { check(operator) }  }
+                        .awaitAll()
+                        .filterNotNull()
+                        .fold(null as? Boolean?) { initial, value -> (initial ?: value) || value }
                 }
             }
-            is CollectionAssetType,
-            is CryptoPunksAssetType,
-            is Erc1155LazyAssetType,
-            is Erc721LazyAssetType -> throw getUnsupportedAssetException(nftAssetType, Platform.LOOKSRARE)
+            Platform.SUDOSWAP -> true
         }
     }
 
-    fun getUnsupportedAssetException(nftAssetType: NftCollectionAssetType, platform: Platform): Throwable {
-        return UnsupportedOperationException("Unsupported assert type $nftAssetType for platform $platform")
-    }
-
-    private suspend fun hasApproveOrDefault(proxy: Address, maker: Address, collection: Address, default: Boolean = true): Boolean {
-        return hasApprove(proxy, maker, collection) ?: default
-    }
-
-    private suspend fun hasApprove(proxy: Address, maker: Address, collection: Address): Boolean? {
+    private suspend fun hasApprove(owner: Address, proxy: Address, collection: Address): Boolean? {
         return approveRepository.lastApprovalLogEvent(
             collection = collection,
-            owner = maker,
+            owner = owner,
             operator = proxy
         )?.let {
             (it.data as ApprovalHistory).approved
