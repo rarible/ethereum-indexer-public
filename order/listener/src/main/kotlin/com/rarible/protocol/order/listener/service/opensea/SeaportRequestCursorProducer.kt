@@ -1,18 +1,19 @@
 package com.rarible.protocol.order.listener.service.opensea
 
-import org.bson.internal.Base64
 import org.springframework.stereotype.Component
+import java.util.*
 import java.util.regex.Pattern
 
 @Component
 object SeaportRequestCursorProducer {
+
     fun produceNextFromCursor(cursor: String, step: Int, amount: Int): List<String> {
-        val decodedCursor = String(Base64.decode(cursor))
+        val decodedCursor = String(Base64.getDecoder().decode(cursor))
         val descMatcher = asc.matcher(decodedCursor)
         if (descMatcher.matches()) {
             val startId = descMatcher.group(ID_GROUP).toLong()
             return (1..amount).map {
-                Base64.encode(
+                Base64.getEncoder().encodeToString(
                     "${CURSOR_ASC_PREFIX}${startId + (it * step.toLong())}".toByteArray()
                 )
             }

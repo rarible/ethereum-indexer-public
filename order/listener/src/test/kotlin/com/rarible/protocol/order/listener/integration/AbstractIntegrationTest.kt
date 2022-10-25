@@ -49,7 +49,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -84,6 +83,7 @@ import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.Consumer
 import javax.annotation.PostConstruct
 
 abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
@@ -373,7 +373,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         Wait.waitAssert {
             assertThat(activities)
                 .hasSizeGreaterThanOrEqualTo(1)
-                .anySatisfy { it.asserter() }
+                .anySatisfy(Consumer { it.asserter() })
         }
     }
 }

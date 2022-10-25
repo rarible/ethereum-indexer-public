@@ -36,6 +36,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Duration
+import java.util.function.Consumer
 import java.util.stream.Stream
 import com.rarible.protocol.order.api.client.AuctionControllerApi as AuctionClient
 
@@ -430,8 +431,8 @@ class AuctionSearchFt : AbstractIntegrationTest() {
             .awaitFirst()
 
         assertThat(auctions).hasSize(2)
-        assertThat(auctions).anySatisfy { assertThat(it.hash).isEqualTo(auction1.hash) }
-        assertThat(auctions).anySatisfy { assertThat(it.hash).isEqualTo(auction2.hash) }
+        assertThat(auctions).anySatisfy(Consumer { assertThat(it.hash).isEqualTo(auction1.hash) })
+        assertThat(auctions).anySatisfy(Consumer { assertThat(it.hash).isEqualTo(auction2.hash) })
     }
 
     @ParameterizedTest

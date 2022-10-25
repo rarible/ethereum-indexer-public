@@ -39,6 +39,7 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.util.Hex
 import java.math.BigInteger
+import java.util.function.Consumer
 
 @IntegrationTest
 class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
@@ -127,7 +128,8 @@ class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
         Wait.waitAssert {
             val ownerships = ownershipRepository.search(
                 Query(
-                    Criteria.where(Ownership::token.name).isEqualTo(token.address()).and(Ownership::deleted.name).isEqualTo(false)
+                    Criteria.where(Ownership::token.name).isEqualTo(token.address()).and(Ownership::deleted.name)
+                        .isEqualTo(false)
                 )
             )
             assertThat(ownerships).hasSize(1)
@@ -161,19 +163,20 @@ class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
             .execute().verifySuccess()
         val mintInstant = receipt.getTimestamp()
         Wait.waitAssert {
-            assertThat(nftItemHistoryRepository.findAllItemsHistory().asFlow().toList()).anySatisfy { (_, logEvent) ->
-                val data = logEvent.data
-                assertThat(data).isEqualTo(
-                    ItemTransfer(
-                        owner = famousAddress,
-                        token = token,
-                        tokenId = tokenId,
-                        date = mintInstant,
-                        from = Address.ZERO(),
-                        value = EthUInt256.ONE
+            assertThat(nftItemHistoryRepository.findAllItemsHistory().asFlow().toList()).anySatisfy(
+                Consumer { (_, logEvent) ->
+                    val data = logEvent.data
+                    assertThat(data).isEqualTo(
+                        ItemTransfer(
+                            owner = famousAddress,
+                            token = token,
+                            tokenId = tokenId,
+                            date = mintInstant,
+                            from = Address.ZERO(),
+                            value = EthUInt256.ONE
+                        )
                     )
-                )
-            }
+                })
         }
 
         Wait.waitAssert {

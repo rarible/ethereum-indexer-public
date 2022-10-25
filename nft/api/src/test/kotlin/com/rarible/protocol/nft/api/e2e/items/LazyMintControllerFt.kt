@@ -50,6 +50,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.util.concurrent.ThreadLocalRandom
+import java.util.function.Consumer
 
 @End2EndTest
 class LazyMintControllerFt : EventAwareBaseTest() {
@@ -103,9 +104,9 @@ class LazyMintControllerFt : EventAwareBaseTest() {
 
         logger.info("Item events: $itemEvents")
 
-        assertThat(itemEvents).anySatisfy { event ->
+        assertThat(itemEvents).anySatisfy(Consumer { event ->
             assertThat(event).isInstanceOf(NftItemUpdateEventDto::class.java)
-        }
+        })
     }
 
     @ParameterizedTest

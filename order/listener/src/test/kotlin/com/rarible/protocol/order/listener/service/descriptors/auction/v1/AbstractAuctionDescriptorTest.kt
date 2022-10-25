@@ -39,7 +39,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -56,6 +55,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoField
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.Consumer
 import javax.annotation.PostConstruct
 
 @FlowPreview
@@ -202,7 +202,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
         Wait.waitAssert {
             Assertions.assertThat(auctionEvents)
                 .hasSizeGreaterThanOrEqualTo(1)
-                .anySatisfy { it.asserter() }
+                .anySatisfy(Consumer { it.asserter() })
         }
     }
 

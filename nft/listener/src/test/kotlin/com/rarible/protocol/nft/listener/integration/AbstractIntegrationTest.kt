@@ -17,16 +17,15 @@ import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.dto.TransferDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
-import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.listener.test.TestEthereumBlockchainClient
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -54,6 +53,7 @@ import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.Consumer
 import javax.annotation.PostConstruct
 
 abstract class AbstractIntegrationTest {
@@ -211,7 +211,7 @@ abstract class AbstractIntegrationTest {
         Wait.waitAssert {
             assertThat(events)
                 .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies {
+                .satisfies(Consumer {
                     val event = it.firstOrNull { event -> event.value.id == logEvent?.id.toString() }
                     val activity = event?.value
                     assertThat(activity?.javaClass).isEqualTo(activityType)
@@ -229,7 +229,7 @@ abstract class AbstractIntegrationTest {
                         }
                         else -> Assertions.fail<String>("Unexpected event type ${activity?.javaClass}")
                     }
-                }
+                })
         }
         job.cancel()
     }

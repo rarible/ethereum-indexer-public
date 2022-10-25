@@ -29,7 +29,6 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -40,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.Consumer
 
 @FlowPreview
 @IntegrationTest
@@ -86,9 +86,15 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
         prepareStorage(
             walletToken,
             Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = createdDate, value = EthUInt256.of(3)),
-            Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = otherActionsDate, value = EthUInt256.of(7)),
-            Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = otherActionsDate, value = EthUInt256.of(4)),
-            Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = finalUpdateDate, value = EthUInt256.of(5))
+            Erc20IncomeTransfer(
+                owner = walletOwner, token = walletToken, date = otherActionsDate, value = EthUInt256.of(7)
+            ),
+            Erc20OutcomeTransfer(
+                owner = walletOwner, token = walletToken, date = otherActionsDate, value = EthUInt256.of(4)
+            ),
+            Erc20OutcomeTransfer(
+                owner = walletOwner, token = walletToken, date = finalUpdateDate, value = EthUInt256.of(5)
+            )
         )
 
         balanceReduceService.onEvents(listOf(randomErc20ReduceEvent(transfer)))
@@ -99,13 +105,10 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
         assertThat(balance.createdAt!!.toEpochMilli()).isEqualTo(createdDate.time)
 
         Wait.waitAssert {
-            assertThat(events)
-                .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies { events ->
-                    val event = events.firstOrNull { it.value.balanceId == balance.id.stringValue }!!
-                    assertThat(event.value.createdAt).isEqualTo(balance.createdAt)
-                    assertThat(event.value.lastUpdatedAt).isEqualTo(balance.lastUpdatedAt)
-                }
+            assertThat(events).hasSizeGreaterThanOrEqualTo(1)
+            val event = events.firstOrNull { it.value.balanceId == balance.id.stringValue }!!
+            assertThat(event.value.createdAt).isEqualTo(balance.createdAt)
+            assertThat(event.value.lastUpdatedAt).isEqualTo(balance.lastUpdatedAt)
         }
         job.cancel()
     }
@@ -156,11 +159,11 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
         Wait.waitAssert {
             assertThat(events)
                 .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies { events ->
+                .satisfies(Consumer { events ->
                     val event = events.firstOrNull { it.value.balanceId == balance.id.stringValue }!!
                     assertThat(event.value.createdAt).isEqualTo(balance.createdAt)
                     assertThat(event.value.lastUpdatedAt).isEqualTo(balance.lastUpdatedAt)
-                }
+                })
         }
         job.cancel()
     }

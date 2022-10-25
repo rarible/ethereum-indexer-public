@@ -5,7 +5,11 @@ import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.MintDto
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemType
+import com.rarible.protocol.nft.core.model.OwnershipId
+import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
@@ -14,8 +18,6 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.transaction.MonoSigningTransactionSender
@@ -55,7 +57,9 @@ class TransferDescriptorTest : AbstractIntegrationTest() {
             assertThat(savedNftItem!!.token).isEqualTo(token.address())
             assertThat(savedNftItem.supply).isEqualTo(EthUInt256.ONE)
 
-            val savedOwnership = ownershipRepository.findById(OwnershipId(itemId.token, itemId.tokenId, userSender.from())).awaitFirstOrNull()
+            val savedOwnership = ownershipRepository.findById(
+                OwnershipId(itemId.token, itemId.tokenId, userSender.from())
+            ).awaitFirstOrNull()
             assertThat(savedOwnership).isNotNull
             assertThat(savedOwnership?.value).isEqualTo(EthUInt256.ONE)
 
@@ -64,9 +68,8 @@ class TransferDescriptorTest : AbstractIntegrationTest() {
 
             assertThat(savedNft!!.id).isEqualTo(token.address())
             assertThat(savedNft.standard).isEqualTo(TokenStandard.ERC721)
-            assertThat(savedNft.features)
-                .contains(TokenFeature.APPROVE_FOR_ALL)
-                .doesNotContain(TokenFeature.MINT_AND_TRANSFER)
+            assertThat(savedNft.features).contains(TokenFeature.APPROVE_FOR_ALL)
+            assertThat(savedNft.features).doesNotContain(TokenFeature.MINT_AND_TRANSFER)
 
             checkActivityWasPublished(savedNftItem.token, savedNftItem.tokenId, TransferEvent.id(), MintDto::class.java)
         }

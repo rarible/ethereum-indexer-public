@@ -31,11 +31,11 @@ import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import com.rarible.protocol.nft.core.service.token.TokenReduceService
@@ -47,7 +47,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -76,11 +75,13 @@ import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.Consumer
 
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractIntegrationTest : BaseCoreTest() {
+
     @Autowired
     protected lateinit var mongo: ReactiveMongoOperations
 
@@ -263,25 +264,24 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         eventType: Class<out NftItemEventDto>
     ) = coroutineScope {
         Wait.waitAssert {
-            assertThat(itemEvents)
-                .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies { events ->
-                    val filteredEvents = events.filter { event ->
-                        when (event) {
-                            is NftItemUpdateEventDto -> {
-                                event.item.contract == token
-                                        && event.item.tokenId == tokenId.value
-                                        && (event.item.pending?.size ?: 0) == pendingSize
-                            }
-                            is NftItemDeleteEventDto -> {
-                                event.item.token == token && event.item.tokenId == tokenId.value
-                            }
-                        }
+            assertThat(itemEvents).hasSizeGreaterThanOrEqualTo(1)
+
+            val filteredEvents = itemEvents.filter { event ->
+                when (event) {
+                    is NftItemUpdateEventDto -> {
+                        event.item.contract == token
+                            && event.item.tokenId == tokenId.value
+                            && (event.item.pending?.size ?: 0) == pendingSize
                     }
-                    assertThat(filteredEvents)
-                        .hasSizeGreaterThanOrEqualTo(1)
-                        .allSatisfy { assertThat(it).isInstanceOf(eventType) }
+                    is NftItemDeleteEventDto -> {
+                        event.item.token == token && event.item.tokenId == tokenId.value
+                    }
                 }
+            }
+
+            assertThat(filteredEvents).hasSizeGreaterThanOrEqualTo(1)
+            filteredEvents.forEach { assertThat(it).isInstanceOf(eventType) }
+
         }
     }
 
@@ -298,8 +298,8 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                     eventType.isInstance(event) && when (event) {
                         is NftOwnershipUpdateEventDto -> {
                             event.ownership.contract == token &&
-                                    event.ownership.tokenId == tokenId.value &&
-                                    event.ownership.owner == owner
+                                event.ownership.tokenId == tokenId.value &&
+                                event.ownership.owner == owner
                         }
                         is NftOwnershipDeleteEventDto -> {
                             event.ownership!!.token == token &&
@@ -315,11 +315,11 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         meta: NftCollectionMetaDto
     ) = coroutineScope {
         Wait.waitAssert {
-            assertThat(collectionEvents).anySatisfy { event ->
+            assertThat(collectionEvents).anySatisfy(Consumer { event ->
                 assertThat(event).isInstanceOfSatisfying(NftCollectionUpdateEventDto::class.java) {
                     assertThat(it.collection.meta).isEqualTo(meta)
                 }
-            }
+            })
         }
     }
 
@@ -332,14 +332,15 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected suspend fun TransactionReceipt.getTimestamp(): Instant =
         Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
 
-
     private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.awaitFirstOrNull()
         require(value != null) { "txHash is null" }
         return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
     }
 
-    protected fun newSender(privateKey0: BigInteger? = null): Triple<Address, MonoSigningTransactionSender, BigInteger> {
+    protected fun newSender(
+        privateKey0: BigInteger? = null
+    ): Triple<Address, MonoSigningTransactionSender, BigInteger> {
         val (privateKey, _, address) = generateNewKeys(privateKey0)
         val sender = MonoSigningTransactionSender(
             ethereum,

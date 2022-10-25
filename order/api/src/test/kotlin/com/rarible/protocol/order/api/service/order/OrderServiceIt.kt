@@ -87,6 +87,7 @@ import reactor.core.publisher.Mono
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.util.function.Consumer
 import java.util.stream.Stream
 import kotlin.random.Random
 import kotlin.streams.asStream
@@ -279,8 +280,8 @@ class OrderServiceIt : AbstractOrderIt() {
 
         // Non-existing Order is omitted
         assertThat(orders).hasSize(2)
-        assertThat(orders).anySatisfy { assertThat(it.hash).isEqualTo(order1.hash) }
-        assertThat(orders).anySatisfy { assertThat(it.hash).isEqualTo(order2.hash) }
+        assertThat(orders).anySatisfy(Consumer { assertThat(it.hash).isEqualTo(order1.hash) })
+        assertThat(orders).anySatisfy(Consumer { assertThat(it.hash).isEqualTo(order2.hash) })
     }
 
     @Test

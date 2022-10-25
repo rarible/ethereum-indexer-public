@@ -16,16 +16,16 @@ import com.rarible.protocol.unlockable.test.LockTestDataFactory
 import io.mockk.coEvery
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.function.Consumer
 
 @MongoTest
 @KafkaTest
@@ -77,22 +77,21 @@ internal class LockServiceIt {
         lockService.getContent(testData.nftItem, lockForm.signature)
 
         Wait.waitAssert {
-            Assertions.assertThat(events)
-                .hasSize(2)
-                .satisfies {
-                    Assertions.assertThat(it[0].value)
-                        .hasFieldOrPropertyWithValue(UnlockableEventDto::itemId.name, itemId)
-                        .hasFieldOrPropertyWithValue(
-                            UnlockableEventDto::type.name,
-                            UnlockableEventDto.Type.LOCK_CREATED
-                        )
-                    Assertions.assertThat(it[1].value)
-                        .hasFieldOrPropertyWithValue(UnlockableEventDto::itemId.name, itemId)
-                        .hasFieldOrPropertyWithValue(
-                            UnlockableEventDto::type.name,
-                            UnlockableEventDto.Type.LOCK_UNLOCKED
-                        )
-                }
+            assertThat(events).hasSize(2)
+            assertThat(events).satisfies(Consumer {
+                assertThat(it[0].value)
+                    .hasFieldOrPropertyWithValue(UnlockableEventDto::itemId.name, itemId)
+                    .hasFieldOrPropertyWithValue(
+                        UnlockableEventDto::type.name,
+                        UnlockableEventDto.Type.LOCK_CREATED
+                    )
+                assertThat(it[1].value)
+                    .hasFieldOrPropertyWithValue(UnlockableEventDto::itemId.name, itemId)
+                    .hasFieldOrPropertyWithValue(
+                        UnlockableEventDto::type.name,
+                        UnlockableEventDto.Type.LOCK_UNLOCKED
+                    )
+            })
         }
         job.cancel()
     }
