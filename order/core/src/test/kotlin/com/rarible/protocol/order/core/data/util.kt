@@ -425,13 +425,13 @@ fun randomErc20() = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of
 
 fun randomEth() = Asset(EthAssetType, EthUInt256.of(randomInt()))
 
-fun randomErc721Type() = Erc721AssetType(AddressFactory.create(), EthUInt256(randomBigInt()))
+fun randomErc721Type(token: Address = randomAddress()) = Erc721AssetType(token, EthUInt256(randomBigInt()))
 
 fun randomErc1155Type() = Erc1155AssetType(AddressFactory.create(), EthUInt256(randomBigInt()))
 
 fun randomErc1155(value: EthUInt256) = Asset(randomErc1155Type(), value)
 
-fun randomErc721() = Asset(randomErc721Type(), EthUInt256.ONE)
+fun randomErc721(token: Address = randomAddress()) = Asset(randomErc721Type(token), EthUInt256.ONE)
 
 fun randomAmmNftAsset(token: Address = randomAddress()) = Asset(AmmNftAssetType(token), EthUInt256.ONE)
 

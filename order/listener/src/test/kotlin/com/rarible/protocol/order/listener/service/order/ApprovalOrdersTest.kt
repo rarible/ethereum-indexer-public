@@ -2,30 +2,22 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.test.wait.Wait
-import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.data.randomErc20
+import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
-import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.listener.data.createOrder
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
-import java.math.BigInteger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.web3j.crypto.Keys
-import org.web3j.utils.Numeric
-import reactor.core.publisher.Mono
 import scalether.domain.Address
-import scalether.transaction.MonoSigningTransactionSender
-import scalether.transaction.MonoSimpleNonceProvider
+import java.time.Duration
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -33,62 +25,81 @@ import scalether.transaction.MonoSimpleNonceProvider
 class ApprovalOrdersTest: AbstractIntegrationTest() {
 
     @Test
-    internal fun `should make order inactive if not approve`() {
+    internal fun `should handle approve for rarible`() {
+        checkPlatform(Platform.RARIBLE, transferProxyAddresses.transferProxy)
+    }
+
+    @Test
+    internal fun `should handle approve for seaport`() {
+        checkPlatform(Platform.OPEN_SEA, transferProxyAddresses.seaportTransferProxy)
+    }
+
+    @Test
+    internal fun `should handle approve for punks`() {
+        checkPlatform(Platform.CRYPTO_PUNKS, transferProxyAddresses.cryptoPunksTransferProxy)
+    }
+
+    @Test
+    internal fun `should handle erc721 approve for looksrare`() {
+        checkPlatform(Platform.LOOKSRARE, transferProxyAddresses.looksrareTransferManagerERC721)
+    }
+
+    @Test
+    internal fun `should handle erc1155 approve for looksrare`() {
+        checkPlatform(Platform.LOOKSRARE, transferProxyAddresses.looksrareTransferManagerERC1155)
+    }
+
+    @Test
+    internal fun `should handle non erc721 approve for looksrare`() {
+        checkPlatform(Platform.LOOKSRARE, transferProxyAddresses.looksrareTransferManagerNonCompliantERC721)
+    }
+
+    @Test
+    internal fun `should make x2y2 order cancel if not approve`() {
+        checkPlatform(Platform.X2Y2, exchangeContractAddresses.x2y2V1, noApprovalStatus = OrderStatus.CANCELLED)
+    }
+
+    private fun checkPlatform(
+        platform: Platform,
+        proxy: Address,
+        noApprovalStatus: OrderStatus = OrderStatus.INACTIVE
+    ) {
         runBlocking {
-            val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
-            val owner = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
-            val userSender = MonoSigningTransactionSender(
-                ethereum,
-                MonoSimpleNonceProvider(ethereum),
-                privateKey,
-                BigInteger.valueOf(8000000)
-            ) { Mono.just(BigInteger.ZERO) }
+            val (owner, userSender, _) = newSender()
+            val token = createToken(userSender)
+            val saved = createOrder(owner, token.address(), platform)
 
-            val token = TestERC721.deployAndWait(userSender, poller, "TEST", "TST").awaitFirst()
-
-            val order = createOrder().copy(maker = owner, make = Asset(Erc721AssetType(token = token.address(), tokenId = EthUInt256.ONE), EthUInt256.ONE))
-            val version = OrderVersion(
-                maker = order.maker,
-                make = order.make,
-                take = order.take,
-                type = order.type,
-                data = order.data,
-                salt = order.salt,
-                end = order.end,
-                makePrice = order.makePrice,
-                takePrice = order.takePrice,
-                taker = order.taker,
-                makePriceUsd = order.makePriceUsd,
-                takePriceUsd = order.takePriceUsd,
-                makeUsd = order.makeUsd,
-                takeUsd = order.takeUsd,
-                onChainOrderKey = null,
-                start = order.start,
-                signature = order.signature
-            )
-
-            val saved = orderUpdateService.save(version)
-
-            Wait.waitAssert {
-                token.setApprovalForAll(transferProxyAddresses.transferProxy, true).execute().verifySuccess()
-                delay(200L)
-
-                val updated = orderRepository.findById(Word.apply(saved.hash))
-                assertThat(updated).isNotNull
-                assertThat(updated!!.approved).isTrue
-                assertThat(updated.status).isEqualTo(OrderStatus.ACTIVE)
+            Wait.waitAssert(Duration.ofSeconds(10)) {
+                setApprovalAndCheckStatus(token, proxy, true, saved.hash, OrderStatus.ACTIVE)
             }
-
-            Wait.waitAssert {
-
-                token.setApprovalForAll(transferProxyAddresses.transferProxy, false).execute().verifySuccess()
-                delay(200L)
-
-                val updated = orderRepository.findById(Word.apply(saved.hash))
-                assertThat(updated).isNotNull
-                assertThat(updated!!.approved).isFalse
-                assertThat(updated.status).isEqualTo(OrderStatus.INACTIVE)
+            Wait.waitAssert(Duration.ofSeconds(10)) {
+                setApprovalAndCheckStatus(token, proxy, false, saved.hash, noApprovalStatus)
             }
         }
+    }
+
+    private suspend fun setApprovalAndCheckStatus(
+        token: TestERC721,
+        proxy: Address,
+        approved: Boolean,
+        hash: Word,
+        expectedStatus: OrderStatus
+    ) {
+        token.setApprovalForAll(proxy, approved).execute().verifySuccess()
+        val updated = orderRepository.findById(Word.apply(hash))
+        assertThat(updated).isNotNull
+        assertThat(updated!!.approved).isEqualTo(approved)
+        assertThat(updated.status).isEqualTo(expectedStatus)
+    }
+
+
+    private suspend fun createOrder(maker: Address, token: Address, platform: Platform): Order {
+        val version = createOrderVersion().copy(
+            maker = maker,
+            make = randomErc721(token),
+            take = randomErc20(),
+            platform = platform
+        )
+        return orderUpdateService.save(version)
     }
 }
