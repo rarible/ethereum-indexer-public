@@ -8,7 +8,6 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.randomApproveHistory
 import com.rarible.protocol.order.core.data.randomErc1155Type
-import com.rarible.protocol.order.core.data.randomErc721Type
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
@@ -19,9 +18,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -88,30 +85,48 @@ internal class ApproveServiceTest {
 
     @Test
     fun `should approve for looksrare erc721`() = runBlocking<Unit> {
-        val maker = randomAddress()
-        val proxy1: Address = transferProxyAddresses.looksrareTransferManagerERC721
-        val proxy2: Address = transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
-        val asset: NftCollectionAssetType = randomErc721Type()
+        `should approve for looksrare`(
+            proxyWithEvent = transferProxyAddresses.looksrareTransferManagerERC721,
+            proxyWithNoEvent1 = transferProxyAddresses.looksrareTransferManagerERC1155,
+            proxyWithNoEvent2 =  transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+        )
+    }
 
-        mockGetLogEvent(asset.token, maker, proxy1, true)
-        mockGetLogEvent(asset.token, maker, proxy2, false)
-        val result = approveService.hasNftCollectionApprove(maker, asset, Platform.LOOKSRARE)
-        assertThat(result).isEqualTo(true)
-
-        coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxy1) }
-        coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxy2) }
+    @Test
+    fun `should approve for looksrare non erc721`() = runBlocking<Unit> {
+        `should approve for looksrare`(
+            proxyWithEvent = transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
+            proxyWithNoEvent1 = transferProxyAddresses.looksrareTransferManagerERC1155,
+            proxyWithNoEvent2 =  transferProxyAddresses.looksrareTransferManagerERC721
+        )
     }
 
     @Test
     fun `should approve for looksrare erc1155`() = runBlocking<Unit> {
-        val maker = randomAddress()
-        val proxy: Address = transferProxyAddresses.looksrareTransferManagerERC1155
-        val asset: NftCollectionAssetType = randomErc1155Type()
+        `should approve for looksrare`(
+            proxyWithEvent = transferProxyAddresses.looksrareTransferManagerERC1155,
+            proxyWithNoEvent1 = transferProxyAddresses.looksrareTransferManagerERC721,
+            proxyWithNoEvent2 =  transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+        )
+    }
 
-        mockGetLogEvent(asset.token, maker, proxy, true)
+    private fun `should approve for looksrare`(
+        proxyWithEvent: Address,
+        proxyWithNoEvent1: Address,
+        proxyWithNoEvent2: Address,
+    ) = runBlocking<Unit> {
+        val maker = randomAddress()
+        val asset: NftCollectionAssetType = randomErc1155Type()
+        val approved = randomBoolean()
+
+        mockGetLogEvent(asset.token, maker, proxyWithEvent, approved)
+        mockGetLogEvent(asset.token, maker, proxyWithNoEvent1, null)
+        mockGetLogEvent(asset.token, maker, proxyWithNoEvent2, null)
         val result = approveService.hasNftCollectionApprove(maker, asset, Platform.LOOKSRARE)
-        assertThat(result).isEqualTo(true)
-        coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxy) }
+        assertThat(result).isEqualTo(approved)
+        coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxyWithEvent) }
+        coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxyWithNoEvent1) }
+        coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxyWithNoEvent2) }
     }
 
     private suspend fun testApproval(platform: Platform, proxy: Address) {
@@ -124,27 +139,8 @@ internal class ApproveServiceTest {
         coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxy) }
     }
 
-    private fun mockProxyByPlatform(
-        platform: Platform,
-        commonProxy: Address = randomAddress(),
-        lrErc721Proxy: Address = randomAddress(),
-        lrErc115Proxy: Address = randomAddress(),
-        lrErc721NoneProxy: Address = randomAddress(),
-    ) {
-        fun proxy(mockPlatform: Platform, proxy: Address): Address {
-            return if (mockPlatform == platform) proxy else randomAddress()
-        }
-        every { transferProxyAddresses.transferProxy } returns proxy(Platform.RARIBLE, commonProxy)
-        every { transferProxyAddresses.seaportTransferProxy } returns proxy(Platform.OPEN_SEA, commonProxy)
-        every { transferProxyAddresses.cryptoPunksTransferProxy } returns proxy(Platform.CRYPTO_PUNKS, commonProxy)
-        every { exchangeContractAddresses.x2y2V1 } returns proxy(Platform.X2Y2, commonProxy)
-        every { transferProxyAddresses.looksrareTransferManagerERC721 } returns proxy(Platform.LOOKSRARE, lrErc721Proxy)
-        every { transferProxyAddresses.looksrareTransferManagerERC1155 } returns proxy(Platform.LOOKSRARE, lrErc115Proxy)
-        every { transferProxyAddresses.looksrareTransferManagerNonCompliantERC721 } returns proxy(Platform.LOOKSRARE, lrErc721NoneProxy)
-    }
-
-    private fun mockGetLogEvent(collection: Address, maker: Address, proxy: Address, expectedApproval: Boolean) {
-        coEvery { approveRepository.lastApprovalLogEvent(collection, maker, proxy) } returns logEvent(expectedApproval)
+    private fun mockGetLogEvent(collection: Address, maker: Address, proxy: Address, expectedApproval: Boolean?) {
+        coEvery { approveRepository.lastApprovalLogEvent(collection, maker, proxy) } returns expectedApproval?.let { logEvent(it) }
     }
 
     private fun logEvent(approved: Boolean) = createLogEvent(randomApproveHistory(approved = approved))

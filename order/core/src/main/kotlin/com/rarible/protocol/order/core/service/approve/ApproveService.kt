@@ -59,7 +59,7 @@ class ApproveService(
             Platform.LOOKSRARE -> return handleLooksrare(maker, nftAssetType)
             Platform.SUDOSWAP -> return true
         }
-        return hasApprove(proxy, maker, nftAssetType.token)
+        return hasApproveOrDefault(proxy, maker, nftAssetType.token)
     }
 
     private suspend fun handleRarible(
@@ -70,7 +70,7 @@ class ApproveService(
             is Erc1155AssetType,
             is Erc721AssetType,
             is CollectionAssetType -> {
-                hasApprove(raribleTransferProxy, maker, nftAssetType.token)
+                hasApproveOrDefault(raribleTransferProxy, maker, nftAssetType.token)
             }
             is Erc1155LazyAssetType,
             is Erc721LazyAssetType -> true
@@ -83,19 +83,20 @@ class ApproveService(
         nftAssetType: NftCollectionAssetType,
     ): Boolean {
         return when (nftAssetType) {
-            is Erc721AssetType -> {
-                return coroutineScope {
+            is Erc721AssetType,
+            is Erc1155AssetType -> {
+                coroutineScope {
                     val erc721Approve = async {
-                        hasApprove(looksrareTransferProxyErc721, maker, nftAssetType.token)
+                        hasApproveOrDefault(looksrareTransferProxyErc721, maker, nftAssetType.token)
+                    }
+                    val erc1155Approve = async {
+                        hasApprove(looksrareTransferProxyErc1155, maker, nftAssetType.token)
                     }
                     val nonCompliantErc721Approve = async {
                         hasApprove(looksrareTransferProxyNonCompliantErc721, maker, nftAssetType.token)
                     }
-                    erc721Approve.await() || nonCompliantErc721Approve.await()
+                    erc1155Approve.await() ?: nonCompliantErc721Approve.await() ?: erc721Approve.await()
                 }
-            }
-            is Erc1155AssetType -> {
-                hasApprove(looksrareTransferProxyErc1155, maker, nftAssetType.token)
             }
             is CollectionAssetType,
             is CryptoPunksAssetType,
@@ -108,13 +109,17 @@ class ApproveService(
         return UnsupportedOperationException("Unsupported assert type $nftAssetType for platform $platform")
     }
 
-    private suspend fun hasApprove(proxy: Address, maker: Address, collection: Address): Boolean {
+    private suspend fun hasApproveOrDefault(proxy: Address, maker: Address, collection: Address, default: Boolean = true): Boolean {
+        return hasApprove(proxy, maker, collection) ?: default
+    }
+
+    private suspend fun hasApprove(proxy: Address, maker: Address, collection: Address): Boolean? {
         return approveRepository.lastApprovalLogEvent(
             collection = collection,
             owner = maker,
             operator = proxy
         )?.let {
             (it.data as ApprovalHistory).approved
-        } ?: true
+        }
     }
 }

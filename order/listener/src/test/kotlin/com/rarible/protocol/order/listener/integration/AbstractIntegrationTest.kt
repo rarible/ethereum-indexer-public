@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.integration
 
+import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.RaribleKafkaConsumer
@@ -287,6 +288,10 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 null
             )
         ).verifySuccess()
+    }
+
+    protected suspend fun createToken(userSender: MonoTransactionSender): TestERC721 {
+        return TestERC721.deployAndWait(userSender, poller, "TEST", "TST").awaitFirst()
     }
 
     protected fun newSender(privateKey0: BigInteger? = null): Triple<Address, MonoSigningTransactionSender, BigInteger> {
