@@ -70,6 +70,7 @@ class ItemOwnershipConsistencyJobHandler(
                 updateState(state, allItems.last())
 
                 val inconsistentItemIds = inconsistentItemRepository.searchByIds(allItems.map { it.id }.toSet())
+                    .filter { it.status != InconsistentItemStatus.FIXED }
                     .map { it.id }
                     .toSet()
 
@@ -99,9 +100,6 @@ class ItemOwnershipConsistencyJobHandler(
     }
 
     private suspend fun checkAndFixItem(item: Item) {
-        if (inconsistentItemRepository.get(item.id) != null) {
-            return
-        }
         var checkResult = itemOwnershipConsistencyService.checkItem(item)
         when (checkResult) {
             is Failure -> {
@@ -167,7 +165,7 @@ class ItemOwnershipConsistencyJobHandler(
         checkResult: Failure,
         triedToFix: Boolean,
     ) {
-        if (inconsistentItemRepository.save(
+        if (inconsistentItemRepository.insert(
                 InconsistentItem(
                     token = item.token,
                     tokenId = item.tokenId,

@@ -11,6 +11,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.core.model.InconsistentItem
+import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
@@ -28,7 +29,6 @@ import io.daonomic.rpc.domain.WordFactory
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
-import io.mockk.mockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
@@ -43,7 +43,8 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.where
 import scalether.domain.Address
 import java.time.Duration
-import java.time.Instant
+
+private const val OWNERS_NUMBER = 4
 
 @IntegrationTest
 class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
@@ -187,7 +188,7 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         createValidLog(item, listOf(ownerships.first())).forEach {
             nftItemHistoryRepository.save(it).awaitFirst()
         }
-        inconsistentItemRepository.save(
+        inconsistentItemRepository.insert(
             InconsistentItem(
                 token = item.token,
                 tokenId = item.tokenId,
@@ -218,6 +219,51 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         )
         assertThat(owners).hasSize(1)
         assertThat(result).isExactlyInstanceOf(ItemOwnershipConsistencyService.CheckResult.Failure::class.java)
+    }
+
+    @Test
+    internal fun `should fix item if it is in inconsistent_items but fixed`() = runBlocking<Unit> {
+        val item = createRandomItem().copy(supply = EthUInt256.ONE, date = nowMillis() - Duration.ofMinutes(10))
+        itemRepository.save(item).awaitFirst()
+        val ownerships = listOf(
+            createRandomOwnership().copy(token = item.token, tokenId = item.tokenId, value = EthUInt256.TEN),
+        )
+        ownerships.forEach { ownershipRepository.save(it).awaitFirst() }
+        createValidLog(item, listOf(ownerships.first())).forEach {
+            nftItemHistoryRepository.save(it).awaitFirst()
+        }
+        inconsistentItemRepository.insert(
+            InconsistentItem(
+                token = item.token,
+                tokenId = item.tokenId,
+                status = InconsistentItemStatus.FIXED,
+                supply = null,
+                lastUpdatedAt = nowMillis(),
+                ownerships = null,
+                ownershipsValue = null,
+                supplyValue = null
+            )
+        )
+
+        handler = ItemOwnershipConsistencyJobHandler(
+            jobStateRepository,
+            itemRepository,
+            NftListenerProperties().copy(elementsFetchJobSize = 2),
+            itemOwnershipConsistencyService,
+            inconsistentItemRepository,
+            metricsFactory,
+        )
+
+        handler.handle()
+        val result = itemOwnershipConsistencyService.checkItem(item)
+
+        val owners = ownershipRepository.search(
+            Query(
+                where(Ownership::token).isEqualTo(item.token).and(Ownership::tokenId).isEqualTo(item.tokenId)
+            )
+        )
+        assertThat(owners).hasSize(1)
+        assertThat(result).isExactlyInstanceOf(ItemOwnershipConsistencyService.CheckResult.Success::class.java)
     }
 
 
