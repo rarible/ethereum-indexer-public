@@ -25,13 +25,13 @@ common:
   auction-contract-addresses:
     v1: "0000000000000000000000000000000000000000"
   transfer-proxy-addresses:
-    transfer-proxy: "0x0000000000000000000000000000000000000000"
+    transfer-proxy: "0x0000000000000000000000000000000000000001"
     erc20-transfer-proxy: "0x0000000000000000000000000000000000000000"
     erc721-lazy-transfer-proxy: "0x0000000000000000000000000000000000000000"
     erc1155-lazy-transfer-proxy: "0x0000000000000000000000000000000000000000"
     crypto-punks-transfer-proxy: "0x0000000000000000000000000000000000000000"
   feature-flags:
-    pending-disabled: false
+    check-on-chain-approve: false
 
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false

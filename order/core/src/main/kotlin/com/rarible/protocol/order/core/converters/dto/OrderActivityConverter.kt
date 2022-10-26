@@ -203,7 +203,7 @@ class OrderActivityConverter(
                     type = OrderActivityMatchDto.Type.ACCEPT_BID,
                     reverted = reverted,
                     lastUpdatedAt = history.updatedAt,
-                    priceUsd = null,
+                    priceUsd = event.priceUsd,
                     marketplaceMarker = null,
                     counterMarketplaceMarker = null
                 )
@@ -234,7 +234,7 @@ class OrderActivityConverter(
                     type = OrderActivityMatchDto.Type.SELL,
                     reverted = reverted,
                     lastUpdatedAt = history.updatedAt,
-                    priceUsd = null,
+                    priceUsd = event.priceUsd,
                     marketplaceMarker = null,
                     counterMarketplaceMarker = null
                 )

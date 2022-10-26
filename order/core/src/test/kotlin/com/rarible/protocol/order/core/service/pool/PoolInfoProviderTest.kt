@@ -19,8 +19,10 @@ import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 import scalether.abi.AddressType
 import scalether.abi.Uint256Type
+import scalether.domain.Address
 import scalether.domain.request.Transaction
 import scalether.transaction.ReadOnlyMonoTransactionSender
+import java.math.BigInteger
 
 internal class PoolInfoProviderTest {
     private val sender = mockk<ReadOnlyMonoTransactionSender>()
@@ -66,6 +68,7 @@ internal class PoolInfoProviderTest {
         val factory = randomAddress()
         val fee = randomBigInt()
         val protocolFee = randomBigInt()
+        val pairVariant = BigInteger.ONE
 
         coEvery { orderRepository.findById(orderHash) } returns null
         coEvery { sudoSwapProtocolFeeProvider.getProtocolFeeMultiplier(factory) } returns protocolFee
@@ -73,86 +76,101 @@ internal class PoolInfoProviderTest {
         coEvery {
             sender.call(
                 Transaction(
-                poolAddress,
-                null,
-                null,
-                null,
-                null,
-                LSSVMPairV1.nftSignature().id(),
-                null
-            )
+                    poolAddress,
+                    null,
+                    null,
+                    null,
+                    null,
+                    LSSVMPairV1.nftSignature().id(),
+                    null
+                )
             )
         } returns Mono.just(AddressType.encode(collection))
 
         coEvery {
             sender.call(
                 Transaction(
-                poolAddress,
-                null,
-                null,
-                null,
-                null,
-                LSSVMPairV1.spotPriceSignature().id(),
-                null
-            )
+                    poolAddress,
+                    null,
+                    null,
+                    null,
+                    null,
+                    LSSVMPairV1.spotPriceSignature().id(),
+                    null
+                )
             )
         } returns Mono.just(Uint256Type.encode(spotPrice))
 
         coEvery {
             sender.call(
                 Transaction(
-                poolAddress,
-                null,
-                null,
-                null,
-                null,
-                LSSVMPairV1.deltaSignature().id(),
-                null
-            )
+                    poolAddress,
+                    null,
+                    null,
+                    null,
+                    null,
+                    LSSVMPairV1.deltaSignature().id(),
+                    null
+                )
             )
         } returns Mono.just(Uint256Type.encode(delta))
 
         coEvery {
             sender.call(
                 Transaction(
-                poolAddress,
-                null,
-                null,
-                null,
-                null,
-                LSSVMPairV1.bondingCurveSignature().id(),
-                null
-            )
+                    poolAddress,
+                    null,
+                    null,
+                    null,
+                    null,
+                    LSSVMPairV1.bondingCurveSignature().id(),
+                    null
+                )
             )
         } returns Mono.just(AddressType.encode(curve))
 
         coEvery {
             sender.call(
                 Transaction(
-                poolAddress,
-                null,
-                null,
-                null,
-                null,
-                LSSVMPairV1.factorySignature().id(),
-                null
-            )
+                    poolAddress,
+                    null,
+                    null,
+                    null,
+                    null,
+                    LSSVMPairV1.factorySignature().id(),
+                    null
+                )
             )
         } returns Mono.just(AddressType.encode(factory))
 
         coEvery {
             sender.call(
                 Transaction(
-                poolAddress,
-                null,
-                null,
-                null,
-                null,
-                LSSVMPairV1.feeSignature().id(),
-                null
+                    poolAddress,
+                    null,
+                    null,
+                    null,
+                    null,
+                    LSSVMPairV1.pairVariantSignature().id(),
+                    null
+                )
             )
+        } returns Mono.just(Uint256Type.encode(pairVariant))
+
+        coEvery {
+            sender.call(
+                Transaction(
+                    poolAddress,
+                    null,
+                    null,
+                    null,
+                    null,
+                    LSSVMPairV1.feeSignature().id(),
+                    null
+                )
             )
         } returns Mono.just(Uint256Type.encode(fee))
+
 
         val result = sudoSwapPoolCollectionProvider.getPollInfo(orderHash, poolAddress)
         Assertions.assertThat(result.collection).isEqualTo(collection)
@@ -161,5 +179,6 @@ internal class PoolInfoProviderTest {
         Assertions.assertThat(result.delta).isEqualTo(delta)
         Assertions.assertThat(result.fee).isEqualTo(fee)
         Assertions.assertThat(result.protocolFee).isEqualTo(protocolFee)
+        Assertions.assertThat(result.token).isEqualTo(Address.ZERO())
     }
 }

@@ -406,6 +406,7 @@ fun createOrderSideMatch(): OrderSideMatch {
 fun createLogEvent(
     data: EventData,
     status: LogEventStatus = LogEventStatus.CONFIRMED,
+    blockNumber: Long = 0
 ): LogEvent {
     return LogEvent(
         data = data,
@@ -413,6 +414,7 @@ fun createLogEvent(
         topic = Word.apply(randomWord()),
         transactionHash = Word.apply(randomWord()),
         status = status,
+        blockNumber = blockNumber,
         index = 0,
         logIndex = 0,
         minorLogIndex = 0
@@ -629,6 +631,7 @@ fun randomPoolInfo(): PoolInfo {
         delta = randomBigInt(),
         fee = randomBigInt(),
         protocolFee = randomBigInt(),
+        token = randomAddress()
     )
 }
 

@@ -1,71 +1,60 @@
 package com.rarible.protocol.order.core.service.approve
 
+import com.rarible.contracts.erc721.IERC721
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBoolean
-import com.rarible.core.test.data.randomInt
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.randomApproveHistory
-import com.rarible.protocol.order.core.data.randomErc1155Type
-import com.rarible.protocol.order.core.model.CollectionAssetType
-import com.rarible.protocol.order.core.model.Erc1155AssetType
-import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
-import com.rarible.protocol.order.core.model.Erc721AssetType
-import com.rarible.protocol.order.core.model.Erc721LazyAssetType
-import com.rarible.protocol.order.core.model.NftCollectionAssetType
+import com.rarible.protocol.order.core.data.randomErc20
+import com.rarible.protocol.order.core.data.randomErc721Type
+import com.rarible.protocol.order.core.metric.ApprovalMetrics
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
+import reactor.core.publisher.Mono
+import scala.Tuple2
+import scalether.abi.BoolType
 import scalether.domain.Address
-import java.util.stream.Stream
+import scalether.domain.request.Transaction
+import scalether.transaction.ReadOnlyMonoTransactionSender
 
 internal class ApproveServiceTest {
     private val exchangeContractAddresses = randomContractAddresses()
     private val transferProxyAddresses = randomProxyAddresses()
     private val approveRepository = mockk<ApprovalHistoryRepository>()
-    private val approveService = ApproveService(approveRepository, exchangeContractAddresses, transferProxyAddresses)
-
-    private companion object {
-        @JvmStatic
-        fun rarible(): Stream<NftCollectionAssetType> = Stream.of(
-            Erc1155AssetType(randomAddress(), EthUInt256.of(randomInt())),
-            Erc721AssetType(randomAddress(), EthUInt256.of(randomInt())),
-            CollectionAssetType(randomAddress()),
-        )
-
-        @JvmStatic
-        fun raribleLazy(): Stream<NftCollectionAssetType> = Stream.of(
-            Erc1155LazyAssetType(randomAddress(), EthUInt256.of(randomInt()), "", EthUInt256.ONE, emptyList(), emptyList(), emptyList()),
-            Erc721LazyAssetType(randomAddress(), EthUInt256.of(randomInt()), "", emptyList(), emptyList(), emptyList()),
-        )
+    private val sender = mockk<ReadOnlyMonoTransactionSender>()
+    private val featureFlags = mockk<OrderIndexerProperties.FeatureFlags>()
+    private val approvalMetrics = mockk<ApprovalMetrics> {
+        every { onApprovalEventMiss(any()) } returns Unit
+        every { onApprovalOnChainCheck(any(), any()) } returns Unit
     }
+    private val approveService = ApproveService(
+        approveRepository,
+        featureFlags,
+        sender,
+        approvalMetrics,
+        exchangeContractAddresses,
+        transferProxyAddresses
+    )
 
-    @ParameterizedTest
-    @MethodSource("rarible")
-    fun `should approve for rarible platform`(nftAssetType: NftCollectionAssetType) = runBlocking<Unit> {
+    @Test
+    fun `should approve for rarible platform`() = runBlocking<Unit> {
         val maker = randomAddress()
+        val collection = randomAddress()
         val proxy = transferProxyAddresses.transferProxy
         val expectedApproval = randomBoolean()
-        mockGetLogEvent(nftAssetType.token, maker, proxy, expectedApproval)
-        val result = approveService.hasNftCollectionApprove(maker, nftAssetType, Platform.RARIBLE)
+        mockGetLogEvent(collection, maker, proxy, expectedApproval)
+        val result = approveService.checkApprove(maker, collection, Platform.RARIBLE)
         assertThat(result).isEqualTo(expectedApproval)
-        coVerify { approveRepository.lastApprovalLogEvent(nftAssetType.token, maker, proxy) }
-    }
-
-    @ParameterizedTest
-    @MethodSource("raribleLazy")
-    fun `should approve lazy for rarible platform`(nftAssetType: NftCollectionAssetType) = runBlocking<Unit> {
-        val result = approveService.hasNftCollectionApprove(randomAddress(), nftAssetType, Platform.RARIBLE)
-        assertThat(result).isTrue
-        coVerify(exactly = 0) { approveRepository.lastApprovalLogEvent(any(), any(), any()) }
+        coVerify { approveRepository.lastApprovalLogEvent(collection, maker, proxy) }
     }
 
     @Test
@@ -110,33 +99,161 @@ internal class ApproveServiceTest {
         )
     }
 
+    @Test
+    fun `should check rarible on chain approve`() = runBlocking<Unit> {
+        testOnChainApproval(Platform.RARIBLE, transferProxyAddresses.transferProxy)
+    }
+
+    @Test
+    fun `should check seaport on chain approve`() = runBlocking<Unit> {
+        testOnChainApproval(Platform.OPEN_SEA, transferProxyAddresses.seaportTransferProxy)
+    }
+
+    @Test
+    fun `should check x2y2 on chain approve`() = runBlocking<Unit> {
+        testOnChainApproval(Platform.X2Y2, exchangeContractAddresses.x2y2V1)
+    }
+
+    @Test
+    fun `should check punks on chain approve`() = runBlocking<Unit> {
+        testOnChainApproval(Platform.CRYPTO_PUNKS, transferProxyAddresses.cryptoPunksTransferProxy)
+    }
+
+    @Test
+    fun `should check looksrare erc721 on chain approve`() = runBlocking<Unit> {
+        testLooksrareOnChainApproval(
+            approved = transferProxyAddresses.looksrareTransferManagerERC721,
+            notApproved1 = transferProxyAddresses.looksrareTransferManagerERC1155,
+            notApproved2 =  transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+        )
+    }
+
+    @Test
+    fun `should check looksrare erc1155 on chain approve`() = runBlocking<Unit> {
+        testLooksrareOnChainApproval(
+            approved = transferProxyAddresses.looksrareTransferManagerERC1155,
+            notApproved1 = transferProxyAddresses.looksrareTransferManagerERC721,
+            notApproved2 =  transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+        )
+    }
+
+    @Test
+    fun `should check looksrare non erc721 on chain approve`() = runBlocking<Unit> {
+        testLooksrareOnChainApproval(
+            approved = transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
+            notApproved1 = transferProxyAddresses.looksrareTransferManagerERC721,
+            notApproved2 =  transferProxyAddresses.looksrareTransferManagerERC1155
+        )
+    }
+
+    @Test
+    fun `should not check on chain`() = runBlocking<Unit> {
+        every { featureFlags.checkOnChainApprove } returns false
+        val result = approveService.checkOnChainApprove(randomAddress(), randomErc721Type(), Platform.RARIBLE)
+        assertThat(result).isTrue
+        verify(exactly = 0) { sender.call(any()) }
+    }
+
+    @Test
+    fun `should not check on chain if not nft asset`() = runBlocking<Unit> {
+        every { featureFlags.checkOnChainApprove } returns true
+        val result = approveService.checkOnChainApprove(randomAddress(), randomErc20().type, Platform.RARIBLE)
+        assertThat(result).isTrue
+        verify(exactly = 0) { sender.call(any()) }
+    }
+
+    @Test
+    fun `should not apply on chain check`() = runBlocking<Unit> {
+        every { featureFlags.checkOnChainApprove } returns true
+        every { featureFlags.applyOnChainApprove } returns false
+
+        val maker = randomAddress()
+        val token = randomAddress()
+        mockkSender(token, maker, transferProxyAddresses.transferProxy, false)
+        val result = approveService.checkOnChainApprove(maker, randomErc721Type(token), Platform.RARIBLE)
+        assertThat(result).isTrue
+        verify(exactly = 1) { sender.call(any()) }
+    }
+
+    @Test
+    fun `should apply on chain check`() = runBlocking<Unit> {
+        every { featureFlags.checkOnChainApprove } returns true
+        every { featureFlags.applyOnChainApprove } returns true
+
+        val maker = randomAddress()
+        val token = randomAddress()
+        mockkSender(token, maker, transferProxyAddresses.transferProxy, false)
+        val result = approveService.checkOnChainApprove(maker, randomErc721Type(token), Platform.RARIBLE)
+        assertThat(result).isFalse
+    }
+
     private fun `should approve for looksrare`(
         proxyWithEvent: Address,
         proxyWithNoEvent1: Address,
         proxyWithNoEvent2: Address,
     ) = runBlocking<Unit> {
         val maker = randomAddress()
-        val asset: NftCollectionAssetType = randomErc1155Type()
+        val token = randomAddress()
         val approved = randomBoolean()
 
-        mockGetLogEvent(asset.token, maker, proxyWithEvent, approved)
-        mockGetLogEvent(asset.token, maker, proxyWithNoEvent1, null)
-        mockGetLogEvent(asset.token, maker, proxyWithNoEvent2, null)
-        val result = approveService.hasNftCollectionApprove(maker, asset, Platform.LOOKSRARE)
+        mockGetLogEvent(token, maker, proxyWithEvent, approved)
+        mockGetLogEvent(token, maker, proxyWithNoEvent1, null)
+        mockGetLogEvent(token, maker, proxyWithNoEvent2, null)
+        val result = approveService.checkApprove(maker, token, Platform.LOOKSRARE)
         assertThat(result).isEqualTo(approved)
-        coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxyWithEvent) }
-        coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxyWithNoEvent1) }
-        coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxyWithNoEvent2) }
+        coVerify { approveRepository.lastApprovalLogEvent(token, maker, proxyWithEvent) }
+        coVerify { approveRepository.lastApprovalLogEvent(token, maker, proxyWithNoEvent1) }
+        coVerify { approveRepository.lastApprovalLogEvent(token, maker, proxyWithNoEvent2) }
     }
 
     private suspend fun testApproval(platform: Platform, proxy: Address) {
         val maker = randomAddress()
         val expectedApproval = randomBoolean()
-        val asset: NftCollectionAssetType = Erc721AssetType(randomAddress(), EthUInt256.of(randomInt()))
-        mockGetLogEvent(asset.token, maker, proxy, expectedApproval)
-        val result = approveService.hasNftCollectionApprove(maker, asset, platform)
+        val token = randomAddress()
+        mockGetLogEvent(token, maker, proxy, expectedApproval)
+        val result = approveService.checkApprove(maker, token, platform)
         assertThat(result).isEqualTo(expectedApproval)
-        coVerify { approveRepository.lastApprovalLogEvent(asset.token, maker, proxy) }
+        coVerify { approveRepository.lastApprovalLogEvent(token, maker, proxy) }
+    }
+
+    private suspend fun testOnChainApproval(platform: Platform, proxy: Address) {
+        val maker = randomAddress()
+        val token = randomAddress()
+        val approved = randomBoolean()
+        mockkSender(token, maker, proxy, approved)
+        val result = approveService.checkOnChainApprove(maker, token, platform)
+        assertThat(result).isEqualTo(approved)
+    }
+
+    private suspend fun testLooksrareOnChainApproval(
+        approved: Address,
+        notApproved1: Address,
+        notApproved2: Address,
+    ) {
+        val maker = randomAddress()
+        val token = randomAddress()
+        mockkSender(token, maker, approved, true)
+        mockkSender(token, maker, notApproved1, false)
+        mockkSender(token, maker, notApproved2, false)
+        val result = approveService.checkOnChainApprove(maker, token, Platform.LOOKSRARE)
+        assertThat(result).isEqualTo(true)
+    }
+
+    @Suppress("ReactiveStreamsUnusedPublisher")
+    private fun mockkSender(token: Address, maker: Address, operator: Address, approved: Boolean) {
+        coEvery {
+            sender.call(
+                Transaction(
+                    token,
+                    null,
+                    null,
+                    null,
+                    null,
+                    IERC721.isApprovedForAllSignature().encode(Tuple2(maker, operator)),
+                    null
+                )
+            )
+        } returns Mono.just(BoolType.encode(approved))
     }
 
     private fun mockGetLogEvent(collection: Address, maker: Address, proxy: Address, expectedApproval: Boolean?) {

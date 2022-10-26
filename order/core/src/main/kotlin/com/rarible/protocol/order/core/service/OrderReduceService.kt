@@ -293,7 +293,8 @@ class OrderReduceService(
         priceHistory = getUpdatedPriceHistoryRecords(this, version),
         fill = fill,
         cancelled = cancelled,
-        makeStock = makeStock
+        makeStock = makeStock,
+        approved = approved
     )
 
     private suspend fun getUpdatedPriceHistoryRecords(
@@ -409,24 +410,16 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withSellApproval(): Order {
-        val nftAsset: NftCollectionAssetType = when (make.type) {
-            is Erc721AssetType -> make.type
-            is Erc1155AssetType -> make.type
-            is Erc1155LazyAssetType -> make.type
-            is Erc721LazyAssetType -> make.type
-            is CollectionAssetType -> make.type
-            is CryptoPunksAssetType -> make.type
-            is AmmNftAssetType,
-            is Erc20AssetType,
-            is EthAssetType,
-            is GenerativeArtAssetType -> return this
+        val collection =  when  {
+            make.type.nft -> make.type.token
+            else -> return this
         }
-        val hasApproved = approveService.hasNftCollectionApprove(maker, nftAsset, platform)
+        val hasApproved = approveService.checkApprove(maker, collection, platform, approved)
         return if (hasApproved != this.approved) {
             logger.info("Change order $hash approval to $hasApproved!")
             this.copy(
                 approved = hasApproved,
-                lastEventId = accumulateEventId(this.lastEventId, nftAsset.token.prefixed())
+                lastEventId = accumulateEventId(this.lastEventId, collection.prefixed())
             )
         } else this
     }

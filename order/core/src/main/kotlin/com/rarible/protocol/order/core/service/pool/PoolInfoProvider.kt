@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.model.OrderAmmData
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.PoolInfo
+import com.rarible.protocol.order.core.model.currency
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.sudoswap.SudoSwapProtocolFeeProvider
@@ -16,6 +17,7 @@ import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
+import java.math.BigInteger
 
 @Component
 class PoolInfoProvider(
@@ -42,7 +44,8 @@ class PoolInfoProvider(
                         spotPrice = data.spotPrice,
                         delta = data.delta,
                         fee = data.fee,
-                        protocolFee = sudoSwapProtocolFeeProvider.getProtocolFeeMultiplier(data.factory)
+                        protocolFee = sudoSwapProtocolFeeProvider.getProtocolFeeMultiplier(data.factory),
+                        token = order.currency.token
                     )
                 }
             }
@@ -61,14 +64,27 @@ class PoolInfoProvider(
                 val factory = contract.factory().call().awaitSingle()
                 sudoSwapProtocolFeeProvider.getProtocolFeeMultiplier(factory)
             }
+            val pairVariant = async { contract.pairVariant().call().awaitSingle() }
+
             PoolInfo(
                 collection = collection.await(),
                 curve = curve.await(),
                 spotPrice = spotPrice.await(),
                 delta = delta.await(),
-                fee =fee.await(),
-                protocolFee = protocolFee.await()
+                fee = fee.await(),
+                protocolFee = protocolFee.await(),
+                token = contract.getAddressByPairVariant(pairVariant.await())
             )
+        }
+    }
+
+    private suspend fun LSSVMPairV1.getAddressByPairVariant(pairVariant: BigInteger): Address {
+        return when (val id = pairVariant.toInt()) {
+            // ENUMERABLE_ETH, MISSING_ENUMERABLE_ETH
+            0, 1 -> Address.ZERO()
+            // ENUMERABLE_ERC20, MISSING_ENUMERABLE_ERC20
+            2, 3 -> token().call().awaitSingle()
+            else -> error("Unknown pairVariant: $id")
         }
     }
 }
