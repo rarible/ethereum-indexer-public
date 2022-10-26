@@ -35,6 +35,7 @@ import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.core.service.approve.ApproveService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
@@ -59,7 +60,8 @@ class OrderService(
     private val priceUpdateService: PriceUpdateService,
     private val raribleOrderSaveMetric: RegisteredCounter,
     private val poolCurve: PoolCurve,
-    private val poolInfoProvider: PoolInfoProvider
+    private val poolInfoProvider: PoolInfoProvider,
+    private val approveService: ApproveService
 ) {
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
         val maker = form.maker
@@ -67,6 +69,8 @@ class OrderService(
         val take = checkLazyNft(AssetConverter.convert(form.take))
         val data = OrderDataConverter.convert(form.data)
         val hash = Order.hashKey(form.maker, make.type, take.type, form.salt, data)
+        val platform = Platform.RARIBLE
+        val approved = approveService.checkOnChainApprove(maker, make.type, platform)
         return OrderVersion(
             maker = maker,
             make = make,
@@ -78,8 +82,9 @@ class OrderService(
             end = form.end,
             data = data,
             signature = form.signature,
-            platform = Platform.RARIBLE,
+            platform = platform,
             hash = hash,
+            approved = approved,
             makePriceUsd = null,
             takePriceUsd = null,
             makePrice = null,

@@ -35,8 +35,8 @@ data class OrderVersion(
     val end: Long?,
     val data: OrderData,
     val signature: Binary?,
-
-    val hash: Word = Order.hashKey(maker, make.type, take.type, salt.value, data)
+    val hash: Word = Order.hashKey(maker, make.type, take.type, salt.value, data),
+    val approved: Boolean = true
 ) {
     fun isBid(): Boolean = take.type.nft
 

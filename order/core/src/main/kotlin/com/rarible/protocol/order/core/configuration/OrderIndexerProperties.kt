@@ -99,8 +99,8 @@ data class OrderIndexerProperties(
         val hideOpenSeaSignatures: Boolean = false,
         val maxOpenSeaNonceCalculation: Int = 10,
         val skipGetTrace: Boolean = false,
-        @Deprecated("Need remove this flag in release 1.31")
-        val pendingDisabled: Boolean = true
+        val checkOnChainApprove: Boolean = false,
+        val applyOnChainApprove: Boolean = false
     )
 
     data class RaribleOrderExpirationProperties(

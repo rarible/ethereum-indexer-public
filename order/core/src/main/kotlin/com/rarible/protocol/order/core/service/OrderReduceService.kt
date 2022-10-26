@@ -293,7 +293,8 @@ class OrderReduceService(
         priceHistory = getUpdatedPriceHistoryRecords(this, version),
         fill = fill,
         cancelled = cancelled,
-        makeStock = makeStock
+        makeStock = makeStock,
+        approved = approved
     )
 
     private suspend fun getUpdatedPriceHistoryRecords(

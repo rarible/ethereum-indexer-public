@@ -41,6 +41,8 @@ common:
     looksrare-transfer-manager-erc1155: "0x0000000000000000000000000000000000000017"
   publish:
     publishAuctionActivity: true
+  feature-flags:
+    check-on-chain-approve: true
 
 listener:
   load-open-sea-orders: false

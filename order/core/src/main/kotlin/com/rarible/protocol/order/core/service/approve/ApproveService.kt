@@ -3,7 +3,9 @@ package com.rarible.protocol.order.core.service.approve
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.ApprovalHistory
+import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -19,6 +21,7 @@ import java.lang.IllegalArgumentException
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class ApproveService(
     private val approveRepository: ApprovalHistoryRepository,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
     ethereum: MonoEthereum,
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
@@ -50,13 +53,10 @@ class ApproveService(
         return platformByOperatorMap[operator]
     }
 
-    suspend fun checkOnChainApprove(
-        owner: Address,
-        collection: Address,
-        platform: Platform
-    ): Boolean {
-        val contract = IERC721(collection, sender)
-        return checkPlatformApprove(platform) {  contract.isApprovedForAll(owner, it).awaitFirst() } ?: error("Can't be null")
+    suspend fun checkOnChainApprove(maker: Address, make: AssetType, platform: Platform): Boolean {
+        if (make.nft.not() || featureFlags.checkOnChainApprove.not()) return true
+        val onChainApprove = checkOnChainApprove(maker, make.token, platform)
+        return if (featureFlags.applyOnChainApprove) onChainApprove else true
     }
 
     suspend fun checkApprove(
@@ -66,6 +66,15 @@ class ApproveService(
         default: Boolean = false,
     ): Boolean {
         return checkPlatformApprove(platform) { hasApprove(owner, it, collection)  } ?: default
+    }
+
+    suspend fun checkOnChainApprove(
+        owner: Address,
+        collection: Address,
+        platform: Platform
+    ): Boolean {
+        val contract = IERC721(collection, sender)
+        return checkPlatformApprove(platform) { contract.isApprovedForAll(owner, it).awaitFirst() } ?: error("Can't be null")
     }
 
     private suspend fun checkPlatformApprove(

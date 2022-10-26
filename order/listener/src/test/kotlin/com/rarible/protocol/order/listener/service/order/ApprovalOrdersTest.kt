@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.service.approve.ApproveService
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -16,6 +17,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import java.time.Duration
 
@@ -23,6 +25,8 @@ import java.time.Duration
 @FlowPreview
 @IntegrationTest
 class ApprovalOrdersTest: AbstractIntegrationTest() {
+    @Autowired
+    private lateinit var approveService: ApproveService
 
     @Test
     internal fun `should handle approve for rarible`() {
@@ -71,9 +75,11 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
 
             Wait.waitAssert(Duration.ofSeconds(10)) {
                 setApprovalAndCheckStatus(token, proxy, true, saved.hash, OrderStatus.ACTIVE)
+                assertThat(approveService.checkOnChainApprove(owner, token.address(), platform)).isEqualTo(true)
             }
             Wait.waitAssert(Duration.ofSeconds(10)) {
                 setApprovalAndCheckStatus(token, proxy, false, saved.hash, noApprovalStatus)
+                assertThat(approveService.checkOnChainApprove(owner, token.address(), platform)).isEqualTo(false)
             }
         }
     }

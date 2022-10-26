@@ -21,7 +21,8 @@ internal class ApproveServiceTest {
     private val transferProxyAddresses = randomProxyAddresses()
     private val approveRepository = mockk<ApprovalHistoryRepository>()
     private val ethereum = mockk<MonoEthereum>()
-    private val approveService = ApproveService(approveRepository, ethereum, exchangeContractAddresses, transferProxyAddresses)
+    private val featureFlags = mockk<OrderIndexerProperties.FeatureFlags>()
+    private val approveService = ApproveService(approveRepository, featureFlags, ethereum, exchangeContractAddresses, transferProxyAddresses)
 
     @Test
     fun `should approve for rarible platform`() = runBlocking<Unit> {
