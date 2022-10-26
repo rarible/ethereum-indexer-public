@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.service.approve
 
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.metric.ApprovalMetrics
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Platform
@@ -11,6 +12,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
@@ -22,6 +25,7 @@ class ApproveService(
     private val approveRepository: ApprovalHistoryRepository,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
     private val sender: ReadOnlyMonoTransactionSender,
+    private val approvalMetrics: ApprovalMetrics,
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
 ) {
@@ -54,6 +58,7 @@ class ApproveService(
     suspend fun checkOnChainApprove(maker: Address, make: AssetType, platform: Platform): Boolean {
         if (make.nft.not() || featureFlags.checkOnChainApprove.not()) return true
         val onChainApprove = checkOnChainApprove(maker, make.token, platform)
+        approvalMetrics.onApprovalOnChainCheck(platform, onChainApprove)
         return if (featureFlags.applyOnChainApprove) onChainApprove else true
     }
 
@@ -63,7 +68,14 @@ class ApproveService(
         platform: Platform,
         default: Boolean = false,
     ): Boolean {
-        return checkPlatformApprove(platform) { hasApprove(owner, it, collection)  } ?: default
+        return checkPlatformApprove(platform) { hasApprove(owner, it, collection)  } ?: run {
+            logger.error(
+                "Can't find approval event for owner={}, collection={}, platform={}, use default={}",
+                owner, collection, platform, default
+            )
+            approvalMetrics.onApprovalEventMiss(platform)
+            default
+        }
     }
 
     suspend fun checkOnChainApprove(
@@ -107,5 +119,9 @@ class ApproveService(
         )?.let {
             (it.data as ApprovalHistory).approved
         }
+    }
+
+    private companion object {
+        val logger: Logger = LoggerFactory.getLogger(ApproveService::class.java)
     }
 }

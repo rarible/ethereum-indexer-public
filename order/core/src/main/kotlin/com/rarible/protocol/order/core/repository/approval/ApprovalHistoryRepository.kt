@@ -2,7 +2,6 @@ package com.rarible.protocol.order.core.repository.approval
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
@@ -26,10 +25,8 @@ import scalether.domain.Address
 @Component
 @CaptureSpan(type = SpanType.DB)
 class ApprovalHistoryRepository(
-    private val template: ReactiveMongoTemplate,
-    private val approvalNotFoundCounter: RegisteredCounter
+    private val template: ReactiveMongoTemplate
 ) {
-
     private val logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun save(logEvent: LogEvent): LogEvent {
@@ -53,12 +50,7 @@ class ApprovalHistoryRepository(
             LogEvent::logIndex.name,
             LogEvent::minorLogIndex.name
         ))
-        val result = template.findOne<LogEvent>(query, COLLECTION).awaitFirstOrNull()
-        if (result == null) {
-            logger.warn("Not found approval for collection: $collection and owner: $owner!")
-            approvalNotFoundCounter.increment()
-        }
-        return result
+        return template.findOne<LogEvent>(query, COLLECTION).awaitFirstOrNull()
     }
 
     companion object {

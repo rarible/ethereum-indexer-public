@@ -7,8 +7,8 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.randomApproveHistory
 import com.rarible.protocol.order.core.data.randomErc20
-import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.data.randomErc721Type
+import com.rarible.protocol.order.core.metric.ApprovalMetrics
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import io.mockk.coEvery
@@ -32,7 +32,18 @@ internal class ApproveServiceTest {
     private val approveRepository = mockk<ApprovalHistoryRepository>()
     private val sender = mockk<ReadOnlyMonoTransactionSender>()
     private val featureFlags = mockk<OrderIndexerProperties.FeatureFlags>()
-    private val approveService = ApproveService(approveRepository, featureFlags, sender, exchangeContractAddresses, transferProxyAddresses)
+    private val approvalMetrics = mockk<ApprovalMetrics> {
+        every { onApprovalEventMiss(any()) } returns Unit
+        every { onApprovalOnChainCheck(any(), any()) } returns Unit
+    }
+    private val approveService = ApproveService(
+        approveRepository,
+        featureFlags,
+        sender,
+        approvalMetrics,
+        exchangeContractAddresses,
+        transferProxyAddresses
+    )
 
     @Test
     fun `should approve for rarible platform`() = runBlocking<Unit> {

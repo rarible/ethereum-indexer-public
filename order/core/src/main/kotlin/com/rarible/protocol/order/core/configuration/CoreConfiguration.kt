@@ -13,6 +13,7 @@ import com.rarible.protocol.contracts.exchange.seaport.v1.CounterIncrementedEven
 import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
+import com.rarible.protocol.order.core.metric.MetricsPackage
 import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.model.PoolHistoryType
@@ -43,7 +44,8 @@ import scalether.transaction.MonoTransactionSender
     ConvertersPackage::class,
     EventPackage::class,
     TracePackage::class,
-    ProducerPackage::class]
+    ProducerPackage::class,
+    MetricsPackage::class]
 )
 @Import(
     RepositoryConfiguration::class,
