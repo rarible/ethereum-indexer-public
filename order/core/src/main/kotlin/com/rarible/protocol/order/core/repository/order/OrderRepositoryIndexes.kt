@@ -3,10 +3,9 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.core.mongo.util.div
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.OrderCounterableData
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderCounterableData
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import org.springframework.data.domain.Sort
@@ -20,11 +19,6 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 object OrderRepositoryIndexes {
 
     // --------------------- getSellOrders ---------------------//
-    val SELL_ORDERS_DEFINITION = Index()
-        .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
-        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC)
-        .background()
 
     val SELL_ORDERS_PLATFORM_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
@@ -190,21 +184,6 @@ object OrderRepositoryIndexes {
         .background()
 
     // --------------------- for updating status by start/end ---------------------//
-    @Deprecated("Should be removed in release 1.33")
-    val BY_PLATFORM_MAKER_AND_NONCE = Index()
-        .on(Order::platform.name, Sort.Direction.ASC)
-        .on(Order::maker.name, Sort.Direction.ASC)
-        .on("${Order::data.name}.${OrderOpenSeaV1DataV1::nonce.name}", Sort.Direction.ASC)
-        .partial(PartialIndexFilter.of(Order::data / OrderOpenSeaV1DataV1::nonce exists true))
-        .background()
-
-    @Deprecated("Should be removed in release 1.33")
-    val BY_STATUS_MAKER_AND_COUNTER = Index()
-        .on(Order::status.name, Sort.Direction.ASC)
-        .on(Order::maker.name, Sort.Direction.ASC)
-        .on("${Order::data.name}.${OrderCounterableData::counter.name}", Sort.Direction.ASC)
-        .partial(PartialIndexFilter.of(Order::data / OrderCounterableData::counter exists true))
-        .background()
 
     val BY_PLATFORM_MAKER_COUNTER_STATUS: Index = Index()
         .on(Order::platform.name, Sort.Direction.ASC)
@@ -235,13 +214,6 @@ object OrderRepositoryIndexes {
         .partial(PartialIndexFilter.of(Order::make / Asset::type / AssetType::nft isEqualTo true))
         .background()
 
-    val BY_MAKER_AND_STATUS_AND_TOKEN_ONLY_SALE_ORDERS = Index()
-        .on(Order::maker.name, Sort.Direction.ASC)
-        .on(Order::status.name, Sort.Direction.ASC)
-        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
-        .partial(PartialIndexFilter.of(Order::make / Asset::type / AssetType::nft isEqualTo true))
-        .background()
-
     // Required for analytics/DWH PT-611
     val BY_CREATED_AT_AND_ID = Index()
         .on(Order::createdAt.name, Sort.Direction.ASC)
@@ -249,7 +221,6 @@ object OrderRepositoryIndexes {
         .background()
 
     val ALL_INDEXES = listOf(
-        SELL_ORDERS_DEFINITION,
         SELL_ORDERS_PLATFORM_DEFINITION,
         SELL_ORDERS_STATUS_DEFINITION,
         SELL_ORDERS_PLATFORM_STATUS_DEFINITION,
@@ -276,13 +247,10 @@ object OrderRepositoryIndexes {
         BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
 
         BY_STATUS_AND_END_START,
-        BY_PLATFORM_MAKER_AND_NONCE,
-        BY_STATUS_MAKER_AND_COUNTER,
         BY_PLATFORM_MAKER_COUNTER_STATUS,
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,
-        BY_MAKER_AND_STATUS_AND_TOKEN_ONLY_SALE_ORDERS,
         BY_CREATED_AT_AND_ID
     )
 }

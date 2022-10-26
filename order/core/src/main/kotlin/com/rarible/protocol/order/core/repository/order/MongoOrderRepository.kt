@@ -7,10 +7,10 @@ import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.OrderCounterableData
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCounterableData
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderStatus
@@ -39,11 +39,11 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
 import org.springframework.data.mongodb.core.query.lte
 import org.springframework.data.mongodb.core.query.ne
+import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.time.Instant
 import java.util.*
-import org.springframework.data.mongodb.core.query.where
 
 @CaptureSpan(type = SpanType.DB)
 @Component
@@ -197,7 +197,6 @@ class MongoOrderRepository(
                 Order::data / OrderOpenSeaV1DataV1::nonce lt toExcluding,
             )
         )
-        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_AND_NONCE.indexKeys)
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
@@ -215,7 +214,6 @@ class MongoOrderRepository(
                 Order::data / OrderSeaportDataV1::counter isEqualTo counter,
             )
         )
-        query.withHint(OrderRepositoryIndexes.BY_STATUS_MAKER_AND_COUNTER.indexKeys)
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
