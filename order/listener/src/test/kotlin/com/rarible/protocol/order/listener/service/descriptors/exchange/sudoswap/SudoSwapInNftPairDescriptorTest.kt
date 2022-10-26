@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.data.randomPoolInfo
 import com.rarible.protocol.order.core.data.randomSudoSwapPurchaseValue
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Transaction
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -35,12 +37,16 @@ internal class SudoSwapInNftPairDescriptorTest {
     private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapCurve = mockk<PoolCurve>()
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
+    private val priceUpdateService = mockk<PriceUpdateService> {
+        coEvery { getAssetUsdValue(any(), any(), any()) }  returns BigDecimal.ONE
+    }
 
     private val descriptor = SudoSwapInNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapInNftEventCounter = counter,
         sudoSwapPoolInfoProvider = sudoSwapPoolInfoProvider,
-        sudoSwapCurve = sudoSwapCurve
+        sudoSwapCurve = sudoSwapCurve,
+        priceUpdateService = priceUpdateService
     )
 
     @Test
@@ -78,5 +84,6 @@ internal class SudoSwapInNftPairDescriptorTest {
         Assertions.assertThat(nftOut.date).isEqualTo(date)
         Assertions.assertThat(nftOut.inputValue.value).isEqualTo(purchaseValue.value)
         Assertions.assertThat(nftOut.source).isEqualTo(HistorySource.SUDOSWAP)
+        Assertions.assertThat(nftOut.priceUsd).isEqualTo(BigDecimal.ONE)
     }
 }

@@ -631,6 +631,7 @@ fun randomPoolInfo(): PoolInfo {
         delta = randomBigInt(),
         fee = randomBigInt(),
         protocolFee = randomBigInt(),
+        token = randomAddress()
     )
 }
 
