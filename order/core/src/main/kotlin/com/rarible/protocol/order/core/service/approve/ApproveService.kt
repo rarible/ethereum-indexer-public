@@ -12,7 +12,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.stereotype.Component
-import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
 import java.lang.IllegalArgumentException
@@ -22,11 +21,10 @@ import java.lang.IllegalArgumentException
 class ApproveService(
     private val approveRepository: ApprovalHistoryRepository,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
-    ethereum: MonoEthereum,
+    private val sender: ReadOnlyMonoTransactionSender,
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
 ) {
-    private val sender = ReadOnlyMonoTransactionSender(ethereum, Address.ZERO())
     private val raribleTransferProxy = transferProxyAddresses.transferProxy
     private val seaportTransferProxy = transferProxyAddresses.seaportTransferProxy
     private val x2y2TransferProxy = exchangeContractAddresses.x2y2V1
