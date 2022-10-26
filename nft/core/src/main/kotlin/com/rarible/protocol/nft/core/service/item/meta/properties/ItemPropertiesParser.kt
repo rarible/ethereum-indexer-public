@@ -12,7 +12,7 @@ object ItemPropertiesParser {
         httpUrl: String,
         rawProperties: String,
         parser: (ItemId, String) -> ObjectNode = JsonPropertiesParser::parse,
-        mapper: (ItemId, ObjectNode) -> ItemProperties = JsonPropertiesMapper::map
+        mapper: (ItemId, ObjectNode) -> ItemProperties = JsonItemPropertiesMapper::map
     ): ItemProperties? {
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $httpUrl")
