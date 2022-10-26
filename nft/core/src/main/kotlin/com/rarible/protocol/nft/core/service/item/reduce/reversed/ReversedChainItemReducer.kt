@@ -1,7 +1,9 @@
 package com.rarible.protocol.nft.core.service.item.reduce.reversed
 
-import com.rarible.protocol.nft.core.model.*
-import com.rarible.protocol.nft.core.service.RevertedEntityChainReducer
+import com.rarible.blockchain.scanner.ethereum.reduce.RevertedEntityChainReducer
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.service.item.ItemRevertEventApplyPolicy
 import org.springframework.stereotype.Component
 

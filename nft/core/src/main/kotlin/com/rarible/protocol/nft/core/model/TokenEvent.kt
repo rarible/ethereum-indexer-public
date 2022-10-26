@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.model
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumEntityEvent
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import scalether.domain.Address
 

@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
+import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.apm.withSpan
 import com.rarible.core.entity.reducer.service.EventReduceService
@@ -21,7 +22,7 @@ class ItemEventReduceService(
     private val onNftItemLogEventListener: OnNftItemLogEventListener,
     private val itemEventConverter: ItemEventConverter,
     properties: NftIndexerProperties
-) {
+) : EntityEventsSubscriber {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val skipTransferContractTokens =
         properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
@@ -31,7 +32,7 @@ class ItemEventReduceService(
         delegate.reduceAll(events)
     }
 
-    suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
         withSpan(
             name = "onItemEvents",
             labels = listOf(

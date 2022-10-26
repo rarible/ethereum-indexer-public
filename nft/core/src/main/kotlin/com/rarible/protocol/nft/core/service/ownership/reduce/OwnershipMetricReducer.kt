@@ -1,9 +1,9 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce
 
+import com.rarible.blockchain.scanner.ethereum.reduce.AbstractMetricReducer
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
-import com.rarible.protocol.nft.core.service.AbstractMetricReducer
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
 
