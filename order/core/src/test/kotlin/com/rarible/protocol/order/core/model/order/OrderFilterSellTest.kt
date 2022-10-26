@@ -16,7 +16,7 @@ internal class OrderFilterSellTest {
             sort = OrderFilterSort.LAST_UPDATE_ASC
         )
         assertThat(orderFilterSell.toQuery("test", 100).hint)
-            .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys.toJson())
+            .isNull()
     }
 
     @Test
@@ -100,7 +100,7 @@ internal class OrderFilterSellTest {
         )
         //with continuation
         assertThat(orderFilterSell.toQuery("test", 100).hint)
-            .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys.toJson())
+            .isNull()
 
         //without continuation
         assertThat(orderFilterSell.toQuery(null, 100).hint)
