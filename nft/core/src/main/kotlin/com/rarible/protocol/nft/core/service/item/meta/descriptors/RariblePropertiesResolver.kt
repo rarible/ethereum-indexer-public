@@ -10,7 +10,7 @@ import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TY
 import com.rarible.protocol.nft.core.service.item.meta.MetaException
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesParser
-import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
+import com.rarible.protocol.nft.core.service.item.meta.properties.JsonItemPropertiesMapper
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import org.springframework.stereotype.Component
@@ -63,7 +63,7 @@ class RariblePropertiesResolver(
         // Sometimes there could be a json instead of URL
         val json = runCatching { JsonPropertiesParser.parse(itemId, tokenUri) }.getOrNull()
         val properties = when {
-            json != null -> JsonPropertiesMapper.map(itemId, json)
+            json != null -> JsonItemPropertiesMapper.map(itemId, json)
             else -> getByUri(itemId, tokenUri)?.copy(tokenUri = tokenUri)
         } ?: return null
 

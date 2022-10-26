@@ -9,7 +9,7 @@ import com.rarible.protocol.nft.core.service.item.meta.parseAttributes
 /**
  * Default mapper from JSON to ItemProperties. Can be used for most of the items.
  */
-object JsonPropertiesMapper {
+object JsonItemPropertiesMapper {
 
     private val FIELD_NAME = listOf(
         "name",
