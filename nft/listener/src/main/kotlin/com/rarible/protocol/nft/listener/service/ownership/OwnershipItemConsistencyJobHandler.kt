@@ -80,6 +80,7 @@ class OwnershipItemConsistencyJobHandler(
 
                 val ownershipsByItemId = allOwnerships.associateBy { ItemId(it.token, it.tokenId) }
                 val inconsistentItemIds = inconsistentItemRepository.searchByIds(ownershipsByItemId.keys)
+                    .filter { it.status != InconsistentItemStatus.FIXED }
                     .map { it.id }
                     .toSet()
                 val itemIdsToCheck = ownershipsByItemId.keys - inconsistentItemIds
@@ -160,7 +161,7 @@ class OwnershipItemConsistencyJobHandler(
         found: Boolean,
         triedToFix: Boolean
     ) {
-        if (inconsistentItemRepository.save(
+        if (inconsistentItemRepository.insert(
                 InconsistentItem(
                     token = itemId.token,
                     tokenId = itemId.tokenId,
