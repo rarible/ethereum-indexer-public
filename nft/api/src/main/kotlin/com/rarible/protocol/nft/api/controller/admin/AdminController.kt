@@ -16,6 +16,10 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -218,6 +222,28 @@ class AdminController(
     suspend fun getTokenTasks(): ResponseEntity<List<AdminTaskDto>> {
         val tasks = reindexTokenService.getTokenTasks()
         return ResponseEntity.ok().body(tasks.map { convert(it) })
+    }
+
+    @GetMapping(
+        value = ["/admin/nft/testLogging"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    suspend fun testLoggingIssue(): ResponseEntity<String> = coroutineScope {
+        val ch = Channel<Int>(5)
+        repeat(5) {
+            launch {
+                for (item in ch) {
+                    logger.info("testLogging: $item")
+                }
+            }
+        }
+
+        (1..20).forEach {
+            ch.send(it)
+        }
+        delay(1000)
+        ch.close()
+        return@coroutineScope ResponseEntity.ok().body("OK")
     }
 
     private fun convert(task: Task): AdminTaskDto {
