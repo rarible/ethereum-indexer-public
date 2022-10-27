@@ -23,8 +23,8 @@ common:
     weth: "0xa6fa4fb5f76172d178d61b04b0ecd319c5d1c0aa"
 listener:
   seaport-load:
-    enabled: true
-    save-enabled: true
+    enabled: false
+    save-enabled: false
 rarible:
   seaport:
     network: mumbai

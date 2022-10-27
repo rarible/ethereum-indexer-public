@@ -15,8 +15,8 @@ common:
     linear-curve-v1: "0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"
 listener:
   open-sea-exchange-domain-hash-v2: "0x72982d92449bfb3d338412ce4738761aff47fb975ceb17a1bc3712ec716a5a68"
-  transfer-proxy-addresses:
-    seaport-transfer-proxy: "0x1e0049783f008a0085193e00003d00cd54003c71"
+  seaport-load:
+    ignored-sell-tokens: "0xa604060890923ff400e8c6f5290461a83aedacec"
 rarible:
   seaport:
     network: ethereum
