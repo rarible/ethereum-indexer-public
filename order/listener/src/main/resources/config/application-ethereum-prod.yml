@@ -3,6 +3,7 @@ common:
     looksrare-v1: "0x59728544b08ab483533076417fbbb2fd0b17ce3a"
     x2y2-v1: "0x74312363e45dcaba76c59ec49a7aa8a65a67eed3"
   transfer-proxy-addresses:
+    seaport-transfer-proxy: "0x1e0049783f008a0085193e00003d00cd54003c71"
     looksrare-transfer-manager-erc721: "0xf42aa99f011a1fa7cda90e5e98b277e306bca83e"
     looksrare-transfer-manager-erc1155: "0xfed24ec7e22f573c2e08aef55aa6797ca2b3a051"
     looksrare-transfer-manager-non-compliant-erc721: "0x3e538190635f51435298ee58a7984961120510a1"
@@ -16,3 +17,6 @@ listener:
   open-sea-exchange-domain-hash-v2: "0x72982d92449bfb3d338412ce4738761aff47fb975ceb17a1bc3712ec716a5a68"
   transfer-proxy-addresses:
     seaport-transfer-proxy: "0x1e0049783f008a0085193e00003d00cd54003c71"
+rarible:
+  seaport:
+    network: ethereum

@@ -16,6 +16,7 @@ import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
 import com.rarible.protocol.nft.core.data.createRandomInconsistentItem
+import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
@@ -106,13 +107,37 @@ class OwnershipItemConsistencyJobHandlerTest : AbstractIntegrationTest() {
         ownershipRepository.save(ownership).awaitFirst()
         val inconsistentItem = createRandomInconsistentItem()
             .copy(token = item.token, tokenId = item.tokenId)
-        inconsistentItemRepository.save(inconsistentItem)
+        inconsistentItemRepository.insert(inconsistentItem)
 
         // when
         handler.handle()
 
         // then
         verify {
+            delayGauge.set(any())
+        }
+        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+    }
+
+    @Test
+    fun `should check when ownership items are already inconsistent items repo but fixed`() = runBlocking<Unit> {
+        // given
+        initHandler()
+        val item = createRandomItem()
+        itemRepository.save(item).awaitFirst()
+        val ownership = createRandomOwnership()
+            .copy(token = item.token, tokenId = item.tokenId, date = nowMillis().minusSeconds(1000))
+        ownershipRepository.save(ownership).awaitFirst()
+        val inconsistentItem = createRandomInconsistentItem()
+            .copy(token = item.token, tokenId = item.tokenId, status = InconsistentItemStatus.FIXED)
+        inconsistentItemRepository.insert(inconsistentItem)
+
+        // when
+        handler.handle()
+
+        // then
+        verify {
+            checkedCounter.increment()
             delayGauge.set(any())
         }
         confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)

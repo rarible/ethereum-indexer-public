@@ -1,19 +1,13 @@
 package com.rarible.protocol.nft.core.repository
 
-import com.rarible.core.common.nowMillis
-import com.rarible.core.test.data.randomAddress
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomInconsistentItem
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
-import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
-import com.rarible.protocol.nft.core.model.ItemProblemType
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import java.math.BigInteger
 
 @IntegrationTest
 class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
@@ -27,8 +21,8 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
         val inconsistentItem = createRandomInconsistentItem()
 
         // when
-        val inserted1 = inconsistentItemRepository.save(inconsistentItem)
-        val inserted2 = inconsistentItemRepository.save(inconsistentItem)
+        val inserted1 = inconsistentItemRepository.insert(inconsistentItem)
+        val inserted2 = inconsistentItemRepository.insert(inconsistentItem)
 
         // then
         assertThat(inserted1).isTrue()
@@ -39,7 +33,7 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
     fun `should save and get by id`() = runBlocking<Unit> {
         // given
         val inconsistentItem = createRandomInconsistentItem()
-        inconsistentItemRepository.save(inconsistentItem)
+        inconsistentItemRepository.insert(inconsistentItem)
 
         // when
         val actual = inconsistentItemRepository.get(inconsistentItem.id)
@@ -49,12 +43,29 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should save if inconsistent item was fixed previously`() = runBlocking<Unit> {
+        // given
+        val before = createRandomInconsistentItem().copy(status = InconsistentItemStatus.FIXED)
+        inconsistentItemRepository.insert(before)
+        val after = before.copy(status = InconsistentItemStatus.UNFIXED)
+
+        // when
+        val saved = inconsistentItemRepository.insert(after)
+        val actual = inconsistentItemRepository.get(after.id)
+
+        // then
+        assertThat(saved).isTrue()
+        assertThat(actual).usingRecursiveComparison().ignoringFields("status").isEqualTo(after)
+        assertThat(actual!!.status).isEqualTo(InconsistentItemStatus.RELAPSED)
+    }
+
+    @Test
     fun `should find by ids`() = runBlocking<Unit> {
         // given
         val item1 = createRandomInconsistentItem()
         val item2 = createRandomInconsistentItem()
-        inconsistentItemRepository.save(item1)
-        inconsistentItemRepository.save(item2)
+        inconsistentItemRepository.insert(item1)
+        inconsistentItemRepository.insert(item2)
 
         // when
         val actual = inconsistentItemRepository.searchByIds(setOf(item1.id, item2.id))

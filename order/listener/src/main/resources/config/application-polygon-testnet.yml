@@ -5,7 +5,7 @@ common:
     v2: "0x2Fc743F5419637B93dDAC159715B902186300041"
     openSeaV1: "0x0000000000000000000000000000000000000000"
     openSeaV2: "0x0000000000000000000000000000000000000000"
-    seaportV1: "0x0000000000000000000000000000000000000000"
+    seaportV1: "0x00000000006c3852cbef3e08e8df289169ede581"
     cryptoPunks: "0x0000000000000000000000000000000000000000"
     zeroEx: "0x533dc89624dcc012c7323b41f286bd2df478800b"
     looksrareV1: "0x0000000000000000000000000000000000000000"
@@ -17,6 +17,14 @@ common:
     erc20-transfer-proxy: "0xa5a51d7b4933185da9c932e5375187f661cb0c69"
     erc721-lazy-transfer-proxy: "0x6c49c170c82C40709a32Fb4E827ad3011CD86227"
     erc1155-lazy-transfer-proxy: "0x9F7fBc52A53f85e57a5DAde35dFa14797A4dA412"
+    seaport-transfer-proxy: "0x1e0049783f008a0085193e00003d00cd54003c71"
     crypto-punks-transfer-proxy: "0x0000000000000000000000000000000000000000"
   currency-contract-addresses:
     weth: "0xa6fa4fb5f76172d178d61b04b0ecd319c5d1c0aa"
+listener:
+  seaport-load:
+    enabled: true
+    save-enabled: true
+rarible:
+  seaport:
+    network: mumbai

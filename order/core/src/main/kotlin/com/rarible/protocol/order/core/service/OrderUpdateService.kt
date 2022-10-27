@@ -94,7 +94,7 @@ class OrderUpdateService(
     suspend fun updateMakeStock(
         order: Order,
         makeBalanceState: MakeBalanceState? = null
-    ): Pair<Order?, Boolean> = optimisticLock {
+    ): Pair<Order, Boolean> = optimisticLock {
         val makeBalance = makeBalanceState ?: assetMakeBalanceProvider.getMakeBalance(order)
         val knownMakeBalance = makeBalance.value
 
