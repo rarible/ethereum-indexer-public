@@ -230,8 +230,8 @@ class AdminController(
     )
     suspend fun testLoggingIssue(): ResponseEntity<String> {
         repeat(20) {
-            logger.info("Test logging issue $it (1s delay)")
-            delay(1000)
+            logger.info("Test logging issue $it (1ms delay)")
+            delay(1)
         }
 
         return ResponseEntity.ok("OK")
