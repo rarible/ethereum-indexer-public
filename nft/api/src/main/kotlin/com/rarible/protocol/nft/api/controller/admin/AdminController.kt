@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.api.controller.admin
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.task.Task
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.api.converter.ItemIdConverter
@@ -229,8 +230,9 @@ class AdminController(
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     suspend fun testLoggingIssue(): ResponseEntity<String> {
-        repeat(20) {
-            logger.info("Test logging issue $it (1ms delay)")
+        val now = nowMillis().toEpochMilli()
+        repeat(50) {
+            logger.info("RequestTime=${now}, test logging issue $it (1ms delay)")
             delay(1)
         }
 
