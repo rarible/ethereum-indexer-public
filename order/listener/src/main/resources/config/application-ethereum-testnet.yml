@@ -5,7 +5,7 @@ common:
     v2: "0x02afbD43cAD367fcB71305a2dfB9A3928218f0c1"
     openSeaV1: "0x0000000000000000000000000000000000000000"
     openSeaV2: "0x0000000000000000000000000000000000000000"
-    seaportV1: "0x0000000000000000000000000000000000000000"
+    seaportV1: "0x00000000006c3852cbef3e08e8df289169ede581"
     cryptoPunks: "0x0000000000000000000000000000000000000000"
     zeroEx: "0x0000000000000000000000000000000000000000"
     looksrareV1: "0xD112466471b5438C1ca2D218694200e49d81D047"
@@ -22,6 +22,7 @@ common:
     erc721-lazy-transfer-proxy: "0x96102d9472c0338005cbf12fb7ea829f242c2809"
     erc1155-lazy-transfer-proxy: "0x1e1b6e13f0eb4c570628589e3c088bc92ad4db45"
     crypto-punks-transfer-proxy: "0x0000000000000000000000000000000000000000"
+    seaport-transfer-proxy: "0x1e0049783f008a0085193e00003d00cd54003c71"
     looksrare-transfer-manager-erc721: "0xf8c81f3ae82b6efc9154c69e3db57fd4da57ab6e"
     looksrare-transfer-manager-erc1155: "0xf2ae42e871937f4e9ffb394c5a814357c16e06d6"
     looksrare-transfer-manager-non-compliant-erc721: "0x1c90a2f30090a79e0dee770161c1879b31b6f74d"
@@ -31,3 +32,10 @@ common:
     showSudoSwapOrdersWithOtherPlatforms: true
   publish:
     publishAmmOrders: true
+listener:
+  seaport-load:
+    enabled: true
+    save-enabled: true
+rarible:
+  seaport:
+    network: goerli
