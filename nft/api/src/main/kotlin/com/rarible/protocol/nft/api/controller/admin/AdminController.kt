@@ -230,9 +230,8 @@ class AdminController(
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     suspend fun testLoggingIssue(): ResponseEntity<String> {
-        val now = nowMillis().toEpochMilli()
         repeat(50) {
-            logger.info("RequestTime=${now}, test logging issue $it (1ms delay)")
+            logger.info("(${nowMillis().toEpochMilli()}), test logging issue $it (1ms delay)")
             delay(1)
         }
 
