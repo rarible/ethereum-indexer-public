@@ -228,22 +228,12 @@ class AdminController(
         value = ["/admin/nft/testLogging"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    suspend fun testLoggingIssue(): ResponseEntity<String> = coroutineScope {
-        val ch = Channel<Int>(5)
-        repeat(5) {
-            launch {
-                for (item in ch) {
-                    logger.info("testLogging: $item")
-                }
-            }
+    suspend fun testLoggingIssue(): ResponseEntity<String> {
+        repeat(20) {
+            logger.info("Test logging issue $it")
         }
 
-        (1..20).forEach {
-            ch.send(it)
-        }
-        delay(1000)
-        ch.close()
-        return@coroutineScope ResponseEntity.ok().body("OK")
+        return ResponseEntity.ok("OK")
     }
 
     private fun convert(task: Task): AdminTaskDto {
