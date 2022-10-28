@@ -18,18 +18,30 @@ class ChangeLog00022RemoveUnusedIndexes {
     )
     fun removeIndexes(@NonLockGuarded template: ReactiveMongoOperations) = runBlocking<Unit> {
 
-        template.indexOps(MongoOrderRepository.COLLECTION)
-            .dropIndex("maker_1_status_1_make.type.token_1").awaitFirst()
-
-        template.indexOps(MongoOrderRepository.COLLECTION)
-            .dropIndex("platform_1_maker_1_data.nonce_1").awaitFirst()
-
-     template.indexOps(MongoOrderRepository.COLLECTION)
-            .dropIndex("status_1_maker_1_data.counter_1").awaitFirst()
-
-     template.indexOps(MongoOrderRepository.COLLECTION)
-            .dropIndex("make.type.nft_1_lastUpdateAt_1__id_1").awaitFirst()
-
+        try {
+            template.indexOps(MongoOrderRepository.COLLECTION)
+                .dropIndex("maker_1_status_1_make.type.token_1").awaitFirst()
+        } catch (ex: Exception) {
+            logger.error("Drop index failed maker_1_status_1_make.type.token_1", ex)
+        }
+        try {
+            template.indexOps(MongoOrderRepository.COLLECTION)
+                .dropIndex("platform_1_maker_1_data.nonce_1").awaitFirst()
+        } catch (ex: Exception) {
+            logger.error("Drop index failed platform_1_maker_1_data.nonce_1", ex)
+        }
+        try {
+            template.indexOps(MongoOrderRepository.COLLECTION)
+                .dropIndex("status_1_maker_1_data.counter_1").awaitFirst()
+        } catch (ex: Exception) {
+            logger.error("Drop index failed status_1_maker_1_data.counter_1", ex)
+        }
+        try {
+            template.indexOps(MongoOrderRepository.COLLECTION)
+                .dropIndex("make.type.nft_1_lastUpdateAt_1__id_1").awaitFirst()
+        } catch (ex: Exception) {
+            logger.error("Drop index failed make.type.nft_1_lastUpdateAt_1__id_1", ex)
+        }
     }
 
     companion object {
