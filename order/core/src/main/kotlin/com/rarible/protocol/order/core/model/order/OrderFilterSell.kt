@@ -23,13 +23,18 @@ data class OrderFilterSell(
                 .fromOrigin(origin)
                 .forStatus(status)
                 .scrollTo(continuation, sort)
-        ).limit(limit).with(sort(sort)).withHint(hint(continuation))
+        ).limit(limit).with(sort(sort)).apply {
+            val hint = hint(continuation)
+            if (hint != null) {
+                this.withHint(hint)
+            }
+        }
     }
 
-    private fun hint(continuation: String?): Document = when {
+    private fun hint(continuation: String?): Document? = when {
         continuation == null || (singlePlatform && singleStatus) -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys
         singlePlatform && singleStatus.not() -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys
         singleStatus && singlePlatform.not() -> OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys
-        else -> OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys
+        else -> null
     }
 }
