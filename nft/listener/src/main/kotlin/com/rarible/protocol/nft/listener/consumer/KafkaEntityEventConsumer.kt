@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.listener.consumer
 
 import com.rarible.blockchain.scanner.configuration.KafkaProperties
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.util.getLogTopicPrefix
 import com.rarible.core.daemon.DaemonWorkerProperties
@@ -11,7 +12,6 @@ import com.rarible.core.daemon.sequential.ConsumerBatchWorker
 import com.rarible.core.daemon.sequential.ConsumerWorkerHolder
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
-import com.rarible.protocol.nft.core.service.EntityEventListener
 import io.micrometer.core.instrument.MeterRegistry
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import scalether.domain.Address

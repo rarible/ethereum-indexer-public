@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.configuration
 
+import com.rarible.blockchain.scanner.ethereum.reduce.MetricProperties
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.misc.toAddressSet
@@ -15,8 +16,8 @@ const val RARIBLE_PROTOCOL_NFT_INDEXER = "common"
 data class NftIndexerProperties(
     val basePublicApiUrl: String,
     val kafkaReplicaSet: String,
-    val blockchain: Blockchain,
-    val metricRootPath: String,
+    override val blockchain: Blockchain,
+    override val metricRootPath: String,
     val maxPollRecords: Int = 100,
     var cryptoPunksContractAddress: String,
     var ensDomainsContractAddress: String,
@@ -36,7 +37,7 @@ data class NftIndexerProperties(
     val action: ActionProperties = ActionProperties(),
     val collection: CollectionProperties = CollectionProperties(),
     val ipfs: IpfsProperties
-) {
+) : MetricProperties {
     data class ActionProperties(
         val burnDelay: Duration = Duration.ofHours(24)
     )

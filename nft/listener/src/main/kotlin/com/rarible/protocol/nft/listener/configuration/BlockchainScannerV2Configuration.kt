@@ -3,11 +3,11 @@ package com.rarible.protocol.nft.listener.configuration
 import com.rarible.blockchain.scanner.configuration.KafkaProperties
 import com.rarible.blockchain.scanner.ethereum.EnableEthereumScanner
 import com.rarible.blockchain.scanner.ethereum.configuration.EthereumScannerProperties
+import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.ethereum.listener.log.LogEventDescriptorHolder
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.service.EntityEventListener
 import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory

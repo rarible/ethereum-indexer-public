@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.model
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumEntityEvent
+
 data class CompositeEvent(
     val itemEvent: ItemEvent?,
     val ownershipEvents: List<OwnershipEvent>

@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.token.reduce
 
+import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.apm.withTransaction
 import com.rarible.core.application.ApplicationEnvironmentInfo
@@ -10,7 +11,6 @@ import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
 import com.rarible.protocol.nft.core.model.EntityEventListeners
 import com.rarible.protocol.nft.core.model.SubscriberGroup
 import com.rarible.protocol.nft.core.model.SubscriberGroups
-import com.rarible.protocol.nft.core.service.EntityEventListener
 import org.springframework.stereotype.Component
 
 @Component

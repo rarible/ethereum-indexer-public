@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce
 
+import com.rarible.blockchain.scanner.ethereum.reduce.LoggingReducer
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.nft.core.misc.combineIntoChain
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
-import com.rarible.protocol.nft.core.service.LoggingReducer
 import com.rarible.protocol.nft.core.service.ownership.reduce.lazy.LazyOwnershipReducer
 import com.rarible.protocol.nft.core.service.ownership.reduce.status.EventStatusOwnershipReducer
 import com.rarible.protocol.nft.core.service.ownership.reduce.status.OwnershipCalculatedFieldReducer

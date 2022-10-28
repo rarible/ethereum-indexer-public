@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
+import com.rarible.blockchain.scanner.ethereum.reduce.LoggingReducer
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.nft.core.misc.combineIntoChain
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
-import com.rarible.protocol.nft.core.service.LoggingReducer
 import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.ItemCalculatedFieldsReducer
