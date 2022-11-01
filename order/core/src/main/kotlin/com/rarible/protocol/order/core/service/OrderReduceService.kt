@@ -284,6 +284,7 @@ class OrderReduceService(
         takeUsd = version.takeUsd,
         platform = version.platform,
         hash = version.hash,
+        approved = version.approved,
 
         createdAt = createdAt.takeUnless { it == Instant.EPOCH } ?: version.createdAt,
         lastUpdateAt = version.createdAt,
@@ -294,7 +295,6 @@ class OrderReduceService(
         fill = fill,
         cancelled = cancelled,
         makeStock = makeStock,
-        approved = approved
     )
 
     private suspend fun getUpdatedPriceHistoryRecords(
