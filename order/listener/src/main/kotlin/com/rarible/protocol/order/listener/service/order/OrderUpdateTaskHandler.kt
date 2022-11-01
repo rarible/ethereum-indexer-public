@@ -11,7 +11,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.time.delay
@@ -37,7 +36,7 @@ class OrderUpdateTaskHandler(
 
     override fun runLongTask(from: Long?, param: String): Flow<Long> {
         val status = param.ifNotBlank()?.let { OrderStatus.valueOf(it) }
-        return orderRepository.findAllBeforeLastUpdateAt(from?.let { Date(it) }, status)
+        return orderRepository.findAllBeforeLastUpdateAt(from?.let { Date(it) }, status, null)
             .chunked(properties.parallelOrderUpdateStreams)
             .map { orders ->
                 coroutineScope {
@@ -62,7 +61,7 @@ class OrderUpdateTaskHandler(
     }
 }
 
-private fun <T> Flow<T>.chunked(size: Int): Flow<List<T>> = flow {
+fun <T> Flow<T>.chunked(size: Int): Flow<List<T>> = flow {
     var list = mutableListOf<T>()
     this@chunked.collect {
         list.add(it)
