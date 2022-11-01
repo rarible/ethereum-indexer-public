@@ -59,7 +59,7 @@ class OrderUpdateApprovalTaskHandler(
                         async { handleOrder(it) }
                     }.awaitAll()
                 }
-                orders.minOf { it.lastUpdateAt.toEpochMilli() }
+                orders.minOf { it.lastUpdateAt.epochSecond }
             }
             .takeWhile { it > taskParam.listedAfter }
     }
@@ -104,7 +104,7 @@ class OrderUpdateApprovalTaskHandler(
     )
 
     companion object {
-        private val objectMapper = ObjectMapper().registerKotlinModule()
+        val objectMapper = ObjectMapper().registerKotlinModule()
         const val UPDATE_ORDER_APPROVAL = "UPDATE_ORDER_APPROVAL"
     }
 }
