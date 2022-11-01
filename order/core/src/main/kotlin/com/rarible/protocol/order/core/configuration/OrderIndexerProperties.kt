@@ -100,7 +100,8 @@ data class OrderIndexerProperties(
         val maxOpenSeaNonceCalculation: Int = 10,
         val skipGetTrace: Boolean = false,
         val checkOnChainApprove: Boolean = false,
-        val applyOnChainApprove: Boolean = false
+        val applyOnChainApprove: Boolean = false,
+        val searchSudoSwapErc1155Transfer: Boolean = false
     )
 
     data class RaribleOrderExpirationProperties(

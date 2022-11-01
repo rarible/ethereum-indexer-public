@@ -44,6 +44,7 @@ class OpenSeaOrderConverter(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val openSeaExchangeDomainHashV2 = Word.apply(properties.openSeaExchangeDomainHashV2)
+    private val seaportLoadProperties = properties.seaportLoad
 
     suspend fun convert(clientSeaportOrder: SeaportOrder): OrderVersion? {
         if (clientSeaportOrder.taker != null) return null
@@ -82,7 +83,12 @@ class OpenSeaOrderConverter(
                 val take = convertToAsset(consideration.filter { it.itemType == offererConsiderationItemType })
 
                 if (take.value != currentPrice) {
-                    logger.seaportInfo("protocol total amount must be equal currentPrice: $clientSeaportOrder")
+                    logger.seaportInfo("Protocol total amount must be equal currentPrice: $clientSeaportOrder")
+                    seaportErrorCounter.increment()
+                    return null
+                }
+                if (make.type.token in seaportLoadProperties.ignoredSellTokens) {
+                    logger.seaportInfo("Skip order $orderHash with token ${make.type.token}")
                     seaportErrorCounter.increment()
                     return null
                 }

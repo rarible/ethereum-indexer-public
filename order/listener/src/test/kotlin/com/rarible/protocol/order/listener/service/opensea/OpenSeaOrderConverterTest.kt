@@ -20,6 +20,7 @@ import com.rarible.protocol.order.core.model.SeaportItemType
 import com.rarible.protocol.order.core.model.SeaportOrderType
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
+import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.data.randomConsideration
 import com.rarible.protocol.order.listener.data.randomOffer
 import com.rarible.protocol.order.listener.data.randomOrderParameters
@@ -39,8 +40,12 @@ internal class OpenSeaOrderConverterTest {
     private val exchangeContracts = mockk<OrderIndexerProperties.ExchangeContractAddresses>()
     private val openSeaErrorCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
     private val seaportErrorCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
+    private val seaportLoadProperties = mockk<SeaportLoadProperties>() {
+        every { ignoredSellTokens } returns emptyList()
+    }
     private val properties = mockk<OrderListenerProperties> {
         every { openSeaExchangeDomainHashV2 } returns randomWord()
+        every { seaportLoad } returns seaportLoadProperties
     }
     private val priceUpdateService = mockk<PriceUpdateService> {
         coEvery { withUpdatedPrices(any<OrderVersion>()) } coAnswers { it.invocation.args.first() as OrderVersion }
@@ -210,6 +215,39 @@ internal class OpenSeaOrderConverterTest {
             assertThat(this.consideration[0].token).isEqualTo(consideration1.token)
             assertThat(this.consideration[1].token).isEqualTo(consideration1.token)
         }
+    }
+
+    @Test
+    fun `should ignore order with specific token`() = runBlocking<Unit> {
+        val offer = randomOffer().copy(
+            itemType = ItemType.ERC721, startAmount = BigInteger.ONE, endAmount = BigInteger.ONE
+        )
+        val paymentToken = randomAddress()
+        val amount1 = randomBigInt()
+        val consideration1 = randomConsideration().copy(
+            itemType = ItemType.ERC20, token = paymentToken, startAmount = amount1, endAmount = amount1
+        )
+        val amount2 = randomBigInt()
+        val consideration2 = randomConsideration().copy(
+            itemType = ItemType.ERC20, token = paymentToken, startAmount = amount2, endAmount = amount2
+        )
+        val parameters = randomOrderParameters().copy(
+            offer = listOf(offer), consideration = listOf(consideration1, consideration2),
+            orderType = OrderType.PARTIAL_RESTRICTED
+        )
+        val protocolData = randomProtocolData().copy(parameters = parameters)
+
+        val seaportOrder = randomSeaportOrder()
+            .copy(
+                taker = null,
+                protocolData = protocolData,
+                currentPrice = amount1 + amount2,
+                orderType = com.rarible.opensea.client.model.v2.SeaportOrderType.BASIC
+            )
+        every { seaportLoadProperties.ignoredSellTokens } returns listOf(offer.token)
+
+        val orderVersion = converter.convert(seaportOrder)
+        assertThat(orderVersion).isNull()
     }
 
     @Test

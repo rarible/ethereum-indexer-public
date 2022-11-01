@@ -4,6 +4,7 @@ import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.protocol.order.core.model.OpenSeaFetchState
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import scalether.domain.Address
 import java.time.Duration
 import java.time.Instant
 
@@ -51,7 +52,8 @@ data class SeaportLoadProperties(
     val retryDelay: Duration = Duration.ofMillis(500),
     val pollingPeriod: Duration = Duration.ofSeconds(10),
     val errorDelay: Duration = Duration.ofSeconds(5),
-    val validateSignature: Boolean = true
+    val validateSignature: Boolean = true,
+    val ignoredSellTokens: List<Address> = emptyList()
 )
 
 data class LooksrareLoadProperties(
