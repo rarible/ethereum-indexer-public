@@ -61,7 +61,7 @@ class OrderUpdateApprovalTaskHandler(
                 }
                 orders.minOf { it.lastUpdateAt.toEpochMilli() }
             }
-            .takeWhile { it < taskParam.listedAfter }
+            .takeWhile { it > taskParam.listedAfter }
     }
 
     private suspend fun handleOrder(order: Order) {
