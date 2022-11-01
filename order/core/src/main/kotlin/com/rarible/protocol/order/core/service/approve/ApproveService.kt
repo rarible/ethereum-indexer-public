@@ -87,7 +87,7 @@ class ApproveService(
         return checkPlatformApprove(platform) {
             val result = contract.isApprovedForAll(owner, it).awaitFirst()
             logger.info(
-                "Approval check result: owner={}, collection={}, operator={}", owner, collection, operators
+                "Approval check result: owner={}, collection={}, operator={}, result={}", owner, collection, it, result
             )
             result
         } ?: error("Can't be null")
