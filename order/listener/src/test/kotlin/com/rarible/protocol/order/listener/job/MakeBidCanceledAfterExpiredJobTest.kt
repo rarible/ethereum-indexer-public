@@ -7,9 +7,6 @@ import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.listener.data.createOrderBid
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import java.time.Duration
-import java.time.Instant
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.runBlocking
@@ -18,6 +15,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import java.time.Duration
+import java.time.Instant
 
 @IntegrationTest
 @KafkaTest

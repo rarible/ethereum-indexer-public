@@ -20,7 +20,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import java.time.Duration
-import java.util.*
+import java.util.UUID
 
 @ChangeLog(order = "00008")
 class ChangeLog00008RemoveInvalidOrders {
@@ -50,12 +50,12 @@ class ChangeLog00008RemoveInvalidOrders {
 
                     val updateEvent = OrderUpdateEventDto(
                         eventId = UUID.randomUUID().toString(),
-                        orderId = canceledOrder.hash.toString(),
+                        orderId = canceledOrder.id.toString(),
                         order = orderDtoConverter.convert(canceledOrder)
                     )
                     publisher.publish(updateEvent)
 
-                    logger.info("Order ${canceledOrder.hash} was canceled")
+                    logger.info("Order ${canceledOrder.id} was canceled")
                 }
             }
             counter++
@@ -69,7 +69,7 @@ class ChangeLog00008RemoveInvalidOrders {
         counter = 0L
         invalidOrders.forEach {
             orderRepository.remove(it.hash)
-            logger.info("Order ${it.hash} was removed")
+            logger.info("Order ${it.id} was removed")
             counter++
         }
         logger.info("--- All $counter orders was removed")

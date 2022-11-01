@@ -35,7 +35,11 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import scalether.domain.request.Transaction
@@ -592,6 +596,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 expectedFirstBidOrder.copy(
                     maker = secondBidderAddress,
                     make = secondMake,
+                    id = Order.Id(secondBidHash),
                     hash = secondBidHash,
                     makeStock = secondMake.value,
 

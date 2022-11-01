@@ -58,7 +58,7 @@ class OrderInvertService(
         amount: BigInteger,
         salt: Word
     ): Order {
-        val originData = order.data as? OrderOpenSeaV1DataV1 ?: error("Order ${order.hash} has unexpected data type")
+        val originData = order.data as? OrderOpenSeaV1DataV1 ?: error("Order ${order.id} has unexpected data type")
 
         val transferCallData = invertCallData(
             maker,
@@ -81,9 +81,11 @@ class OrderInvertService(
         }
         return order.invert(maker, amount, salt, newData = invertedData)
             .run {
+                val hash = Order.hash(this)
                 copy(
                     // Recalculate OpenSea-specific hash
-                    hash = Order.hash(this),
+                    id = Order.Id(hash),
+                    hash = hash,
                     start = nowMillis().epochSecond - 1,
                     end = null
                 )

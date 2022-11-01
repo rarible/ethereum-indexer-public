@@ -89,7 +89,7 @@ object OrderRepositoryIndexes {
                     .where(Order::status.name).isEqualTo(OrderStatus.ACTIVE)
                     .and(Order::make / Asset::type / AssetType::nft).isEqualTo(true)
             )
-            )
+        )
         .background()
 
     val SELL_ORDERS_BY_CURRENCY_COLLECTION_DEFINITION = Index()
@@ -212,10 +212,11 @@ object OrderRepositoryIndexes {
         .on(Order::platform.name, Sort.Direction.ASC)
         .on(Order::status.name, Sort.Direction.ASC)
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-        .partial(PartialIndexFilter.of(
-            Criteria.where("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
-                .and(Order::platform.name).isEqualTo(Platform.RARIBLE)
-        )
+        .partial(
+            PartialIndexFilter.of(
+                Criteria.where("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
+                    .and(Order::platform.name).isEqualTo(Platform.RARIBLE)
+            )
         )
         .background()
 
@@ -230,6 +231,11 @@ object OrderRepositoryIndexes {
     val BY_CREATED_AT_AND_ID = Index()
         .on(Order::createdAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
+        .background()
+
+    // --------------------- for searching by hash ---------------------//
+    val BY_HASH = Index()
+        .on(Order::hash.name, Sort.Direction.ASC)
         .background()
 
     val ALL_INDEXES = listOf(
@@ -265,5 +271,7 @@ object OrderRepositoryIndexes {
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,
         BY_CREATED_AT_AND_ID,
         SELL_ORDERS_BY_CURRENCY_COLLECTION_DEFINITION,
+
+        BY_HASH
     )
 }

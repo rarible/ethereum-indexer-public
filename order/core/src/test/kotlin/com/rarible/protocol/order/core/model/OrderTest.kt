@@ -11,7 +11,6 @@ import com.rarible.protocol.order.core.data.withMakeFill
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -488,14 +487,14 @@ class OrderTest {
         @Test
         fun `V2 - different hash key for make-fill and take-fill orders data V1 vs data V2`() {
             val order = createOrder()
-            assertThat(order.hash).isNotEqualTo(order.withMakeFill().hash)
+            assertThat(order.id).isNotEqualTo(order.withMakeFill().id)
         }
 
         @Test
         fun `V2 - different hash key for make-fill and take-fill orders data V2`() {
             val order = createOrder()
-            assertThat(order.withMakeFill(isMakeFill = false).hash)
-                .isNotEqualTo(order.withMakeFill(isMakeFill = true).hash)
+            assertThat(order.withMakeFill(isMakeFill = false).id)
+                .isNotEqualTo(order.withMakeFill(isMakeFill = true).id)
         }
 
     }

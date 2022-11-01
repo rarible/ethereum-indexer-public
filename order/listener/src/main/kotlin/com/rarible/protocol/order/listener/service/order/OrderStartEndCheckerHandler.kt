@@ -10,14 +10,13 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.merge
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Component
 @ExperimentalCoroutinesApi
@@ -47,10 +46,10 @@ class OrderStartEndCheckerHandler(
             .collect { order ->
                 val saved = orderRepository.save(order.withUpdatedStatus(now))
                 if (order.isEnded()) orderExpiredMetric.increment() else orderStartedMetric.increment()
-                logger.info("Change order ${saved.hash} status to ${saved.status}")
+                logger.info("Change order ${saved.id} status to ${saved.status}")
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
-                    orderId = saved.hash.toString(),
+                    orderId = saved.id.toString(),
                     order = orderDtoConverter.convert(saved)
                 )
                 publisher.publish(updateEvent)

@@ -8,7 +8,6 @@ import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.changock.migration.api.annotations.NonLockGuarded
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -39,7 +38,7 @@ class ChangeLog00013AddTakeMakeToOrder {
                     logger.info("Fixed $counter orders")
                 }
             } catch (ex: Exception) {
-                logger.error("Failed to set price for ${order.hash} order")
+                logger.error("Failed to set price for ${order.id} order")
             }
         }
         logger.info("--- Prices were set for $counter orders ")

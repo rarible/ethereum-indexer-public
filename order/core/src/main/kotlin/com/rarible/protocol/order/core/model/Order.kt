@@ -9,7 +9,6 @@ import com.rarible.protocol.order.core.misc.zeroWord
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
-import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
 import scala.Tuple10
@@ -28,6 +27,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.time.Instant
+import org.springframework.data.annotation.Id as SpringDataId
 
 @Document(MongoOrderRepository.COLLECTION)
 data class Order(
@@ -78,8 +78,10 @@ data class Order(
 
     val lastEventId: String? = null,
 
-    @Id
-    val hash: Word = hashKey(maker, make.type, take.type, salt.value, data),
+    @SpringDataId
+    val id: Id = Id(hashKey(maker, make.type, take.type, salt.value, data)),
+
+    val hash: Word = id.hash,
 
     @Version
     val version: Long? = null,
@@ -317,7 +319,7 @@ data class Order(
 
         private fun calculateFee(data: OrderData, protocolCommission: EthUInt256): EthUInt256 {
             fun calculate(fees: List<Part>): EthUInt256 {
-                return fees.fold(protocolCommission) { acc, part -> acc + part.value  }
+                return fees.fold(protocolCommission) { acc, part -> acc + part.value }
             }
             return when (data) {
                 is OrderRaribleV2DataV1 -> calculate(data.originFees)
@@ -363,7 +365,7 @@ data class Order(
         ): Word {
             return when (type) {
                 OrderType.RARIBLE_V2 -> raribleExchangeV2Hash(maker, make, taker, take, salt, start, end, data)
-                OrderType.RARIBLE_V1 -> raribleExchangeV1Hash(maker, make,  take, salt, data)
+                OrderType.RARIBLE_V1 -> raribleExchangeV1Hash(maker, make, take, salt, data)
                 OrderType.OPEN_SEA_V1 -> openSeaV1Hash(maker, make, taker, take, salt, start, end, data)
                 OrderType.SEAPORT_V1,
                 OrderType.LOOKSRARE,
@@ -382,8 +384,10 @@ data class Order(
         }
 
         private fun legacyMessage(maker: Address, make: Asset, take: Asset, salt: BigInteger, data: OrderData): String {
-            val legacyMakeAsset = make.type.toLegacy() ?: error("Unsupported make asset ${make.type} by legacy contract")
-            val legacyTakeAsset = take.type.toLegacy() ?: error("Unsupported take asset ${take.type} by legacy contract")
+            val legacyMakeAsset = make.type.toLegacy()
+                ?: error("Unsupported make asset ${make.type} by legacy contract")
+            val legacyTakeAsset = take.type.toLegacy()
+                ?: error("Unsupported take asset ${take.type} by legacy contract")
             val legacyData = (data as? OrderDataLegacy) ?: error("Unsupported data for legacy contract")
 
             val binary = Tuples.legacyOrderHashType().encode(
@@ -418,8 +422,10 @@ data class Order(
             salt: BigInteger,
             data: OrderData
         ): Word {
-            val legacyMakeAsset = make.type.toLegacy() ?: error("Unsupported make asset ${make.type} by legacy contract")
-            val legacyTakeAsset = take.type.toLegacy() ?: error("Unsupported take asset ${take.type} by legacy contract")
+            val legacyMakeAsset = make.type.toLegacy()
+                ?: error("Unsupported make asset ${make.type} by legacy contract")
+            val legacyTakeAsset = take.type.toLegacy()
+                ?: error("Unsupported take asset ${take.type} by legacy contract")
             val legacyData = (data as? OrderDataLegacy) ?: error("Unsupported data for legacy contract")
 
             val binary = Tuples.legacyOrderHashType().encode(
@@ -485,7 +491,8 @@ data class Order(
             end: Long?,
             data: OrderData
         ): Word {
-            val openSeaData = (data as? OrderOpenSeaV1DataV1) ?: error("Unsupported data type ${data.javaClass} for OpenSea contract")
+            val openSeaData = (data as? OrderOpenSeaV1DataV1)
+                ?: error("Unsupported data type ${data.javaClass} for OpenSea contract")
             val nftAsset = when {
                 make.type.nft -> make.type
                 take.type.nft -> take.type
@@ -694,16 +701,22 @@ data class Order(
             }
         }
 
-        private val TYPE_HASH =
-            keccak256("Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end,bytes4 dataType,bytes data)Asset(AssetType assetType,uint256 value)AssetType(bytes4 assetClass,bytes data)")
+        private val TYPE_HASH = keccak256(
+            "Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end,bytes4 dataType,bytes data)Asset(AssetType assetType,uint256 value)AssetType(bytes4 assetClass,bytes data)"
+        )
 
-        private val OPEN_SEA_ORDER_TYPE_HASH = Word.apply("0xdba08a88a748f356e8faf8578488343eab21b1741728779c9dcfdc782bc800f8")
+        private val OPEN_SEA_ORDER_TYPE_HASH = Word.apply(
+            "0xdba08a88a748f356e8faf8578488343eab21b1741728779c9dcfdc782bc800f8"
+        )
 
         fun openSeaV1EIP712HashToSign(hash: Word, domain: Word): Word {
-            return Word(Hash.sha3(
-                Binary.apply("0x1901")
-                    .add(domain)
-                    .add(hash).bytes()))
+            return Word(
+                Hash.sha3(
+                    Binary.apply("0x1901")
+                        .add(domain)
+                        .add(hash).bytes()
+                )
+            )
         }
 
         fun getFeeSide(make: AssetType, take: AssetType): FeeSide {
@@ -722,6 +735,29 @@ data class Order(
             return Hash.sha3((lastEventId ?: "") + eventId)
         }
     }
+
+    data class Id(
+        val hash: Word,
+        val version: Long? = null
+    ) {
+        override fun toString(): String = version?.let { "${hash.prefixed()}$DIVIDER$it" } ?: hash.prefixed()
+
+        companion object {
+            private const val DIVIDER = "_"
+
+            fun String.toOrderId(): Id {
+                val parts = this.split(DIVIDER)
+
+                return when (parts.size) {
+                    2 -> Id(Word.apply(parts[0]), parts[1].toLong())
+                    1 -> Id(Word.apply(this))
+                    else -> throw IllegalArgumentException(
+                        "OrderId=$this has invalid format. It must be in format of hash or hash${DIVIDER}version"
+                    )
+                }
+            }
+        }
+    }
 }
 
 fun Order.invert(
@@ -731,13 +767,15 @@ fun Order.invert(
     newData: OrderData = this.data
 ): Order = run {
     val (makeValue, takeValue) = calculateAmounts(make.value.value, take.value.value, amount, isBid())
+    val hash = Order.hashKey(maker, take.type, make.type, salt.value, newData)
     this.copy(
         maker = maker,
         taker = this.maker,
         make = take.copy(value = EthUInt256(makeValue)),
         take = make.copy(value = EthUInt256(takeValue)),
         data = newData,
-        hash = Order.hashKey(maker, take.type, make.type, salt.value, newData),
+        id = Order.Id(hash),
+        hash = hash,
         salt = EthUInt256.of(newSalt),
         makeStock = EthUInt256.ZERO,
         signature = null,
@@ -817,11 +855,17 @@ val Order.currency: AssetType
  */
 val CRYPTO_PUNKS_SALT: EthUInt256 = EthUInt256.ZERO
 
-internal const val OFFER_ITEM_TYPE_STRING = "OfferItem(uint8 itemType,address token,uint256 identifierOrCriteria,uint256 startAmount,uint256 endAmount)";
-internal const val CONSIDERATION_ITEM_TYPE_STRING = "ConsiderationItem(uint8 itemType,address token,uint256 identifierOrCriteria,uint256 startAmount,uint256 endAmount,address recipient)";
-internal const val ORDER_COMPONENTS_PARTIAL_TYPE_STRING = "OrderComponents(address offerer,address zone,OfferItem[] offer,ConsiderationItem[] consideration,uint8 orderType,uint256 startTime,uint256 endTime,bytes32 zoneHash,uint256 salt,bytes32 conduitKey,uint256 counter)";
-internal const val ORDER_TYPE_STRING = "${ORDER_COMPONENTS_PARTIAL_TYPE_STRING}${CONSIDERATION_ITEM_TYPE_STRING}${OFFER_ITEM_TYPE_STRING}"
+internal const val OFFER_ITEM_TYPE_STRING =
+    "OfferItem(uint8 itemType,address token,uint256 identifierOrCriteria,uint256 startAmount,uint256 endAmount)";
+internal const val CONSIDERATION_ITEM_TYPE_STRING =
+    "ConsiderationItem(uint8 itemType,address token,uint256 identifierOrCriteria,uint256 startAmount,uint256 endAmount,address recipient)";
+internal const val ORDER_COMPONENTS_PARTIAL_TYPE_STRING =
+    "OrderComponents(address offerer,address zone,OfferItem[] offer,ConsiderationItem[] consideration,uint8 orderType,uint256 startTime,uint256 endTime,bytes32 zoneHash,uint256 salt,bytes32 conduitKey,uint256 counter)";
+internal const val ORDER_TYPE_STRING =
+    "${ORDER_COMPONENTS_PARTIAL_TYPE_STRING}${CONSIDERATION_ITEM_TYPE_STRING}${OFFER_ITEM_TYPE_STRING}"
 
 internal val OFFER_ITEM_TYPE_HASH = keccak256(OFFER_ITEM_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))
-internal val CONSIDERATION_ITEM_TYPE_HASH = keccak256(CONSIDERATION_ITEM_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))
+internal val CONSIDERATION_ITEM_TYPE_HASH = keccak256(
+    CONSIDERATION_ITEM_TYPE_STRING.toByteArray(StandardCharsets.UTF_8)
+)
 internal val ORDER_TYPE_HASH = keccak256(ORDER_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))

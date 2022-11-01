@@ -67,7 +67,7 @@ class SeaportOrderLoader(
                                         orderUpdateService.updateMakeStock(this).first
                                     }
                                     seaportSaveCounter.increment()
-                                    logger.seaportInfo("Saved new order ${saved.hash}: ${saved.status}")
+                                    logger.seaportInfo("Saved new order ${saved.id}: ${saved.status}")
                                 }
                             }
                         }.awaitAll()

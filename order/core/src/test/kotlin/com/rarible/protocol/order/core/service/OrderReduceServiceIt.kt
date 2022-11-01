@@ -32,6 +32,7 @@ import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
@@ -571,7 +572,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun `should remove amm order if history reverted`() = runBlocking<Unit> {
         val onChainAmmOrder = randomSellOnChainAmmOrder()
-        orderRepository.save(createOrder().copy(hash = onChainAmmOrder.hash))
+        orderRepository.save(createOrder().copy(id = Order.Id(onChainAmmOrder.hash), hash = onChainAmmOrder.hash))
         prepareStorage(LogEventStatus.REVERTED, onChainAmmOrder)
 
         val result = orderReduceService.updateOrder(onChainAmmOrder.hash)!!

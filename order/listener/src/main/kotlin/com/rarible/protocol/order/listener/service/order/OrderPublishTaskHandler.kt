@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.time.delay
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 @Component
 class OrderPublishTaskHandler(
@@ -33,7 +34,7 @@ class OrderPublishTaskHandler(
             .map { order ->
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
-                    orderId = order.hash.toString(),
+                    orderId = order.id.toString(),
                     order = orderDtoConverter.convert(order)
                 )
                 publisher.publish(updateEvent)

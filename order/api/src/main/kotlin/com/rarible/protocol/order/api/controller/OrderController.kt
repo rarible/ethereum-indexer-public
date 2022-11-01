@@ -36,6 +36,7 @@ import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -54,7 +55,6 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
-import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
@@ -90,7 +90,7 @@ class OrderController(
     )
     suspend fun reduceOrder(@PathVariable hash: String): OrderDto? {
         val order = optimisticLock {
-            orderReduceService.updateOrder(Word.apply(hash))
+            orderReduceService.updateOrder(hash.toOrderId().hash)
         }
         return order?.let { orderDtoConverter.convert(it) }
     }
@@ -99,7 +99,7 @@ class OrderController(
         hash: String,
         form: PrepareOrderTxFormDto
     ): ResponseEntity<PrepareOrderTxResponseDto> {
-        val order = orderService.get(Word.apply(hash))
+        val order = orderService.get(hash.toOrderId().hash)
         val result = with(prepareTxService.prepareTransaction(order, form)) {
             PrepareOrderTxResponseDto(
                 transferProxyAddress,
@@ -139,7 +139,7 @@ class OrderController(
     }
 
     override suspend fun prepareOrderCancelTransaction(hash: String): ResponseEntity<PreparedOrderTxDto> {
-        val order = orderService.get(Word.apply(hash))
+        val order = orderService.get(hash.toOrderId().hash)
         val result = with(prepareTxService.prepareCancelTransaction(order)) {
             PreparedOrderTxDto(to, data)
         }
@@ -153,12 +153,12 @@ class OrderController(
     }
 
     override fun getOrdersByIds(list: OrderIdsDto): ResponseEntity<Flow<OrderDto>> {
-        val result = orderService.getAll(list.ids).map { orderDtoConverter.convert(it) }
+        val result = orderService.getAll(list.ids.map { it.toOrderId().hash }).map { orderDtoConverter.convert(it) }
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getOrderByHash(hash: String): ResponseEntity<OrderDto> {
-        val order = orderService.get(Word.apply(hash))
+        val order = orderService.get(hash.toOrderId().hash)
         val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)
     }
@@ -166,7 +166,7 @@ class OrderController(
     override suspend fun updateOrderMakeStock(
         hash: String
     ): ResponseEntity<OrderDto> {
-        val order = orderService.updateMakeStock(Word.apply(hash))
+        val order = orderService.updateMakeStock(hash.toOrderId().hash)
         val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)
     }
@@ -204,7 +204,7 @@ class OrderController(
         hash: String,
         numNFTs: Int
     ): ResponseEntity<AmmTradeInfoDto> {
-        val result = orderService.getAmmBuyInfo(Word.apply(hash), numNFTs)
+        val result = orderService.getAmmBuyInfo(hash.toOrderId().hash, numNFTs)
         return ResponseEntity.ok(AmmTradeInfoDtoConverter.convert(result))
     }
 
@@ -213,7 +213,7 @@ class OrderController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<HoldNftItemIdsDto> {
-        val result = orderService.getAmmOrderHoldItemIds(Word.apply(hash), continuation, limit(size))
+        val result = orderService.getAmmOrderHoldItemIds(hash.toOrderId().hash, continuation, limit(size))
         return ResponseEntity.ok(HoldNftItemIdsDto(result.itemIds.map { it.toString() }, result.continuation))
     }
 
@@ -225,9 +225,16 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val requestSize = limit(size)
         val result = orderService.getAmmOrdersByItemId(
-            AddressParser.parse(contract), EthUInt256.of(tokenId), continuation, limit(size)
+            contract = AddressParser.parse(contract),
+            tokenId = EthUInt256.of(tokenId),
+            continuation = continuation,
+            size = limit(size)
         )
-        val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else result.last().hash.prefixed()
+        val nextContinuation = if (result.isEmpty() || result.size < requestSize) {
+            null
+        } else {
+            result.last().hash.prefixed()
+        }
         val dto = OrdersPaginationDto(
             result.map { orderDtoConverter.convert(it) },
             nextContinuation

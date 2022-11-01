@@ -26,9 +26,9 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.isMakeFillOrder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Binary
-import java.math.BigInteger
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.math.BigInteger
 
 @Component
 class OrderDtoConverter(
@@ -38,6 +38,7 @@ class OrderDtoConverter(
 ) {
     suspend fun convert(source: Order): OrderDto {
         val orderStatus = OrderStatusDtoConverter.convert(source.status)
+        val id = source.id.toString()
         return when (source.type) {
             OrderType.RARIBLE_V1 -> LegacyOrderDto(
                 maker = source.maker,
@@ -57,6 +58,7 @@ class OrderDtoConverter(
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
+                id = id,
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderDataLegacyDto,
                 makePrice = source.makePrice,
@@ -88,6 +90,7 @@ class OrderDtoConverter(
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
+                id = id,
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderRaribleV2DataDto,
                 makePrice = source.makePrice,
@@ -119,6 +122,7 @@ class OrderDtoConverter(
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
+                id = id,
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderOpenSeaV1DataV1Dto,
                 makePrice = source.makePrice,
@@ -150,6 +154,7 @@ class OrderDtoConverter(
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
+                id = id,
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderSeaportDataV1Dto,
                 makePrice = source.makePrice,
@@ -183,6 +188,7 @@ class OrderDtoConverter(
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
+                id = id,
                 hash = source.hash,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
                 makeBalance = BigInteger.ZERO,
@@ -215,6 +221,7 @@ class OrderDtoConverter(
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
+                id = id,
                 hash = source.hash,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
                 makeBalance = BigInteger.ZERO,
@@ -246,6 +253,7 @@ class OrderDtoConverter(
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
                 pending = null,
+                id = id,
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderLooksRareDataV1Dto,
                 makePrice = source.makePrice,
@@ -278,6 +286,7 @@ class OrderDtoConverter(
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
                 pending = null,
+                id = id,
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderAmmDataV1Dto,
                 makePrice = source.makePrice,

@@ -7,10 +7,9 @@ import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import io.changock.migration.api.annotations.NonLockGuarded
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.UUID
 
 @ChangeLog(order = "00006")
 class ChangeLog00006ExportOrderEvents {
@@ -29,7 +28,7 @@ class ChangeLog00006ExportOrderEvents {
             try {
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
-                    orderId = order.hash.toString(),
+                    orderId = order.id.toString(),
                     order = orderDtoConverter.convert(order)
                 )
                 publisher.publish(updateEvent)
@@ -40,7 +39,7 @@ class ChangeLog00006ExportOrderEvents {
                     logger.info("Published $counter events")
                 }
             } catch (ex: Exception) {
-                logger.error("Can't publish event for ${order.hash}")
+                logger.error("Can't publish event for ${order.id}")
             }
         }
         logger.info("--- All $counter orders events were published")

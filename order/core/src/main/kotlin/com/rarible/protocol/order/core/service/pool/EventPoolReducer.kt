@@ -3,7 +3,6 @@ package com.rarible.protocol.order.core.service.pool
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.AmmNftAssetType
-import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
@@ -17,6 +16,7 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Sell
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
+import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.PoolDeltaUpdate
 import com.rarible.protocol.order.core.model.PoolFeeUpdate
 import com.rarible.protocol.order.core.model.PoolHistory
@@ -50,6 +50,7 @@ class EventPoolReducer : Reducer<PoolHistory, Order> {
             createdAt = event.date,
             platform = event.source.toPlatform(),
             data = event.data.toOrderData(),
+            id = Order.Id(event.hash),
             hash = event.hash,
         )
     }

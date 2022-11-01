@@ -6,6 +6,7 @@ import com.rarible.core.task.TaskRepository
 import com.rarible.core.task.TaskStatus
 import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
 import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.OrderReduceService
 import io.daonomic.rpc.domain.Word
@@ -34,12 +35,12 @@ class OrderReduceTaskHandler(
             ?.takeUnless { it.isEmpty() }
 
         return orderReduceService.update(
-            fromOrderHash = from?.let { Word.apply(it) },
+            fromOrderHash = from?.toOrderId()?.hash,
             platforms = platforms,
             orderHash = null,
         )
             .filter { it.hash != OrderReduceService.EMPTY_ORDER_HASH }
-            .map { it.hash.toString() }
+            .map { it.id.toString() }
             .asFlow()
     }
 

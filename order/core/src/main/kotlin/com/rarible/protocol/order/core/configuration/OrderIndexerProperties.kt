@@ -47,7 +47,7 @@ data class OrderIndexerProperties(
     val sudoSwapAddresses: SudoSwapAddresses = SudoSwapAddresses(),
     val bidValidation: BidValidationProperties = BidValidationProperties()
 ) {
-    val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong()) * BigDecimal.valueOf(1, 18);
+    val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong()) * BigDecimal.valueOf(1, 18)
 
     data class BidValidationProperties(
         val minPriceUsd: BigDecimal = BigDecimal.ONE, //1 USD

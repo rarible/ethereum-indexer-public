@@ -73,22 +73,22 @@ sealed class OrderFilter {
             OrderFilterSort.LAST_UPDATE_ASC -> Sort.by(
                 Sort.Direction.ASC,
                 Order::lastUpdateAt.name,
-                Order::hash.name
+                Order::id.name
             )
             OrderFilterSort.DB_UPDATE_ASC -> Sort.by(
                 Sort.Direction.ASC,
                 Order::dbUpdatedAt.name,
-                Order::hash.name
+                Order::id.name
             )
             OrderFilterSort.DB_UPDATE_DESC -> Sort.by(
                 Sort.Direction.DESC,
                 Order::dbUpdatedAt.name,
-                Order::hash.name
+                Order::id.name
             )
             else -> Sort.by(
                 Sort.Direction.DESC,
                 Order::lastUpdateAt.name,
-                Order::hash.name
+                Order::id.name
             )
         }
     }
@@ -100,7 +100,7 @@ sealed class OrderFilter {
                 Sort.by(
                     Sort.Direction.ASC,
                     (currency?.let { Order::makePrice } ?: Order::makePriceUsd).name,
-                    Order::hash.name
+                    Order::id.name
                 )
             }
             OrderFilterSort.TAKE_PRICE_DESC -> {
@@ -108,7 +108,7 @@ sealed class OrderFilter {
                 Sort.by(
                     Sort.Direction.DESC,
                     (currency?.let { Order::takePrice } ?: Order::takePriceUsd).name,
-                    Order::hash.name
+                    Order::id.name
                 )
             }
             else -> sort(sort)
@@ -144,12 +144,14 @@ fun Criteria.fromOrigin(origin: Address?) = origin?.let {
 
 fun Criteria.forStatus(status: List<OrderStatusDto>?) =
     if (status?.isNotEmpty() == true) {
-        var statuses = status.map { OrderStatus.valueOf(it.name) }.toMutableList()
+        val statuses = status.map { OrderStatus.valueOf(it.name) }.toMutableList()
         if (OrderStatus.INACTIVE in statuses) {
             statuses += listOf(OrderStatus.ENDED, OrderStatus.NOT_STARTED)
         }
         and(Order::status).inValues(statuses)
-    } else this
+    } else {
+        and(Order::status).inValues(OrderStatus.ALL_EXCEPT_HISTORICAL)
+    }
 
 fun Criteria.forPlatform(platforms: List<Platform>): Criteria {
     return if (platforms.isEmpty()) {
@@ -183,7 +185,7 @@ fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort
                 Order::takePriceUsd lt c.afterPrice,
                 Criteria().andOperator(
                     Order::takePriceUsd isEqualTo c.afterPrice,
-                    Order::hash lt c.afterId
+                    Order::id lt c.afterId
                 )
             )
         }
@@ -198,7 +200,7 @@ fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort
                 Order::makePriceUsd gt c.afterPrice,
                 Criteria().andOperator(
                     Order::makePriceUsd isEqualTo c.afterPrice,
-                    Order::hash gt c.afterId
+                    Order::id gt c.afterId
                 )
             )
         }
@@ -210,7 +212,7 @@ fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort
                 Order::lastUpdateAt gt c.afterDate,
                 Criteria().andOperator(
                     Order::lastUpdateAt isEqualTo c.afterDate,
-                    Order::hash gt c.afterId
+                    Order::id gt c.afterId
                 )
             )
         }
@@ -222,7 +224,7 @@ fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort
                 Order::lastUpdateAt lt c.afterDate,
                 Criteria().andOperator(
                     Order::lastUpdateAt isEqualTo c.afterDate,
-                    Order::hash lt c.afterId
+                    Order::id lt c.afterId
                 )
             )
         }
@@ -234,7 +236,7 @@ fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort
                 Order::dbUpdatedAt gt c.afterDate,
                 Criteria().andOperator(
                     Order::dbUpdatedAt isEqualTo c.afterDate,
-                    Order::hash gt c.afterId
+                    Order::id gt c.afterId
                 )
             )
         }
@@ -246,7 +248,7 @@ fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort
                 Order::dbUpdatedAt lt c.afterDate,
                 Criteria().andOperator(
                     Order::dbUpdatedAt isEqualTo c.afterDate,
-                    Order::hash lt c.afterId
+                    Order::id lt c.afterId
                 )
             )
         }
@@ -265,7 +267,7 @@ fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort, currency: Ad
                         Order::takePrice lt c.afterPrice,
                         Criteria().andOperator(
                             Order::takePrice isEqualTo c.afterPrice,
-                            Order::hash lt c.afterId
+                            Order::id lt c.afterId
                         )
                     )
                 }
@@ -277,7 +279,7 @@ fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort, currency: Ad
                         Order::makePrice gt c.afterPrice,
                         Criteria().andOperator(
                             Order::makePrice isEqualTo c.afterPrice,
-                            Order::hash gt c.afterId
+                            Order::id gt c.afterId
                         )
                     )
                 }

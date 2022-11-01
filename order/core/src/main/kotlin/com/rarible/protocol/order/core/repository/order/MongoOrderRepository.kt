@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
 import com.rarible.protocol.order.core.model.OrderCounterableData
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
@@ -44,7 +45,7 @@ import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.time.Instant
-import java.util.*
+import java.util.Date
 
 @CaptureSpan(type = SpanType.DB)
 @Component
@@ -58,8 +59,8 @@ class MongoOrderRepository(
         dropIndexes(
             "make.type.token_1_make.type.tokenId_1_lastUpdateAt_1__id_1",
             "end_1_start_1_makeStock_1__id_1",
-            "make.type.nft_1_createdAt_1__id_1",  // Incorrect SELL_ORDERS_DEFINITION
-            "make.type.nft_1_platform_1_createdAt_1__id_1",// Incorrect SELL_ORDERS_PLATFORM_DEFINITION
+            "make.type.nft_1_createdAt_1__id_1", // Incorrect SELL_ORDERS_DEFINITION
+            "make.type.nft_1_platform_1_createdAt_1__id_1", // Incorrect SELL_ORDERS_PLATFORM_DEFINITION
             "makeStock_-1_lastUpdateAt_-1",
             "makeStock_-1_lastUpdateAt_-1__id_1",
             "makeStock_1_lastUpdateAt_1__id_1",
@@ -79,11 +80,11 @@ class MongoOrderRepository(
     }
 
     override suspend fun findById(hash: Word): Order? {
-        return template.findById<Order>(hash).awaitFirstOrNull()
+        return template.findById<Order>(Order.Id(hash)).awaitFirstOrNull()
     }
 
     override fun findAll(hashes: Collection<Word>): Flow<Order> {
-        val criteria = Criteria.where("_id").inValues(hashes)
+        val criteria = Criteria.where("_id").inValues(hashes.map { Order.Id(it) })
         return template.find<Order>(Query.query(criteria)).asFlow()
     }
 
@@ -96,7 +97,7 @@ class MongoOrderRepository(
     }
 
     override suspend fun remove(hash: Word): Boolean {
-        val criteria = Criteria.where("_id").isEqualTo(hash)
+        val criteria = Criteria.where("_id").isEqualTo(Order.Id(hash))
         return template.remove(Query(criteria), Order::class.java).awaitFirst().deletedCount > 0
     }
 
@@ -122,7 +123,7 @@ class MongoOrderRepository(
                     listOfNotNull(
                         Order::platform isEqualTo platform,
                         Order::status isEqualTo status,
-                        if (fromHash != null) Order::hash gt fromHash else null
+                        if (fromHash != null) Order::id gt Order.Id(fromHash) else null
                     )
                 )
             ).withHint(OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION.indexKeys)
@@ -144,6 +145,7 @@ class MongoOrderRepository(
     override fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
         val criteria = Criteria().andOperator(
             Order::make / Asset::type / NftAssetType::token isEqualTo token,
+            Order::status inValues OrderStatus.ALL_EXCEPT_HISTORICAL,
             Criteria().orOperator(
                 Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
                 (Order::make / Asset::type / NftAssetType::tokenId exists false)
@@ -162,6 +164,7 @@ class MongoOrderRepository(
         @Suppress("DuplicatedCode")
         val criteria = Criteria().andOperator(
             Order::take / Asset::type / NftAssetType::token isEqualTo token,
+            Order::status inValues OrderStatus.ALL_EXCEPT_HISTORICAL,
             Criteria().orOperator(
                 Order::take / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
                 (Order::take / Asset::type / NftAssetType::tokenId exists false)
@@ -201,7 +204,7 @@ class MongoOrderRepository(
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
-            .map { Word.apply(it.getString(idFiled)) }
+            .map { it.getString(idFiled).toOrderId().hash }
             .asFlow()
     }
 
@@ -218,7 +221,7 @@ class MongoOrderRepository(
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
-            .map { Word.apply(it.getString(idFiled)) }
+            .map { it.getString(idFiled).toOrderId().hash }
             .asFlow()
     }
 
@@ -237,7 +240,7 @@ class MongoOrderRepository(
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
-            .map { Word.apply(it.getString(idFiled)) }
+            .map { it.getString(idFiled).toOrderId().hash }
             .asFlow()
     }
 
@@ -272,15 +275,17 @@ class MongoOrderRepository(
     }
 
     override fun findAllLiveBidsHashesLastUpdatedBefore(before: Instant): Flow<Word> {
+        val idFiled = "_id"
         val criteria = (Order::take / Asset::type / AssetType::nft isEqualTo true)
             .and(Order::platform).isEqualTo(Platform.RARIBLE)
             .and(Order::status).`in`(OrderStatus.ACTIVE, OrderStatus.INACTIVE)
             .and(Order::lastUpdateAt).lte(before)
 
-        val query = Query.query(criteria).withHint(OrderRepositoryIndexes.BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT.indexKeys)
-        query.fields().include("_id")
+        val query = Query.query(criteria)
+            .withHint(OrderRepositoryIndexes.BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT.indexKeys)
+        query.fields().include(idFiled)
         return template.find(query, Document::class.java, COLLECTION)
-            .map { Word.apply(it.getString("_id")) }
+            .map { it.getString(idFiled).toOrderId().hash }
             .asFlow()
     }
 
@@ -358,7 +363,7 @@ class MongoOrderRepository(
             .and(Order::maker).isEqualTo(maker)
             .run {
                 if (counters.isSingleton) and(Order::data / OrderCounterableData::counter).isEqualTo(counters.single())
-                else and(Order::data / OrderCounterableData::counter ).inValues(counters)
+                else and(Order::data / OrderCounterableData::counter).inValues(counters)
             }
 
         val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)

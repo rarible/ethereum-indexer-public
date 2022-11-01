@@ -30,5 +30,14 @@ enum class OrderStatus {
     /**
      * makeStock == 0
      */
-    INACTIVE
+    INACTIVE,
+
+    /**
+     * Orders from order_version table
+     */
+    HISTORICAL;
+
+    companion object {
+        val ALL_EXCEPT_HISTORICAL: Set<OrderStatus> = values().toMutableSet() - HISTORICAL
+    }
 }

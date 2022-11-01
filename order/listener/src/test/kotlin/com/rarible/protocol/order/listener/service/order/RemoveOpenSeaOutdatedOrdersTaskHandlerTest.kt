@@ -4,7 +4,11 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderVersion
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
@@ -29,7 +33,7 @@ class RemoveOpenSeaOutdatedOrdersTaskHandlerTest : AbstractIntegrationTest() {
         exchangeContractAddresses.openSeaV2 = randomAddress()
 
         repeat(3) {
-            orderRepository.save(createOrder().copy(status = OrderStatus.ACTIVE)).hash
+            orderRepository.save(createOrder().copy(status = OrderStatus.ACTIVE)).id
         }
         repeat(3) {
             orderRepository.save(createOrder().copy(status = OrderStatus.CANCELLED))

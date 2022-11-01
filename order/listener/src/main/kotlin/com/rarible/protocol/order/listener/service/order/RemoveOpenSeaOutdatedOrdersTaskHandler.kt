@@ -8,7 +8,9 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -38,9 +40,9 @@ class RemoveOpenSeaOutdatedOrdersTaskHandler(
         return order.type == OrderType.OPEN_SEA_V1
     }
 
-    private suspend fun updateOrder(order: Order): String  {
+    private suspend fun updateOrder(order: Order): String {
         orderUpdateService.update(order.hash)
-        return order.hash.toString()
+        return order.id.toString()
     }
 
     companion object {

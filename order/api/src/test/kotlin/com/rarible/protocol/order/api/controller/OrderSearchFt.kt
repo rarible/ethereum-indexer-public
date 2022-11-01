@@ -49,7 +49,7 @@ import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
-import java.util.*
+import java.util.Date
 import java.util.stream.Stream
 import com.rarible.protocol.order.api.data.createOrder as createOrderFully
 
@@ -430,7 +430,11 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val (savedOrdersV1, savedOrder2V) = reduceOrder(order1V, order2V)
 
         // orderV1 should be associated with existing active order to be retrieved as ACTIVE
-        val order1 = createOrderFully().copy(hash = savedOrdersV1.hash, version = savedOrder2V.version)
+        val order1 = createOrderFully().copy(
+            id = savedOrdersV1.id,
+            hash = savedOrdersV1.id.hash,
+            version = savedOrder2V.version
+        )
         orderRepository.save(order1)
 
         // Ensure for all statuses we got "historical" order only
