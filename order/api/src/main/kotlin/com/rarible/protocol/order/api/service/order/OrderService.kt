@@ -96,7 +96,7 @@ class OrderService(
 
     suspend fun put(form: OrderFormDto): Order {
         val orderVersion = convertFormToVersion(form)
-        orderValidator.validateOrderVersion(orderVersion)
+        orderValidator.validate(orderVersion)
         val existingOrder = orderRepository.findById(orderVersion.hash)
         if (existingOrder != null) {
             orderValidator.validate(existingOrder, orderVersion)

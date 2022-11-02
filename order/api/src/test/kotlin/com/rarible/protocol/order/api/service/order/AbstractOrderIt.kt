@@ -17,7 +17,7 @@ import com.rarible.protocol.order.api.data.createOrder
 import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
-import com.rarible.protocol.order.api.service.order.validation.OrderSignatureValidator
+import com.rarible.protocol.order.api.service.order.validation.validators.OrderSignatureValidator
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
