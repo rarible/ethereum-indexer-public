@@ -2,9 +2,9 @@ common:
   chain-id: 3
   node-type: GETH
   sudo-swap-addresses:
-    pair-factory-v1: "0x1af70c6e674b09d58a55c8fedc7578b59938ec6c"
-    exponential-curve-v1: "0xf21A52a9eBeb480267eBc4C8d14Cb1d59889A392"
-    linear-curve-v1: "0x7aa8EC1028D36883bb3a94D2a04B5cf0D8231d26"
+    pair-factory-v1: "0x3df054da59b1c0d5d9cee5edc9b58798526023b5"
+    exponential-curve-v1: "0x42d8004fd14114c989654b825f993ca127eedbce"
+    linear-curve-v1: "0xdd661d1daddb8f37751a45975c1f4851faffc9bd"
   feature-flags:
     showSudoSwapOrdersWithOtherPlatforms: true
   publish:
