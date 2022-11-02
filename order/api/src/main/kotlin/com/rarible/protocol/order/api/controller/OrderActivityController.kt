@@ -126,10 +126,10 @@ class OrderActivityController(
         val requestSize = PageSize.ORDER_ACTIVITY.limit(size)
         val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
         val historyFilter = ActivityExchangeHistoryFilter.AllSellRight(
-            ActivitySort.SYNC_EARLIEST_FIRST,
+            ActivitySort.LATEST_FIRST,
             continuationDto?.let { ContinuationConverter.convert(it) })
         val result = orderActivityService
-            .search(listOf(historyFilter), emptyList(), ActivitySort.SYNC_EARLIEST_FIRST, requestSize)
+            .search(listOf(historyFilter), emptyList(), ActivitySort.LATEST_FIRST, requestSize)
             .mapNotNull { orderActivityConverter.convert(it) }
 
         val nextContinuation = if (result.isEmpty() || result.size < requestSize) {
