@@ -37,6 +37,10 @@ class ApprovalAllLogListener(
             logger.error("Can't get platform by operator ${history.operator}, event: $history")
             return
         }
+        logger.info(
+            "Process approval: maker={}, collection={}, platform={}, block={}, logIndex={}",
+            history.owner, history.collection, platform, logEvent.blockNumber, logEvent.logIndex
+        )
         orderRepository
             .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
             .collect {

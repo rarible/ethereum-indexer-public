@@ -12,6 +12,7 @@ ethereum-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
+      max_direct_memory_megabytes: 512
 
 ethereum-gateway:
   service:

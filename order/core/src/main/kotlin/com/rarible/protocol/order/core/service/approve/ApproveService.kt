@@ -84,7 +84,13 @@ class ApproveService(
         platform: Platform
     ): Boolean {
         val contract = IERC721(collection, sender)
-        return checkPlatformApprove(platform) { contract.isApprovedForAll(owner, it).awaitFirst() } ?: error("Can't be null")
+        return checkPlatformApprove(platform) {
+            val result = contract.isApprovedForAll(owner, it).awaitFirst()
+            logger.info(
+                "Approval check result: owner={}, collection={}, operator={}, result={}", owner, collection, it, result
+            )
+            result
+        } ?: error("Can't be null")
     }
 
     private suspend fun checkPlatformApprove(

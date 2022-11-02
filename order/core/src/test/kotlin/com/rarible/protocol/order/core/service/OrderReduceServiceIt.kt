@@ -618,6 +618,18 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(updated?.approved).isFalse
     }
 
+    @Test
+    fun `should use default approval from orderVersion`() = runBlocking<Unit> {
+        val order = createOrderVersion().copy(
+            make = randomErc721(),
+            take = randomErc20(),
+            platform = Platform.RARIBLE,
+            approved = false
+        )
+        val saved = orderUpdateService.save(order)
+        assertThat(saved.status).isEqualTo(OrderStatus.INACTIVE)
+    }
+
     private suspend fun prepareStorage(status: LogEventStatus, vararg histories: OrderExchangeHistory) {
         histories.forEachIndexed { index, history ->
             exchangeHistoryRepository.save(

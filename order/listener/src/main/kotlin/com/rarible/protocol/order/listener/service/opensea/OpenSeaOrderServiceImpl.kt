@@ -6,6 +6,7 @@ import com.rarible.opensea.client.SeaportProtocolClient
 import com.rarible.opensea.client.model.OpenSeaError
 import com.rarible.opensea.client.model.OperationResult
 import com.rarible.opensea.client.model.v2.SeaportOrders
+import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.opensea.client.model.v2.OrdersRequest as SeaportOrdersRequest
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import kotlinx.coroutines.async
@@ -64,6 +65,7 @@ class OpenSeaOrderServiceImpl(
         var retries = 0
 
         while (retries < seaportLoad.retry) {
+            logger.info("Seaport api request: cursor={}", request.cursor)
             when (val result = seaportProtocolClient.getListOrders(request)) {
                 is OperationResult.Success -> return result.result
                 is OperationResult.Fail -> lastError = result.error

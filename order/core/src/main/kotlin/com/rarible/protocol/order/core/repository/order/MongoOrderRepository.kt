@@ -257,10 +257,11 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    override fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?, status: OrderStatus?): Flow<Order> {
+    override fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?, status: OrderStatus?, platform: Platform?): Flow<Order> {
         val criteria = Criteria()
             .run { lastUpdatedAt?.let { and(Order::lastUpdateAt).lte(it) } ?: this }
             .run { status?.let { and(Order::status).isEqualTo(it) } ?: this }
+            .run { platform?.let { and(Order::platform).isEqualTo(it) } ?: this }
             .run { and(Order::cancelled).ne(true) }
 
         val queue = Query().addCriteria(criteria)
