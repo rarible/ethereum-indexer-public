@@ -38,7 +38,7 @@ class ChangeLog00025UpdateInconsistentItems {
             logger.info("Got ${result.size} inconsistent items to update")
             result.forEach {
                 val updated = it.copy(
-                    lastUpdatedAt = Instant.ofEpochMilli(random.nextLong(1_000_000_000L))
+                    lastUpdatedAt = Instant.ofEpochMilli(1609448400000 + random.nextLong(86400000 * 365L)) // random point in 2021
                 )
                 repository.save(updated)
                 logger.info("Updated inconsistentItem: $updated")
