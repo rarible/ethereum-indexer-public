@@ -30,6 +30,11 @@ class OrderIndexerApiConfiguration(
     }
 
     @Bean
+    fun bidValidation(): OrderIndexerProperties.BidValidationProperties {
+        return indexerProperties.bidValidation
+    }
+
+    @Bean
     fun blockchain(): Blockchain {
         return indexerProperties.blockchain
     }

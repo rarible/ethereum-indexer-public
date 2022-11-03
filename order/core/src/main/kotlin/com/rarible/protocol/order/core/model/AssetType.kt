@@ -236,7 +236,7 @@ data class CollectionAssetType(override val token: Address) : NftCollectionAsset
     constructor(data: Binary) : this(AddressType.decode(data, 0).value())
 }
 
-data class AmmNftAssetType(val token: Address) : AssetType(AMM_NFT, AddressType.encode(token), true) {
+data class AmmNftAssetType(override val token: Address) : NftCollectionAssetType(AMM_NFT, AddressType.encode(token), true) {
     constructor(data: Binary) : this(AddressType.decode(data, 0).value())
 }
 
