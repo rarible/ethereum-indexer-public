@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.core.test.data.randomAddress
-import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.TestPropertiesConfiguration
@@ -12,8 +11,6 @@ import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderRaribleV2DataV1
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
-import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
@@ -264,31 +261,6 @@ internal class OrderRepositoryIt {
     }
 
     @Test
-    fun `should find all sell currencies by item`() = runBlocking<Unit> {
-        val (token, tokenId) = randomItemId()
-        val currencies = listOf(randomAddress(), randomAddress(), randomAddress())
-
-        //Active orders
-        repeat(5) {
-            currencies.forEach { currency ->
-                val order = createOrder().copy(make = randomErc721(token, tokenId), take = randomErc20(currency))
-                val savedOrder = orderRepository.save(order)
-                assertThat(savedOrder.status).isEqualTo(OrderStatus.ACTIVE)
-            }
-        }
-        //Not active orders
-        repeat(5) {
-            currencies.forEach { currency ->
-                val order = createOrder().copy(make = randomErc721(token, tokenId), take = randomErc20(randomAddress()), cancelled = true)
-                val savedOrder = orderRepository.save(order)
-                assertThat(savedOrder.status).isNotEqualTo(OrderStatus.ACTIVE)
-            }
-        }
-        val foundCurrencies = orderRepository.findActiveSellCurrenciesByItem(token, tokenId)
-        assertThat(foundCurrencies).containsExactlyInAnyOrderElementsOf(currencies)
-    }
-
-    @Test
     fun `should find all sell currencies by collection`() = runBlocking<Unit> {
         val token = randomAddress()
         val currencies = listOf(randomAddress(), randomAddress(), randomAddress())
@@ -312,7 +284,5 @@ internal class OrderRepositoryIt {
         val foundCurrencies = orderRepository.findActiveSellCurrenciesByCollection(token)
         assertThat(foundCurrencies).containsExactlyInAnyOrderElementsOf(currencies)
     }
-
-    private fun randomItemId(): Pair<Address, EthUInt256> = randomAddress() to EthUInt256.of(randomBigInt())
 }
 

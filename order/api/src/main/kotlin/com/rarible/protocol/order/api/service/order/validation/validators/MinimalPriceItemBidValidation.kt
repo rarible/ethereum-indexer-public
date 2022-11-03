@@ -18,10 +18,13 @@ import java.math.BigDecimal
 @Component
 class MinimalPriceItemBidValidation(
     private val floorSellService: FloorSellService,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
     private val bidValidation: OrderIndexerProperties.BidValidationProperties
 ) : OrderVersionValidator {
 
     override suspend fun validate(orderVersion: OrderVersion) {
+        if (featureFlags.checkMinimalBidPrice.not()) return
+
         val nftAsset = orderVersion.take.type
         val takePriceUsd = orderVersion.takePriceUsd ?: throw IllegalStateException(
             "Can't determine 'takePriceUsd', maybe not supported currency: ${orderVersion.make.type.token}",

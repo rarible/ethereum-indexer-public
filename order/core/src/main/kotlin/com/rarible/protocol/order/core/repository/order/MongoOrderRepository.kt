@@ -16,7 +16,6 @@ import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes.SELL_ORDERS_BY_CURRENCY_COLLECTION_DEFINITION
-import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes.SELL_ORDERS_BY_CURRENCY_ITEM_DEFINITION
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -295,23 +294,6 @@ class MongoOrderRepository(
             )
         )
         return template.query<Order>().matching(query).all().asFlow()
-    }
-
-    override suspend fun findActiveSellCurrenciesByItem(token: Address, tokenId: EthUInt256): List<Address> {
-        val query = Query(
-            Criteria().andOperator(
-                (Order::make / Asset::type / NftAssetType::token).isEqualTo(token),
-                (Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId),
-                (Order::make / Asset::type / NftAssetType::nft).isEqualTo(true),
-                Order::status isEqualTo OrderStatus.ACTIVE,
-            )
-        ).withHint(SELL_ORDERS_BY_CURRENCY_ITEM_DEFINITION.indexKeys)
-        return template.findDistinct<Address>(
-            query,
-            "${Order::take.name}.${Asset::type.name}.${Erc20AssetType::token.name}",
-            Order::class.java,
-            Address::class.java
-        ).collectList().awaitFirst()
     }
 
     override suspend fun findActiveSellCurrenciesByCollection(token: Address): List<Address> {

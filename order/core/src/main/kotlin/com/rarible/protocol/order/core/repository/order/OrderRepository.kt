@@ -79,7 +79,5 @@ interface OrderRepository {
 
     fun findNotStartedOrders(now: Instant): Flow<Order>
 
-    suspend fun findActiveSellCurrenciesByItem(token: Address, tokenId: EthUInt256): List<Address>
-
     suspend fun findActiveSellCurrenciesByCollection(token: Address): List<Address>
 }

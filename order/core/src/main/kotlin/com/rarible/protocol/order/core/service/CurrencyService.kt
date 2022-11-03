@@ -23,7 +23,7 @@ class CurrencyService(
         if (cachedRate == null) {
             val rate = safeFetchRate(currency)
             if (rate == null) {
-                logger.info("Currency $currency doen't not support usd rate")
+                logger.info("Currency $currency doesn't not support usd rate")
             }
             cachedRate = Rate(rate)
             rateCache[currency] = cachedRate
@@ -49,6 +49,7 @@ class CurrencyService(
         val current = rateCache[currency]
         if (updated != null) {
             logger.info("Currency {}: updated: {} -> {}", currency, updated, current)
+            rateCache[currency] = Rate(updated)
         } else {
             logger.warn(
                 "Unable to refresh currency rate with address [{}], will use old value: {}", currency, current

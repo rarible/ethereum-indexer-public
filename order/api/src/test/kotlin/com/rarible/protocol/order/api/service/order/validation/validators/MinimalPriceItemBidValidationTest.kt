@@ -20,7 +20,8 @@ internal class MinimalPriceItemBidValidationTest {
         minPriceUsd = BigDecimal("1"),
         minPercentFromFloorPrice = BigDecimal("0.75")
     )
-    private val validator = MinimalPriceItemBidValidation(floorSellService, properties)
+    private val featureFlags = OrderIndexerProperties.FeatureFlags(checkMinimalBidPrice = true)
+    private val validator = MinimalPriceItemBidValidation(floorSellService, featureFlags, properties)
 
     @Test
     fun `should validate ok bid takePriceUsd`() = runBlocking<Unit> {
