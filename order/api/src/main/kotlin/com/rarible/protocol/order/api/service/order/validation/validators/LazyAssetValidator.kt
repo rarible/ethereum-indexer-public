@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.api.service.order.validation
+package com.rarible.protocol.order.api.service.order.validation.validators
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
@@ -9,8 +9,11 @@ import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
+import com.rarible.protocol.order.api.service.order.validation.OrderVersionValidator
 import com.rarible.protocol.order.core.converters.model.LazyAssetTypeToLazyNftConverter
 import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.AssetType.Companion.isLazy
+import com.rarible.protocol.order.core.model.OrderVersion
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Service
 import scalether.abi.Uint256Type
@@ -21,14 +24,22 @@ import java.util.*
 class LazyAssetValidator(
     private val delegate: LazyNftValidator,
     private val nftCollectionClient: NftCollectionControllerApi
-) {
+) : OrderVersionValidator {
 
-    suspend fun validate(lazyAssetType: AssetType, side: String) {
+    override suspend fun validate(orderVersion: OrderVersion) {
+        orderVersion.make.type.takeIf { it.isLazy }
+            ?.let { validate(it, "make") }
+
+        orderVersion.take.type.takeIf { it.isLazy }
+            ?.let { validate(it, "take") }
+    }
+
+    private suspend fun validate(lazyAssetType: AssetType, side: String) {
         val lazyNft = LazyAssetTypeToLazyNftConverter.convert(lazyAssetType)
         validate(lazyNft, side)
     }
 
-    suspend fun validate(lazyNft: LazyNft, side: String) {
+    private suspend fun validate(lazyNft: LazyNft, side: String) {
         val collection = nftCollectionClient.getNftCollectionById(lazyNft.token.hex()).awaitFirstOrNull()
             ?: throw OrderUpdateException(
                 "Token ${lazyNft.token} was not found",

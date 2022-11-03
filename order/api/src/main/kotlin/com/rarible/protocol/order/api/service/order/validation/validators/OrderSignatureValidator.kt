@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.api.service.order.validation
+package com.rarible.protocol.order.api.service.order.validation.validators
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
@@ -6,6 +6,7 @@ import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
+import com.rarible.protocol.order.api.service.order.validation.OrderVersionValidator
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
 import com.rarible.protocol.order.core.model.OrderType
@@ -22,18 +23,19 @@ class OrderSignatureValidator(
     @Qualifier("raribleExchangeV2") var eip712Domain: EIP712Domain,
     private val legacySigner: CommonSigner,
     private val erc1271SignService: ERC1271SignService
-) {
-    suspend fun validate(order: OrderVersion) {
-        val signature = order.signature ?: throw OrderUpdateException(
+) : OrderVersionValidator {
+
+    override suspend fun validate(orderVersion: OrderVersion) {
+        val signature = orderVersion.signature ?: throw OrderUpdateException(
             "Signature is not specified", EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE
         )
 
-        return when (order.type) {
+        return when (orderVersion.type) {
             OrderType.RARIBLE_V1 -> {
-                logger.info("validating legacy order message: ${order.hash}, signature: $signature")
-                val legacyMessage = order.legacyMessage()
+                logger.info("validating legacy order message: ${orderVersion.hash}, signature: $signature")
+                val legacyMessage = orderVersion.legacyMessage()
                 val signer = legacySigner.recover(legacyMessage, signature)
-                if (order.maker != signer) {
+                if (orderVersion.maker != signer) {
                     throw OrderUpdateException(
                         "Maker's signature is not valid for V1 order",
                         EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE
@@ -42,10 +44,10 @@ class OrderSignatureValidator(
                 Unit
             }
             OrderType.RARIBLE_V2 -> {
-                logger.info("validating v2 order message: ${order.hash}, signature: $signature, eip712Domain: $eip712Domain")
-                val structHash = Order.hash(order)
+                logger.info("validating v2 order message: ${orderVersion.hash}, signature: $signature, eip712Domain: $eip712Domain")
+                val structHash = Order.hash(orderVersion)
                 val hash = eip712Domain.hashToSign(structHash)
-                if (erc1271SignService.isSigner(order.maker, hash, signature).not()) {
+                if (erc1271SignService.isSigner(orderVersion.maker, hash, signature).not()) {
                     throw OrderUpdateException(
                         "Maker's signature is not valid for V2 order",
                         EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE

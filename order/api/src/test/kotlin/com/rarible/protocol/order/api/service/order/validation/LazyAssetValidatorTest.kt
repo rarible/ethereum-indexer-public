@@ -10,7 +10,13 @@ import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
+import com.rarible.protocol.order.api.data.createErc20Asset
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
+import com.rarible.protocol.order.api.service.order.validation.validators.LazyAssetValidator
+import com.rarible.protocol.order.core.data.createOrderVersion
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.Part as ModelPart
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
@@ -37,7 +43,16 @@ internal class LazyAssetValidatorTest {
     }
 
     @Test
-    fun `should validate lazy asset`() = runBlocking {
+    fun  `should validate orderVersion with make lazy asset`() {
+        `should validate orderVersion with lazy asset`(isBid = false)
+    }
+
+    @Test
+    fun  `should validate orderVersion with take lazy asset`() {
+        `should validate orderVersion with lazy asset`(isBid = true)
+    }
+
+    private fun `should validate orderVersion with lazy asset`(isBid: Boolean) = runBlocking {
         val creator = Address.apply("0x25646b08d9796ceda5fb8ce0105a51820740c049")
         val token = AddressFactory.create()
         val tokenId = EthUInt256.of("0x25646b08d9796ceda5fb8ce0105a51820740c04900000000000000000000000a")
@@ -50,6 +65,11 @@ internal class LazyAssetValidatorTest {
             signatures = listOf(),
             royalties = listOf()
         )
+        val nftAsset = Asset(lazyNft.toErc721LazyAssetType(), EthUInt256.ONE)
+        val currency = createErc20Asset()
+
+        val (make, take) = if (isBid) currency to nftAsset else nftAsset to currency
+        val orderVersion = createOrderVersion().copy(make = make, take = take)
 
         val collection = mockk<NftCollectionDto> {
             every { features } returns listOf(NftCollectionDto.Features.MINT_AND_TRANSFER)
@@ -58,7 +78,7 @@ internal class LazyAssetValidatorTest {
         every { nftCollectionApi.getNftCollectionById(token.hex()) } returns Mono.just(collection)
         coEvery { delegate.validate(lazyNft) } returns ValidationResult.Valid
 
-        lazyAssetValidator.validate(lazyNft, "take")
+        lazyAssetValidator.validate(orderVersion)
 
         coVerify(exactly = 1) { delegate.validate(lazyNft) }
     }
@@ -87,6 +107,8 @@ internal class LazyAssetValidatorTest {
             signatures = listOf(),
             royalties = listOf()
         )
+        val nftAsset = Asset(lazyNft.toErc721LazyAssetType(), EthUInt256.ONE)
+        val orderVersion = createOrderVersion().copy(make = nftAsset, take = createErc20Asset())
 
         val collection = mockk<NftCollectionDto> {
             every { features } returns emptyList()
@@ -97,10 +119,9 @@ internal class LazyAssetValidatorTest {
 
         assertThrows<OrderUpdateException> {
             runBlocking {
-                lazyAssetValidator.validate(lazyNft, "take")
+                lazyAssetValidator.validate(orderVersion)
             }
         }
-
         coVerify(exactly = 1) { delegate.validate(lazyNft) }
     }
 
@@ -117,6 +138,8 @@ internal class LazyAssetValidatorTest {
             signatures = listOf(),
             royalties = listOf()
         )
+        val nftAsset = Asset(lazyNft.toErc721LazyAssetType(), EthUInt256.ONE)
+        val orderVersion = createOrderVersion().copy(make = nftAsset, take = createErc20Asset())
 
         val collection = mockk<NftCollectionDto> {
             every { features } returns listOf(NftCollectionDto.Features.MINT_AND_TRANSFER)
@@ -126,10 +149,21 @@ internal class LazyAssetValidatorTest {
 
         assertThrows<OrderUpdateException> {
             runBlocking {
-                lazyAssetValidator.validate(lazyNft, "take")
+                lazyAssetValidator.validate(orderVersion)
             }
         }
 
         coVerify(exactly = 0) { delegate.validate(lazyNft) }
+    }
+
+    private fun LazyERC721.toErc721LazyAssetType(): Erc721LazyAssetType {
+        return Erc721LazyAssetType(
+            token = this.token,
+            tokenId = EthUInt256.of(this.tokenId),
+            uri = this.uri,
+            creators = this.creators.map { ModelPart(it.account, EthUInt256.of(it.value)) },
+            royalties = this.royalties.map { ModelPart(it.account, EthUInt256.of(it.value)) },
+            signatures = this.signatures
+        )
     }
 }
