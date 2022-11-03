@@ -3,23 +3,24 @@ package com.rarible.protocol.order.api.service.order.validation
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.api.data.createOrderVersion
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
+import com.rarible.protocol.order.api.service.order.validation.validators.ParametersPatchValidator
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.toOrderExactFields
-import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import scalether.domain.AddressFactory
 
-class OrderValidatorTest {
+class ParametersOrderValidatorTest {
 
-    private val validator = OrderValidator(mockk(), mockk())
+    private val validator = ParametersPatchValidator()
 
     private val make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
     private val take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5))
 
     @Test
-    fun `make change validation`() {
+    fun `make change validation`() = runBlocking<Unit> {
         val order = createOrderVersion(make, take)
         assertThrows<OrderUpdateException> {
             validator.validate(
@@ -34,7 +35,7 @@ class OrderValidatorTest {
     }
 
     @Test
-    fun `price validation`() {
+    fun `price validation`() = runBlocking<Unit> {
         val order = createOrderVersion(make, take)
         assertThrows<OrderUpdateException> {
             validator.validate(
@@ -59,7 +60,7 @@ class OrderValidatorTest {
     }
 
     @Test
-    fun `bid price validation`() {
+    fun `bid price validation`() = runBlocking<Unit>{
         val order = createOrderVersion(make, take)
         assertThrows<OrderUpdateException> {
             validator.validate(
