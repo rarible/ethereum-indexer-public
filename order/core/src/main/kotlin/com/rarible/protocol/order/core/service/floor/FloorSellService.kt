@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.service.floor
 
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.service.CurrencyService

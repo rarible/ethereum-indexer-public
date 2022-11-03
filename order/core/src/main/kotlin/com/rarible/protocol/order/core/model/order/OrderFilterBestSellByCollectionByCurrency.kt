@@ -28,7 +28,7 @@ data class OrderFilterBestSellByCollectionByCurrency(
                 .forStatus(status)
                 .forCurrency(currency)
                 .scrollTo(continuation, sort)
-        ).limit(limit).with(sort(sort)).withHint(hint())
+        ).limit(limit).with(sort(sort, currency)).withHint(hint())
     }
 
     private fun hint(): Document = OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION.indexKeys
