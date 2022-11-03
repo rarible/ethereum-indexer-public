@@ -50,8 +50,8 @@ class MinimalPriceItemBidValidation(
     }
 
     private fun validateWithFloorPrice(price: BigDecimal, floorPriceUsd: BigDecimal) {
-        val percentFromFloorPrice = price.divide(floorPriceUsd)
-        if (percentFromFloorPrice < bidValidation.minPercentFromFloorPrice) {
+        val minimumFromFloorPrice = floorPriceUsd * bidValidation.minPercentFromFloorPrice
+        if (price < minimumFromFloorPrice) {
             throw OrderUpdateException(
                 "Order has invalid bid price. Price should be not less 0.75% from floor price ($floorPriceUsd)",
                 EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
