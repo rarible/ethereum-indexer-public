@@ -1,21 +1,22 @@
 package com.rarible.protocol.order.api.service.order.validation
 
-import com.rarible.protocol.order.api.service.order.validation.validators.OrderSignatureValidator
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderVersion
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Service
 
 @Service
 class OrderValidator(
-    private val orderSignatureValidators: List<OrderSignatureValidator>,
+    private val orderVersionValidators: List<OrderVersionValidator>,
     private val orderPatchValidators: List<OrderPatchValidator>
-) : OrderVersionValidator, OrderPatchValidator {
-
-    override suspend fun validate(orderVersion: OrderVersion) {
-        orderSignatureValidators.forEach { it.validate(orderVersion) }
+) {
+    suspend fun validate(orderVersion: OrderVersion) = coroutineScope<Unit> {
+        orderVersionValidators.map { async { it.validate(orderVersion) } }.awaitAll()
     }
 
-    override suspend fun validate(order: Order, update: OrderVersion) {
-        orderPatchValidators.forEach { it.validate(order, update) }
+    suspend fun validate(order: Order, update: OrderVersion) = coroutineScope<Unit>  {
+        orderPatchValidators.map { async { it.validate(order, update) } }.awaitAll()
     }
 }
