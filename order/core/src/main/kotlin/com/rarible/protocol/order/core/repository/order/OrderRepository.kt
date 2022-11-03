@@ -1,14 +1,21 @@
 package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.misc.div
+import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.awaitFirst
+import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
 import java.time.Instant
 import java.util.*
@@ -71,4 +78,8 @@ interface OrderRepository {
     fun findExpiredOrders(now: Instant): Flow<Order>
 
     fun findNotStartedOrders(now: Instant): Flow<Order>
+
+    suspend fun findActiveSellCurrenciesByItem(token: Address, tokenId: EthUInt256): List<Address>
+
+    suspend fun findActiveSellCurrenciesByCollection(token: Address): List<Address>
 }

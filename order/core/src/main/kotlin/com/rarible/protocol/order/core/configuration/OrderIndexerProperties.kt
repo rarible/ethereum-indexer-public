@@ -44,9 +44,15 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val raribleOrderExpiration: RaribleOrderExpirationProperties = RaribleOrderExpirationProperties(),
     @NestedConfigurationProperty
-    val sudoSwapAddresses: SudoSwapAddresses = SudoSwapAddresses()
+    val sudoSwapAddresses: SudoSwapAddresses = SudoSwapAddresses(),
+    val bidValidation: BidValidationProperties = BidValidationProperties()
 ) {
     val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong()) * BigDecimal.valueOf(1, 18);
+
+    data class BidValidationProperties(
+        val minPriceUsd: BigDecimal = BigDecimal.ONE, //1 USD
+        val minPercentFromFloorPrice: BigDecimal = 75.toBigDecimal(), //Bid price should be not less the 75% from floor price
+    )
 
     data class CurrencyContractAddresses(
         var weth: Address

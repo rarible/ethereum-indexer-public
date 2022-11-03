@@ -8,13 +8,15 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import scalether.domain.Address
 
-data class OrderFilterSellByCollection(
-    override val origin: Address? = null,
-    override val platforms: List<PlatformDto>,
-    override val sort: OrderFilterSort,
-    override val status: List<OrderStatusDto>? = null,
+data class OrderFilterBestSellByCollectionByCurrency(
     val collection: Address,
+    val currency: Address,
+    override val sort: OrderFilterSort,
 ) : OrderFilter() {
+
+    override val status: List<OrderStatusDto>? = listOf(OrderStatusDto.ACTIVE)
+    override val platforms: List<PlatformDto> = emptyList()
+    override val origin: Address? = null
 
     override fun toQuery(continuation: String?, limit: Int): Query {
         return Query(
@@ -24,12 +26,10 @@ data class OrderFilterSellByCollection(
                 .forPlatform(platforms.mapNotNull { convert(it) })
                 .fromOrigin(origin)
                 .forStatus(status)
+                .forCurrency(currency)
                 .scrollTo(continuation, sort)
         ).limit(limit).with(sort(sort)).withHint(hint())
     }
 
-    private fun hint(): Document = when {
-        platforms.isEmpty() -> OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_DEFINITION.indexKeys
-        else -> OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION.indexKeys
-    }
+    private fun hint(): Document = OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION.indexKeys
 }

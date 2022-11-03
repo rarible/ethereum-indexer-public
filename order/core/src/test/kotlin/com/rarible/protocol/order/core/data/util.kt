@@ -27,7 +27,7 @@ fun createOrder() =
         type = OrderType.RARIBLE_V2,
         fill = EthUInt256.ZERO,
         cancelled = false,
-        salt = EthUInt256.TEN,
+        salt = EthUInt256.of(randomBigInt()),
         start = null,
         end = null,
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
@@ -423,17 +423,17 @@ fun createLogEvent(
 
 fun randomErc20(value: EthUInt256) = Asset(Erc20AssetType(AddressFactory.create()), value)
 
-fun randomErc20() = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(randomInt()))
+fun randomErc20(token: Address = randomAddress()) = Asset(Erc20AssetType(token), EthUInt256.of(randomInt()))
 
 fun randomEth() = Asset(EthAssetType, EthUInt256.of(randomInt()))
 
-fun randomErc721Type(token: Address = randomAddress()) = Erc721AssetType(token, EthUInt256(randomBigInt()))
+fun randomErc721Type(token: Address = randomAddress(), tokenId: EthUInt256 = EthUInt256.of(randomBigInt())) = Erc721AssetType(token, tokenId)
 
 fun randomErc1155Type() = Erc1155AssetType(AddressFactory.create(), EthUInt256(randomBigInt()))
 
 fun randomErc1155(value: EthUInt256) = Asset(randomErc1155Type(), value)
 
-fun randomErc721(token: Address = randomAddress()) = Asset(randomErc721Type(token), EthUInt256.ONE)
+fun randomErc721(token: Address = randomAddress(), tokenId: EthUInt256 = EthUInt256.of(randomBigInt())) = Asset(randomErc721Type(token, tokenId), EthUInt256.ONE)
 
 fun randomAmmNftAsset(token: Address = randomAddress()) = Asset(AmmNftAssetType(token), EthUInt256.ONE)
 
