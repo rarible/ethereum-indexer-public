@@ -26,8 +26,9 @@ class MinimalPriceItemBidValidation(
         if (featureFlags.checkMinimalBidPrice.not()) return
 
         val nftAsset = orderVersion.take.type
-        val takePriceUsd = orderVersion.takePriceUsd ?: throw IllegalStateException(
+        val takePriceUsd = orderVersion.takePriceUsd ?: throw OrderUpdateException(
             "Can't determine 'takePriceUsd', maybe not supported currency: ${orderVersion.make.type.token}",
+            EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
         )
         return when (nftAsset) {
             is NftCollectionAssetType -> validateWithCollectionFloorPrice(nftAsset.token, takePriceUsd)
@@ -51,7 +52,7 @@ class MinimalPriceItemBidValidation(
         if (percentFromFloorPrice < bidValidation.minPercentFromFloorPrice) {
             throw OrderUpdateException(
                 "Order has invalid bid price. Price should be not less 0.75% from floor price ($floorPriceUsd)",
-                EthereumOrderUpdateApiErrorDto.Code.INCORRECT_ORDER_DATA
+                EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
             )
         }
     }
@@ -60,7 +61,7 @@ class MinimalPriceItemBidValidation(
         if (price < bidValidation.minPriceUsd) {
             throw OrderUpdateException(
                 "Order has invalid price. Price should be not less 1USD",
-                EthereumOrderUpdateApiErrorDto.Code.INCORRECT_ORDER_DATA
+                EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
             )
         }
     }
