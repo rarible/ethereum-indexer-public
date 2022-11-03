@@ -9,6 +9,8 @@ import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderRaribleV2DataV1
+import com.rarible.protocol.order.core.data.randomErc20
+import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
@@ -256,6 +258,31 @@ internal class OrderRepositoryIt {
         }
         val hashes = delegate.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(counter)).map { it.hash }.toList()
         assertThat(hashes).containsExactlyInAnyOrder(order0.hash)
+    }
+
+    @Test
+    fun `should find all sell currencies by collection`() = runBlocking<Unit> {
+        val token = randomAddress()
+        val currencies = listOf(randomAddress(), randomAddress(), randomAddress())
+
+        //Active orders
+        repeat(10) {
+            currencies.forEach { currency ->
+                val order = createOrder().copy(make = randomErc721(token), take = randomErc20(currency))
+                val savedOrder = orderRepository.save(order)
+                assertThat(savedOrder.status).isEqualTo(OrderStatus.ACTIVE)
+            }
+        }
+        //Not active orders
+        repeat(10) {
+            currencies.forEach { currency ->
+                val order = createOrder().copy(make = randomErc721(token), take = randomErc20(randomAddress()), cancelled = true)
+                val savedOrder = orderRepository.save(order)
+                assertThat(savedOrder.status).isNotEqualTo(OrderStatus.ACTIVE)
+            }
+        }
+        val foundCurrencies = orderRepository.findActiveSellCurrenciesByCollection(token)
+        assertThat(foundCurrencies).containsExactlyInAnyOrderElementsOf(currencies)
     }
 }
 

@@ -25,6 +25,7 @@ import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EXT)
+@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class PriceUpdateService(
     private val blockchain: Blockchain,
     private val currencyApi: CurrencyControllerApi,
@@ -82,6 +83,16 @@ class PriceUpdateService(
         return withUpdatedUsdPrices(withUpdatedPrices(order))
     }
 
+    suspend fun getTokenRate(token: Address, at: Instant): BigDecimal? {
+        val rate = withSpan(name = "getCurrencyRate") {
+            currencyApi.getCurrencyRate(convert(blockchain), token.hex(), at.toEpochMilli()).awaitFirstOrNull()?.rate
+        }
+        if (rate == null) {
+            logger.warn("Currency api didn't respond any value for $blockchain: $token")
+        }
+        return rate
+    }
+
     private suspend fun withUpdatedUsdPrices(order: Order): Order {
         val usdValue = getAssetsUsdValue(order.make, order.take, nowMillis()) ?: return order
         return order.withOrderUsdValue(usdValue)
@@ -130,15 +141,10 @@ class PriceUpdateService(
         return if (address == null) {
             null
         } else {
-            val rate = withSpan(name = "getCurrencyRate") {
-                currencyApi.getCurrencyRate(convert(blockchain), address.hex(), at.toEpochMilli()).awaitFirstOrNull()?.rate
-            }
-            if (rate == null) {
-                logger.warn("Currency api didn't respond any value for $blockchain: $address")
-            }
-            rate
+            getTokenRate(address, at)
         }
     }
+
 
     private fun usdPrice(usdRate: BigDecimal, nftPart: BigDecimal, payingPart: BigDecimal): BigDecimal {
         if (nftPart.signum() == 0) {

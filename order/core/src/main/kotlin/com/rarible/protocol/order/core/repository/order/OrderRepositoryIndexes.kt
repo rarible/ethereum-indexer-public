@@ -92,6 +92,18 @@ object OrderRepositoryIndexes {
             )
         .background()
 
+    val SELL_ORDERS_BY_CURRENCY_COLLECTION_DEFINITION = Index()
+        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .partial(
+            PartialIndexFilter.of(
+                Criteria
+                    .where(Order::status.name).isEqualTo(OrderStatus.ACTIVE)
+                    .and(Order::make / Asset::type / AssetType::nft).isEqualTo(true)
+            )
+        )
+        .background()
+
     // Best sell order by ownership (used by Union to find best sell order for ownership)
     val SELL_ORDERS_BY_ITEM_MAKER_SORT_BY_PRICE_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
@@ -251,6 +263,7 @@ object OrderRepositoryIndexes {
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,
-        BY_CREATED_AT_AND_ID
+        BY_CREATED_AT_AND_ID,
+        SELL_ORDERS_BY_CURRENCY_COLLECTION_DEFINITION,
     )
 }
