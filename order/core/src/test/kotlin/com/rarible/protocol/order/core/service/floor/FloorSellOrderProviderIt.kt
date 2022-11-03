@@ -4,6 +4,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.data.randomEth
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import kotlinx.coroutines.runBlocking
@@ -33,6 +34,11 @@ internal class FloorSellOrderProviderIt : AbstractIntegrationTest() {
             take = randomErc20(currency2),
             makePrice = BigDecimal.valueOf(2)
         )
+        val floorOrder3 = createOrder().copy(
+            make = randomErc721(token),
+            take = randomEth(),
+            makePrice = BigDecimal.valueOf(3)
+        )
         val other1 = createOrder().copy(
             make = randomErc721(token),
             take = randomErc20(currency1),
@@ -43,10 +49,15 @@ internal class FloorSellOrderProviderIt : AbstractIntegrationTest() {
             take = randomErc20(currency2),
             makePrice = BigDecimal.valueOf(10)
         )
-        listOf(floorOrder1, floorOrder2, other1, other2).shuffled().forEach {
+        val other3 = createOrder().copy(
+            make = randomErc721(token),
+            take = randomEth(),
+            makePrice = BigDecimal.valueOf(10)
+        )
+        listOf(floorOrder1, floorOrder2, floorOrder3, other1, other2, other3).shuffled().forEach {
             orderRepository.save(it)
         }
         val floorOrders = floorSellOrderProvider.getCurrencyFloorSells(token)
-        assertThat(floorOrders.map { it.hash }).containsExactlyInAnyOrder(floorOrder1.hash, floorOrder2.hash)
+        assertThat(floorOrders.map { it.hash }).containsExactlyInAnyOrder(floorOrder1.hash, floorOrder2.hash, floorOrder3.hash)
     }
 }

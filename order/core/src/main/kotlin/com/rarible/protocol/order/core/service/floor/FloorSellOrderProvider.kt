@@ -18,6 +18,7 @@ class FloorSellOrderProvider(
     suspend fun getCurrencyFloorSells(token: Address) = coroutineScope {
         orderRepository
             .findActiveSellCurrenciesByCollection(token)
+            .let { currencies -> currencies + Address.ZERO() } //Eth assert has no toke, so add it as Zero address
             .map { currency -> async { getFloorSellByCurrency(token, currency) } }
             .awaitAll()
             .filterNotNull()
