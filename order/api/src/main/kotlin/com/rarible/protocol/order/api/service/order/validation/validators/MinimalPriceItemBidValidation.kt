@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import com.rarible.protocol.order.core.model.NftCollectionAssetType
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.service.floor.FloorSellService
 import org.springframework.stereotype.Component
@@ -40,6 +41,7 @@ class MinimalPriceItemBidValidation(
 
     private suspend fun validateWithCollectionFloorPrice(token: Address, takePriceUsd: BigDecimal) {
         val floorPriceUsd = floorSellService.getFloorSellPriceUsd(token)
+        logger.info("Get floor usd price $floorPriceUsd for collection $token")
         if (floorPriceUsd == null) {
             validateMinimumPrice(takePriceUsd)
         } else if (floorPriceUsd >= takePriceUsd)  {
