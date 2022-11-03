@@ -11,19 +11,20 @@ import com.rarible.protocol.order.core.model.NftCollectionAssetType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.service.floor.FloorSellService
+import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigDecimal
 
+@Component
 class MinimalPriceItemBidValidation(
     private val floorSellService: FloorSellService,
-    private val properties: OrderIndexerProperties
+    private val bidValidation: OrderIndexerProperties.BidValidationProperties
 ) : OrderVersionValidator {
-    private val bidValidation = properties.bidValidation
 
     override suspend fun validate(orderVersion: OrderVersion) {
         val nftAsset = orderVersion.take.type
         val takePriceUsd = orderVersion.takePriceUsd ?: throw IllegalStateException(
-            "Can't determine 'takePriceUsd', maybe not supported bid currency: ${orderVersion.make.type.token}",
+            "Can't determine 'takePriceUsd', maybe not supported currency: ${orderVersion.make.type.token}",
         )
         return when (nftAsset) {
             is NftCollectionAssetType -> validateWithCollectionFloorPrice(nftAsset.token, takePriceUsd)
@@ -37,13 +38,13 @@ class MinimalPriceItemBidValidation(
         val floorPriceUsd = floorSellService.getFloorSellPriceUsd(token)
         if (floorPriceUsd == null) {
             validateMinimumPrice(takePriceUsd)
-        } else if (takePriceUsd >= floorPriceUsd)  {
+        } else if (floorPriceUsd >= takePriceUsd)  {
             validateWithFloorPrice(takePriceUsd, floorPriceUsd)
         }
     }
 
     private fun validateWithFloorPrice(price: BigDecimal, floorPriceUsd: BigDecimal) {
-        val percentFromFloorPrice = (floorPriceUsd - price) / floorPriceUsd
+        val percentFromFloorPrice = price.divide(floorPriceUsd)
         if (percentFromFloorPrice < bidValidation.minPercentFromFloorPrice) {
             throw OrderUpdateException(
                 "Order has invalid bid price. Price should be not less 0.75% from floor price ($floorPriceUsd)",
@@ -53,7 +54,7 @@ class MinimalPriceItemBidValidation(
     }
 
     private fun validateMinimumPrice(price: BigDecimal) {
-        if (price <= bidValidation.minPriceUsd) {
+        if (price < bidValidation.minPriceUsd) {
             throw OrderUpdateException(
                 "Order has invalid price. Price should be not less 1USD",
                 EthereumOrderUpdateApiErrorDto.Code.INCORRECT_ORDER_DATA

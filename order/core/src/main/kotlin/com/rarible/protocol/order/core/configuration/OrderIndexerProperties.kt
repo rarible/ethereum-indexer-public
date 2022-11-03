@@ -51,7 +51,7 @@ data class OrderIndexerProperties(
 
     data class BidValidationProperties(
         val minPriceUsd: BigDecimal = BigDecimal.ONE, //1 USD
-        val minPercentFromFloorPrice: BigDecimal = 75.toBigDecimal(), //Bid price should be not less the 75% from floor price
+        val minPercentFromFloorPrice: BigDecimal = 0.75.toBigDecimal(), //Bid price should be not less the 75% from floor price
     )
 
     data class CurrencyContractAddresses(
