@@ -1,5 +1,6 @@
 package com.rarible.protocol.erc20.core.service
 
+import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.protocol.erc20.core.listener.Erc20BalanceEventListener
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Balance
@@ -12,12 +13,12 @@ import scalether.domain.Address
 class Erc20BalanceService(
     private val erc20BalanceRepository: Erc20BalanceRepository,
     private val erc20BalanceEventListeners: List<Erc20BalanceEventListener>
-) {
+) : EntityService<BalanceId, Erc20Balance> {
 
-    suspend fun save(erc20Balance: Erc20Balance): Erc20Balance {
-        val result = erc20BalanceRepository.save(erc20Balance)
+    override suspend fun update(entity: Erc20Balance): Erc20Balance {
+        val result = erc20BalanceRepository.save(entity)
         erc20BalanceEventListeners.forEach {
-            it.onUpdate(Erc20UpdateEvent(erc20Balance))
+            it.onUpdate(Erc20UpdateEvent(entity))
         }
         return result
     }
@@ -26,7 +27,7 @@ class Erc20BalanceService(
         return erc20BalanceRepository.get(BalanceId(contract, owner))
     }
 
-    suspend fun get(balanceId: BalanceId): Erc20Balance? {
-        return erc20BalanceRepository.get(balanceId)
+    override suspend fun get(id: BalanceId): Erc20Balance? {
+        return erc20BalanceRepository.get(id)
     }
 }

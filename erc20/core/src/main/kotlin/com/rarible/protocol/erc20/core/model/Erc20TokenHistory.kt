@@ -2,10 +2,10 @@ package com.rarible.protocol.erc20.core.model
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
 import scalether.domain.Address
-import java.util.*
+import java.util.Date
 
 enum class EventType {
     INCOME_TRANSFER,
@@ -30,6 +30,10 @@ sealed class Erc20TokenHistory(
     abstract val owner: Address
     abstract val value: EthUInt256
     abstract val date: Date
+
+    override fun getKey(log: EthereumLog): String {
+        return BalanceId(token, owner).stringValue
+    }
 }
 
 data class Erc20IncomeTransfer(

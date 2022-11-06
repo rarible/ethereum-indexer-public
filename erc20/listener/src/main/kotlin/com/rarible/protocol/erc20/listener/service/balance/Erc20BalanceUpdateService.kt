@@ -14,6 +14,6 @@ class Erc20BalanceUpdateService(
         val currentBalance = balanceRepository.get(data.id)
 
         val balanceToSave = currentBalance?.withBalanceAndLastUpdatedAt(data.balance, data.lastUpdatedAt) ?: data
-        balanceRepository.save(balanceToSave)
+        balanceRepository.update(balanceToSave)
     }
 }
