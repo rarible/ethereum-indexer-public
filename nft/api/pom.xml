@@ -94,6 +94,10 @@
             <groupId>io.daonomic.scalether</groupId>
             <artifactId>transport-mono_${scala.major.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ch.sbb</groupId>
+            <artifactId>springboot-graceful-shutdown</artifactId>
+        </dependency>
 
         <!-- ================== Test ===================== -->
         <dependency>

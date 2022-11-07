@@ -1,11 +1,11 @@
 package com.rarible.protocol.nft.api
 
+import ch.sbb.esta.openshift.gracefullshutdown.GracefulshutdownSpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
 
 @SpringBootApplication
 class NftIndexerApiApplication
 
 fun main(args: Array<String>) {
-    runApplication<NftIndexerApiApplication>(*args)
+    GracefulshutdownSpringApplication.run(NftIndexerApiApplication::class.java, *args)
 }
