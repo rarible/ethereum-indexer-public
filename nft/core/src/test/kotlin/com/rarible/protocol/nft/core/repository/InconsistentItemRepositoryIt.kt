@@ -3,17 +3,32 @@ package com.rarible.protocol.nft.core.repository
 import com.rarible.protocol.nft.core.data.createRandomInconsistentItem
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
+import com.rarible.protocol.nft.core.model.InconsistentItem
+import com.rarible.protocol.nft.core.model.InconsistentItemContinuation
+import com.rarible.protocol.nft.core.model.InconsistentItemContinuation.Companion.fromInconsistentItem
+import com.rarible.protocol.nft.core.model.InconsistentItemFilter
+import com.rarible.protocol.nft.core.model.InconsistentItemFilterAll
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.repository.inconsistentitem.InconsistentItemFilterCriteria.toCriteria
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import scalether.domain.Address
+import java.time.Instant
 
 @IntegrationTest
 class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var inconsistentItemRepository: InconsistentItemRepository
+
+    @BeforeEach
+    fun setupDbIndexes() = runBlocking {
+        inconsistentItemRepository.createIndexes()
+    }
 
     @Test
     fun `should save and return if was inserted`() = runBlocking<Unit> {
@@ -72,5 +87,42 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
 
         // then
         assertThat(actual).containsExactlyInAnyOrder(item1, item2)
+    }
+
+    @Test
+    fun `should search all with continuation`() = runBlocking<Unit> {
+        // given
+        val n1 = createRandomInconsistentItem().copy(
+            lastUpdatedAt = Instant.ofEpochMilli(100),
+            token = Address.TWO()
+        )
+        val n2 = createRandomInconsistentItem().copy(
+            lastUpdatedAt = Instant.ofEpochMilli(100),
+            token = Address.THREE()
+        )
+        val n3 = createRandomInconsistentItem().copy(
+            lastUpdatedAt = Instant.ofEpochMilli(200),
+            token = Address.ONE()
+        )
+        val n4 = createRandomInconsistentItem().copy(
+            lastUpdatedAt = Instant.ofEpochMilli(200),
+            token = Address.TWO()
+        )
+
+        listOf(n1, n2, n3, n4).shuffled().forEach { inconsistentItemRepository.insert(it) }
+
+        // when
+        var continuation: InconsistentItemContinuation? = null
+        val totalResult = mutableListOf<InconsistentItem>()
+        do {
+            val query = InconsistentItemFilterAll().toCriteria(continuation = continuation, limit = 1)
+            val result: List<InconsistentItem> = inconsistentItemRepository.search(query)
+            totalResult.addAll(result)
+            continuation = result.lastOrNull()?.fromInconsistentItem()
+        } while (result.isNotEmpty())
+
+
+        // then
+        assertThat(totalResult).containsExactly(n1, n2, n3, n4)
     }
 }

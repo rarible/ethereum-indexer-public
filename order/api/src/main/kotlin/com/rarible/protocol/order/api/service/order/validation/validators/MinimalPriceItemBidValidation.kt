@@ -25,6 +25,7 @@ class MinimalPriceItemBidValidation(
 
     override suspend fun validate(orderVersion: OrderVersion) {
         if (featureFlags.checkMinimalBidPrice.not()) return
+        if (orderVersion.make.type.nft) return
 
         val nftAsset = orderVersion.take.type
         val takePriceUsd = orderVersion.takePriceUsd ?: throw OrderUpdateException(
