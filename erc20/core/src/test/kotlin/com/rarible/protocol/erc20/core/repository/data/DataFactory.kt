@@ -43,12 +43,13 @@ fun randomBalance(
     token: Address = randomAddress(),
     owner: Address = randomAddress(),
     createdAt: Instant = nowMillis(),
-    lastUpdatedAt: Instant = nowMillis()
+    lastUpdatedAt: Instant = nowMillis(),
+    balance: EthUInt256 = EthUInt256.of(randomBigInt())
 ): Erc20Balance {
     return Erc20Balance(
         token = token,
         owner = owner,
-        balance = EthUInt256.of(randomBigInt()),
+        balance = balance,
         createdAt = createdAt,
         lastUpdatedAt = lastUpdatedAt,
         revertableEvents = emptyList()
