@@ -422,7 +422,7 @@ fun randomTokenProperties(): TokenProperties {
 
 fun createRandomInconsistentItem() = InconsistentItem(
     token = randomAddress(),
-    tokenId = EthUInt256.TEN,
+    tokenId = EthUInt256.of(randomWord()),
     status = InconsistentItemStatus.UNFIXED,
     fixVersionApplied = 1,
     lastUpdatedAt = nowMillis(),

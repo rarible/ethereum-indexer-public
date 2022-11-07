@@ -5,15 +5,20 @@ import com.rarible.core.apm.SpanType
 import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItem.Companion.COLLECTION
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
+import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.repository.InconsistentItemRepository.Indexes.ALL_INDEXES
+import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -26,6 +31,12 @@ class InconsistentItemRepository(
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    suspend fun createIndexes() {
+        ALL_INDEXES.forEach { index ->
+            mongo.indexOps(COLLECTION).ensureIndex(index).awaitFirst()
+        }
+    }
 
     suspend fun dropCollection() {
         mongo.dropCollection(COLLECTION).awaitFirstOrNull()
@@ -54,8 +65,20 @@ class InconsistentItemRepository(
         }
     }
 
+    suspend fun save(inconsistentItem: InconsistentItem) {
+        mongo.save(inconsistentItem, COLLECTION).awaitFirstOrNull()
+    }
+
     suspend fun get(id: ItemId): InconsistentItem? {
         return mongo.findById<InconsistentItem>(id, COLLECTION).awaitFirstOrNull()
+    }
+
+    suspend fun search(query: Query): List<InconsistentItem> {
+        return mongo.query<InconsistentItem>()
+            .matching(query)
+            .all()
+            .collectList()
+            .awaitFirst()
     }
 
     suspend fun searchByIds(ids: Set<ItemId>): List<InconsistentItem> {
@@ -68,5 +91,14 @@ class InconsistentItemRepository(
 
     fun findAll(): Flow<InconsistentItem> {
         return mongo.findAll(InconsistentItem::class.java, COLLECTION).asFlow()
+    }
+
+    private object Indexes {
+        val FOR_ALL_DEFINITION: Index = Index()
+            .on(InconsistentItem::lastUpdatedAt.name, Sort.Direction.ASC)
+            .on("_id", Sort.Direction.ASC)
+            .background()
+
+        val ALL_INDEXES = listOf(FOR_ALL_DEFINITION)
     }
 }
