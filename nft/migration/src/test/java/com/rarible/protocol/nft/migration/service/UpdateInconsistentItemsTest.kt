@@ -31,7 +31,7 @@ class UpdateInconsistentItemsTest : AbstractIntegrationTest() {
 
         // when
         val before = inconsistentItemRepository.search(query)
-        ChangeLog00025UpdateInconsistentItems().updateInconsistentItems(inconsistentItemRepository, 3)
+        ChangeLog00025UpdateInconsistentItems().updateInconsistentItemsInner(inconsistentItemRepository, 3)
         val after = inconsistentItemRepository.search(query)
         val all = inconsistentItemRepository.search(Query())
 
