@@ -3,7 +3,7 @@ package com.rarible.protocol.erc20.core.admin.service
 import com.rarible.core.task.TaskStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomLong
-import com.rarible.protocol.erc20.core.IntegrationTest
+import com.rarible.protocol.erc20.core.integration.IntegrationTest
 import com.rarible.protocol.erc20.core.admin.model.ReduceErc20BalanceTaskParam
 import com.rarible.protocol.erc20.core.admin.model.ReindexErc20TokenTaskParam
 import com.rarible.protocol.erc20.core.admin.repository.Erc20TaskRepository

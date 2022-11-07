@@ -1,6 +1,6 @@
 package com.rarible.protocol.erc20.core.repository
 
-import com.rarible.protocol.erc20.core.IntegrationTest
+import com.rarible.protocol.erc20.core.integration.IntegrationTest
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.repository.data.randomBalance
 import kotlinx.coroutines.runBlocking

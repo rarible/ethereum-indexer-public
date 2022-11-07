@@ -2,7 +2,7 @@ package com.rarible.protocol.erc20.core.repository
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.erc20.core.IntegrationTest
+import com.rarible.protocol.erc20.core.integration.IntegrationTest
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.repository.data.randomErc20Deposit
