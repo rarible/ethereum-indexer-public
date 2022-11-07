@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.api
 
+import ch.sbb.esta.openshift.gracefullshutdown.GracefulshutdownSpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
 
 @SpringBootApplication
 class OrderIndexerApiApplication
 
 fun main(args: Array<String>) {
-    runApplication<OrderIndexerApiApplication>(*args)
+    GracefulshutdownSpringApplication.run(OrderIndexerApiApplication::class.java, *args)
 }
