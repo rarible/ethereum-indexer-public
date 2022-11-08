@@ -18,6 +18,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -93,6 +94,7 @@ class OrderControllerCollectionFt : AbstractIntegrationTest() {
     }
 
     @Test
+    @Disabled("We don't have collection sell orders ATM") // TODO PT-1652
     fun `should return sell order by item`() = runBlocking<Unit> {
         val maker = randomAddress()
         val make = Asset(CollectionAssetType(token), EthUInt256.ONE)

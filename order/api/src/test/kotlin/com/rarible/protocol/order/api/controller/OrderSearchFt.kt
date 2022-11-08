@@ -5,14 +5,19 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderSortDto
 import com.rarible.protocol.dto.OrderStatusDto
+import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.api.data.createErc20Asset
 import com.rarible.protocol.order.api.data.createErc721Asset
 import com.rarible.protocol.order.api.data.createErc721BidOrderVersion
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
+import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
+import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
@@ -26,15 +31,19 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.model.tokenId
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
+import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
@@ -47,7 +56,12 @@ import com.rarible.protocol.order.api.data.createOrder as createOrderFully
 
 @IntegrationTest
 class OrderSearchFt : AbstractIntegrationTest() {
+
+    @Autowired
+    lateinit var poolHistoryRepository: PoolHistoryRepository
+
     companion object {
+
         @JvmStatic
         fun orders(): Stream<Arguments> = run {
             val now = nowMillis()
@@ -243,7 +257,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should find sell-orders by currency and sort asc`() = runBlocking<Unit> {
+    fun `should find sell-orders by item, currency and sort asc`() = runBlocking<Unit> {
         val makeAddress = AddressFactory.create()
         val currencyToken = AddressFactory.create()
         val order1 = createOrderFully().copy(
@@ -286,6 +300,62 @@ class OrderSearchFt : AbstractIntegrationTest() {
         ).awaitFirst()
         assertThat(result2.orders.size).isEqualTo(1)
         assertThat(result2.orders[0].take.value).isEqualTo(2)
+        assertThat(result2.continuation).isNull()
+    }
+
+    @Test // TODO revisit in PT-1652
+    fun `should find amm sell-orders by item and currency`() = runBlocking<Unit> {
+        val token = AddressFactory.create()
+        val tokenId = EthUInt256.TEN
+        val currencyToken = AddressFactory.create()
+        val ammOrder = createOrderFully().copy(
+            make = Asset(AmmNftAssetType(token), EthUInt256.ONE),
+            take = Asset(Erc20AssetType(currencyToken), EthUInt256.of(1)),
+            makePrice = BigDecimal.valueOf(1L)
+        )
+
+        val poolCreate = randomSellOnChainAmmOrder().copy(
+            collection = token,
+            tokenIds = listOf(tokenId),
+            currency = currencyToken,
+            hash = ammOrder.hash
+        )
+        val logEvent = LogEvent(
+            data = poolCreate,
+            address = randomAddress(),
+            topic = Word.apply(RandomUtils.nextBytes(32)),
+            transactionHash = Word.apply(RandomUtils.nextBytes(32)),
+            index = RandomUtils.nextInt(),
+            minorLogIndex = 0,
+            status = LogEventStatus.CONFIRMED
+        )
+        poolHistoryRepository.save(logEvent).awaitFirst()
+
+        saveOrder(ammOrder)
+
+        val result = orderClient.getSellOrdersByItemAndByStatus(
+            token.prefixed(),
+            tokenId.value.toString(),
+            null,
+            null,
+            PlatformDto.SUDOSWAP,
+            null, 1, null, currencyToken.hex()
+        ).awaitFirst()
+
+        assertThat(result.orders.size).isEqualTo(1)
+        assertThat(result.orders[0].hash).isEqualTo(ammOrder.hash)
+        assertThat(result.continuation).isNull()
+
+        val result2 = orderClient.getSellOrdersByItemAndByStatus(
+            token.prefixed(),
+            tokenId.value.toString(),
+            null,
+            null,
+            PlatformDto.SUDOSWAP,
+            null, 1, null, randomAddress().prefixed() //other currency
+        ).awaitFirst()
+
+        assertThat(result2.orders.size).isEqualTo(0)
         assertThat(result2.continuation).isNull()
     }
 
