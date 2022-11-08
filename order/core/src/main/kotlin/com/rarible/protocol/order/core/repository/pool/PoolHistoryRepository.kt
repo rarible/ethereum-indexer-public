@@ -34,7 +34,6 @@ import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
-import org.springframework.data.mongodb.core.query.lte
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -114,7 +113,8 @@ class PoolHistoryRepository(
         )
         val query = Query(criteria)
             .with(POOL_CHANGE_SORT_DESC)
-            .withHint(Indexes.NFT_CHANGES_POOL_ITEM_IDS_DEFINITION.indexKeys)
+            // TODO ideally we should get rid of direct hint usages
+            //.withHint(Indexes.NFT_CHANGES_POOL_ITEM_IDS_DEFINITION.indexKeys)
             .limit(1)
 
         return template.find<LogEvent>(query, COLLECTION).collectList().awaitFirst()

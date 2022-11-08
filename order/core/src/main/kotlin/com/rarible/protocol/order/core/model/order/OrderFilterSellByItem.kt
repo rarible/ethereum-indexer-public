@@ -12,7 +12,6 @@ import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes
 import org.bson.Document
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.exists
 import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
 import java.math.BigDecimal
@@ -79,6 +78,10 @@ data class OrderFilterSellByItem(
     private fun Criteria.forToken(token: Address, tokenId: BigInteger): Criteria {
         return this.andOperator(
             Order::make / Asset::type / NftAssetType::token isEqualTo token,
+            Order::make / Asset::type / NftAssetType::tokenId isEqualTo EthUInt256(tokenId)
+            /*
+            // TODO PT-1652 this works fine for floor bids since such bids include entire collection
+            // But for AMM orders such approach doesn't work since they include only part of the collection
             Criteria().orOperator(
                 Order::make / Asset::type / NftAssetType::tokenId isEqualTo EthUInt256(tokenId),
                 Criteria().andOperator(
@@ -86,6 +89,7 @@ data class OrderFilterSellByItem(
                     Order::make / Asset::type / NftAssetType::nft isEqualTo true
                 )
             )
+            */
         )
     }
 
