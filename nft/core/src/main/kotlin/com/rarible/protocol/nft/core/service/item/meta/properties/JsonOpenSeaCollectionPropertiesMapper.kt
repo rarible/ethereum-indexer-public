@@ -58,7 +58,7 @@ object JsonOpenSeaCollectionPropertiesMapper {
         }
         try {
             return Address.apply(address.trim())
-        } catch (e: Exception) {
+        } catch (t: Throwable) {
             logger.info(
                 "Unable to parse address field from OpenSea collection [{}] meta {}: ",
                 collectionId.prefixed(), address
