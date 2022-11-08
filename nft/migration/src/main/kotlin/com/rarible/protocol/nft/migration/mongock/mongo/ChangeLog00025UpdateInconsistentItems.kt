@@ -25,8 +25,12 @@ class ChangeLog00025UpdateInconsistentItems {
         order = "1",
         author = "protocol"
     )
-    suspend fun updateInconsistentItems(
-        @NonLockGuarded repository: InconsistentItemRepository,
+    suspend fun updateInconsistentItems(@NonLockGuarded repository: InconsistentItemRepository) {
+        updateInconsistentItemsInner(repository, 1000)
+    }
+
+    suspend fun updateInconsistentItemsInner(
+        repository: InconsistentItemRepository,
         batchSize: Int = 1000,
     ) = runBlocking<Unit> {
         val random = Random(Instant.now().toEpochMilli())
