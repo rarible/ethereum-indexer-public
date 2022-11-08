@@ -79,4 +79,16 @@ class JsonOpenSeaCollectionPropertiesMapperTest {
 
         assertThat(properties.feeRecipient).isNull()
     }
+
+    @Test
+    fun `map malformed address`() {
+        // given
+        val json = JsonPropertiesParser.parse("", """{"payout_address": "0x40"}""")
+
+        // when
+        val properties = JsonOpenSeaCollectionPropertiesMapper.map(collectionId, json)
+
+        // then
+        assertThat(properties.feeRecipient).isNull()
+    }
 }
