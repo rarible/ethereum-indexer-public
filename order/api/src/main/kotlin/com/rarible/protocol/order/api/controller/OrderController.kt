@@ -39,6 +39,7 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.currency
 import com.rarible.protocol.order.core.model.order.OrderFilter
 import com.rarible.protocol.order.core.model.order.OrderFilterAll
 import com.rarible.protocol.order.core.model.order.OrderFilterBidByItem
@@ -47,6 +48,7 @@ import com.rarible.protocol.order.core.model.order.OrderFilterSellByCollection
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByMaker
 import com.rarible.protocol.order.core.model.order.OrderFilterSort
+import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.BidsOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
@@ -222,7 +224,9 @@ class OrderController(
         size: Int?
     ): ResponseEntity<OrdersPaginationDto> {
         val requestSize = limit(size)
-        val result = orderService.getAmmOrdersByItemId(AddressParser.parse(contract), EthUInt256.of(tokenId), continuation, limit(size))
+        val result = orderService.getAmmOrdersByItemId(
+            AddressParser.parse(contract), EthUInt256.of(tokenId), continuation, limit(size)
+        )
         val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else result.last().hash.prefixed()
         val dto = OrdersPaginationDto(
             result.map { orderDtoConverter.convert(it) },
@@ -280,7 +284,7 @@ class OrderController(
             sort = OrderFilterSort.MAKE_PRICE_ASC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
-        val result = searchOrders(filter, continuation, size)
+        val result = searchSellByItemIdOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
 
@@ -305,7 +309,7 @@ class OrderController(
             status = convertStatus(status),
             currency = currencyId?.let { Address.apply(currencyId) }
         )
-        val result = searchOrders(filter, continuation, size)
+        val result = searchSellByItemIdOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
 
@@ -469,7 +473,9 @@ class OrderController(
         val statuses = status?.map { BidStatusReverseConverter.convert(it) }?.toSet() ?: emptySet()
         val orderVersions = orderBidsService.findOrderBids(filter, statuses)
         val nextContinuation =
-            if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(orderVersions.last().version)
+            if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(
+                orderVersions.last().version
+            )
         val result = OrdersPaginationDto(
             orderVersions.map { compositeBidConverter.convert(it) },
             nextContinuation
@@ -497,6 +503,42 @@ class OrderController(
             EthUInt256.of(BigInteger(tokenId))
         ).map { assetTypeDtoConverter.convert(it) }.toList()
         return ResponseEntity.ok(OrderCurrenciesDto(OrderCurrenciesDto.OrderType.BID, currencies))
+    }
+
+    // TODO workaround for AMM orders, should be fixed/improved in PT-1652
+    private suspend fun searchSellByItemIdOrders(
+        filter: OrderFilterSellByItem,
+        continuation: String?,
+        size: Int?
+    ): OrdersPaginationDto {
+        val statuses = filter.status ?: emptyList()
+
+        // Works only for ACTIVE and SUDOSWAP orders without origin filter, otherwise AMM orders can't get into result
+        val includeSudoswap = (statuses.isEmpty() || statuses.contains(OrderStatusDto.ACTIVE))
+            && (filter.platforms.isEmpty() || filter.platforms.contains(PlatformDto.SUDOSWAP))
+            && filter.origin == null
+
+        if (!includeSudoswap) {
+            return searchOrders(filter, continuation, size)
+        }
+
+        // Works only for ERC721, there could be only one AMM order per Item
+        val ammOrder = orderService.getAmmOrdersByItemId(
+            filter.contract,
+            EthUInt256(filter.tokenId),
+            null,
+            1
+        ).firstOrNull() ?: return searchOrders(filter, continuation, size) // Nothing found, using regular search
+
+        val matchesFilter = (filter.maker == null || ammOrder.maker == filter.maker)
+            && (filter.currency == null || filter.currency == ammOrder.currency.token)
+
+        // if AMM order found, this page should be the last anyway
+        return if (matchesFilter) {
+            OrdersPaginationDto(listOf(orderDtoConverter.convert(ammOrder)), null)
+        } else {
+            OrdersPaginationDto(emptyList(), null)
+        }
     }
 
     private suspend fun searchOrders(
