@@ -61,8 +61,13 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
     }
 
     @Test
-    internal fun `should make x2y2 order cancel if not approve`() {
-        checkPlatform(Platform.X2Y2, exchangeContractAddresses.x2y2V1, noApprovalStatus = OrderStatus.CANCELLED)
+    internal fun `should make x2y2 order cancel if not approve for erc721`() {
+        checkPlatform(Platform.X2Y2, transferProxyAddresses.x2y2TransferProxyErc721, noApprovalStatus = OrderStatus.CANCELLED)
+    }
+
+    @Test
+    internal fun `should make x2y2 order cancel if not approve for erc1155`() {
+        checkPlatform(Platform.X2Y2, transferProxyAddresses.x2y2TransferProxyErc1155, noApprovalStatus = OrderStatus.CANCELLED)
     }
 
     private fun checkPlatform(

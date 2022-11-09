@@ -32,7 +32,8 @@ data class OrderListenerProperties(
     val x2y2Load: X2Y2OrderLoadProperties = X2Y2OrderLoadProperties(),
     val x2y2CancelListEventLoad: X2Y2EventLoadProperties = X2Y2EventLoadProperties(),
     val startEndWorker: StartEndWorkerProperties = StartEndWorkerProperties(),
-    var fixApproval: Boolean = false
+    var fixApproval: Boolean = false,
+    val approvalEvenHandleDelay: Duration = Duration.ZERO,
 ) {
     enum class OrderSide {
         ALL,

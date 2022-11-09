@@ -10,11 +10,15 @@ import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
+import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactor.mono
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
+import java.time.Duration
+import java.util.Random
+import java.util.concurrent.ThreadLocalRandom
 
 @Component
 @CaptureSpan(type = SpanType.EVENT)
@@ -22,6 +26,7 @@ class ApprovalAllLogListener(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
     private val approveService: ApproveService,
+    private val properties: OrderListenerProperties
 ) : OnLogEventListener {
 
     override val topics: List<Word>
@@ -44,7 +49,17 @@ class ApprovalAllLogListener(
         orderRepository
             .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
             .collect {
+                randomDelay()
                 orderUpdateService.updateApproval(it, history.approved)
             }
+    }
+
+    //TODO://Need to remove this on PT-1657
+    private suspend fun randomDelay() {
+        val maxDelayMs = properties.approvalEvenHandleDelay.toMillis()
+        if (maxDelayMs == 0L) return
+        val delayMs = ThreadLocalRandom.current().nextLong(0, maxDelayMs)
+        delay(timeMillis = delayMs)
+
     }
 }
