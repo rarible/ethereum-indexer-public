@@ -55,7 +55,13 @@ class InconsistentItemRepository(
                 if (previous.status == InconsistentItemStatus.FIXED) {
                     logger.info("InconsistentItem ${inconsistentItem.id} was fixed previously, " +
                             "but again became inconsistent: $inconsistentItem")
-                    mongo.save(inconsistentItem.copy(status = InconsistentItemStatus.RELAPSED), COLLECTION).awaitFirstOrNull()
+                    mongo.save(
+                        inconsistentItem.copy(
+                            status = InconsistentItemStatus.RELAPSED,
+                            relapseCount = previous.relapseCount?.plus(1)
+                        ),
+                        COLLECTION
+                    ).awaitFirstOrNull()
                     return true
                 }
                 return false

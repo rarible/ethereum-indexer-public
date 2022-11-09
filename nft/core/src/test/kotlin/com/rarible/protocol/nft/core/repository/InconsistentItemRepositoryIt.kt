@@ -70,8 +70,9 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
 
         // then
         assertThat(saved).isTrue()
-        assertThat(actual).usingRecursiveComparison().ignoringFields("status").isEqualTo(after)
+        assertThat(actual).usingRecursiveComparison().ignoringFields("status", "relapseCount").isEqualTo(after)
         assertThat(actual!!.status).isEqualTo(InconsistentItemStatus.RELAPSED)
+        assertThat(actual.relapseCount).isEqualTo(1)
     }
 
     @Test

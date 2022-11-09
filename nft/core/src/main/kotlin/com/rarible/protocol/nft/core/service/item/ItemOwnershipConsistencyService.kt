@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.service.item
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemProblemType
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
@@ -24,13 +25,16 @@ class ItemOwnershipConsistencyService(
     private val itemRepository: ItemRepository,
 ) {
 
-    private val elementsFetchSize = 1000
+    companion object {
+        const val CURRENT_FIX_VERSION = 2
+        private const val elementsFetchSize = 1000
+    }
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun checkItem(itemId: ItemId): CheckResult {
         val item = itemRepository.findById(itemId).awaitFirstOrNull()
-            ?: throw RuntimeException("Item not found: $itemId")
+            ?: return CheckResult.Failure(ItemProblemType.NOT_FOUND, EthUInt256.ZERO, EthUInt256.ZERO)
         return checkItem(item)
     }
 
@@ -43,15 +47,15 @@ class ItemOwnershipConsistencyService(
         } else {
             logger.warn("Consistency check failed for item ${item.id}, " +
                     "item supply: ${item.supply}, ownerships supply: $ownershipsSupply")
-            CheckResult.Failure(item.supply, ownershipsSupply)
+            CheckResult.Failure(ItemProblemType.SUPPLY_MISMATCH, item.supply, ownershipsSupply)
         }
     }
 
-    suspend fun tryFix(item: Item, deleteOwnerships: Boolean = false): Item {
-        return tryFix(item.id, deleteOwnerships) ?: item
+    suspend fun tryFix(item: Item, deleteOwnerships: Boolean = false): FixAttemptResult {
+        return tryFix(item.id, deleteOwnerships)
     }
 
-    suspend fun tryFix(itemId: ItemId, deleteOwnerships: Boolean = false): Item? {
+    suspend fun tryFix(itemId: ItemId, deleteOwnerships: Boolean = false): FixAttemptResult {
         logger.info("Attempting to fix item<->ownership consistency for item $itemId")
         if (deleteOwnerships) {
             val deleted = ownershipRepository.deleteAllByItemId(itemId = itemId).asFlow().toList()
@@ -59,7 +63,8 @@ class ItemOwnershipConsistencyService(
         }
         itemReduceService.update(itemId.token, itemId.tokenId).awaitFirstOrNull()
         logger.info("Attempt finished for item $itemId")
-        return itemRepository.findById(itemId).awaitSingleOrNull()
+        val item = itemRepository.findById(itemId).awaitSingleOrNull()
+        return FixAttemptResult(itemId, item, CURRENT_FIX_VERSION)
     }
 
     private suspend fun getOwnershipsTotalSupply(itemId: ItemId, limit: Int): EthUInt256 {
@@ -84,8 +89,15 @@ class ItemOwnershipConsistencyService(
         object Success : CheckResult()
 
         data class Failure(
+            val type: ItemProblemType,
             val supply: EthUInt256,
             val ownerships: EthUInt256
         ) : CheckResult()
     }
+
+    data class FixAttemptResult(
+        val itemId: ItemId,
+        val item: Item?,
+        val fixVersion: Int,
+    )
 }

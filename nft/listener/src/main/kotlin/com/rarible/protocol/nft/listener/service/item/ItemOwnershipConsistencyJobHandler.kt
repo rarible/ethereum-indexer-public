@@ -108,7 +108,7 @@ class ItemOwnershipConsistencyJobHandler(
                     return
                 }
 
-                val fixedItem = itemOwnershipConsistencyService.tryFix(item)
+                val fixedItem = itemOwnershipConsistencyService.tryFix(item).item ?: item
                 checkResult = itemOwnershipConsistencyService.checkItem(fixedItem)
                 when (checkResult) {
                     is Failure -> {
