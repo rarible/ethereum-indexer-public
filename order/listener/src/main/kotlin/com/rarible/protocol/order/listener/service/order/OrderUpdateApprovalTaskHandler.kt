@@ -13,7 +13,6 @@ import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
-import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -79,12 +78,13 @@ class OrderUpdateApprovalTaskHandler(
                 order.hash, order.maker, order.make.type.token
             )
             if (properties.fixApproval) {
-                updateApprove(order.hash, onChainApprove)
+                updateApprove(order, onChainApprove)
             }
         }
     }
 
-    private suspend fun updateApprove(hash: Word, approve: Boolean) {
+    private suspend fun updateApprove(order: Order, approve: Boolean) {
+        val hash = order.hash
         val versions = mutableListOf<OrderVersion>()
         orderVersionRepository.findAllByHash(hash).toList(versions)
         val latestVersion = versions.maxByOrNull { it.id } ?: run {
@@ -92,7 +92,7 @@ class OrderUpdateApprovalTaskHandler(
             return
         }
         orderVersionRepository.save(latestVersion.copy(approved = approve)).awaitFirst()
-        orderUpdateService.update(hash)
+        orderUpdateService.updateApproval(order, approve)
         val updated = orderRepository.findById(hash)
         logger.info("Order approved was updated: hash={}, status={}", updated?.hash, updated?.status)
     }
