@@ -26,12 +26,12 @@ class ApproveService(
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
     private val sender: ReadOnlyMonoTransactionSender,
     private val approvalMetrics: ApprovalMetrics,
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
 ) {
     private val raribleTransferProxy = transferProxyAddresses.transferProxy
     private val seaportTransferProxy = transferProxyAddresses.seaportTransferProxy
-    private val x2y2TransferProxy = exchangeContractAddresses.x2y2V1
+    private val x2y2TransferProxyErc721 = transferProxyAddresses.x2y2TransferProxyErc721
+    private val x2y2TransferProxyErc1155 = transferProxyAddresses.x2y2TransferProxyErc1155
     private val cryptoPunksTransferProxy = transferProxyAddresses.cryptoPunksTransferProxy
     private val looksrareTransferProxyErc721 = transferProxyAddresses.looksrareTransferManagerERC721
     private val looksrareTransferProxyErc1155 = transferProxyAddresses.looksrareTransferManagerERC1155
@@ -40,7 +40,8 @@ class ApproveService(
     private val platformByOperatorMap: Map<Address, Platform> = mapOf(
         raribleTransferProxy to Platform.RARIBLE,
         seaportTransferProxy to Platform.OPEN_SEA,
-        x2y2TransferProxy to Platform.X2Y2,
+        x2y2TransferProxyErc721 to Platform.X2Y2,
+        x2y2TransferProxyErc1155 to Platform.X2Y2,
         cryptoPunksTransferProxy to Platform.CRYPTO_PUNKS,
         looksrareTransferProxyErc721 to Platform.LOOKSRARE,
         looksrareTransferProxyErc1155 to Platform.LOOKSRARE,
