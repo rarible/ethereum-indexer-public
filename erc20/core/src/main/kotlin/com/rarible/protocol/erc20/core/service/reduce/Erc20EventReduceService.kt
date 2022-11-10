@@ -1,8 +1,14 @@
 package com.rarible.protocol.erc20.core.service.reduce
 
+import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.apm.withSpan
+import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.entity.reducer.service.EventReduceService
+import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
+import com.rarible.protocol.erc20.core.model.EntityEventListeners
+import com.rarible.protocol.erc20.core.model.SubscriberGroup
+import com.rarible.protocol.erc20.core.model.SubscriberGroups
 import com.rarible.protocol.erc20.core.service.Erc20BalanceService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -14,13 +20,23 @@ class Erc20EventReduceService(
     erc20BalanceIdService: Erc20BalanceIdService,
     erc20BalanceTemplateProvider: Erc20BalanceTemplateProvider,
     erc20BalanceReducer: Erc20BalanceReducer,
-
-) {
+    properties: Erc20IndexerProperties,
+    environmentInfo: ApplicationEnvironmentInfo,
+) : EntityEventListener {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private val delegate = EventReduceService(erc20BalanceService, erc20BalanceIdService, erc20BalanceTemplateProvider, erc20BalanceReducer)
+    private val delegate = EventReduceService(
+        erc20BalanceService,
+        erc20BalanceIdService,
+        erc20BalanceTemplateProvider,
+        erc20BalanceReducer
+    )
 
-    suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+    override val id: String = EntityEventListeners.erc20HistoryListenerId(environmentInfo.name, properties.blockchain)
+
+    override val subscriberGroup: SubscriberGroup = SubscriberGroups.ERC20_HISTORY
+
+    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
         withSpan(
             name = "onErc20Events",
             labels = listOf(
