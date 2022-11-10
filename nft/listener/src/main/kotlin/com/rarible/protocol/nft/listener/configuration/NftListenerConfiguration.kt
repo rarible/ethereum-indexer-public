@@ -18,6 +18,7 @@ import com.rarible.protocol.nft.core.producer.InternalTopicProvider
 import com.rarible.protocol.nft.core.service.action.ActionEventHandler
 import com.rarible.protocol.nft.core.service.action.ActionJobHandler
 import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
+import com.rarible.protocol.nft.listener.service.item.InconsistentItemsRepairJobHandler
 import com.rarible.protocol.nft.listener.service.item.ItemOwnershipConsistencyJobHandler
 import com.rarible.protocol.nft.listener.service.ownership.OwnershipItemConsistencyJobHandler
 import io.micrometer.core.instrument.MeterRegistry
@@ -136,6 +137,17 @@ class NftListenerConfiguration(
             meterRegistry = meterRegistry,
             properties = nftListenerProperties.ownershipItemConsistency.daemon,
             workerName = "ownership-item-consistency-worker"
+        ).apply { start() }
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = ["listener.job.inconsistent-items-repair.enabled"], havingValue = "true")
+    fun inconsistentItemsRepairWorker(handler: InconsistentItemsRepairJobHandler): JobDaemonWorker {
+        return JobDaemonWorker(
+            jobHandler = handler,
+            meterRegistry = meterRegistry,
+            properties = nftListenerProperties.inconsistentItemsRepair.daemon,
+            workerName = "inconsistent-items-repair-worker"
         ).apply { start() }
     }
 }

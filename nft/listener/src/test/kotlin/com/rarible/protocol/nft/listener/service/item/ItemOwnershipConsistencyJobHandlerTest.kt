@@ -44,7 +44,6 @@ import org.springframework.data.mongodb.core.query.where
 import scalether.domain.Address
 import java.time.Duration
 
-private const val OWNERS_NUMBER = 4
 
 @IntegrationTest
 class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
@@ -264,72 +263,5 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         )
         assertThat(owners).hasSize(1)
         assertThat(result).isExactlyInstanceOf(ItemOwnershipConsistencyService.CheckResult.Success::class.java)
-    }
-
-
-    private fun createValidLog(item: Item, ownerships: List<Ownership>): List<LogEvent> {
-        return ownerships.mapIndexed { index, ownership ->
-            createLog(
-                token = item.token,
-                tokenId = item.tokenId,
-                value = EthUInt256.ONE,
-                from = Address.ZERO(),
-                owner = ownership.owner,
-                logIndex = index
-            )
-        }
-    }
-
-    private fun createValidOwnerships(item: Item): List<Ownership> {
-        return (1..OWNERS_NUMBER).map {
-            createRandomOwnership().copy(
-                token = item.token,
-                tokenId = item.tokenId,
-                value = item.supply / EthUInt256.of(OWNERS_NUMBER)
-            )
-        }
-    }
-
-    private fun createInvalidValidOwnerships(item: Item): List<Ownership> {
-        return (1..OWNERS_NUMBER).map {
-            createRandomOwnership().copy(
-                token = item.token,
-                tokenId = item.tokenId,
-                value = item.supply
-            )
-        }
-    }
-
-    private fun createLog(
-        token: Address = randomAddress(),
-        blockNumber: Long = 1,
-        tokenId: EthUInt256 = EthUInt256.of(randomBigInt()),
-        value: EthUInt256 = EthUInt256.ONE,
-        owner: Address = randomAddress(),
-        from: Address = Address.ZERO(),
-        logIndex: Int
-    ): LogEvent {
-        val transfer = ItemTransfer(
-            owner = owner,
-            token = token,
-            tokenId = tokenId,
-            date = nowMillis(),
-            from = from,
-            value = value
-        )
-        return LogEvent(
-            data = transfer,
-            address = token,
-            topic = WordFactory.create(),
-            transactionHash = Word.apply(randomWord()),
-            status = LogEventStatus.CONFIRMED,
-            from = randomAddress(),
-            index = 0,
-            logIndex = logIndex,
-            blockNumber = blockNumber,
-            minorLogIndex = 0,
-            blockTimestamp = nowMillis().epochSecond,
-            createdAt = nowMillis()
-        )
     }
 }
