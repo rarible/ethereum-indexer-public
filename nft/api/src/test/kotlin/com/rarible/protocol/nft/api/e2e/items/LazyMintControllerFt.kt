@@ -35,6 +35,7 @@ import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -82,6 +83,7 @@ class LazyMintControllerFt : EventAwareBaseTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
+    @Disabled("Fix in PT-1654")
     fun `should any user mints ERC721`(version: ReduceVersion) = withReducer(version) {
         val contract = ERC721Rarible.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC721Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()
