@@ -27,6 +27,7 @@ data class InconsistentItem(
     val ownerships: EthUInt256?,
     val supplyValue: BigInteger?,
     val ownershipsValue: BigInteger?,
+    val relapseCount: Int? = 0,
 ) {
     @Transient
     private val _id: ItemId = ItemId(token, tokenId)

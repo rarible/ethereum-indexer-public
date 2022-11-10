@@ -138,7 +138,7 @@ class OwnershipItemConsistencyJobHandler(
         }
 
         logger.info("Fixing ownership ${ownership.id} consistency (itemId: $itemId)")
-        val fixedItem = itemOwnershipConsistencyService.tryFix(itemId)
+        val fixedItem = itemOwnershipConsistencyService.tryFix(itemId).item
         if (fixedItem == null) {
             saveToInconsistentItems(itemId, checkResult = null, found = false, triedToFix = true)
         } else {
