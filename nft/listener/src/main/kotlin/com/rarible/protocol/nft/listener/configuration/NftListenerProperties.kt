@@ -22,6 +22,7 @@ data class NftListenerProperties(
     val actionExecute: ActionExecuteProperties = ActionExecuteProperties(),
     val itemOwnershipConsistency: ItemOwnershipConsistencyProperties = ItemOwnershipConsistencyProperties(),
     val ownershipItemConsistency: OwnershipItemConsistencyProperties = OwnershipItemConsistencyProperties(),
+    val inconsistentItemsRepair: InconsistentItemsRepairProperties = InconsistentItemsRepairProperties(),
 )
 
 data class ActionExecuteProperties(
@@ -43,6 +44,14 @@ data class OwnershipItemConsistencyProperties(
     val autofix: Boolean = true,
     val checkTimeOffset: Duration = Duration.ofSeconds(30),
     val parallelism: Int = 16,
+    val daemon: DaemonWorkerProperties = DaemonWorkerProperties(
+        pollingPeriod = Duration.ofMinutes(1),
+        errorDelay = Duration.ofMinutes(1),
+    ),
+)
+
+data class InconsistentItemsRepairProperties(
+    val parallelism: Int = 4,
     val daemon: DaemonWorkerProperties = DaemonWorkerProperties(
         pollingPeriod = Duration.ofMinutes(1),
         errorDelay = Duration.ofMinutes(1),
