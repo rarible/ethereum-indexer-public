@@ -27,7 +27,6 @@ import scalether.domain.request.Transaction
 import scalether.transaction.ReadOnlyMonoTransactionSender
 
 internal class ApproveServiceTest {
-    private val exchangeContractAddresses = randomContractAddresses()
     private val transferProxyAddresses = randomProxyAddresses()
     private val approveRepository = mockk<ApprovalHistoryRepository>()
     private val sender = mockk<ReadOnlyMonoTransactionSender>()
@@ -41,7 +40,6 @@ internal class ApproveServiceTest {
         featureFlags,
         sender,
         approvalMetrics,
-        exchangeContractAddresses,
         transferProxyAddresses
     )
 
@@ -58,8 +56,21 @@ internal class ApproveServiceTest {
     }
 
     @Test
-    fun `should approve for x2y2 platforms`() = runBlocking<Unit> {
-        testApproval(Platform.X2Y2, exchangeContractAddresses.x2y2V1)
+    fun `should approve for x2y2 platforms erc721`() = runBlocking<Unit> {
+        testOnChainApproval(
+            Platform.X2Y2,
+            transferProxyAddresses.x2y2TransferProxyErc721,
+            listOf(transferProxyAddresses.x2y2TransferProxyErc1155)
+        )
+    }
+
+    @Test
+    fun `should approve for x2y2 platforms erc1155`() = runBlocking<Unit> {
+        testOnChainApproval(
+            Platform.X2Y2,
+            transferProxyAddresses.x2y2TransferProxyErc1155,
+            listOf(transferProxyAddresses.x2y2TransferProxyErc721)
+        )
     }
 
     @Test
@@ -110,8 +121,21 @@ internal class ApproveServiceTest {
     }
 
     @Test
-    fun `should check x2y2 on chain approve`() = runBlocking<Unit> {
-        testOnChainApproval(Platform.X2Y2, exchangeContractAddresses.x2y2V1)
+    fun `should check x2y2 on chain approve erc721`() = runBlocking<Unit> {
+        testOnChainApproval(
+            Platform.X2Y2,
+            transferProxyAddresses.x2y2TransferProxyErc721,
+            listOf(transferProxyAddresses.x2y2TransferProxyErc1155)
+        )
+    }
+
+    @Test
+    fun `should check x2y2 on chain approve erc1155`() = runBlocking<Unit> {
+        testOnChainApproval(
+            Platform.X2Y2,
+            transferProxyAddresses.x2y2TransferProxyErc1155,
+            listOf(transferProxyAddresses.x2y2TransferProxyErc721)
+        )
     }
 
     @Test
@@ -121,28 +145,37 @@ internal class ApproveServiceTest {
 
     @Test
     fun `should check looksrare erc721 on chain approve`() = runBlocking<Unit> {
-        testLooksrareOnChainApproval(
-            approved = transferProxyAddresses.looksrareTransferManagerERC721,
-            notApproved1 = transferProxyAddresses.looksrareTransferManagerERC1155,
-            notApproved2 =  transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+        testOnChainApproval(
+            Platform.LOOKSRARE,
+            transferProxyAddresses.looksrareTransferManagerERC721,
+            otherProxies = listOf(
+                transferProxyAddresses.looksrareTransferManagerERC1155,
+                transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+            )
         )
     }
 
     @Test
     fun `should check looksrare erc1155 on chain approve`() = runBlocking<Unit> {
-        testLooksrareOnChainApproval(
-            approved = transferProxyAddresses.looksrareTransferManagerERC1155,
-            notApproved1 = transferProxyAddresses.looksrareTransferManagerERC721,
-            notApproved2 =  transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+        testOnChainApproval(
+            Platform.LOOKSRARE,
+            transferProxyAddresses.looksrareTransferManagerERC1155,
+            listOf(
+                transferProxyAddresses.looksrareTransferManagerERC721,
+                transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+            )
         )
     }
 
     @Test
     fun `should check looksrare non erc721 on chain approve`() = runBlocking<Unit> {
-        testLooksrareOnChainApproval(
-            approved = transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
-            notApproved1 = transferProxyAddresses.looksrareTransferManagerERC721,
-            notApproved2 =  transferProxyAddresses.looksrareTransferManagerERC1155
+        testOnChainApproval(
+            Platform.LOOKSRARE,
+            transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
+            listOf(
+                transferProxyAddresses.looksrareTransferManagerERC721,
+                transferProxyAddresses.looksrareTransferManagerERC1155
+            )
         )
     }
 
@@ -225,17 +258,18 @@ internal class ApproveServiceTest {
         assertThat(result).isEqualTo(approved)
     }
 
-    private suspend fun testLooksrareOnChainApproval(
+    private suspend fun testOnChainApproval(
+        platform: Platform,
         approved: Address,
-        notApproved1: Address,
-        notApproved2: Address,
+        otherProxies: List<Address>,
     ) {
         val maker = randomAddress()
         val token = randomAddress()
         mockkSender(token, maker, approved, true)
-        mockkSender(token, maker, notApproved1, false)
-        mockkSender(token, maker, notApproved2, false)
-        val result = approveService.checkOnChainApprove(maker, token, Platform.LOOKSRARE)
+        otherProxies.forEach {
+            mockkSender(token, maker, it, false)
+        }
+        val result = approveService.checkOnChainApprove(maker, token, platform)
         assertThat(result).isEqualTo(true)
     }
 
@@ -262,18 +296,6 @@ internal class ApproveServiceTest {
 
     private fun logEvent(approved: Boolean) = createLogEvent(randomApproveHistory(approved = approved))
 
-    private fun randomContractAddresses() = OrderIndexerProperties.ExchangeContractAddresses(
-        v1 = randomAddress(),
-        v1Old = randomAddress(),
-        v2 = randomAddress(),
-        openSeaV1 = randomAddress(),
-        openSeaV2 = randomAddress(),
-        seaportV1 = randomAddress(),
-        cryptoPunks = randomAddress(),
-        zeroEx = randomAddress(),
-        looksrareV1 = randomAddress(),
-        x2y2V1 = randomAddress(),
-    )
     private fun randomProxyAddresses() =OrderIndexerProperties.TransferProxyAddresses(
         transferProxy = randomAddress(),
         erc20TransferProxy = randomAddress(),
@@ -283,6 +305,8 @@ internal class ApproveServiceTest {
         seaportTransferProxy = randomAddress(),
         looksrareTransferManagerERC721 = randomAddress(),
         looksrareTransferManagerERC1155 = randomAddress(),
-        looksrareTransferManagerNonCompliantERC721 = randomAddress()
+        looksrareTransferManagerNonCompliantERC721 = randomAddress(),
+        x2y2TransferProxyErc721 = randomAddress(),
+        x2y2TransferProxyErc1155 = randomAddress()
     )
 }

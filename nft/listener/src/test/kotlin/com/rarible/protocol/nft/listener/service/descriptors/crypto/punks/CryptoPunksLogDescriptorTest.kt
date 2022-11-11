@@ -24,6 +24,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -91,6 +92,7 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
     }
 
     @Test
+    @Disabled("Fix in PT-1654")
     fun acceptBidForPunk() = runBlocking {
         val market = deployCryptoPunkMarket()
 

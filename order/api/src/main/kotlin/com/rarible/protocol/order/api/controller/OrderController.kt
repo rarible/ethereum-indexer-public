@@ -437,7 +437,7 @@ class OrderController(
             requestSize,
             priceContinuation
         )
-        return searchBids(status, filter, requestSize)
+        return searchBids(status, filter, requestSize, this::toPriceContinuation)
     }
 
     override suspend fun getOrderBidsByMakerAndByStatus(
@@ -462,20 +462,23 @@ class OrderController(
             requestSize,
             dateContinuation
         )
-        return searchBids(status, filter, requestSize)
+        return searchBids(status, filter, requestSize, this::toDateContinuation)
     }
 
     suspend fun searchBids(
         status: List<OrderStatusDto>?,
         filter: BidsOrderVersionFilter,
-        requestSize: Int
+        requestSize: Int,
+        continuationFactory: (OrderVersion) -> String
     ): ResponseEntity<OrdersPaginationDto> {
         val statuses = status?.map { BidStatusReverseConverter.convert(it) }?.toSet() ?: emptySet()
         val orderVersions = orderBidsService.findOrderBids(filter, statuses)
         val nextContinuation =
-            if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(
-                orderVersions.last().version
-            )
+            if (orderVersions.isEmpty() || orderVersions.size < requestSize) {
+                null
+            } else {
+                continuationFactory(orderVersions.last().version)
+            }
         val result = OrdersPaginationDto(
             orderVersions.map { compositeBidConverter.convert(it) },
             nextContinuation
@@ -587,9 +590,14 @@ class OrderController(
         }
     }
 
-    private fun toContinuation(orderVersion: OrderVersion): String {
+    private fun toPriceContinuation(orderVersion: OrderVersion): String {
         // TODO usage of hash here doesn't work ATM
         return Continuation.Price(orderVersion.takePrice ?: BigDecimal.ZERO, orderVersion.hash).toString()
+    }
+
+    private fun toDateContinuation(orderVersion: OrderVersion): String {
+        // TODO usage of hash here doesn't work ATM
+        return Continuation.LastDate(orderVersion.createdAt, orderVersion.hash).toString()
     }
 
     private fun limit(size: Int?): Int = PageSize.ORDER.limit(size)

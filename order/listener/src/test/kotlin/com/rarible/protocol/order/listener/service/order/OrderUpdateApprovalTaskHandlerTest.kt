@@ -60,6 +60,39 @@ class OrderUpdateApprovalTaskHandlerTest : AbstractIntegrationTest() {
         Wait.waitAssert {
             val fixed = orderRepository.findById(hash)
             assertThat(fixed?.approved).isEqualTo(false)
+            assertThat(fixed?.status).isEqualTo(OrderStatus.INACTIVE)
+        }
+    }
+
+    @Test
+    internal fun `should cancel x2y2 on approve update`() = runBlocking<Unit> {
+        properties.fixApproval = true
+        val (_, userSender, _) = newSender()
+        val token = createToken(userSender)
+
+        val taskParam = OrderUpdateApprovalTaskHandler.TaskParam(
+            status = OrderStatus.ACTIVE,
+            platform = Platform.X2Y2,
+            listedAfter = (Instant.now() - Duration.ofNanos(1)).epochSecond
+        )
+        val param = OrderUpdateApprovalTaskHandler.objectMapper.writeValueAsString(taskParam)
+        val hash = Word.apply(randomWord())
+
+        val orderVersion1 = createOrderVersion().copy(hash = hash, make = randomErc721(token.address()), approved = false, platform = Platform.X2Y2)
+        val orderVersion2 = createOrderVersion().copy(hash = hash, make = randomErc721(token.address()), approved = true, platform = Platform.X2Y2)
+        listOf(orderVersion1, orderVersion2).forEach {
+            orderVersionRepository.save(it).awaitSingle()
+        }
+        orderUpdateService.update(hash)
+        val updated = orderRepository.findById(hash)
+        assertThat(updated?.approved).isEqualTo(true)
+
+        taskService.runTask(OrderUpdateApprovalTaskHandler.UPDATE_ORDER_APPROVAL, param)
+
+        Wait.waitAssert {
+            val fixed = orderRepository.findById(hash)
+            assertThat(fixed?.approved).isEqualTo(false)
+            assertThat(fixed?.status).isEqualTo(OrderStatus.CANCELLED)
         }
     }
 }

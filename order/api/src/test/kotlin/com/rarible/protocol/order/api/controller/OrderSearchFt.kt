@@ -49,7 +49,6 @@ import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
-import java.time.Instant
 import java.util.*
 import java.util.stream.Stream
 import com.rarible.protocol.order.api.data.createOrder as createOrderFully
@@ -475,26 +474,27 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val maker2 = AddressFactory.create()
         val makeAddress = AddressFactory.create()
         val currencyToken = AddressFactory.create()
+        val now = nowMillis()
         val order1V = createErc721BidOrderVersion().copy(
             make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(1)),
             maker = maker,
             take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
             takePrice = BigDecimal.valueOf(1L),
-            createdAt = Instant.now().minusSeconds(5)
+            createdAt = now.minusSeconds(5)
         )
         val order2V = createErc721BidOrderVersion().copy(
             make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(2)),
             maker = maker,
             take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
             takePrice = BigDecimal.valueOf(2L),
-            createdAt = Instant.now()
+            createdAt = now
         )
         val order3V = createErc721BidOrderVersion().copy(
             make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(2)),
             maker = maker2,
             take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
             takePrice = BigDecimal.valueOf(2L),
-            createdAt = Instant.now()
+            createdAt = now
         )
         reduceOrder(order1V, order2V, order3V)
 
@@ -513,16 +513,13 @@ class OrderSearchFt : AbstractIntegrationTest() {
         assertThat(result.orders[0].maker).isEqualTo(maker)
         assertThat(result.continuation).isNotNull
 
-        val result2 = orderClient.getOrderBidsByItemAndByStatus(
-            order1V.take.type.token.toString(),
-            order1V.take.type.tokenId?.value.toString(),
+        val result2 = orderClient.getOrderBidsByMakerAndByStatus(
             listOf(order1V.maker, order2V.maker),
             null,
             null,
             result.continuation,
             2,
             OrderStatusDto.values().toList(),
-            currencyToken.hex(),
             null,
             null
         ).awaitFirst()

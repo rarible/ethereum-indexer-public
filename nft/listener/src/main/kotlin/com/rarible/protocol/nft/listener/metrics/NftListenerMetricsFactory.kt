@@ -2,11 +2,8 @@ package com.rarible.protocol.nft.listener.metrics
 
 import com.rarible.core.telemetry.metrics.CountingMetric
 import com.rarible.core.telemetry.metrics.LongGaugeMetric
-import com.rarible.core.telemetry.metrics.Metric
-import com.rarible.core.telemetry.metrics.Metric.Companion.tag
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
-import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
@@ -60,6 +57,31 @@ class NftListenerMetricsFactory(
             tag("blockchain", properties.blockchain)
         ){}.bind(meterRegistry)
     }
+
+    // === InconsistentItemsRepair ===
+
+    fun inconsistentItemsRepairJobCheckedCounter(): RegisteredCounter {
+        return countingMetric("inconsistent.items.repair.job.checked")
+            .bind(meterRegistry)
+    }
+
+    fun  inconsistentItemsRepairJobFixedCounter(): RegisteredCounter {
+        return countingMetric("inconsistent.items.repair.job.fixed")
+            .bind(meterRegistry)
+    }
+
+    fun inconsistentItemsRepairJobUnfixedCounter(): RegisteredCounter {
+        return countingMetric("inconsistent.items.repair.job.unfixed")
+            .bind(meterRegistry)
+    }
+
+    fun inconsistentItemsRepairJobDelayGauge(): RegisteredGauge<Long> {
+        return object : LongGaugeMetric(
+            name = "${properties.metricRootPath}.inconsistent.items.repair.job.delay",
+            tag("blockchain", properties.blockchain)
+        ){}.bind(meterRegistry)
+    }
+
 
     private fun countingMetric(suffix: String): CountingMetric {
         val root = properties.metricRootPath

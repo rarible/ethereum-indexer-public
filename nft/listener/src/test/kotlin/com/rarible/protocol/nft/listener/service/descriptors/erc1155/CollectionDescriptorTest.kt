@@ -4,9 +4,13 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.rarible.user.ERC1155RaribleUser
 import com.rarible.protocol.nft.core.model.ContractStatus
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenFeature.*
+import com.rarible.protocol.nft.core.model.TokenFeature.APPROVE_FOR_ALL
+import com.rarible.protocol.nft.core.model.TokenFeature.BURN
+import com.rarible.protocol.nft.core.model.TokenFeature.MINT_AND_TRANSFER
+import com.rarible.protocol.nft.core.model.TokenFeature.MINT_WITH_ADDRESS
+import com.rarible.protocol.nft.core.model.TokenFeature.SECONDARY_SALE_FEES
+import com.rarible.protocol.nft.core.model.TokenFeature.SET_URI_PREFIX
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
@@ -15,9 +19,8 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
@@ -28,6 +31,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
 @IntegrationTest
+@Disabled("Fix in PT-1654")
 class CollectionDescriptorTest : AbstractIntegrationTest() {
 
     @Test

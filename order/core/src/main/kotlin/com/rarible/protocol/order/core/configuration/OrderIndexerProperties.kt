@@ -82,6 +82,8 @@ data class OrderIndexerProperties(
         val erc1155LazyTransferProxy: Address,
         var cryptoPunksTransferProxy: Address,
         val seaportTransferProxy: Address,
+        val x2y2TransferProxyErc721: Address,
+        val x2y2TransferProxyErc1155: Address,
         val looksrareTransferManagerERC721: Address,
         val looksrareTransferManagerERC1155: Address,
         val looksrareTransferManagerNonCompliantERC721: Address
