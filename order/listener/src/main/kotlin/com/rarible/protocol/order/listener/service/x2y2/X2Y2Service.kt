@@ -7,8 +7,12 @@ import com.rarible.x2y2.client.X2Y2ApiClient
 import com.rarible.x2y2.client.model.ApiListResponse
 import com.rarible.x2y2.client.model.Event
 import com.rarible.x2y2.client.model.EventType
+import com.rarible.x2y2.client.model.OperationResult
 import com.rarible.x2y2.client.model.Order
 import org.springframework.stereotype.Component
+import scalether.domain.Address
+import java.lang.IllegalArgumentException
+import java.math.BigInteger
 import java.time.Instant
 
 @Component
@@ -37,6 +41,31 @@ class X2Y2Service(
             delayGauge = x2y2EventDelayGauge,
             entity = "'${type.name} events'"
         )
+    }
+
+    suspend fun isActiveOrder(
+        caller: Address,
+        orderId: BigInteger,
+        currency: Address,
+        price: BigInteger,
+        tokenId: BigInteger
+    ): Boolean {
+        val result = x2y2ApiClient.fetchOrderSign(
+                caller = caller.prefixed(),
+                op = BigInteger.ONE,
+                orderId = orderId,
+                currency = currency,
+                price = price,
+                tokenId = tokenId
+            )
+        return when (result) {
+            is OperationResult.Success -> true
+
+            is OperationResult.Fail -> {
+                val code = result.error.errors.first().code
+                if (code == 2020L) false else throw IllegalArgumentException("Can't determine invalid code, response: $result")
+            }
+        }
     }
 
     private suspend fun <T> fetch(
