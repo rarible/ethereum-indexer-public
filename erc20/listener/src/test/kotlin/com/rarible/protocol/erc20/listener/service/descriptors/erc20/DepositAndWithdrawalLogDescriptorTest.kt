@@ -14,6 +14,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
@@ -26,6 +27,7 @@ import java.math.BigInteger
 import java.time.Duration
 
 @IntegrationTest
+@Disabled("Fix in PT-1654")
 internal class DepositAndWithdrawalLogDescriptorTest : AbstractIntegrationTest() {
     @Autowired
     protected lateinit var historyRepository: Erc20TransferHistoryRepository
