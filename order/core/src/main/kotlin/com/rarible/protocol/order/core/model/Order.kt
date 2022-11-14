@@ -747,6 +747,8 @@ fun Order.invert(
 
 fun Order.isBid() = take.type.nft
 
+fun Order.isSell() = make.type.nft
+
 fun calculateAmounts(
     make: BigInteger,
     take: BigInteger,
