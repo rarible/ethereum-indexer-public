@@ -14,6 +14,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.takeWhile
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.*
@@ -22,7 +23,7 @@ abstract class AbstractOrderUpdateStatusTaskHandler(
     protected val orderRepository: OrderRepository,
     protected val properties: OrderListenerProperties,
 ) : TaskHandler<Long> {
-    protected val logger = LoggerFactory.getLogger(javaClass)
+    protected val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     override suspend fun isAbleToRun(param: String): Boolean {
         return true
