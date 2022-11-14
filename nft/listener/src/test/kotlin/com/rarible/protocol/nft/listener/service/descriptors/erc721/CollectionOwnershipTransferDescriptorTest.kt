@@ -12,13 +12,11 @@ import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.CreateCollection
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -27,12 +25,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import java.util.concurrent.CopyOnWriteArrayList
 
 @IntegrationTest
+@Disabled("Fix in PT-1654")
 class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
 
     @Autowired
