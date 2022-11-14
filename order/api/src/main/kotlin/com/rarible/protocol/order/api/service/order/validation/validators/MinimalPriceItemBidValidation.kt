@@ -4,6 +4,7 @@ import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.service.order.validation.OrderVersionValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.GenerativeArtAssetType
@@ -24,10 +25,13 @@ class MinimalPriceItemBidValidation(
 ) : OrderVersionValidator {
 
     override suspend fun validate(orderVersion: OrderVersion) {
+        if (orderVersion.isSell()) return
         if (featureFlags.checkMinimalBidPrice.not()) return
-        if (orderVersion.make.type.nft) return
 
         val nftAsset = orderVersion.take.type
+        if (featureFlags.checkMinimalCollectionBidPriceOnly) {
+            if (nftAsset !is CollectionAssetType) return
+        }
         val takePriceUsd = orderVersion.takePriceUsd ?: throw OrderUpdateException(
             "Can't determine 'takePriceUsd', maybe not supported currency: ${orderVersion.make.type.token}",
             EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
