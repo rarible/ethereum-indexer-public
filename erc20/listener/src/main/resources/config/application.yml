@@ -38,6 +38,9 @@ rarible:
 
 common:
   blockchain: ${listener.blockchain}
+  feature-flags:
+    scanner-version: V1
+    reduce-version: V1
 
 ethereumMaxFrameSize: 104857600
 ethereumBlockBatchSize: 50

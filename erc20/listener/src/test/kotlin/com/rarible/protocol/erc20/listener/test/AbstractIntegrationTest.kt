@@ -15,7 +15,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 
-abstract class AbstractIntegrationTest {
+abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @Autowired
     protected lateinit var mongo: ReactiveMongoOperations

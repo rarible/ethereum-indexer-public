@@ -8,6 +8,12 @@ ethereumBlockProcessingDelay: 200
 common:
   kafka-replica-set: ${kafka.hosts}
 
+
+blockchain:
+  scanner:
+    kafka:
+      broker-replica-set: ${kafka.hosts}
+
 rarible:
   core:
     apm:

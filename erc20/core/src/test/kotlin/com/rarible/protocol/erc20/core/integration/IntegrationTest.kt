@@ -17,6 +17,8 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = [
+        "common.feature-flags.scanner-version = V2",
+        "common.feature-flags.reduce-version = V2",
         "application.environment = e2e",
         "spring.application.name = test",
         "listener.blockchain = ethereum",

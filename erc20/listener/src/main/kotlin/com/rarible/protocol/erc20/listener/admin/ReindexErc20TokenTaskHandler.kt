@@ -11,6 +11,7 @@ import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
 import com.rarible.protocol.erc20.core.admin.model.ReindexErc20TokenTaskParam
 import com.rarible.protocol.erc20.core.admin.repository.Erc20TaskRepository
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
+import com.rarible.protocol.erc20.listener.configuration.EnableOnScannerV1
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.descriptors.Erc20LogEventDescriptor
 import com.rarible.protocol.erc20.listener.service.descriptors.erc20.ApprovalLogDescriptor
@@ -28,6 +29,7 @@ import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 
 @Component
+@EnableOnScannerV1
 class ReindexErc20TokenTaskHandler(
     private val taskRepository: Erc20TaskRepository,
     private val logListenService: LogListenService,

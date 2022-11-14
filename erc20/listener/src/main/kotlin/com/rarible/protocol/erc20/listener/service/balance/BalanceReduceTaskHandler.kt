@@ -21,7 +21,7 @@ import java.time.Duration
 @Component
 class BalanceReduceTaskHandler(
     private val taskRepository: TaskRepository,
-    private val balanceReduceService: Erc20BalanceReduceService
+    private val erc20BalanceReduceService: Erc20BalanceReduceService
 ) : TaskHandler<BalanceReduceState> {
 
     override val type: String
@@ -38,7 +38,7 @@ class BalanceReduceTaskHandler(
     }
 
     override fun runLongTask(from: BalanceReduceState?, param: String): Flow<BalanceReduceState> {
-        return balanceReduceService.update(key = from?.toBalanceId(), minMark = Long.MIN_VALUE)
+        return erc20BalanceReduceService.update(key = from?.toBalanceId(), minMark = Long.MIN_VALUE)
             .map { it.toState() }
             .windowTimeout(Int.MAX_VALUE, Duration.ofSeconds(5))
             .flatMap {
