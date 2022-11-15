@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.listener.service.item
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.job.JobHandler
+import com.rarible.protocol.nft.core.misc.RateLimiter
 import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItemContinuation
 import com.rarible.protocol.nft.core.model.InconsistentItemContinuation.Companion.fromInconsistentItem
@@ -21,6 +22,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.time.Instant
 
@@ -32,6 +34,7 @@ class InconsistentItemsRepairJobHandler(
     private val nftListenerProperties: NftListenerProperties,
     private val inconsistentItemRepository: InconsistentItemRepository,
     private val itemOwnershipConsistencyService: ItemOwnershipConsistencyService,
+    @Qualifier("inconsistentItemsRepairRateLimiter") private val rateLimiter: RateLimiter,
     metricsFactory: NftListenerMetricsFactory,
 ) : JobHandler {
 
@@ -126,6 +129,7 @@ class InconsistentItemsRepairJobHandler(
 
     // Currently fix for different problems is the same, but it may change in the future
     private suspend fun applyFix(item: InconsistentItem): ItemOwnershipConsistencyService.FixAttemptResult {
+        rateLimiter.waitIfNecessary(1)
         logger.info("Applying fix for item ${item.id}, problem type ${item.type}")
         return when (item.type) {
             ItemProblemType.NOT_FOUND, ItemProblemType.SUPPLY_MISMATCH -> {

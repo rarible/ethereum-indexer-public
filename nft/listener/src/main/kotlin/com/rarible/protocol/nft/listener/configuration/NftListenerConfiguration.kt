@@ -11,6 +11,7 @@ import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.configuration.ProducerConfiguration
+import com.rarible.protocol.nft.core.misc.RateLimiter
 import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
@@ -149,5 +150,14 @@ class NftListenerConfiguration(
             properties = nftListenerProperties.inconsistentItemsRepair.daemon,
             workerName = "inconsistent-items-repair-worker"
         ).apply { start() }
+    }
+
+    @Bean("inconsistentItemsRepairRateLimiter")
+    fun inconsistentItemsRepairRateLimiter(): RateLimiter {
+        return RateLimiter(
+            nftListenerProperties.inconsistentItemsRepair.rateLimitMaxEntities,
+            nftListenerProperties.inconsistentItemsRepair.rateLimitPeriod,
+            "inconsistent-items-repair"
+        )
     }
 }
