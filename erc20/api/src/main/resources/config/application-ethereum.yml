@@ -1,2 +1,4 @@
 api:
   blockchain: ethereum
+common:
+  blockchain: ethereum
