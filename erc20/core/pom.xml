@@ -68,6 +68,12 @@
             <artifactId>rarible-ethereum-listener-log-domain</artifactId>
         </dependency>
 
+        <!-- =============== Blockchain-scanner ================ -->
+        <dependency>
+            <groupId>com.rarible.blockchain.scanner</groupId>
+            <artifactId>rarible-blockchain-scanner-ethereum</artifactId>
+        </dependency>
+
         <!-- =============== Protocol-API ================ -->
         <dependency>
             <groupId>com.rarible.protocol.ethereum</groupId>

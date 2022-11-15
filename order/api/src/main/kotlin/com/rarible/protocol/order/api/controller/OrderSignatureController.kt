@@ -44,9 +44,8 @@ class OrderSignatureController(
                 currency = currency,
                 price = price,
                 tokenId = tokenId
-            )
+            ).ensureSuccess()
         }
-
         return ResponseEntity.ok(X2Y2SignResponseDto(response.data.single().input))
     }
 }

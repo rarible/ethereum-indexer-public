@@ -110,7 +110,8 @@ data class OrderIndexerProperties(
         val checkOnChainApprove: Boolean = false,
         val applyOnChainApprove: Boolean = false,
         val searchSudoSwapErc1155Transfer: Boolean = false,
-        val checkMinimalBidPrice: Boolean = false
+        val checkMinimalBidPrice: Boolean = false,
+        val checkMinimalCollectionBidPriceOnly: Boolean = false
     )
 
     data class RaribleOrderExpirationProperties(

@@ -17,7 +17,7 @@ import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.math.BigInteger
 import java.time.Instant
-import java.util.*
+import java.util.Date
 
 fun randomLogEvent(
     history: Erc20TokenHistory,
@@ -43,14 +43,16 @@ fun randomBalance(
     token: Address = randomAddress(),
     owner: Address = randomAddress(),
     createdAt: Instant = nowMillis(),
-    lastUpdatedAt: Instant = nowMillis()
+    lastUpdatedAt: Instant = nowMillis(),
+    balance: EthUInt256 = EthUInt256.of(randomBigInt())
 ): Erc20Balance {
     return Erc20Balance(
         token = token,
         owner = owner,
-        balance = EthUInt256.of(randomBigInt()),
+        balance = balance,
         createdAt = createdAt,
-        lastUpdatedAt = lastUpdatedAt
+        lastUpdatedAt = lastUpdatedAt,
+        revertableEvents = emptyList()
     )
 }
 

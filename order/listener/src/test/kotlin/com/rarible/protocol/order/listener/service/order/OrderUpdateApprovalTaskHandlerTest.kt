@@ -38,12 +38,12 @@ class OrderUpdateApprovalTaskHandlerTest : AbstractIntegrationTest() {
         val (_, userSender, _) = newSender()
         val token = createToken(userSender)
 
-        val taskParam = OrderUpdateApprovalTaskHandler.TaskParam(
+        val taskParam = AbstractOrderUpdateStatusTaskHandler.TaskParam(
             status = OrderStatus.ACTIVE,
             platform = Platform.RARIBLE,
             listedAfter = (Instant.now() - Duration.ofNanos(1)).epochSecond
         )
-        val param = OrderUpdateApprovalTaskHandler.objectMapper.writeValueAsString(taskParam)
+        val param = AbstractOrderUpdateStatusTaskHandler.objectMapper.writeValueAsString(taskParam)
         val hash = Word.apply(randomWord())
 
         val orderVersion1 = createOrderVersion().copy(hash = hash, make = randomErc721(token.address()), approved = false)
@@ -70,12 +70,12 @@ class OrderUpdateApprovalTaskHandlerTest : AbstractIntegrationTest() {
         val (_, userSender, _) = newSender()
         val token = createToken(userSender)
 
-        val taskParam = OrderUpdateApprovalTaskHandler.TaskParam(
+        val taskParam = AbstractOrderUpdateStatusTaskHandler.TaskParam(
             status = OrderStatus.ACTIVE,
             platform = Platform.X2Y2,
             listedAfter = (Instant.now() - Duration.ofNanos(1)).epochSecond
         )
-        val param = OrderUpdateApprovalTaskHandler.objectMapper.writeValueAsString(taskParam)
+        val param = AbstractOrderUpdateStatusTaskHandler.objectMapper.writeValueAsString(taskParam)
         val hash = Word.apply(randomWord())
 
         val orderVersion1 = createOrderVersion().copy(hash = hash, make = randomErc721(token.address()), approved = false, platform = Platform.X2Y2)

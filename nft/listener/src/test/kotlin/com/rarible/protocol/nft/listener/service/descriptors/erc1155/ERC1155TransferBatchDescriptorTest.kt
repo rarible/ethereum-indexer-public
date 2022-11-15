@@ -15,6 +15,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
@@ -26,6 +27,7 @@ import java.math.BigInteger
 import kotlin.random.Random
 
 @IntegrationTest
+@Disabled("Fix in PT-1654")
 class ERC1155TransferBatchDescriptorTest : AbstractIntegrationTest() {
 
     @Test

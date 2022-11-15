@@ -30,7 +30,7 @@ class BalanceReducer : Reducer<Erc20ReduceEvent, BalanceReduceSnapshot, Long, Er
 
         val data = logEvent.data
 
-        if (!(data is Erc20TokenHistory)) {
+        if (data !is Erc20TokenHistory) {
             throw IllegalArgumentException("Unexpected data type ${data.javaClass}")
         }
 
@@ -73,7 +73,8 @@ class BalanceReducer : Reducer<Erc20ReduceEvent, BalanceReduceSnapshot, Long, Er
                 owner = key.owner,
                 balance = EthUInt256.ZERO,
                 createdAt = Instant.EPOCH,
-                lastUpdatedAt = Instant.EPOCH
+                lastUpdatedAt = Instant.EPOCH,
+                revertableEvents = emptyList() //todo
             ),
             mark = Long.MIN_VALUE
         )

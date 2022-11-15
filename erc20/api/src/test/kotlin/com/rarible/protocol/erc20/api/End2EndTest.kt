@@ -15,6 +15,8 @@ import org.springframework.test.context.ActiveProfiles
     properties = [
         "application.environment = e2e",
         "spring.cloud.service-registry.auto-registration.enabled = false",
+        "common.blockchain = ethereum",
+        "common.kafkaReplicaSet = ",
         "spring.cloud.discovery.enabled = false",
         "spring.cloud.consul.config.enabled = false",
         "logging.logstash.tcp-socket.enabled = false"

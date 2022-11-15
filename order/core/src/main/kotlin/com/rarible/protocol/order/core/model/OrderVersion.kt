@@ -40,6 +40,8 @@ data class OrderVersion(
 ) {
     fun isBid(): Boolean = take.type.nft
 
+    fun isSell(): Boolean = make.type.nft
+
     fun withOrderUsdValue(usdValue: OrderUsdValue): OrderVersion {
         return copy(
             makeUsd = usdValue.makeUsd,
