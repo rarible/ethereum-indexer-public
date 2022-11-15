@@ -11,5 +11,5 @@ data class Erc20IndexerProperties(
     override val blockchain: Blockchain,
     override val metricRootPath: String = "erc20-metrics",
     val confirmationBlocks: Int = 12,
-    val kafkaReplicaSet: String,
+    val kafkaReplicaSet: String = "",
 ) : MetricProperties
