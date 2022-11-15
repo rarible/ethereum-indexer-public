@@ -2,6 +2,7 @@ package com.rarible.protocol.erc20.core.repository
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.protocol.erc20.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.erc20.core.integration.IntegrationTest
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
@@ -19,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 
 @IntegrationTest
-class TransferHistoryRepositoryIt {
+class TransferHistoryRepositoryIt : AbstractIntegrationTest(){
 
     @Autowired
     lateinit var historyRepository: Erc20TransferHistoryRepository

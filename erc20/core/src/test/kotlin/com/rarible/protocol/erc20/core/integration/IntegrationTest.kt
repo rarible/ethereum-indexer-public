@@ -1,6 +1,9 @@
 package com.rarible.protocol.erc20.core.integration
 
+import com.rarible.core.test.ext.MongoCleanup
+import com.rarible.core.test.ext.MongoTest
 import com.rarible.protocol.erc20.core.MockContext
+import com.rarible.protocol.erc20.core.configuration.CoreConfiguration
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -10,7 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 
 @Retention
 @AutoConfigureJson
-@ContextConfiguration(classes = [MockContext::class])
+@ContextConfiguration(classes = [MockContext::class, CoreConfiguration::class])
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = [
@@ -31,4 +34,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @ActiveProfiles("integration")
 @Import(TestPropertiesConfiguration::class)
 @Testcontainers
+@MongoTest
+@MongoCleanup
 annotation class IntegrationTest

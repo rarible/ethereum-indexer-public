@@ -1,5 +1,6 @@
 package com.rarible.protocol.erc20.core.repository
 
+import com.rarible.protocol.erc20.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.erc20.core.integration.IntegrationTest
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.repository.data.randomBalance
@@ -9,17 +10,13 @@ import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import scalether.domain.Address
 
 @IntegrationTest
-internal class Erc20BalanceRepositoryIt {
+internal class Erc20BalanceRepositoryIt : AbstractIntegrationTest() {
 
     @Autowired
     lateinit var repository: Erc20BalanceRepository
-
-    @Autowired
-    lateinit var mongo: ReactiveMongoTemplate
 
     @Test
     fun `should save and get balance`() = runBlocking<Unit> {
