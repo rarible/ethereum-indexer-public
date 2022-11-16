@@ -7,7 +7,6 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.changock.migration.api.annotations.NonLockGuarded
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -56,7 +55,7 @@ class ChangeLog00010AddPlatformFieldToOrder {
                 }
                 counter++
             } catch (ex: Exception) {
-                logger.error("Can't fix order ${order.hash}")
+                logger.error("Can't fix order ${order.id}")
             }
         }
         logger.info("--- All $counter orders were updated")

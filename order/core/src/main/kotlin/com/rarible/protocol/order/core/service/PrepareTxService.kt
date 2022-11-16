@@ -69,7 +69,7 @@ class PrepareTxService(
     private val protocolCommission = orderIndexerProperties.protocolCommission
 
     suspend fun prepareTransaction(order: Order, form: PrepareOrderTxFormDto): PrepareTxResponse {
-        logger.info("prepareTransaction ${order.hash} $form bid: ${order.isBid()}")
+        logger.info("prepareTransaction ${order.id} $form bid: ${order.isBid()}")
         return when (order.type) {
             OrderType.RARIBLE_V1 -> {
                 prepareTxForV1(form, order)

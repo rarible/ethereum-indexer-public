@@ -7,7 +7,6 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import io.changock.migration.api.annotations.NonLockGuarded
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -49,7 +48,7 @@ class ChangeLog00014RecalculateMakeStock {
                     logger.info("Fixed $all orders")
                 }
             } catch (ex: Exception) {
-                logger.error("Failed to update makeStock ${order.hash} order")
+                logger.error("Failed to update makeStock ${order.id} order")
             }
         }
         logger.info("MakeStock was updated for orders: makeStock == 0 for $nullableStock orders, makeStock > 0 for $nonZeroStock orders, changed $changed orders.")

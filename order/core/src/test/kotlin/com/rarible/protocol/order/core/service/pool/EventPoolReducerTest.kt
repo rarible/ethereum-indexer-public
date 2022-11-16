@@ -8,7 +8,6 @@ import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.createSudoSwapPoolDataV1
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
 import com.rarible.protocol.order.core.data.randomErc721
-import com.rarible.protocol.order.core.data.randomEth
 import com.rarible.protocol.order.core.data.randomPoolDeltaUpdate
 import com.rarible.protocol.order.core.data.randomPoolFeeUpdate
 import com.rarible.protocol.order.core.data.randomPoolNftDeposit
@@ -21,7 +20,6 @@ import com.rarible.protocol.order.core.model.OrderType
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant

@@ -11,6 +11,7 @@ object OrderStatusDtoConverter : Converter<OrderStatus, OrderStatusDto> {
             OrderStatus.FILLED -> OrderStatusDto.FILLED
             OrderStatus.CANCELLED -> OrderStatusDto.CANCELLED
             OrderStatus.INACTIVE, OrderStatus.NOT_STARTED, OrderStatus.ENDED -> OrderStatusDto.INACTIVE
+            OrderStatus.HISTORICAL -> OrderStatusDto.HISTORICAL
         }
     }
 }

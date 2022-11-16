@@ -4,6 +4,7 @@ import com.rarible.core.task.TaskHandler
 import com.rarible.core.task.TaskRepository
 import com.rarible.core.task.TaskStatus
 import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
+import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
 import com.rarible.protocol.order.core.model.PoolHistoryType
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
@@ -28,12 +29,12 @@ class PoolReduceTaskHandler(
         verifyAllReindexingTasksCompleted(PoolHistoryType.values().flatMap { it.topic })
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
-        return poolHistory.findDistinctHashes(from = from?.let { Word.apply(it) }).asFlux()
+        return poolHistory.findDistinctHashes(from = from?.toOrderId()?.hash).asFlux()
             .flatMap {
                 orderReduceService.update(orderHash = it)
             }
             .filter { it.hash != OrderReduceService.EMPTY_ORDER_HASH }
-            .map { it.hash.toString() }
+            .map { it.id.toString() }
             .asFlow()
     }
 

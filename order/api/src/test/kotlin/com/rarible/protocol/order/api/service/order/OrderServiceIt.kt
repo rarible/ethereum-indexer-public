@@ -154,7 +154,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val order = createOrder(signer)
         val saved = orderService.put(order.toForm(privateKey))
 
-        assertThat(saved.hash).isEqualTo(order.hash)
+        assertThat(saved.id).isEqualTo(order.id)
 
         assertThat(orderVersionRepository.count().awaitFirst()).isEqualTo(1)
 
@@ -271,9 +271,9 @@ class OrderServiceIt : AbstractOrderIt() {
         val orders = orderClient.getOrdersByIds(
             OrderIdsDto(
                 listOf(
-                    order2.hash,
-                    Word.apply(randomWord()),
-                    order1.hash
+                    order2.id.toString(),
+                    Order.Id(Word.apply(randomWord())).toString(),
+                    order1.id.toString()
                 )
             )
         ).collectList().awaitFirst()
@@ -479,7 +479,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val order = createOrder(contract.address())
         val saved = orderService.put(order.toForm(privateKey))
 
-        assertThat(saved.hash).isEqualTo(order.hash)
+        assertThat(saved.id).isEqualTo(order.id)
     }
 
     @Test
@@ -489,7 +489,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val order = createOrder(signer).copy(type = OrderType.RARIBLE_V1, data = OrderDataLegacy(1))
         val saved = orderService.put(order.toForm(privateKey))
 
-        assertThat(saved.hash).isEqualTo(order.hash)
+        assertThat(saved.id).isEqualTo(order.id)
 
         val changed = order.copy(
             make = order.make.copy(value = EthUInt256.of(20)),
@@ -974,7 +974,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         val result = orderService.getAmmOrdersByItemId(collection, tokenId, continuation, size)
         assertThat(result).hasSize(1)
-        assertThat(result.single().hash).isEqualTo(ammOrder.hash)
+        assertThat(result.single().id).isEqualTo(ammOrder.id)
     }
 
     @Test

@@ -173,7 +173,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertEquals(1, allOrders.filter { it.type == OrderType.RARIBLE_V2 }.size)
             val sellOrderFilled = allOrders.single { it.type == OrderType.RARIBLE_V2 }
             assertEquals(EthUInt256(punkPrice), sellOrderFilled.fill)
-            assertEquals(sellOrder.hash, sellOrderFilled.hash)
+            assertEquals(sellOrder.id, sellOrderFilled.id)
         }
 
         val buyOrderHash = Order.hashKey(buyerAddress, sellTake.type, sellMake.type, BigInteger.ZERO)
@@ -421,7 +421,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertEquals(1, allOrders.filter { it.type == OrderType.RARIBLE_V2 }.size)
             val bidOrderFilled = allOrders.single { it.type == OrderType.RARIBLE_V2 }
             assertEquals(EthUInt256.ONE, bidOrderFilled.fill)
-            assertEquals(bidOrder.hash, bidOrderFilled.hash)
+            assertEquals(bidOrder.id, bidOrderFilled.id)
         }
 
         Wait.waitAssert {

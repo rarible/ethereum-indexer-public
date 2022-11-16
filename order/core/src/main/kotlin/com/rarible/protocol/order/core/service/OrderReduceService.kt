@@ -9,7 +9,6 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PlatformToHistorySourceConverter
-import com.rarible.protocol.order.core.misc.nftId
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
@@ -283,6 +282,7 @@ class OrderReduceService(
         makeUsd = version.makeUsd,
         takeUsd = version.takeUsd,
         platform = version.platform,
+        id = Order.Id(version.hash),
         hash = version.hash,
         approved = version.approved,
 
@@ -314,7 +314,7 @@ class OrderReduceService(
 
     private suspend fun Order.withUpdatedMakeStock(): Order {
         val makeBalance = assetMakeBalanceProvider.getMakeBalance(this)
-        logger.info("Make balance $makeBalance for order $hash")
+        logger.info("Make balance $makeBalance for order $id")
         val lastUpdatedAt = makeBalance.lastUpdatedAt
         val copy = if (lastUpdatedAt != null && this.lastUpdateAt.isBefore(lastUpdatedAt)) {
             this.copy(lastUpdateAt = lastUpdatedAt)
@@ -338,7 +338,7 @@ class OrderReduceService(
         val data = this.data as? OrderCounterableData ?: return this
         val makerCounter = nonceService.getLatestMakerNonce(this.maker, this.protocol)
         return if (data.isValidCounter(makerCounter.nonce.value.toLong()).not()) {
-            logger.info("Cancel order $hash as order counter is not match current maker counter ${makerCounter.nonce}")
+            logger.info("Cancel order $id as order counter is not match current maker counter ${makerCounter.nonce}")
             this.copy(
                 cancelled = true,
                 lastUpdateAt = maxOf(this.lastUpdateAt, makerCounter.timestamp),
@@ -355,7 +355,7 @@ class OrderReduceService(
         val lastUpdateAt = if (exchangeContractAddresses.openSeaV1 == exchange) 1645812000L else 1659366000L
         val affectedStatuses = arrayOf(OrderStatus.NOT_STARTED, OrderStatus.INACTIVE, OrderStatus.ACTIVE)
         return if (this.status in affectedStatuses) {
-            logger.info("Cancel order $hash as OpenSea exchangeV1/V2 contract was expired")
+            logger.info("Cancel order $id as OpenSea exchangeV1/V2 contract was expired")
             this.copy(
                 cancelled = true,
                 lastUpdateAt = maxOf(this.lastUpdateAt, Instant.ofEpochSecond(lastUpdateAt)),
@@ -370,7 +370,7 @@ class OrderReduceService(
         if (this.type != OrderType.SEAPORT_V1) return this
 
         if (this.makePrice != null && this.makePrice <= indexerProperties.minSeaportMakePrice) {
-            logger.info("Cancel order $hash as Seaport with small price")
+            logger.info("Cancel order $id as Seaport with small price")
             return this.copy(
                 cancelled = true,
                 status = OrderStatus.CANCELLED,
@@ -389,7 +389,7 @@ class OrderReduceService(
         if (this.status !in listOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE)) return this
         if (this.lastUpdateAt > expiredDate) return this
 
-        logger.info("Cancel rarible BID $hash cause it expired after $expiredDate")
+        logger.info("Cancel rarible BID $id cause it expired after $expiredDate")
         return this.copy(
             status = OrderStatus.CANCELLED,
             lastUpdateAt = Instant.now(),
@@ -400,7 +400,7 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withFinalState(): Order {
-        val state = orderStateRepository.getById(hash) ?: return this
+        val state = orderStateRepository.getById(id.hash) ?: return this
         return this.withFinalState(state)
     }
 
@@ -416,7 +416,7 @@ class OrderReduceService(
         }
         val hasApproved = approveService.checkApprove(maker, collection, platform, approved)
         return if (hasApproved != this.approved) {
-            logger.info("Change order $hash approval to $hasApproved!")
+            logger.info("Change order $id approval to $hasApproved!")
             this.copy(
                 approved = hasApproved,
                 lastEventId = accumulateEventId(this.lastEventId, collection.prefixed())
@@ -441,7 +441,7 @@ class OrderReduceService(
         val saved = orderRepository.save(order)
         logger.info(buildString {
             append("Updated order: ")
-            append("hash=${saved.hash}, ")
+            append("id=${saved.id}, ")
             append("makeStock=${saved.makeStock}, ")
             append("fill=${saved.fill}, ")
             append("cancelled=${saved.cancelled}, ")
@@ -488,7 +488,7 @@ class OrderReduceService(
             takeUsd = null,
             priceHistory = emptyList(),
             platform = Platform.RARIBLE,
-            hash = EMPTY_ORDER_HASH
+            id = Order.Id(EMPTY_ORDER_HASH)
         )
 
         private fun accumulateEventId(lastEventId: String?, eventId: String): String {

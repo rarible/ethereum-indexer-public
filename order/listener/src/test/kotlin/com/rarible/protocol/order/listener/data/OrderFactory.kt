@@ -3,7 +3,13 @@ package com.rarible.protocol.order.listener.data
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import scalether.domain.AddressFactory
 import java.math.BigInteger
@@ -52,7 +58,6 @@ fun createOrderBid(): Order {
         end = null,
         signature = null,
         platform = Platform.RARIBLE,
-        hash = Word.apply(randomWord()),
+        id = Order.Id(Word.apply(randomWord())),
     )
-
 }

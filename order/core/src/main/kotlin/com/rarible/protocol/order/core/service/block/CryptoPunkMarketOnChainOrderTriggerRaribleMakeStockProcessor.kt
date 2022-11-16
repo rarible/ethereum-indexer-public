@@ -9,7 +9,6 @@ import com.rarible.protocol.order.core.model.OnChainOrder
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

@@ -1,13 +1,93 @@
 package com.rarible.protocol.order.core.data
 
 import com.rarible.core.common.nowMillis
-import com.rarible.core.test.data.*
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigDecimal
+import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomBinary
+import com.rarible.core.test.data.randomBoolean
+import com.rarible.core.test.data.randomInt
+import com.rarible.core.test.data.randomLong
+import com.rarible.core.test.data.randomString
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.dto.AssetDto
+import com.rarible.protocol.dto.Erc20AssetTypeDto
+import com.rarible.protocol.dto.LooksRareOrderDto
+import com.rarible.protocol.dto.OrderBasicSeaportDataV1Dto
+import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.dto.OrderLooksRareDataV1Dto
+import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
+import com.rarible.protocol.dto.OrderRaribleV2DataV3BuyDto
+import com.rarible.protocol.dto.OrderRaribleV2DataV3SellDto
+import com.rarible.protocol.dto.OrderUpdateEventDto
+import com.rarible.protocol.dto.OrderX2Y2DataDto
+import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.dto.RaribleV2OrderDto
+import com.rarible.protocol.dto.SeaportOrderTypeDto
+import com.rarible.protocol.dto.SeaportV1OrderDto
+import com.rarible.protocol.dto.X2Y2OrderDto
+import com.rarible.protocol.order.core.model.AmmNftAssetType
+import com.rarible.protocol.order.core.model.ApprovalHistory
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CollectionAssetType
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.HeadTransaction
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
+import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
+import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderData
+import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Buy
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Sell
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderUsdValue
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.PoolCreate
+import com.rarible.protocol.order.core.model.PoolData
+import com.rarible.protocol.order.core.model.PoolDeltaUpdate
+import com.rarible.protocol.order.core.model.PoolFeeUpdate
+import com.rarible.protocol.order.core.model.PoolHistory
+import com.rarible.protocol.order.core.model.PoolInfo
+import com.rarible.protocol.order.core.model.PoolNftDeposit
+import com.rarible.protocol.order.core.model.PoolNftWithdraw
+import com.rarible.protocol.order.core.model.PoolSpotPriceUpdate
+import com.rarible.protocol.order.core.model.PoolTargetNftIn
+import com.rarible.protocol.order.core.model.PoolTargetNftOut
+import com.rarible.protocol.order.core.model.SeaportConsideration
+import com.rarible.protocol.order.core.model.SeaportItemType
+import com.rarible.protocol.order.core.model.SeaportOffer
+import com.rarible.protocol.order.core.model.SeaportOrderType
+import com.rarible.protocol.order.core.model.SimpleTraceResult
+import com.rarible.protocol.order.core.model.SudoSwapBuyInfo
+import com.rarible.protocol.order.core.model.SudoSwapCurveType
+import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
+import com.rarible.protocol.order.core.model.SudoSwapPoolType
+import com.rarible.protocol.order.core.model.SudoSwapPurchaseValue
+import com.rarible.protocol.order.core.model.SudoSwapSellInfo
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
@@ -212,9 +292,11 @@ fun createOrderLooksrareDataV1() = OrderLooksrareDataV1(
 
 fun Order.withMakeFill(isMakeFill: Boolean = true): Order {
     val newData = data.withMakeFill(isMakeFill)
+    val hash = Order.hashKey(maker, make.type, take.type, salt.value, newData)
     return copy(
         data = newData,
-        hash = Order.hashKey(maker, make.type, take.type, salt.value, newData)
+        id = Order.Id(hash),
+        hash = hash
     )
 }
 
@@ -427,7 +509,8 @@ fun randomErc20(token: Address = randomAddress()) = Asset(Erc20AssetType(token),
 
 fun randomEth() = Asset(EthAssetType, EthUInt256.of(randomInt()))
 
-fun randomErc721Type(token: Address = randomAddress(), tokenId: EthUInt256 = EthUInt256.of(randomBigInt())) = Erc721AssetType(token, tokenId)
+fun randomErc721Type(token: Address = randomAddress(), tokenId: EthUInt256 = EthUInt256.of(randomBigInt())) =
+    Erc721AssetType(token, tokenId)
 
 fun randomCollectionType(token: Address = randomAddress()) = CollectionAssetType(token)
 
@@ -435,7 +518,8 @@ fun randomErc1155Type() = Erc1155AssetType(AddressFactory.create(), EthUInt256(r
 
 fun randomErc1155(value: EthUInt256) = Asset(randomErc1155Type(), value)
 
-fun randomErc721(token: Address = randomAddress(), tokenId: EthUInt256 = EthUInt256.of(randomBigInt())) = Asset(randomErc721Type(token, tokenId), EthUInt256.ONE)
+fun randomErc721(token: Address = randomAddress(), tokenId: EthUInt256 = EthUInt256.of(randomBigInt())) =
+    Asset(randomErc721Type(token, tokenId), EthUInt256.ONE)
 
 fun randomCollection(token: Address = randomAddress()) = Asset(randomCollectionType(token), EthUInt256.ONE)
 
@@ -486,6 +570,7 @@ fun randomSeaportConsideration(): SeaportConsideration {
         recipient = randomAddress()
     )
 }
+
 fun randomOrderBasicSeaportDataV1(): OrderBasicSeaportDataV1 {
     return OrderBasicSeaportDataV1(
         protocol = randomAddress(),

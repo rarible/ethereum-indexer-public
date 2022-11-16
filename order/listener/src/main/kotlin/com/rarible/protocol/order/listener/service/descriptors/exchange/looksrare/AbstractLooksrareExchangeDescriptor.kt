@@ -35,5 +35,4 @@ abstract class AbstractLooksrareExchangeDescriptor<T : EventData>(
         }
         return result
     }
-
 }

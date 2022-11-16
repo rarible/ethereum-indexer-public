@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
@@ -44,8 +45,8 @@ internal class LooksrareOrderLoaderTest {
         val looksrareOrder2 = randomLooksrareOrder()
         val orderVersion1 = createOrderVersion().copy(hash = looksrareOrder1.hash)
         val orderVersion2 = createOrderVersion().copy(hash = looksrareOrder2.hash)
-        val order1 = createOrder().copy(hash = looksrareOrder1.hash)
-        val order2 = createOrder().copy(hash = looksrareOrder2.hash)
+        val order1 = createOrder().copy(id = Order.Id(looksrareOrder1.hash), hash = looksrareOrder1.hash)
+        val order2 = createOrder().copy(id = Order.Id(looksrareOrder2.hash), hash = looksrareOrder2.hash)
         val listedAfter = Instant.now()
         val listedBefore = Instant.now() + Duration.ofDays(1)
 

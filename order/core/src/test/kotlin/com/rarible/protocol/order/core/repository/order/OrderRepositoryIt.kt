@@ -59,7 +59,7 @@ internal class OrderRepositoryIt {
         delegate.save(order)
 
         val document = mongo.findById(
-            order.hash,
+            order.id,
             Document::class.java,
             MongoOrderRepository.COLLECTION
         ).block()
@@ -227,8 +227,8 @@ internal class OrderRepositoryIt {
         listOf(order0, order1, order2, order3, order4, order5, order6).forEach {
             delegate.save(it)
         }
-        val hashes = delegate.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(counter1, counter2)).map { it.hash }.toList()
-        assertThat(hashes).containsExactlyInAnyOrder(order0.hash, order1.hash)
+        val hashes = delegate.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(counter1, counter2)).map { it.id }.toList()
+        assertThat(hashes).containsExactlyInAnyOrder(order0.id, order1.id)
     }
 
     @Test
@@ -256,8 +256,8 @@ internal class OrderRepositoryIt {
         listOf(order0, order1, order2).forEach {
             delegate.save(it)
         }
-        val hashes = delegate.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(counter)).map { it.hash }.toList()
-        assertThat(hashes).containsExactlyInAnyOrder(order0.hash)
+        val hashes = delegate.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(counter)).map { it.id }.toList()
+        assertThat(hashes).containsExactlyInAnyOrder(order0.id)
     }
 
     @Test

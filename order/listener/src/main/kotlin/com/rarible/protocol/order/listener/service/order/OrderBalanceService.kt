@@ -12,7 +12,6 @@ import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import org.springframework.stereotype.Component
 import scalether.domain.Address

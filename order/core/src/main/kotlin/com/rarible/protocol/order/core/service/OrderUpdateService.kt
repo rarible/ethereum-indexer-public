@@ -119,14 +119,14 @@ class OrderUpdateService(
         if (order.makeStock != updated.makeStock || order.lastUpdateAt != updated.lastUpdateAt) {
             val savedOrder = updateOrder(updated)
             logger.info(
-                "Make stock of order updated ${savedOrder.hash}: makeStock=${savedOrder.makeStock}," +
+                "Make stock of order updated ${savedOrder.id}: makeStock=${savedOrder.makeStock}," +
                     " old makeStock=${order.makeStock}, makeBalance=$makeBalance," +
                     " knownMakeBalance=$knownMakeBalance, cancelled=${savedOrder.cancelled}"
             )
             savedOrder to true
         } else {
             logger.info(
-                "Make stock of order did not change ${updated.hash}: makeStock=${updated.makeStock}, " +
+                "Make stock of order did not change ${updated.id}: makeStock=${updated.makeStock}, " +
                     "makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance," +
                     " cancelled=${updated.cancelled}"
             )

@@ -2,7 +2,14 @@ package com.rarible.protocol.order.migration.integration.migration
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -68,10 +75,10 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
         template.updateMulti(Query(), Update().unset("takePrice"), MongoOrderRepository.COLLECTION).awaitFirst()
 
         migration.orders(priceUpdateService, template)
-        var updatedOrder1 = orderRepository.findById(order1.hash)!!
+        val updatedOrder1 = orderRepository.findById(order1.hash)!!
         assertEquals(BigDecimal.valueOf(10L), updatedOrder1.makePrice)
 
-        var updatedOrder2 = orderRepository.findById(order2.hash)!!
+        val updatedOrder2 = orderRepository.findById(order2.hash)!!
         assertEquals(BigDecimal.valueOf(10L), updatedOrder2.takePrice)
     }
 
@@ -103,7 +110,7 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
 
         migration.orderVersions(priceUpdateService, template)
 
-        var updatedOrder1 = orderVersionRepository.findAll().collectList().awaitFirst()
+        val updatedOrder1 = orderVersionRepository.findAll().collectList().awaitFirst()
         assertEquals(BigDecimal.valueOf(10L), updatedOrder1[0].takePrice)
     }
 

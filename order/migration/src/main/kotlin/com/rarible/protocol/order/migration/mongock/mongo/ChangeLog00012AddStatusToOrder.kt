@@ -4,7 +4,6 @@ import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.changock.migration.api.annotations.NonLockGuarded
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -28,7 +27,7 @@ class ChangeLog00012AddStatusToOrder {
                 }
                 counter++
             } catch (ex: Exception) {
-                logger.error("Failed to set status for ${order.hash} order")
+                logger.error("Failed to set status for ${order.id} order")
             }
         }
         logger.info("--- Status was set for $counter orders ")

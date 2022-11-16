@@ -13,14 +13,13 @@ import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.changock.migration.api.annotations.NonLockGuarded
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import java.util.*
+import java.util.UUID
 
 @ChangeLog(order = "00007")
 class ChangeLog00006FixOrderUsdValues {
@@ -70,14 +69,14 @@ class ChangeLog00006FixOrderUsdValues {
                 }
                 counter++
             } catch (ex: Exception) {
-                logger.error("Can't fix order ${order.hash}")
+                logger.error("Can't fix order ${order.id}")
             }
         }
         orderRepository.findActive().collect { order ->
             try {
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
-                    orderId = order.hash.toString(),
+                    orderId = order.id.toString(),
                     order = orderDtoConverter.convert(order)
                 )
                 publisher.publish(updateEvent)
@@ -88,7 +87,7 @@ class ChangeLog00006FixOrderUsdValues {
                     logger.info("Published $counter events")
                 }
             } catch (ex: Exception) {
-                logger.error("Can't publish event for ${order.hash}")
+                logger.error("Can't publish event for ${order.id}")
             }
         }
 

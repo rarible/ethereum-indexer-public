@@ -56,5 +56,4 @@ class X2Y2OrderUpdaterTest {
         val updatedActiveOrder = updater.update(activeOrder)
         assertThat(activeOrder).isEqualTo(updatedActiveOrder)
     }
-
 }

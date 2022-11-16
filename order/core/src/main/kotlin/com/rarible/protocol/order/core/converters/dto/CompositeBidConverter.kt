@@ -48,8 +48,10 @@ class CompositeBidConverter(
             OrderStatusDto.HISTORICAL -> source.version.createdAt
             else -> source.order.lastUpdateAt
         }
+        val id = source.order.id.toString()
         return when (order.type) {
             RARIBLE_V1 -> LegacyOrderDto(
+                id = id,
                 hash = source.order.hash,
                 status = status,
 
@@ -78,6 +80,7 @@ class CompositeBidConverter(
                 priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             RARIBLE_V2 -> RaribleV2OrderDto(
+                id = id,
                 hash = source.order.hash,
                 status = status,
 
@@ -106,6 +109,7 @@ class CompositeBidConverter(
                 priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             OPEN_SEA_V1 -> OpenSeaV1OrderDto(
+                id = id,
                 hash = source.order.hash,
                 status = status,
 
@@ -134,6 +138,7 @@ class CompositeBidConverter(
                 priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             SEAPORT_V1 -> SeaportV1OrderDto(
+                id = id,
                 hash = source.order.hash,
                 status = status,
 
@@ -162,6 +167,7 @@ class CompositeBidConverter(
                 priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             CRYPTO_PUNKS -> CryptoPunkOrderDto(
+                id = id,
                 hash = source.order.hash,
                 status = status,
 
@@ -190,6 +196,7 @@ class CompositeBidConverter(
                 priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             LOOKSRARE -> LooksRareOrderDto(
+                id = id,
                 hash = source.order.hash,
                 status = status,
                 make = assetDtoConverter.convert(source.version.make),
@@ -216,6 +223,7 @@ class CompositeBidConverter(
                 priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             X2Y2 -> X2Y2OrderDto(
+                id = id,
                 hash = source.order.hash,
                 status = status,
                 make = assetDtoConverter.convert(source.version.make),
@@ -242,6 +250,7 @@ class CompositeBidConverter(
                 priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             AMM -> AmmOrderDto(
+                id = id,
                 hash = source.order.hash,
                 status = status,
                 make = assetDtoConverter.convert(source.version.make),

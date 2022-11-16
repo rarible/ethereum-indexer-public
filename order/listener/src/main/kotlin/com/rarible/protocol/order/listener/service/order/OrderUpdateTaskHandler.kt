@@ -17,7 +17,7 @@ import kotlinx.coroutines.time.delay
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.util.*
+import java.util.Date
 
 @Component
 class OrderUpdateTaskHandler(
@@ -51,7 +51,7 @@ class OrderUpdateTaskHandler(
     private suspend fun handleOrder(order: Order) {
         val (updatedOrder, updated) = orderUpdateService.updateMakeStockFull(hash = order.hash)
         if (updated) {
-            logger.info("Order ${updatedOrder?.hash} has been updated by task '$ORDER_UPDATE', oldStatus=${order.status}, newStatus=${updatedOrder?.status}")
+            logger.info("Order ${updatedOrder?.id} has been updated by task '$ORDER_UPDATE', oldStatus=${order.status}, newStatus=${updatedOrder?.status}")
             delay(Duration.ofMillis(properties.publishTaskDelayMs))
         }
     }

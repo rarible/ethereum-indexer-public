@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
@@ -298,7 +299,7 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
         val hash = Word.apply("0xa04ce3cc6721c3a7882a76705f77b4ce17a006b7cec01ac5a033f36f08184772")
 
         val previousOrder = createSellOrder()
-        val currentOrder = createSellOrder().copy(hash = hash)
+        val currentOrder = createSellOrder().copy(id = Order.Id(hash), hash = hash)
 
         val log = log(
             listOf(
