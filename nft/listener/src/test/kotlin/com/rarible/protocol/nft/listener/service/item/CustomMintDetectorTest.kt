@@ -11,7 +11,8 @@ import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 
-internal class CustomMintDetectorTest {
+class CustomMintDetectorTest {
+
     private val customMintDetector = CustomMintDetector()
 
     @Test

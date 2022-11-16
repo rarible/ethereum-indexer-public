@@ -40,10 +40,10 @@ class ItemOwnershipConsistencyJobHandler(
     metricsFactory: NftListenerMetricsFactory,
 ) : JobHandler {
 
-    private val checkedCounter = metricsFactory.itemOwnershipConsistencyJobCheckedCounter()
-    private val fixedCounter = metricsFactory.itemOwnershipConsistencyJobFixedCounter()
-    private val unfixedCounter = metricsFactory.itemOwnershipConsistencyJobUnfixedCounter()
-    private val delayMetric = metricsFactory.itemOwnershipConsistencyJobDelayGauge()
+    private val checkedCounter = metricsFactory.itemOwnershipConsistencyJobCheckedCounter
+    private val fixedCounter = metricsFactory.itemOwnershipConsistencyJobFixedCounter
+    private val unfixedCounter = metricsFactory.itemOwnershipConsistencyJobUnfixedCounter
+    private val delayMetric = metricsFactory.itemOwnershipConsistencyJobDelayGauge
 
     private val properties = nftListenerProperties.itemOwnershipConsistency
     private val logger = LoggerFactory.getLogger(javaClass)

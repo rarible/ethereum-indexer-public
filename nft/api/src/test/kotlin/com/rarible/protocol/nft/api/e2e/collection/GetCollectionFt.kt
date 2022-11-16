@@ -3,9 +3,9 @@ package com.rarible.protocol.nft.api.e2e.collection
 import com.rarible.protocol.dto.EthereumApiErrorEntityNotFoundDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createToken
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -21,7 +21,7 @@ import org.springframework.http.HttpStatus
 import scalether.domain.AddressFactory
 
 @End2EndTest
-class GetCollectionFt : SpringContainerBaseTest() {
+class GetCollectionFt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var tokenRepository: TokenRepository

@@ -36,13 +36,14 @@ class InconsistentItemsRepairJobHandler(
 ) : JobHandler {
 
     companion object {
+
         private const val INCONSISTENT_ITEMS_REPAIR_JOB = "inconsistent-items-repair"
     }
 
-    private val checkedCounter = metricsFactory.inconsistentItemsRepairJobCheckedCounter()
-    private val fixedCounter = metricsFactory.inconsistentItemsRepairJobFixedCounter()
-    private val unfixedCounter = metricsFactory.inconsistentItemsRepairJobUnfixedCounter()
-    private val delayMetric = metricsFactory.inconsistentItemsRepairJobDelayGauge()
+    private val checkedCounter = metricsFactory.inconsistentItemsRepairJobCheckedCounter
+    private val fixedCounter = metricsFactory.inconsistentItemsRepairJobFixedCounter
+    private val unfixedCounter = metricsFactory.inconsistentItemsRepairJobUnfixedCounter
+    private val delayMetric = metricsFactory.inconsistentItemsRepairJobDelayGauge
 
     private val properties = nftListenerProperties.inconsistentItemsRepair
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -138,21 +139,25 @@ class InconsistentItemsRepairJobHandler(
         when (val checkResult = itemOwnershipConsistencyService.checkItem(item.id)) {
             is ItemOwnershipConsistencyService.CheckResult.Success -> {
                 logger.info("InconsistentItem $item was fixed successfully")
-                inconsistentItemRepository.save(item.copy(
-                    status = InconsistentItemStatus.FIXED,
-                    fixVersionApplied = fixVersion,
-                ))
-                fixedCounter.increment(1)
+                inconsistentItemRepository.save(
+                    item.copy(
+                        status = InconsistentItemStatus.FIXED,
+                        fixVersionApplied = fixVersion,
+                    )
+                )
+                fixedCounter.increment()
             }
 
             is ItemOwnershipConsistencyService.CheckResult.Failure -> {
                 logger.info("InconsistentItem $item wasn't fixed, $checkResult")
-                inconsistentItemRepository.save(item.copy(
-                    status = InconsistentItemStatus.UNFIXED,
-                    type = checkResult.type,
-                    fixVersionApplied = fixVersion,
-                ))
-                unfixedCounter.increment(1)
+                inconsistentItemRepository.save(
+                    item.copy(
+                        status = InconsistentItemStatus.UNFIXED,
+                        type = checkResult.type,
+                        fixVersionApplied = fixVersion,
+                    )
+                )
+                unfixedCounter.increment()
             }
         }
     }

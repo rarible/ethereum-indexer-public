@@ -9,12 +9,11 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import com.rarible.protocol.nft.listener.service.item.ItemMintedAtTaskHandler
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -27,8 +26,7 @@ import scalether.domain.Address
 import scalether.domain.AddressFactory
 
 @IntegrationTest
-@FlowPreview
-class ItemMintedAtTaskHandlerTest : AbstractIntegrationTest() {
+class ItemMintedAtTaskHandlerIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var handler: ItemMintedAtTaskHandler

@@ -2,10 +2,24 @@ package com.rarible.protocol.nft.api.e2e.activity
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
-import com.rarible.protocol.nft.api.e2e.data.*
+import com.rarible.protocol.dto.ActivitiesByIdRequestDto
+import com.rarible.protocol.dto.ActivitySortDto
+import com.rarible.protocol.dto.NftActivityDto
+import com.rarible.protocol.dto.NftActivityFilterAllDto
+import com.rarible.protocol.dto.NftActivityFilterByCollectionDto
+import com.rarible.protocol.dto.NftActivityFilterByItemDto
+import com.rarible.protocol.dto.NftActivityFilterByUserDto
+import com.rarible.protocol.dto.NftActivityFilterDto
+import com.rarible.protocol.nft.api.e2e.data.createItemBurn
+import com.rarible.protocol.nft.api.e2e.data.createItemMint
+import com.rarible.protocol.nft.api.e2e.data.createItemTransfer
+import com.rarible.protocol.nft.api.e2e.data.withToken
+import com.rarible.protocol.nft.api.e2e.data.withTokenId
+import com.rarible.protocol.nft.api.e2e.data.withTransferDate
+import com.rarible.protocol.nft.api.e2e.data.withTransferFrom
+import com.rarible.protocol.nft.api.e2e.data.withTransferOwner
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -22,7 +36,8 @@ import java.time.Instant
 import java.util.stream.Stream
 
 @End2EndTest
-class ActivityFt : SpringContainerBaseTest() {
+class ActivityFt : AbstractIntegrationTest() {
+
     @Autowired
     private lateinit var historyRepository: NftItemHistoryRepository
 

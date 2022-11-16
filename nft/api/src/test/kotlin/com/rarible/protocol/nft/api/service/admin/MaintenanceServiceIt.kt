@@ -2,14 +2,14 @@ package com.rarible.protocol.nft.api.service.admin
 
 import com.ninjasquad.springmockk.MockkBean
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
 import com.rarible.protocol.nft.api.e2e.data.randomItemId
 import com.rarible.protocol.nft.api.model.ItemResult
 import com.rarible.protocol.nft.api.model.ItemStatus
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProblemType
@@ -28,7 +28,7 @@ import scalether.domain.Address
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @End2EndTest
-class MaintenanceServiceIt : SpringContainerBaseTest() {
+class MaintenanceServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var service: MaintenanceService

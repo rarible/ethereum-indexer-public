@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.e2e
+package com.rarible.protocol.nft.api.test
 
 import com.rarible.blockchain.scanner.ethereum.migration.ChangeLog00001
 import com.rarible.ethereum.domain.Blockchain
@@ -54,7 +54,7 @@ import java.net.URI
 import javax.annotation.PostConstruct
 import kotlin.coroutines.EmptyCoroutineContext
 
-abstract class SpringContainerBaseTest {
+abstract class AbstractIntegrationTest {
     init {
         System.setProperty(
             "common.blockchain", Blockchain.ETHEREUM.name.toLowerCase()

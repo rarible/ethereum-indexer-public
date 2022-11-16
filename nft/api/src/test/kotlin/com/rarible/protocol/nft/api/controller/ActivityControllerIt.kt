@@ -12,13 +12,13 @@ import com.rarible.protocol.dto.NftActivityFilterAllDto
 import com.rarible.protocol.dto.NftActivityFilterByItemAndOwnerDto
 import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.TransferDto
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItemBurn
 import com.rarible.protocol.nft.api.e2e.data.createItemLazyMint
 import com.rarible.protocol.nft.api.e2e.data.createItemMint
 import com.rarible.protocol.nft.api.e2e.data.createItemTransfer
 import com.rarible.protocol.nft.api.e2e.data.createLogEvent
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
@@ -32,7 +32,7 @@ import scalether.domain.Address
 import java.time.Instant
 
 @End2EndTest
-class ActivityControllerIt : SpringContainerBaseTest() {
+class ActivityControllerIt : AbstractIntegrationTest() {
 
     @Autowired
     protected lateinit var historyRepository: NftItemHistoryRepository

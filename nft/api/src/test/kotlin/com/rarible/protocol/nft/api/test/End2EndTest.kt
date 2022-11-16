@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.e2e
+package com.rarible.protocol.nft.api.test
 
 import com.rarible.core.test.ext.EthereumTest
 import com.rarible.core.test.ext.KafkaTest
@@ -35,5 +35,5 @@ import org.testcontainers.junit.jupiter.Testcontainers
     ]
 )
 @ActiveProfiles("integration", "reduce-v2")
-@Import(TestPropertiesConfiguration::class)
+@Import(TestConfiguration::class)
 annotation class End2EndTest

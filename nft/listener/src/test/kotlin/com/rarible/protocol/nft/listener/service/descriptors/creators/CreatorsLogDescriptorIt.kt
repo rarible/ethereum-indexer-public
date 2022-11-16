@@ -12,8 +12,8 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
@@ -42,7 +42,7 @@ import java.math.BigInteger
 import java.util.function.Consumer
 
 @IntegrationTest
-class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
+class CreatorsLogDescriptorIt : AbstractIntegrationTest() {
 
     private val tokenId = EthUInt256.of(BigInteger.TEN)
 

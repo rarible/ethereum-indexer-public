@@ -17,10 +17,9 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.listener.admin.FindNonParseableLogEntriesTaskHandler
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -35,7 +34,7 @@ import org.springframework.data.mongodb.core.query.isEqualTo
  * Test for [FindNonParseableLogEntriesTaskHandler].
  */
 @IntegrationTest
-class FindNonParseableLogEntriesTaskHandlerTest : AbstractIntegrationTest() {
+class FindNonParseableLogEntriesTaskHandlerIt : AbstractIntegrationTest() {
 
     private val collectionName = NftItemHistoryRepository.COLLECTION
 

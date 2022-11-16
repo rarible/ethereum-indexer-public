@@ -5,9 +5,8 @@ import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUserMinimal
 import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken
 import com.rarible.protocol.nft.core.model.ContractStatus
-import com.rarible.protocol.nft.core.model.ReduceVersion
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -15,8 +14,6 @@ import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
@@ -26,7 +23,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
 @IntegrationTest
-class CollectionDescriptorTest : AbstractIntegrationTest() {
+class CollectionDescriptorIt : AbstractIntegrationTest() {
 
     @Test
     fun convert() = runBlocking<Unit> {

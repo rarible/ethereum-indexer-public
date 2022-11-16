@@ -3,10 +3,10 @@ package com.rarible.protocol.nft.api.e2e.collection
 import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createPartDto
 import com.rarible.protocol.nft.api.e2e.data.createToken
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
@@ -25,7 +25,7 @@ import java.math.BigInteger
 import java.util.*
 
 @End2EndTest
-class MintingItemFt : SpringContainerBaseTest() {
+class MintingItemFt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var tokenRepository: TokenRepository

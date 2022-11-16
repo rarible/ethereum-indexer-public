@@ -3,9 +3,9 @@ package com.rarible.protocol.nft.api.e2e.collection
 import com.rarible.core.cache.Cache
 import com.rarible.protocol.dto.ImageContentDto
 import com.rarible.protocol.dto.MetaContentDto
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createToken
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenProperties
@@ -27,10 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Instant
-import java.util.Date
+import java.util.*
 
 @End2EndTest
-class CollectionMetaFt : SpringContainerBaseTest() {
+class CollectionMetaFt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var tokenRepository: TokenRepository

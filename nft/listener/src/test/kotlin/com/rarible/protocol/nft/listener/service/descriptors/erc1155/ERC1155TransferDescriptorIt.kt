@@ -1,21 +1,20 @@
 package com.rarible.protocol.nft.listener.service.descriptors.erc1155
 
-import com.rarible.contracts.erc1155.TransferBatchEvent
+import com.rarible.contracts.erc1155.TransferSingleEvent
 import com.rarible.contracts.test.erc1155.TestERC1155
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.TransferDto
+import com.rarible.protocol.dto.MintDto
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
@@ -24,11 +23,9 @@ import scalether.domain.Address
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
-import kotlin.random.Random
 
 @IntegrationTest
-@Disabled("Fix in PT-1654")
-class ERC1155TransferBatchDescriptorTest : AbstractIntegrationTest() {
+class ERC1155TransferDescriptorIt : AbstractIntegrationTest() {
 
     @Test
     fun convert() = runBlocking<Unit> {
@@ -50,8 +47,6 @@ class ERC1155TransferBatchDescriptorTest : AbstractIntegrationTest() {
 
         val itemId = ItemId(token.address(), EthUInt256(BigInteger.ONE))
         token.mint(userSender.from(), itemId.tokenId.value, BigInteger.valueOf(5), ByteArray(0)).execute().verifySuccess()
-        val to = Address.apply(Random.nextBytes(20))
-        token.safeBatchTransferFrom(userSender.from(), to, arrayOf(itemId.tokenId.value), arrayOf(BigInteger.ONE), ByteArray(0)).execute().verifySuccess()
 
         Wait.waitAssert {
             val transfers = nftItemHistoryRepository
@@ -59,9 +54,8 @@ class ERC1155TransferBatchDescriptorTest : AbstractIntegrationTest() {
                 .filter { it.log.topic in ItemType.TRANSFER.topic }
                 .collectList().awaitFirst()
 
-            assertThat(transfers).hasSize(2)
+            assertThat(transfers).hasSize(1)
         }
-
         Wait.waitAssert {
             val savedNft = tokenRepository.findById(itemId.token).awaitFirstOrNull()
             assertThat(savedNft).isNotNull
@@ -75,7 +69,7 @@ class ERC1155TransferBatchDescriptorTest : AbstractIntegrationTest() {
             assertThat(savedNftItem!!.token).isEqualTo(token.address())
             assertThat(savedNftItem.supply).isEqualTo(EthUInt256.of(5))
 
-            checkActivityWasPublished(savedNftItem.token, savedNftItem.tokenId, TransferBatchEvent.id(), TransferDto::class.java)
+            checkActivityWasPublished(savedNftItem.token, savedNftItem.tokenId, TransferSingleEvent.id(), MintDto::class.java)
         }
     }
 }

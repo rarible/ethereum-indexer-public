@@ -1,21 +1,64 @@
-package com.rarible.protocol.nft.listener.service.item
+package com.rarible.protocol.nft.listener.test.data
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomLong
+import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
-import com.rarible.protocol.nft.listener.data.createRandomOwnership
+import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import scalether.domain.Address
+import scalether.domain.AddressFactory
+import java.math.BigInteger
+import java.util.concurrent.ThreadLocalRandom
 
 const val OWNERS_NUMBER = 4
+
+fun createRandomItem(): Item {
+    return Item.empty(randomAddress(), EthUInt256.of(randomLong()))
+}
+
+fun createRandomOwnership(): Ownership {
+    val token = randomAddress()
+    val owner = randomAddress()
+    val tokenId = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000))
+    return Ownership(
+        token = token,
+        tokenId = tokenId,
+        creators = listOf(Part(AddressFactory.create(), 1000)),
+        owner = owner,
+        value = EthUInt256.of(BigInteger.valueOf(ThreadLocalRandom.current().nextLong(1, 10000))),
+        lazyValue = EthUInt256.of(BigInteger.valueOf(ThreadLocalRandom.current().nextLong(1, 10000))),
+        date = nowMillis(),
+        pending = emptyList(),
+        lastUpdatedAt = nowMillis()
+    )
+}
+
+fun createRandomItemProperties(): ItemProperties {
+    return ItemProperties(
+        name = randomString(),
+        description = randomString(),
+        attributes = emptyList(),
+        rawJsonContent = randomString(),
+        content = ContentBuilder.getItemMetaContent(
+            imageOriginal = randomString(),
+            imageBig = randomString(),
+            imagePreview = randomString(),
+            videoOriginal = randomString()
+        )
+    )
+}
 
 fun createValidLog(item: Item, ownerships: List<Ownership>): List<LogEvent> {
     return ownerships.mapIndexed { index, ownership ->
@@ -82,3 +125,4 @@ fun createLog(
         createdAt = nowMillis()
     )
 }
+

@@ -17,7 +17,7 @@ class TestEthereumBlockchainClient(
     private val delegate: EthereumBlockchainClient
 ) : EthereumBlockchainClient {
 
-    val blocksDelayLock = ReentrantLock()
+    private val blocksDelayLock = ReentrantLock()
 
     var startingBlock: Long = 0L
 

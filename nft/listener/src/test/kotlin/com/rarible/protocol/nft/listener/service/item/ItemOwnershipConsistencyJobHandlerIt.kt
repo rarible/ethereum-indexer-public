@@ -1,35 +1,23 @@
 package com.rarible.protocol.nft.listener.service.item
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.common.nowMillis
-import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.core.telemetry.metrics.RegisteredGauge
-import com.rarible.core.test.data.randomAddress
-import com.rarible.core.test.data.randomBigInt
-import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
-import com.rarible.protocol.nft.core.model.Item
-import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.repository.InconsistentItemRepository
 import com.rarible.protocol.nft.core.repository.JobStateRepository
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
-import com.rarible.protocol.nft.listener.data.createRandomItem
-import com.rarible.protocol.nft.listener.data.createRandomOwnership
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
-import io.daonomic.rpc.domain.Word
-import io.daonomic.rpc.domain.WordFactory
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.impl.annotations.RelaxedMockK
-import io.mockk.verify
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
+import com.rarible.protocol.nft.listener.test.data.OWNERS_NUMBER
+import com.rarible.protocol.nft.listener.test.data.createInvalidValidOwnerships
+import com.rarible.protocol.nft.listener.test.data.createRandomItem
+import com.rarible.protocol.nft.listener.test.data.createRandomOwnership
+import com.rarible.protocol.nft.listener.test.data.createValidLog
+import com.rarible.protocol.nft.listener.test.data.createValidOwnerships
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -41,12 +29,10 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.where
-import scalether.domain.Address
 import java.time.Duration
 
-
 @IntegrationTest
-class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
+class ItemOwnershipConsistencyJobHandlerIt : AbstractIntegrationTest() {
 
     private lateinit var handler: ItemOwnershipConsistencyJobHandler
 
@@ -62,32 +48,20 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var jobStateRepository: JobStateRepository
 
-    @MockkBean(relaxed = true)
-    private lateinit var metricsFactory: NftListenerMetricsFactory
-
-    @RelaxedMockK
-    private lateinit var checkedCounter: RegisteredCounter
-    @RelaxedMockK
-    private lateinit var fixedCounter: RegisteredCounter
-    @RelaxedMockK
-    private lateinit var unfixedCounter: RegisteredCounter
-    @RelaxedMockK
-    private lateinit var delayGauge: RegisteredGauge<Long>
-
     @Autowired
     private lateinit var itemOwnershipConsistencyService: ItemOwnershipConsistencyService
 
-    @BeforeEach
-    fun prepareMocks() {
-        every { metricsFactory.itemOwnershipConsistencyJobCheckedCounter() } returns checkedCounter
-        every { metricsFactory.itemOwnershipConsistencyJobFixedCounter() } returns fixedCounter
-        every { metricsFactory.itemOwnershipConsistencyJobUnfixedCounter() } returns unfixedCounter
-        every { metricsFactory.itemOwnershipConsistencyJobDelayGauge() } returns delayGauge
-    }
+    @Autowired
+    private lateinit var metricsFactory: NftListenerMetricsFactory
 
     @Test
     fun `should save invalid items that can't be fixed to corresponding repo`() = runBlocking<Unit> {
         val now = nowMillis()
+
+        val checkedCounter = metricsFactory.itemOwnershipConsistencyJobCheckedCounter
+        val fixedCounter = metricsFactory.itemOwnershipConsistencyJobFixedCounter
+        val unfixedCounter = metricsFactory.itemOwnershipConsistencyJobUnfixedCounter
+        val delayGauge = metricsFactory.itemOwnershipConsistencyJobDelayGauge
 
         handler = ItemOwnershipConsistencyJobHandler(
             jobStateRepository,
@@ -98,14 +72,12 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
             metricsFactory,
         )
 
-        val tooFreshItem =
-            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now)
-        val validItem =
-            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(10))
-        val fixableItem =
-            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(20))
-        val invalidItem =
-            createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(30))
+        val supply = EthUInt256.of(OWNERS_NUMBER)
+        val tooFreshItem = createRandomItem().copy(supply = supply, date = now)
+        val validItem = createRandomItem().copy(supply = supply, date = now - Duration.ofMinutes(10))
+        val fixableItem = createRandomItem().copy(supply = supply, date = now - Duration.ofMinutes(20))
+        val invalidItem = createRandomItem().copy(supply = supply, date = now - Duration.ofMinutes(30))
+
         listOf(
             tooFreshItem,
             validItem,
@@ -121,9 +93,15 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
             fixableOwnership,
             invalidOwnership
         ).flatten().forEach { ownershipRepository.save(it).awaitFirst() }
+
         listOf(
             createValidLog(fixableItem, fixableOwnership)
         ).flatten().forEach { nftItemHistoryRepository.save(it).awaitFirst() }
+
+        val delayBefore = delayGauge.set(-1)
+        val checkedBefore = checkedCounter.count()
+        val fixedBefore = fixedCounter.count()
+        val unfixedBefore = unfixedCounter.count()
 
         // when
         handler.handle()
@@ -132,15 +110,11 @@ class ItemOwnershipConsistencyJobHandlerTest : AbstractIntegrationTest() {
         val invalidItems = inconsistentItemRepository.findAll().toList()
         assertThat(invalidItems).hasSize(1)
         assertThat(invalidItems.single().id).isEqualTo(invalidItem.id)
-        verify(exactly = 3) {
-            checkedCounter.increment()
-        }
-        verify { fixedCounter.increment() }
-        verify { unfixedCounter.increment() }
-        verify(exactly = 3) {
-            delayGauge.set(any())
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
+        assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 3)
+        assertThat(fixedCounter.count()).isEqualTo(fixedBefore + 1)
+        assertThat(unfixedCounter.count()).isEqualTo(unfixedBefore + 1)
     }
 
     @Test

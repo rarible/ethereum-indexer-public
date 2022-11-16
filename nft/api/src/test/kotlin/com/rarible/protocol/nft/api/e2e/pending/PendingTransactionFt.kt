@@ -4,8 +4,8 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomWord
 import com.rarible.protocol.dto.CreateTransactionRequestDto
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.EventAwareBaseTest
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
@@ -14,7 +14,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 @End2EndTest
-class PendingTransactionFt : EventAwareBaseTest() {
+class PendingTransactionFt : AbstractIntegrationTest() {
+
     @Test
     fun `should create empty pending transaction`() = runBlocking<Unit> {
         val request = CreateTransactionRequestDto(

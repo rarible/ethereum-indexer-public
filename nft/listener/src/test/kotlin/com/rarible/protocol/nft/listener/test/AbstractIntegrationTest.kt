@@ -1,20 +1,14 @@
-package com.rarible.protocol.nft.listener.integration
+package com.rarible.protocol.nft.listener.test
 
-import com.rarible.blockchain.scanner.block.Block
 import com.rarible.blockchain.scanner.block.BlockRepository
-import com.rarible.blockchain.scanner.block.BlockStatus
-import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.kafka.KafkaMessage
-import com.rarible.core.kafka.RaribleKafkaConsumer
-import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.ActivityDto
-import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.MintDto
 import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.dto.TransferDto
+import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -22,20 +16,16 @@ import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
-import com.rarible.protocol.nft.listener.test.TestEthereumBlockchainClient
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.convert.MongoConverter
 import org.springframework.data.mongodb.core.query.Query
@@ -52,11 +42,10 @@ import scalether.transaction.MonoTransactionPoller
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.time.Instant
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.function.Consumer
 import javax.annotation.PostConstruct
 
 abstract class AbstractIntegrationTest {
+
     private lateinit var sender: MonoTransactionSender
 
     @Autowired
@@ -90,43 +79,22 @@ abstract class AbstractIntegrationTest {
     protected lateinit var nftIndexerProperties: NftIndexerProperties
 
     @Autowired
-    private lateinit var application: ApplicationEnvironmentInfo
-
-    @Autowired
     protected lateinit var featureFlags: FeatureFlags
-
-    @Autowired(required = false)
-    @Qualifier("testEthereumBlockchainClient")
-    protected var testEthereumBlockchainClient: TestEthereumBlockchainClient? = null
 
     @Autowired(required = false)
     protected var blockRepository: BlockRepository? = null
 
-    private lateinit var activityConsumer: RaribleKafkaConsumer<ActivityDto>
+    @Autowired
+    private lateinit var testActivityHandler: TestKafkaHandler<ActivityDto>
 
     @BeforeEach
     fun cleanDatabase() = runBlocking<Unit> {
+        testActivityHandler.events.clear()
+
         mongo.collectionNames
-            .filter { !it.startsWith("system") }
+            .filter { !it.startsWith("system") && !it.equals("block") }
             .flatMap { mongo.remove(Query(), it) }
             .then().block()
-
-        activityConsumer = createNftActivityConsumer()
-
-        val currentBlockNumber = ethereum.ethBlockNumber().awaitFirst()
-        val currentBlock = ethereum.ethGetBlockByNumber(currentBlockNumber).awaitFirst()
-        try {
-            blockRepository?.save(
-                Block(
-                    id = currentBlock.blockNumber.toLong(),
-                    hash = currentBlock.blockHash.prefixed(),
-                    parentHash = currentBlock.parentHash()?.prefixed(),
-                    timestamp = currentBlock.timestamp().toLong(),
-                    status = BlockStatus.SUCCESS
-                )
-            )
-        } catch (ex: Throwable) {
-        }
     }
 
     @BeforeEach
@@ -173,18 +141,6 @@ abstract class AbstractIntegrationTest {
         return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
     }
 
-    private fun createNftActivityConsumer(): RaribleKafkaConsumer<ActivityDto> {
-        return RaribleKafkaConsumer(
-            clientId = "test-consumer-order-activity",
-            consumerGroup = "test-group-order-activity",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = ActivityDto::class.java,
-            defaultTopic = ActivityTopicProvider.getTopic(application.name, nftIndexerProperties.blockchain.value),
-            bootstrapServers = nftIndexerProperties.kafkaReplicaSet,
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST
-        )
-    }
-
     protected suspend fun TransactionReceipt.getTimestamp(): Instant =
         Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
 
@@ -201,36 +157,26 @@ abstract class AbstractIntegrationTest {
 
         assertThat(logEvent).isNotNull
 
-        val events = CopyOnWriteArrayList<KafkaMessage<ActivityDto>>()
+        val events = testActivityHandler.events
 
-        val job = async {
-           activityConsumer
-                .receiveAutoAck()
-                .collect { events.add(it) }
-        }
         Wait.waitAssert {
-            assertThat(events)
-                .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies(Consumer {
-                    val event = it.firstOrNull { event -> event.value.id == logEvent?.id.toString() }
-                    val activity = event?.value
-                    assertThat(activity?.javaClass).isEqualTo(activityType)
-
-                    when (activity) {
-                        is MintDto -> {
-                            assertThat(activity.id).isEqualTo(logEvent?.id.toString())
-                            assertThat(activity.contract).isEqualTo(token)
-                            assertThat(activity.tokenId).isEqualTo(tokenId.value)
-                        }
-                        is TransferDto -> {
-                            assertThat(activity.id).isEqualTo(logEvent?.id.toString())
-                            assertThat(activity.contract).isEqualTo(token)
-                            assertThat(activity.tokenId).isEqualTo(tokenId.value)
-                        }
-                        else -> Assertions.fail<String>("Unexpected event type ${activity?.javaClass}")
-                    }
-                })
+            assertThat(events).hasSizeGreaterThanOrEqualTo(1)
+            val activity = events.find { event -> event.id == logEvent?.id.toString() }
+            assertThat(activity).isNotNull
+            assertThat(activity?.javaClass).isEqualTo(activityType)
+            when (activity) {
+                is MintDto -> {
+                    assertThat(activity.id).isEqualTo(logEvent?.id.toString())
+                    assertThat(activity.contract).isEqualTo(token)
+                    assertThat(activity.tokenId).isEqualTo(tokenId.value)
+                }
+                is TransferDto -> {
+                    assertThat(activity.id).isEqualTo(logEvent?.id.toString())
+                    assertThat(activity.contract).isEqualTo(token)
+                    assertThat(activity.tokenId).isEqualTo(tokenId.value)
+                }
+                else -> Assertions.fail<String>("Unexpected event type ${activity?.javaClass}")
+            }
         }
-        job.cancel()
     }
 }
