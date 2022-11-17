@@ -3,6 +3,7 @@ eventTopic: ${rarible.common.jms-eventTopic}
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
 reindexBlocksJobEnabled: false
+ethereumBlockProcessingDelay: 200
 
 common:
   kafka-replica-set: ${kafka.hosts}

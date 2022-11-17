@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import java.math.BigInteger
+import java.time.Duration
 
 @IntegrationTest
 internal class ApprovalLogDescriptorIt : AbstractIntegrationTest() {
@@ -41,7 +42,7 @@ internal class ApprovalLogDescriptorIt : AbstractIntegrationTest() {
 
         token.approve(spender, value).execute().verifySuccess()
 
-        Wait.waitAssert {
+        Wait.waitAssert(timeout = Duration.ofSeconds(10)) {
             val history = historyRepository.findOwnerLogEvents(
                 token.address(),
                 owner

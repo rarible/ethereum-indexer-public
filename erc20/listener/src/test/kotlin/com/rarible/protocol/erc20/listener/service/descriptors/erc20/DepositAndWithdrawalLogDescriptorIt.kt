@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import scalether.domain.request.Transaction
 import java.math.BigInteger
+import java.time.Duration
 
 @IntegrationTest
 internal class DepositAndWithdrawalLogDescriptorIt : AbstractIntegrationTest() {
@@ -64,7 +65,7 @@ internal class DepositAndWithdrawalLogDescriptorIt : AbstractIntegrationTest() {
             .withSender(userSender)
             .execute().verifySuccess()
 
-        Wait.waitAssert {
+        Wait.waitAssert(timeout = Duration.ofSeconds(10)) {
             val ownerHistory = historyRepository.findOwnerLogEvents(
                 contract.address(),
                 userSender.from()

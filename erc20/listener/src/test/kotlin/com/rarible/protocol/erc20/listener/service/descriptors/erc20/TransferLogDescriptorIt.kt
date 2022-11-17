@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import java.math.BigInteger
+import java.time.Duration
 
 @IntegrationTest
 internal class TransferLogDescriptorIt : AbstractIntegrationTest() {
@@ -42,7 +43,7 @@ internal class TransferLogDescriptorIt : AbstractIntegrationTest() {
         token.mint(owner, value).execute().verifySuccess()
         token.transfer(recipient, value).execute().verifySuccess()
 
-        Wait.waitAssert {
+        Wait.waitAssert(timeout = Duration.ofSeconds(10)) {
             val ownerHistory = historyRepository.findOwnerLogEvents(
                 token.address(),
                 owner
