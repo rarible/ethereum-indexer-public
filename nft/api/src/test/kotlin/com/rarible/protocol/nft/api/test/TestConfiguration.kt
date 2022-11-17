@@ -23,12 +23,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Primary
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
 import java.net.HttpURLConnection
 
 @TestConfiguration
+@ComponentScan(basePackageClasses = [End2EndTest::class])
 class TestConfiguration {
 
     @Autowired
@@ -110,12 +112,4 @@ class TestConfiguration {
         )
         return ConsumerWorker(consumer, handler, "test-kafka-activity-worker")
     }
-
-    @Bean
-    fun testLauncher(
-        itemWorker: ConsumerWorker<NftItemEventDto>
-    ): TestLauncher {
-        return TestLauncher(itemWorker)
-    }
-
 }
