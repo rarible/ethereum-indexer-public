@@ -4,7 +4,9 @@ import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.protocol.dto.NftItemEventDto
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
+import org.springframework.stereotype.Component
 
+@Component
 class TestLauncher(
     private val itemWorker: ConsumerWorker<NftItemEventDto>
 ) : CommandLineRunner {

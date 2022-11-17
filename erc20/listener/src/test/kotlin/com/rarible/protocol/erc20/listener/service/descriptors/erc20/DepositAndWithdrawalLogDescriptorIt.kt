@@ -7,28 +7,22 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20Withdrawal
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
-import com.rarible.protocol.erc20.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.erc20.listener.integration.IntegrationTest
+import com.rarible.protocol.erc20.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.erc20.listener.test.IntegrationTest
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
-import reactor.core.publisher.Mono
 import scalether.domain.request.Transaction
-import scalether.transaction.MonoGasPriceProvider
-import scalether.transaction.MonoSigningTransactionSender
-import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
-import java.time.Duration
 
 @IntegrationTest
-@Disabled("Fix in PT-1654")
-internal class DepositAndWithdrawalLogDescriptorTest : AbstractIntegrationTest() {
+internal class DepositAndWithdrawalLogDescriptorIt : AbstractIntegrationTest() {
+
     @Autowired
     protected lateinit var historyRepository: Erc20TransferHistoryRepository
 
@@ -37,23 +31,13 @@ internal class DepositAndWithdrawalLogDescriptorTest : AbstractIntegrationTest()
 
     @Test
     fun `should get deposit history events`() = runBlocking<Unit> {
-        val walletPrivateKey = BigInteger(Numeric.hexStringToByteArray("00120de4b1518cf1f16dc1b02f6b4a8ac29e870174cb1d8575f578480930250a"))
-        val walletSender = MonoSigningTransactionSender(
-            ethereum,
-            MonoSimpleNonceProvider(ethereum),
-            walletPrivateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+        val walletPrivateKey = BigInteger(
+            Numeric.hexStringToByteArray("00120de4b1518cf1f16dc1b02f6b4a8ac29e870174cb1d8575f578480930250a")
         )
+        val walletSender = createSender(walletPrivateKey)
 
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
-        val userSender = MonoSigningTransactionSender(
-            ethereum,
-            MonoSimpleNonceProvider(ethereum),
-            privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+        val userSender = createSender(privateKey)
 
         walletSender.sendTransaction(
             Transaction(
@@ -80,8 +64,12 @@ internal class DepositAndWithdrawalLogDescriptorTest : AbstractIntegrationTest()
             .withSender(userSender)
             .execute().verifySuccess()
 
-        Wait.waitAssert(Duration.ofSeconds(5)) {
-            val ownerHistory = historyRepository.findOwnerLogEvents(contract.address(), userSender.from()).collectList().awaitFirst()
+        Wait.waitAssert {
+            val ownerHistory = historyRepository.findOwnerLogEvents(
+                contract.address(),
+                userSender.from()
+            ).collectList().awaitFirst()
+
             assertThat(ownerHistory).hasSize(2)
 
             with(ownerHistory[0].history as Erc20Deposit) {
@@ -89,11 +77,13 @@ internal class DepositAndWithdrawalLogDescriptorTest : AbstractIntegrationTest()
                 assertThat(this.owner).isEqualTo(userSender.from())
                 assertThat(this.value.value).isEqualTo(deposit.value)
             }
+
             with(ownerHistory[1].history as Erc20Withdrawal) {
                 assertThat(this.token).isEqualTo(contract.address())
                 assertThat(this.owner).isEqualTo(userSender.from())
                 assertThat(this.value.value).isEqualTo(withdraw.value)
             }
+
             val savedToken = contractRepository.findById(contract.address())
             assertThat(savedToken).isNotNull
         }

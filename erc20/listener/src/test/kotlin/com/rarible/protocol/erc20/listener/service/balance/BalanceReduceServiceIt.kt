@@ -22,8 +22,8 @@ import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
 import com.rarible.protocol.erc20.listener.data.randomErc20ReduceEvent
-import com.rarible.protocol.erc20.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.erc20.listener.integration.IntegrationTest
+import com.rarible.protocol.erc20.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.erc20.listener.test.IntegrationTest
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk

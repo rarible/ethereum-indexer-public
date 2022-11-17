@@ -10,9 +10,9 @@ import com.rarible.protocol.erc20.core.repository.data.randomErc20Deposit
 import com.rarible.protocol.erc20.core.repository.data.randomErc20IncomeTransfer
 import com.rarible.protocol.erc20.core.repository.data.randomErc20OutcomeTransfer
 import com.rarible.protocol.erc20.core.repository.data.randomLogEvent
-import com.rarible.protocol.erc20.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.erc20.listener.integration.IntegrationTest
 import com.rarible.protocol.erc20.listener.service.balance.BalanceReduceState
+import com.rarible.protocol.erc20.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.erc20.listener.test.IntegrationTest
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
