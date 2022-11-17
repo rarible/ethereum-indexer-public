@@ -6,6 +6,7 @@ import com.rarible.blockchain.scanner.publisher.LogRecordEventPublisher
 import org.springframework.stereotype.Component
 
 // Replaces Kafka LogEvenRecord processing, used by BlockchainScanner by default
+// TODO doesn't work with V1 scanner
 @Component
 class TestLogRecordEventPublisher(
     listeners: List<EntityEventListener>
