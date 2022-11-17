@@ -21,6 +21,8 @@ import com.rarible.protocol.nft.core.model.calculateFunctionId
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
+import javassist.bytecode.Bytecode
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
@@ -41,8 +43,10 @@ import java.util.*
 class TokenRegistrationService(
     private val tokenRepository: TokenRepository,
     private val sender: MonoTransactionSender,
-    @Value("\${nft.token.cache.max.size:10000}") private val cacheMaxSize: Long
-) {
+    @Value("\${nft.token.cache.max.size:10000}") private val cacheMaxSize: Long,
+    @Value("\${nft.token.registration.retryCount:3}") private val retryCount: Int,
+    @Value("\${nft.token.registration.retryDelay:5000}") private val retryDelay: Long,
+    ) {
     private val cache = CacheBuilder.newBuilder()
         .maximumSize(cacheMaxSize)
         .build<Address, TokenStandard>()
@@ -157,15 +161,9 @@ class TokenRegistrationService(
 
     suspend fun fetchTokenStandardByFunctionSignatures(sender: MonoTransactionSender, address: Address): TokenStandard {
         logStandard(address, "determine standard by presence of function signatures")
-        val bytecode = try {
-            sender.ethereum()
-                .ethGetCode(address, "latest")
-                .awaitFirstOrNull()
-                ?: return TokenStandard.NONE
-        } catch (e: Exception) {
-            logStandard(address, "failed to get contract bytecode, returning NONE: ${e.message}")
-            return TokenStandard.NONE
-        }
+
+        val bytecode = getBytecodeWithRetry(address) ?: return TokenStandard.NONE
+
         val hexBytecode = bytecode.hex()
         for (standard in TokenStandard.values()) {
             if (standard.functionSignatures.isNotEmpty()) {
@@ -227,6 +225,31 @@ class TokenRegistrationService(
         return contract.supportsInterface(ifaceId.bytes())
             .switchIfEmpty { false.toMono() }
             .onErrorResume { false.toMono() }
+    }
+
+    private suspend fun getBytecodeWithRetry(address: Address): Binary? {
+        var retriesLeft = retryCount
+        var bytecode: Binary?
+
+        while (retriesLeft > 0) {
+            bytecode = try {
+                sender.ethereum()
+                    .ethGetCode(address, "latest")
+                    .awaitFirstOrNull()
+            } catch (e: Exception) {
+                logStandard(address, "failed to get contract bytecode: ${e.message}")
+                null
+            }
+
+            if (bytecode?.hex().isNullOrEmpty()) {
+                delay(retryDelay)
+                retriesLeft--
+            } else {
+                return bytecode
+            }
+        }
+
+        return null
     }
 
     companion object {
