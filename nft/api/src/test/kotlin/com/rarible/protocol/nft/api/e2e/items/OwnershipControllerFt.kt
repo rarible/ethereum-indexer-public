@@ -5,9 +5,9 @@ import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.ItemTransferDto
 import com.rarible.protocol.dto.NftOwnershipIdsDto
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import kotlinx.coroutines.reactive.awaitFirst
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @End2EndTest
-class OwnershipControllerFt : SpringContainerBaseTest() {
+class OwnershipControllerFt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var ownershipRepository: OwnershipRepository
@@ -27,7 +27,8 @@ class OwnershipControllerFt : SpringContainerBaseTest() {
         val ownership = createOwnership()
         ownershipRepository.save(ownership).awaitFirst()
 
-        val ownershipDto = nftOwnershipApiClient.getNftOwnershipById(ownership.id.decimalStringValue, false).awaitFirst()
+        val ownershipDto = nftOwnershipApiClient.getNftOwnershipById(ownership.id.decimalStringValue, false)
+            .awaitFirst()
 
         assertThat(ownershipDto.id).isEqualTo(OwnershipId.parseId(ownership.id.decimalStringValue).decimalStringValue)
         assertThat(ownershipDto.contract).isEqualTo(ownership.token)

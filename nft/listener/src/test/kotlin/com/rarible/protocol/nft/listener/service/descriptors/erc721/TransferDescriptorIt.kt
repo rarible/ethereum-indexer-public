@@ -10,8 +10,8 @@ import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -25,7 +25,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
 @IntegrationTest
-class TransferDescriptorTest : AbstractIntegrationTest() {
+class TransferDescriptorIt : AbstractIntegrationTest() {
 
     @Test
     fun convert() = runBlocking<Unit> {

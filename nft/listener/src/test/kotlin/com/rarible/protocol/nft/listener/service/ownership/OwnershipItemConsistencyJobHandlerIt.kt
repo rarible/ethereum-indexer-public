@@ -1,35 +1,31 @@
 package com.rarible.protocol.nft.listener.service.ownership
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.common.nowMillis
-import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.data.createRandomInconsistentItem
+import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import com.rarible.protocol.nft.core.repository.InconsistentItemRepository
 import com.rarible.protocol.nft.core.repository.JobStateRepository
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.configuration.OwnershipItemConsistencyProperties
-import com.rarible.protocol.nft.listener.data.createRandomItem
-import com.rarible.protocol.nft.listener.data.createRandomOwnership
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
-import com.rarible.protocol.nft.core.data.createRandomInconsistentItem
-import com.rarible.protocol.nft.core.model.InconsistentItemStatus
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.impl.annotations.RelaxedMockK
-import io.mockk.verify
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
+import com.rarible.protocol.nft.listener.test.data.createRandomItem
+import com.rarible.protocol.nft.listener.test.data.createRandomOwnership
+import io.micrometer.core.instrument.Counter
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicLong
 
 @IntegrationTest
-class OwnershipItemConsistencyJobHandlerTest : AbstractIntegrationTest() {
+class OwnershipItemConsistencyJobHandlerIt : AbstractIntegrationTest() {
 
     private lateinit var handler: OwnershipItemConsistencyJobHandler
 
@@ -42,26 +38,34 @@ class OwnershipItemConsistencyJobHandlerTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var itemOwnershipConsistencyService: ItemOwnershipConsistencyService
 
-    @MockkBean(relaxed = true)
+    @Autowired
     private lateinit var metricsFactory: NftListenerMetricsFactory
 
-    @RelaxedMockK
-    private lateinit var checkedCounter: RegisteredCounter
-    @RelaxedMockK
-    private lateinit var fixedCounter: RegisteredCounter
-    @RelaxedMockK
-    private lateinit var unfixedCounter: RegisteredCounter
-    @RelaxedMockK
-    private lateinit var delayGauge: RegisteredGauge<Long>
+    private lateinit var checkedCounter: Counter
+    private lateinit var fixedCounter: Counter
+    private lateinit var unfixedCounter: Counter
+    private lateinit var delayGauge: AtomicLong
+
+    private var checkedBefore: Double = -1.0
+    private var fixedBefore: Double = -1.0
+    private var unfixedBefore: Double = -1.0
+    private var delayBefore: Long = -1
 
     @BeforeEach
     fun prepareMocks() = runBlocking<Unit> {
         itemRepository.createIndexes()
         nftItemHistoryRepository.createIndexes()
-        every { metricsFactory.ownershipItemConsistencyJobCheckedCounter() } returns checkedCounter
-        every { metricsFactory.ownershipItemConsistencyJobFixedCounter() } returns fixedCounter
-        every { metricsFactory.ownershipItemConsistencyJobUnfixedCounter() } returns unfixedCounter
-        every { metricsFactory.ownershipItemConsistencyJobDelayGauge() } returns delayGauge
+
+        checkedCounter = metricsFactory.ownershipItemConsistencyJobCheckedCounter
+        fixedCounter = metricsFactory.ownershipItemConsistencyJobFixedCounter
+        unfixedCounter = metricsFactory.ownershipItemConsistencyJobUnfixedCounter
+        delayGauge = metricsFactory.ownershipItemConsistencyJobDelayGauge
+
+        delayBefore = -1
+        delayGauge.set(delayBefore)
+        checkedBefore = checkedCounter.count()
+        fixedBefore = fixedCounter.count()
+        unfixedBefore = unfixedCounter.count()
     }
 
     @Test
@@ -73,10 +77,7 @@ class OwnershipItemConsistencyJobHandlerTest : AbstractIntegrationTest() {
         handler.handle()
 
         // then
-        verify {
-            delayGauge.set(any())
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
     }
 
     @Test
@@ -90,10 +91,7 @@ class OwnershipItemConsistencyJobHandlerTest : AbstractIntegrationTest() {
         handler.handle()
 
         // then
-        verify {
-            delayGauge.set(any())
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
     }
 
     @Test
@@ -113,10 +111,7 @@ class OwnershipItemConsistencyJobHandlerTest : AbstractIntegrationTest() {
         handler.handle()
 
         // then
-        verify {
-            delayGauge.set(any())
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
     }
 
     @Test
@@ -136,11 +131,8 @@ class OwnershipItemConsistencyJobHandlerTest : AbstractIntegrationTest() {
         handler.handle()
 
         // then
-        verify {
-            checkedCounter.increment()
-            delayGauge.set(any())
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
+        assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 1)
     }
 
     @Test
@@ -152,9 +144,15 @@ class OwnershipItemConsistencyJobHandlerTest : AbstractIntegrationTest() {
         itemRepository.save(item1).awaitFirst()
         itemRepository.save(item2).awaitFirst()
         val ownership1 = createRandomOwnership()
-            .copy(token = item1.token, tokenId = item1.tokenId, date = nowMillis().minusSeconds(500), value = EthUInt256.TEN)
+            .copy(
+                token = item1.token, tokenId = item1.tokenId, date = nowMillis().minusSeconds(500),
+                value = EthUInt256.TEN
+            )
         val ownership2 = createRandomOwnership()
-            .copy(token = item2.token, tokenId = item2.tokenId, date = nowMillis().minusSeconds(400), value = EthUInt256.TEN)
+            .copy(
+                token = item2.token, tokenId = item2.tokenId, date = nowMillis().minusSeconds(400),
+                value = EthUInt256.TEN
+            )
         ownershipRepository.save(ownership1).awaitFirst()
         ownershipRepository.save(ownership2).awaitFirst()
 
@@ -162,11 +160,8 @@ class OwnershipItemConsistencyJobHandlerTest : AbstractIntegrationTest() {
         handler.handle()
 
         // then
-        verify {
-            delayGauge.set(any())
-            checkedCounter.increment(2)
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
+        assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 2)
     }
 
     @Test
@@ -182,13 +177,9 @@ class OwnershipItemConsistencyJobHandlerTest : AbstractIntegrationTest() {
         handler.handle()
 
         // then
-        verify {
-            delayGauge.set(any())
-            checkedCounter.increment(2)
-            unfixedCounter.increment()
-            unfixedCounter.increment()
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
+        assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 2)
+        assertThat(unfixedCounter.count()).isEqualTo(unfixedBefore + 2)
     }
 
 

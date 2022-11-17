@@ -2,14 +2,13 @@ package com.rarible.protocol.nft.listener.service.item
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
-import kotlinx.coroutines.FlowPreview
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -19,14 +18,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
-import java.util.UUID
+import java.util.*
 
 private const val ZERO_SUPPLY_ITEM_AMOUNT = 10
 private const val NON_ZERO_SUPPLY_ITEM_AMOUNT = 15
 
 @IntegrationTest
-@FlowPreview
 class FixItemsWithZeroSupplyTaskHandlerTest  : AbstractIntegrationTest(){
+
     @Autowired
     private lateinit var fixItemsWithZeroSupplyTaskHandler: FixItemsWithZeroSupplyTaskHandler
 
@@ -100,7 +99,7 @@ class FixItemsWithZeroSupplyTaskHandlerTest  : AbstractIntegrationTest(){
 
             itemRepository.save(item).awaitFirst()
 
-            val log = ItemReduceTaskHandlerTest.createMintLog(
+            val log = ItemReduceTaskHandlerIt.createMintLog(
                 blockNumber = 1,
                 token = token.id,
                 tokenId = EthUInt256.ZERO,

@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.api.e2e.items
 
 import com.rarible.core.common.nowMillis
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.service.item.ItemService
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
@@ -24,7 +24,8 @@ import java.time.Duration
 import java.time.Instant
 
 @End2EndTest
-class ItemServiceIt : SpringContainerBaseTest() {
+class ItemServiceIt : AbstractIntegrationTest() {
+
     @Autowired
     private lateinit var itemService: ItemService
 

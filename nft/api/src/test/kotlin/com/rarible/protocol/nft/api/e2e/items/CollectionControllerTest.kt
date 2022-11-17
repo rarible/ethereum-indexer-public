@@ -1,32 +1,30 @@
 package com.rarible.protocol.nft.api.e2e.items
 
-import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.CollectionsByIdRequestDto
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import io.mockk.coEvery
-import io.mockk.coVerify
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
 import kotlin.random.Random
-import kotlinx.coroutines.reactive.awaitSingle
-import org.junit.jupiter.api.Disabled
 
 @End2EndTest
-class CollectionControllerTest : SpringContainerBaseTest() {
+class CollectionControllerTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var itemRepository: ItemRepository

@@ -15,13 +15,13 @@ import com.rarible.protocol.dto.NftItemIdsDto
 import com.rarible.protocol.dto.NftItemRoyaltyDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createItemLazyMint
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
 import com.rarible.protocol.nft.api.e2e.data.createPart
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.dto.ItemDtoConverter
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
@@ -29,7 +29,6 @@ import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -58,13 +57,12 @@ import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
-import java.util.Date
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import java.util.stream.Stream
 
 @End2EndTest
-class ItemControllerFt : SpringContainerBaseTest() {
+class ItemControllerFt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var itemRepository: ItemRepository

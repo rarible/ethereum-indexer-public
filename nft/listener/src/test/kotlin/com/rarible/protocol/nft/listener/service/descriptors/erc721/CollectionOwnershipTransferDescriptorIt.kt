@@ -1,75 +1,29 @@
 package com.rarible.protocol.nft.listener.service.descriptors.erc721
 
-import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.kafka.RaribleKafkaConsumer
-import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionEventDto
-import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
+import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.CreateCollection
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.launch
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
-import java.util.concurrent.CopyOnWriteArrayList
 
 @IntegrationTest
-@Disabled("Fix in PT-1654")
-class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
+class CollectionOwnershipTransferDescriptorIt : AbstractIntegrationTest() {
 
     @Autowired
-    private lateinit var application: ApplicationEnvironmentInfo
-
-    private lateinit var collectionEventConsumer: RaribleKafkaConsumer<NftCollectionEventDto>
-
-    private val collectionEvents = CopyOnWriteArrayList<NftCollectionEventDto>()
-    private lateinit var consumingJobs: List<Job>
-
-    @BeforeEach
-    fun setUpEventConsumers() {
-        collectionEventConsumer = RaribleKafkaConsumer(
-            clientId = "test-consumer-collection-event",
-            consumerGroup = "test-group-collection-event",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = NftCollectionEventDto::class.java,
-            defaultTopic = NftCollectionEventTopicProvider.getTopic(
-                application.name,
-                nftIndexerProperties.blockchain.value
-            ) + ".internal",
-            bootstrapServers = nftIndexerProperties.kafkaReplicaSet,
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST
-        )
-        consumingJobs = listOf(
-            GlobalScope.launch {
-                collectionEventConsumer.receiveAutoAck().collect {
-                    collectionEvents += it.value
-                }
-            }
-        )
-    }
-
-    @AfterEach
-    fun stopConsumers() = runBlocking {
-        consumingJobs.forEach { it.cancelAndJoin() }
-    }
+    private lateinit var testCollectionHandler: TestKafkaHandler<NftCollectionEventDto>
 
     @Test
     fun `on minting the ownership is transferred from the zero address`() = runBlocking<Unit> {
@@ -92,6 +46,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
         }
 
         Wait.waitAssert {
+            val collectionEvents = testCollectionHandler.events
             assertThat(collectionEvents).anyMatch {
                 it is NftCollectionUpdateEventDto && it.collection == NftCollectionDto(
                     id = token.address(),
@@ -137,6 +92,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
             )
         }
         Wait.waitAssert {
+            val collectionEvents = testCollectionHandler.events
             assertThat(collectionEvents).anyMatch {
                 it is NftCollectionUpdateEventDto && it.collection == NftCollectionDto(
                     id = token.address(),

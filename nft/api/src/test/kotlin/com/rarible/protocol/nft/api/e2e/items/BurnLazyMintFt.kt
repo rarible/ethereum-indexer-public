@@ -10,12 +10,12 @@ import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.controller.ItemController
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createPartDto
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.ItemCreators
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
@@ -59,7 +59,7 @@ import java.nio.charset.StandardCharsets
 import java.time.Instant
 
 @End2EndTest
-class BurnLazyMintFt : SpringContainerBaseTest() {
+class BurnLazyMintFt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository

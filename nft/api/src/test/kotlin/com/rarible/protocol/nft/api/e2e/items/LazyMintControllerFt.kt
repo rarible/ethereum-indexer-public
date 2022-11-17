@@ -11,14 +11,16 @@ import com.rarible.protocol.dto.LazyErc1155Dto
 import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.PartDto
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.EventAwareBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
+import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
@@ -35,7 +37,6 @@ import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -54,13 +55,16 @@ import java.util.concurrent.ThreadLocalRandom
 import java.util.function.Consumer
 
 @End2EndTest
-class LazyMintControllerFt : EventAwareBaseTest() {
+class LazyMintControllerFt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 
     @Autowired
     private lateinit var tokenRepository: TokenRepository
+
+    @Autowired
+    private lateinit var itemHandler: TestKafkaHandler<NftItemEventDto>
 
     private val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
 
@@ -83,7 +87,6 @@ class LazyMintControllerFt : EventAwareBaseTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    @Disabled("Fix in PT-1654")
     fun `should any user mints ERC721`(version: ReduceVersion) = withReducer(version) {
         val contract = ERC721Rarible.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC721Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()
@@ -104,9 +107,7 @@ class LazyMintControllerFt : EventAwareBaseTest() {
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
         checkItemDto(lazyItemDto, itemDto)
 
-        logger.info("Item events: $itemEvents")
-
-        assertThat(itemEvents).anySatisfy(Consumer { event ->
+        assertThat(itemHandler.events).anySatisfy(Consumer { event ->
             assertThat(event).isInstanceOf(NftItemUpdateEventDto::class.java)
         })
     }

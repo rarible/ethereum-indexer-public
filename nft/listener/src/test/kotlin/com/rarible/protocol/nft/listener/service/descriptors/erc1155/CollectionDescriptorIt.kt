@@ -12,14 +12,13 @@ import com.rarible.protocol.nft.core.model.TokenFeature.MINT_WITH_ADDRESS
 import com.rarible.protocol.nft.core.model.TokenFeature.SECONDARY_SALE_FEES
 import com.rarible.protocol.nft.core.model.TokenFeature.SET_URI_PREFIX
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
@@ -31,8 +30,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
 @IntegrationTest
-@Disabled("Fix in PT-1654")
-class CollectionDescriptorTest : AbstractIntegrationTest() {
+class CollectionDescriptorIt : AbstractIntegrationTest() {
 
     @Test
     fun `should get CreateERC1155RaribleUserEvent event`() = runBlocking<Unit> {

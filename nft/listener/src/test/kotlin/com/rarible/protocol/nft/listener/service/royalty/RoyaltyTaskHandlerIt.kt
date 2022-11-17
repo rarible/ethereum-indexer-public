@@ -6,8 +6,8 @@ import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -31,7 +31,7 @@ import java.math.BigInteger
 import java.util.concurrent.ThreadLocalRandom
 
 @IntegrationTest
-class RoyaltyTaskHandlerTest : AbstractIntegrationTest() {
+class RoyaltyTaskHandlerIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var handler: RoyaltyTaskHandler

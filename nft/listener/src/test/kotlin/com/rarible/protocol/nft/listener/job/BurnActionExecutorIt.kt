@@ -12,15 +12,14 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.EnsDomainService
 import com.rarible.protocol.nft.core.service.action.ActionJobHandler
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
-import com.rarible.protocol.nft.listener.data.createRandomItemProperties
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
+import com.rarible.protocol.nft.listener.test.data.createRandomItemProperties
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
@@ -34,7 +33,8 @@ import scalether.domain.AddressFactory
 import java.time.Instant
 
 @IntegrationTest
-internal class BurnActionExecutorFt : AbstractIntegrationTest() {
+internal class BurnActionExecutorIt : AbstractIntegrationTest() {
+
     @Autowired
     private lateinit var endDoomainService: EnsDomainService
 

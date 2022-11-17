@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.listener.integration
+package com.rarible.protocol.nft.listener.test
 
 import com.rarible.core.test.ext.EthereumTest
 import com.rarible.core.test.ext.KafkaTest
@@ -32,6 +32,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
     ]
 )
 @ActiveProfiles("integration")
-@Import(TestPropertiesConfiguration::class)
+@Import(TestConfiguration::class)
 @Testcontainers
 annotation class IntegrationTest

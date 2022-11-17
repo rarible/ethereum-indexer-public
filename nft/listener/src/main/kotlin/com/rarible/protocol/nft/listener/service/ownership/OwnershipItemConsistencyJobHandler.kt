@@ -43,10 +43,10 @@ class OwnershipItemConsistencyJobHandler(
     metricsFactory: NftListenerMetricsFactory,
 ) : JobHandler {
 
-    private val checkedCounter = metricsFactory.ownershipItemConsistencyJobCheckedCounter()
-    private val fixedCounter = metricsFactory.ownershipItemConsistencyJobFixedCounter()
-    private val unfixedCounter = metricsFactory.ownershipItemConsistencyJobUnfixedCounter()
-    private val delayMetric = metricsFactory.ownershipItemConsistencyJobDelayGauge()
+    private val checkedCounter = metricsFactory.ownershipItemConsistencyJobCheckedCounter
+    private val fixedCounter = metricsFactory.ownershipItemConsistencyJobFixedCounter
+    private val unfixedCounter = metricsFactory.ownershipItemConsistencyJobUnfixedCounter
+    private val delayMetric = metricsFactory.ownershipItemConsistencyJobDelayGauge
 
     private val properties = nftListenerProperties.ownershipItemConsistency
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -96,7 +96,7 @@ class OwnershipItemConsistencyJobHandler(
 
                 semaphore.waitUntilAvailable(properties.parallelism)
                 saveState(state)
-                if (itemIdsToCheck.isNotEmpty()) checkedCounter.increment(itemIdsToCheck.size)
+                if (itemIdsToCheck.isNotEmpty()) checkedCounter.increment(itemIdsToCheck.size.toDouble())
             } while (true)
         } finally {
             saveState(state)

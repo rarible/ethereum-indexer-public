@@ -1,12 +1,11 @@
 package com.rarible.protocol.nft.listener.metrics
 
-import com.rarible.core.telemetry.metrics.CountingMetric
-import com.rarible.core.telemetry.metrics.LongGaugeMetric
-import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.ImmutableTag
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
+import java.util.concurrent.atomic.AtomicLong
 
 @Component
 class NftListenerMetricsFactory(
@@ -14,80 +13,37 @@ class NftListenerMetricsFactory(
     private val meterRegistry: MeterRegistry,
 ) {
 
-    fun itemOwnershipConsistencyJobCheckedCounter(): RegisteredCounter {
-        return countingMetric("item.ownership.consistency.job.checked")
-            .bind(meterRegistry)
-    }
+    private val root = properties.metricRootPath
+    private val blockchainTag = ImmutableTag("blockchain", properties.blockchain.value)
 
-    fun itemOwnershipConsistencyJobFixedCounter(): RegisteredCounter {
-        return countingMetric("item.ownership.consistency.job.fixed")
-            .bind(meterRegistry)
-    }
+    val itemOwnershipConsistencyJobCheckedCounter: Counter = counter("item.ownership.consistency.job.checked")
+    val itemOwnershipConsistencyJobFixedCounter: Counter = counter("item.ownership.consistency.job.fixed")
+    val itemOwnershipConsistencyJobUnfixedCounter: Counter = counter("item.ownership.consistency.job.unfixed")
 
-    fun itemOwnershipConsistencyJobUnfixedCounter(): RegisteredCounter {
-        return countingMetric("item.ownership.consistency.job.unfixed")
-            .bind(meterRegistry)
-    }
+    val ownershipItemConsistencyJobCheckedCounter: Counter = counter("ownership.item.consistency.job.checked")
+    val ownershipItemConsistencyJobFixedCounter: Counter = counter("ownership.item.consistency.job.fixed")
+    val ownershipItemConsistencyJobUnfixedCounter: Counter = counter("ownership.item.consistency.job.unfixed")
 
-    fun ownershipItemConsistencyJobCheckedCounter(): RegisteredCounter {
-        return countingMetric("ownership.item.consistency.job.checked")
-            .bind(meterRegistry)
-    }
-
-    fun ownershipItemConsistencyJobFixedCounter(): RegisteredCounter {
-        return countingMetric("ownership.item.consistency.job.fixed")
-            .bind(meterRegistry)
-    }
-
-    fun ownershipItemConsistencyJobUnfixedCounter(): RegisteredCounter {
-        return countingMetric("ownership.item.consistency.job.unfixed")
-            .bind(meterRegistry)
-    }
-
-    fun itemOwnershipConsistencyJobDelayGauge(): RegisteredGauge<Long> {
-        return object : LongGaugeMetric(
-            name = "${properties.metricRootPath}.item.ownership.consistency.job.delay",
-            tag("blockchain", properties.blockchain)
-        ){}.bind(meterRegistry)
-    }
-
-    fun ownershipItemConsistencyJobDelayGauge(): RegisteredGauge<Long> {
-        return object : LongGaugeMetric(
-            name = "${properties.metricRootPath}.ownership.item.consistency.job.delay",
-            tag("blockchain", properties.blockchain)
-        ){}.bind(meterRegistry)
-    }
+    val itemOwnershipConsistencyJobDelayGauge: AtomicLong = gauge("$root.item.ownership.consistency.job.delay")
+    val ownershipItemConsistencyJobDelayGauge: AtomicLong = gauge("$root.ownership.item.consistency.job.delay")
 
     // === InconsistentItemsRepair ===
 
-    fun inconsistentItemsRepairJobCheckedCounter(): RegisteredCounter {
-        return countingMetric("inconsistent.items.repair.job.checked")
-            .bind(meterRegistry)
+    val inconsistentItemsRepairJobCheckedCounter: Counter = counter("inconsistent.items.repair.job.checked")
+    val inconsistentItemsRepairJobFixedCounter: Counter = counter("inconsistent.items.repair.job.fixed")
+    val inconsistentItemsRepairJobUnfixedCounter: Counter = counter("inconsistent.items.repair.job.unfixed")
+    val inconsistentItemsRepairJobDelayGauge: AtomicLong = gauge("$root.inconsistent.items.repair.job.delay")
+
+    private fun gauge(name: String): AtomicLong {
+        return meterRegistry.gauge(
+            name,
+            listOf(blockchainTag),
+            AtomicLong(0)
+        )!!
     }
 
-    fun  inconsistentItemsRepairJobFixedCounter(): RegisteredCounter {
-        return countingMetric("inconsistent.items.repair.job.fixed")
-            .bind(meterRegistry)
-    }
-
-    fun inconsistentItemsRepairJobUnfixedCounter(): RegisteredCounter {
-        return countingMetric("inconsistent.items.repair.job.unfixed")
-            .bind(meterRegistry)
-    }
-
-    fun inconsistentItemsRepairJobDelayGauge(): RegisteredGauge<Long> {
-        return object : LongGaugeMetric(
-            name = "${properties.metricRootPath}.inconsistent.items.repair.job.delay",
-            tag("blockchain", properties.blockchain)
-        ){}.bind(meterRegistry)
-    }
-
-
-    private fun countingMetric(suffix: String): CountingMetric {
+    private fun counter(suffix: String): Counter {
         val root = properties.metricRootPath
-        val blockchain = properties.blockchain
-        return object : CountingMetric(
-            "$root.$suffix", tag("blockchain", blockchain.value)
-        ) {}
+        return meterRegistry.counter("$root.$suffix", listOf(blockchainTag))
     }
 }

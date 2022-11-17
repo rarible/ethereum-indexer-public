@@ -1,9 +1,5 @@
 package com.rarible.protocol.nft.listener.service.item
 
-import com.ninjasquad.springmockk.MockkBean
-import com.rarible.core.common.nowMillis
-import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomInconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
@@ -12,25 +8,23 @@ import com.rarible.protocol.nft.core.repository.JobStateRepository
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.Companion.CURRENT_FIX_VERSION
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
-import com.rarible.protocol.nft.listener.data.createRandomItem
-import com.rarible.protocol.nft.listener.data.createRandomOwnership
-import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
-import io.mockk.coVerify
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.impl.annotations.RelaxedMockK
+import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.listener.test.IntegrationTest
+import com.rarible.protocol.nft.listener.test.data.createRandomItem
+import com.rarible.protocol.nft.listener.test.data.createRandomOwnership
+import com.rarible.protocol.nft.listener.test.data.createValidLog
+import io.micrometer.core.instrument.Counter
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import java.time.Duration
+import java.util.concurrent.atomic.AtomicLong
 
 @IntegrationTest
-class InconsistentItemsRepairJobHandlerTest : AbstractIntegrationTest() {
+class InconsistentItemsRepairJobHandlerIt : AbstractIntegrationTest() {
 
     private lateinit var handler: InconsistentItemsRepairJobHandler
 
@@ -43,17 +37,18 @@ class InconsistentItemsRepairJobHandlerTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var itemOwnershipConsistencyService: ItemOwnershipConsistencyService
 
-    @MockkBean(relaxed = true)
+    @Autowired
     private lateinit var metricsFactory: NftListenerMetricsFactory
 
-    @RelaxedMockK
-    private lateinit var checkedCounter: RegisteredCounter
-    @RelaxedMockK
-    private lateinit var fixedCounter: RegisteredCounter
-    @RelaxedMockK
-    private lateinit var unfixedCounter: RegisteredCounter
-    @RelaxedMockK
-    private lateinit var delayGauge: RegisteredGauge<Long>
+    private lateinit var checkedCounter: Counter
+    private lateinit var fixedCounter: Counter
+    private lateinit var unfixedCounter: Counter
+    private lateinit var delayGauge: AtomicLong
+
+    private var checkedBefore: Double = -1.0
+    private var fixedBefore: Double = -1.0
+    private var unfixedBefore: Double = -1.0
+    private var delayBefore: Long = -1
 
     @BeforeEach
     fun prepareMocks() = runBlocking<Unit> {
@@ -61,14 +56,20 @@ class InconsistentItemsRepairJobHandlerTest : AbstractIntegrationTest() {
         nftItemHistoryRepository.createIndexes()
         inconsistentItemRepository.createIndexes()
 
-        every { metricsFactory.inconsistentItemsRepairJobCheckedCounter() } returns checkedCounter
-        every { metricsFactory.inconsistentItemsRepairJobFixedCounter() } returns fixedCounter
-        every { metricsFactory.inconsistentItemsRepairJobUnfixedCounter() } returns unfixedCounter
-        every { metricsFactory.inconsistentItemsRepairJobDelayGauge() } returns delayGauge
+        checkedCounter = metricsFactory.inconsistentItemsRepairJobCheckedCounter
+        fixedCounter = metricsFactory.inconsistentItemsRepairJobFixedCounter
+        unfixedCounter = metricsFactory.inconsistentItemsRepairJobUnfixedCounter
+        delayGauge = metricsFactory.inconsistentItemsRepairJobDelayGauge
+
+        delayBefore = -1
+        delayGauge.set(delayBefore)
+        checkedBefore = checkedCounter.count()
+        fixedBefore = fixedCounter.count()
+        unfixedBefore = unfixedCounter.count()
     }
 
     @Test
-    fun `should iterate and fix inconsistent_items - empty`() = runBlocking {
+    fun `nothing to fix - empty collection`() = runBlocking<Unit> {
         // given
         initHandler()
 
@@ -76,14 +77,14 @@ class InconsistentItemsRepairJobHandlerTest : AbstractIntegrationTest() {
         handler.handle()
 
         // then
-        coVerify {
-            delayGauge.set(any())
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
+        assertThat(checkedCounter.count()).isEqualTo(checkedBefore)
+        assertThat(fixedCounter.count()).isEqualTo(fixedBefore)
+        assertThat(unfixedCounter.count()).isEqualTo(unfixedBefore)
     }
 
     @Test
-    fun `should iterate over inconsistent_items - all fixed already`() = runBlocking {
+    fun `nothing to fix - all fixed already`() = runBlocking<Unit> {
         // given
         initHandler()
         inconsistentItemRepository.save(createRandomInconsistentItem().copy(status = InconsistentItemStatus.FIXED))
@@ -94,21 +95,15 @@ class InconsistentItemsRepairJobHandlerTest : AbstractIntegrationTest() {
         handler.handle()
 
         // then
-        coVerify {
-            delayGauge.set(any())
-        }
-        coVerify(exactly = 3) {
-            checkedCounter.increment(1)
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
+        assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 3)
     }
 
     @Test
     fun `should try fix new inconsistent item - success`() = runBlocking<Unit> {
         // given
         initHandler()
-        val item = createRandomItem().copy(supply = EthUInt256.ONE)
-        itemRepository.save(item).awaitFirst()
+        val item = itemRepository.save(createRandomItem().copy(supply = EthUInt256.ONE)).awaitFirst()
         val ownerships = listOf(
             createRandomOwnership().copy(token = item.token, tokenId = item.tokenId, value = EthUInt256.TEN),
         )
@@ -130,12 +125,8 @@ class InconsistentItemsRepairJobHandlerTest : AbstractIntegrationTest() {
         // then
         assertThat(actual.status).isEqualTo(InconsistentItemStatus.FIXED)
         assertThat(actual.fixVersionApplied).isEqualTo(CURRENT_FIX_VERSION)
-        coVerify {
-            delayGauge.set(any())
-            checkedCounter.increment(1)
-            fixedCounter.increment(1)
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 1)
+        assertThat(fixedCounter.count()).isEqualTo(fixedBefore + 1)
     }
 
     @Test
@@ -162,12 +153,10 @@ class InconsistentItemsRepairJobHandlerTest : AbstractIntegrationTest() {
         // then
         assertThat(actual.status).isEqualTo(InconsistentItemStatus.UNFIXED)
         assertThat(actual.fixVersionApplied).isEqualTo(CURRENT_FIX_VERSION)
-        coVerify {
-            delayGauge.set(any())
-            checkedCounter.increment(1)
-            unfixedCounter.increment(1)
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
+        assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 1)
+        assertThat(unfixedCounter.count()).isEqualTo(unfixedBefore + 1)
+
     }
 
     @Test
@@ -186,11 +175,8 @@ class InconsistentItemsRepairJobHandlerTest : AbstractIntegrationTest() {
 
         // then
         assertThat(actual.status).isEqualTo(InconsistentItemStatus.UNFIXED)
-        coVerify {
-            delayGauge.set(any())
-            checkedCounter.increment(1)
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
+        assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 1)
     }
 
     @Test
@@ -222,12 +208,10 @@ class InconsistentItemsRepairJobHandlerTest : AbstractIntegrationTest() {
         // then
         assertThat(actual.status).isEqualTo(InconsistentItemStatus.FIXED)
         assertThat(actual.fixVersionApplied).isEqualTo(CURRENT_FIX_VERSION)
-        coVerify {
-            delayGauge.set(any())
-            checkedCounter.increment(1)
-            fixedCounter.increment(1)
-        }
-        confirmVerified(checkedCounter, fixedCounter, unfixedCounter, delayGauge)
+
+        assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
+        assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 1)
+        assertThat(fixedCounter.count()).isEqualTo(fixedBefore + 1)
     }
 
     private fun initHandler() {

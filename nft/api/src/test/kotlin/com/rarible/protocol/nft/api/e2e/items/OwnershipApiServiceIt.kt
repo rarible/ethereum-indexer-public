@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.api.e2e.items
 
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
+import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterAll
@@ -24,7 +24,8 @@ import org.springframework.data.mongodb.core.remove
 import scalether.domain.Address
 
 @End2EndTest
-class OwnershipApiServiceIt : SpringContainerBaseTest() {
+class OwnershipApiServiceIt : AbstractIntegrationTest() {
+
     @Autowired
     private lateinit var ownershipRepository: OwnershipRepository
 
