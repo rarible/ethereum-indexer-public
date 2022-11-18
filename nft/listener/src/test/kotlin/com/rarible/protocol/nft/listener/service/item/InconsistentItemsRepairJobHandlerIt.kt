@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.listener.service.item
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomInconsistentItem
+import com.rarible.protocol.nft.core.misc.RateLimiter
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import com.rarible.protocol.nft.core.repository.InconsistentItemRepository
 import com.rarible.protocol.nft.core.repository.JobStateRepository
@@ -220,6 +221,7 @@ class InconsistentItemsRepairJobHandlerIt : AbstractIntegrationTest() {
             NftListenerProperties().copy(elementsFetchJobSize = 2),
             inconsistentItemRepository,
             itemOwnershipConsistencyService,
+            RateLimiter(100, 100, "test"),
             metricsFactory,
         )
     }

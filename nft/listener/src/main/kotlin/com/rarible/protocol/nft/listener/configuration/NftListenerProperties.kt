@@ -56,4 +56,6 @@ data class InconsistentItemsRepairProperties(
         pollingPeriod = Duration.ofMinutes(1),
         errorDelay = Duration.ofMinutes(1),
     ),
+    val rateLimitMaxEntities: Int = 100,
+    val rateLimitPeriod: Long = 10000,
 )

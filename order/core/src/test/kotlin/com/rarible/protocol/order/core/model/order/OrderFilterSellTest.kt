@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 internal class OrderFilterSellTest {
     @Test
-    fun `set SELL_ORDERS_DEFINITION hint for empty status and platform`() {
+    fun `set null hint for empty status and platform`() {
         val orderFilterSell = OrderFilterSell(
             origin = null,
             platforms = emptyList(),
@@ -37,7 +37,7 @@ internal class OrderFilterSellTest {
     }
 
     @Test
-    fun `set SELL_ORDERS_PLATFORM_DEFINITION hint for single pkatfrom`() {
+    fun `set SELL_ORDERS_PLATFORM_DEFINITION hint for single platform`() {
         val orderFilterSellNoStatus = OrderFilterSell(
             origin = null,
             platforms = listOf(PlatformDto.RARIBLE),
@@ -50,21 +50,16 @@ internal class OrderFilterSellTest {
             status = listOf(OrderStatusDto.ACTIVE, OrderStatusDto.FILLED),
             sort = OrderFilterSort.LAST_UPDATE_ASC
         )
+
         //with continuation
         assertThat(orderFilterSellNoStatus.toQuery("test", 100).hint)
             .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys.toJson())
         assertThat(orderFilterSellManyStatuses.toQuery("test", 100).hint)
             .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys.toJson())
-
-        //without continuation
-        assertThat(orderFilterSellNoStatus.toQuery(null, 100).hint)
-            .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys.toJson())
-        assertThat(orderFilterSellManyStatuses.toQuery(null, 100).hint)
-            .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys.toJson())
     }
 
     @Test
-    fun `set SELL_ORDERS_STATUS_DEFINITION hint for single pkatfrom`() {
+    fun `set SELL_ORDERS_STATUS_DEFINITION hint for single platform`() {
         val orderFilterSellNoPlatform = OrderFilterSell(
             origin = null,
             platforms = emptyList(),
@@ -77,21 +72,15 @@ internal class OrderFilterSellTest {
             status = listOf(OrderStatusDto.ACTIVE),
             sort = OrderFilterSort.LAST_UPDATE_ASC
         )
-        //with continuation
+
         assertThat(orderFilterSellNoPlatform.toQuery("test", 100).hint)
             .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys.toJson())
         assertThat(orderFilterSellManyPlatforms.toQuery("test", 100).hint)
             .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys.toJson())
-
-        //without continuation
-        assertThat(orderFilterSellNoPlatform.toQuery(null, 100).hint)
-            .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys.toJson())
-        assertThat(orderFilterSellManyPlatforms.toQuery(null, 100).hint)
-            .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys.toJson())
     }
 
     @Test
-    fun `set SELL_ORDERS_DEFINITION hint for many platforms and statuses`() {
+    fun `set null hint for many platforms and statuses`() {
         val orderFilterSell = OrderFilterSell(
             origin = null,
             platforms = listOf(PlatformDto.RARIBLE, PlatformDto.OPEN_SEA),
@@ -104,6 +93,6 @@ internal class OrderFilterSellTest {
 
         //without continuation
         assertThat(orderFilterSell.toQuery(null, 100).hint)
-            .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys.toJson())
+            .isEqualTo(null)
     }
 }
