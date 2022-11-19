@@ -3,7 +3,7 @@ package com.rarible.protocol.nft.api.controller.advice
 import com.rarible.protocol.dto.ArgumentFormatException
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
-import com.rarible.protocol.dto.EthereumApiMetaErrorDto
+import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.nft.api.exceptions.NftIndexerApiException
 import com.rarible.protocol.nft.core.model.IncorrectItemFormat
 import com.rarible.protocol.nft.core.service.item.meta.MetaException
@@ -27,27 +27,27 @@ class ErrorsController {
     }
 
     @ExceptionHandler(MetaException::class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.OK)
     fun handlerMetaException(ex: MetaException) = mono {
         when (ex.status) {
-            MetaException.Status.UnparseableJson -> EthereumApiMetaErrorDto(
-                code = EthereumApiMetaErrorDto.Code.UNPARSEABLE_JSON,
-                message = ex.message
+            MetaException.Status.UnparseableJson -> NftItemMetaDto(
+                name = "",
+                status = NftItemMetaDto.Status.UNPARSEABLE_JSON
             )
 
-            MetaException.Status.Timeout -> EthereumApiMetaErrorDto(
-                code = EthereumApiMetaErrorDto.Code.TIMEOUT,
-                message = ex.message
+            MetaException.Status.Timeout -> NftItemMetaDto(
+                name = "",
+                status = NftItemMetaDto.Status.TIMEOUT
             )
 
-            MetaException.Status.UnparseableLink -> EthereumApiMetaErrorDto(
-                code = EthereumApiMetaErrorDto.Code.UNPARSEABLE_LINK,
-                message = ex.message
+            MetaException.Status.UnparseableLink -> NftItemMetaDto(
+                name = "",
+                status = NftItemMetaDto.Status.UNPARSEABLE_LINK
             )
 
-            MetaException.Status.Unknown -> EthereumApiMetaErrorDto(
-                code = EthereumApiMetaErrorDto.Code.ERROR,
-                message = ex.message
+            MetaException.Status.Unknown -> NftItemMetaDto(
+                name = "",
+                status = NftItemMetaDto.Status.ERROR
             )
         }
     }

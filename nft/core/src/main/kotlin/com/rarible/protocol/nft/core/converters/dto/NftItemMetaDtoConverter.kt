@@ -33,7 +33,8 @@ class NftItemMetaDtoConverter(
             rightsUri = source.properties.rightsUri,
             externalUri = source.properties.externalUri,
             content = source.properties.content.asList().map { EthMetaContentConverter.convert(it) },
-            originalMetaUri = source.properties.tokenUri
+            originalMetaUri = source.properties.tokenUri,
+            status = NftItemMetaDto.Status.OK
         )
     }
 

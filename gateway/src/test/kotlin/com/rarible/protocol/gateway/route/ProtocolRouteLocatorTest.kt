@@ -91,7 +91,8 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
             name = "Test",
             tags = emptyList(),
             genres = emptyList(),
-            content = emptyList()
+            content = emptyList(),
+            status = NftItemMetaDto.Status.OK
         )
     }
 
