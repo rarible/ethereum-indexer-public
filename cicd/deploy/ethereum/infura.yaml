@@ -13,6 +13,7 @@ sharedEnvironments: &sharedEnvironments
   RARIBLE_CORE_APM_AGENT_ENABLED: false
   LOGGING_LOGSTASH_TCPSOCKET_ENABLED: false
   LOGGING_LOGFMT_ENABLED: true
+  LOGGING_LOGJSON_ENABLED: false
   APPLICATION_ENVIRONMENT: "infura"
 
 ######## NFT-Indexer ########

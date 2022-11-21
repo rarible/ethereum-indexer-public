@@ -18,8 +18,6 @@ polygon-erc20-api:
       max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
-  podAnnotations:
-    fluentbit.io/parser: logfmt
 
 polygon-erc20-listener:
   image:
@@ -33,8 +31,6 @@ polygon-erc20-listener:
     jvm:
       xmx_megabytes: 356
       max_direct_memory_megabytes: 32
-  podAnnotations:
-    fluentbit.io/parser: logfmt
 
 polygon-gateway:
   image:
@@ -52,8 +48,6 @@ polygon-gateway:
       max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
-  podAnnotations:
-    fluentbit.io/parser: logfmt
 
 polygon-order-api:
   image:
@@ -73,9 +67,6 @@ polygon-order-api:
     initialDelaySeconds: 180
   updateConfig:
     order: start-first
-  podAnnotations:
-    fluentbit.io/parser: logfmt
-
 
 polygon-order-listener:
   image:
@@ -91,9 +82,6 @@ polygon-order-listener:
       max_direct_memory_megabytes: 32
   livenessProbe:
     initialDelaySeconds: 180
-  podAnnotations:
-    fluentbit.io/parser: logfmt
-
 
 polygon-order-migration:
   image:
@@ -111,9 +99,6 @@ polygon-order-migration:
     initialDelaySeconds: 180
   restartPolicy:
     condition: on-failure
-  podAnnotations:
-    fluentbit.io/parser: logfmt
-
 
 polygon-unlockable-api:
   image:
@@ -131,8 +116,6 @@ polygon-unlockable-api:
       max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
-  podAnnotations:
-    fluentbit.io/parser: logfmt
 
 polygon-nft-api:
   image:
@@ -152,8 +135,6 @@ polygon-nft-api:
     initialDelaySeconds: 180
   updateConfig:
     order: start-first
-  podAnnotations:
-    fluentbit.io/parser: logfmt
 
 polygon-nft-listener:
   image:
@@ -169,8 +150,6 @@ polygon-nft-listener:
       max_direct_memory_megabytes: 32
   livenessProbe:
     initialDelaySeconds: 180
-  podAnnotations:
-    fluentbit.io/parser: logfmt
 
 polygon-nft-migration:
   image:
@@ -188,5 +167,3 @@ polygon-nft-migration:
     initialDelaySeconds: 180
   restartPolicy:
     condition: on-failure
-  podAnnotations:
-    fluentbit.io/parser: logfmt
