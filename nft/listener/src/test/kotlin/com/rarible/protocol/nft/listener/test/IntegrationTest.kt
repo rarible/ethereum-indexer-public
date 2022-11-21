@@ -19,16 +19,16 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = [
-        "application.environment = e2e",
-        "common.blockchain = ethereum",
-        "spring.cloud.service-registry.auto-registration.enabled = false",
-        "spring.cloud.discovery.enabled = false",
-        "rarible.common.jms-brokerUrls = localhost:\${random.int(5000,5100)}",
-        "rarible.common.jms-eventTopic = protocol",
-        "spring.cloud.consul.config.enabled = false",
-        "logging.logstash.tcp-socket.enabled = false",
-        "logging.logfmt.enabled = false",
-        "logging.level.org.springframework.data.mongodb.core.ReactiveMongoTemplate=DEBUG"
+            "application.environment = e2e",
+            "common.blockchain = ethereum",
+            "spring.cloud.service-registry.auto-registration.enabled = false",
+            "spring.cloud.discovery.enabled = false",
+            "rarible.common.jms-brokerUrls = localhost:\${random.int(5000,5100)}",
+            "rarible.common.jms-eventTopic = protocol",
+            "spring.cloud.consul.config.enabled = false",
+            "logging.logstash.tcp-socket.enabled = false",
+            "logging.logjson.enabled = false",
+            "logging.level.org.springframework.data.mongodb.core.ReactiveMongoTemplate=DEBUG"
     ]
 )
 @ActiveProfiles("integration")

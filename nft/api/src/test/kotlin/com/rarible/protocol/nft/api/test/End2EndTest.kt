@@ -20,18 +20,18 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = [
-        "application.environment = e2e",
-        "api.chain-id = 4",
-        "api.opensea.url = https://api.opensea.io/api/v1",
-        "api.opensea.api-key = test",
-        "api.properties.cache-timeout = 1000",
-        "spring.cloud.service-registry.auto-registration.enabled = false",
-        "spring.cloud.discovery.enabled = false",
-        "spring.cloud.consul.config.enabled = false",
-        "logging.logstash.tcp-socket.enabled = false",
-        "logging.logfmt.enabled = false",
-        "logging.level.org.springframework.web=DEBUG",
-        "logging.level.org.springframework.data.mongodb.core.ReactiveMongoTemplate=DEBUG"
+            "application.environment = e2e",
+            "api.chain-id = 4",
+            "api.opensea.url = https://api.opensea.io/api/v1",
+            "api.opensea.api-key = test",
+            "api.properties.cache-timeout = 1000",
+            "spring.cloud.service-registry.auto-registration.enabled = false",
+            "spring.cloud.discovery.enabled = false",
+            "spring.cloud.consul.config.enabled = false",
+            "logging.logstash.tcp-socket.enabled = false",
+            "logging.logjson.enabled = false",
+            "logging.level.org.springframework.web=DEBUG",
+            "logging.level.org.springframework.data.mongodb.core.ReactiveMongoTemplate=DEBUG"
     ]
 )
 @ActiveProfiles("integration", "reduce-v2")

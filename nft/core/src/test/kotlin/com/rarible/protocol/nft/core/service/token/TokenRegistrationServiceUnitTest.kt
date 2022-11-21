@@ -24,10 +24,10 @@ import java.io.IOException
 internal class TokenRegistrationServiceUnitTest {
     private val tokenRepository = mockk<TokenRepository>()
     private val sender = mockk<MonoTransactionSender>()
-    private val tokenRegistrationService = TokenRegistrationService(tokenRepository, sender, 1000)
+    private val tokenRegistrationService = TokenRegistrationService(tokenRepository, sender, 1000, 3, 1)
 
     @Test
-    fun `should return NONE toke standard on RpcCodeException`() = runBlocking<Unit> {
+    fun `should return NONE token standard on RpcCodeException`() = runBlocking<Unit> {
         every { sender.call(any()) } returns Mono.error(RpcCodeException("", Error(1, "", Option.empty())))
 
         val token = AddressFactory.create()
@@ -37,7 +37,7 @@ internal class TokenRegistrationServiceUnitTest {
     }
 
     @Test
-    fun `should return NONE toke standard on IllegalArgumentException`() = runBlocking<Unit> {
+    fun `should return NONE token standard on IllegalArgumentException`() = runBlocking<Unit> {
         every { sender.call(any()) } returns Mono.error(IllegalArgumentException(""))
 
         val token = AddressFactory.create()
@@ -67,7 +67,7 @@ internal class TokenRegistrationServiceUnitTest {
 
     @Test
     fun `cache limit`() = runBlocking<Unit> {
-        val limitedCache = TokenRegistrationService(tokenRepository, mockk(), 3)
+        val limitedCache = TokenRegistrationService(tokenRepository, mockk(), 3, 3, 1)
 
         every { tokenRepository.findById(any()) } answers {
             Token(

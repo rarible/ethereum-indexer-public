@@ -19,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles
         "common.kafkaReplicaSet = ",
         "spring.cloud.discovery.enabled = false",
         "spring.cloud.consul.config.enabled = false",
+        "logging.logjson.enabled = false",
         "logging.logstash.tcp-socket.enabled = false"
     ]
 )
