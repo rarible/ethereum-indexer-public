@@ -5,15 +5,13 @@ import com.rarible.core.reduce.blockchain.BlockchainSnapshotStrategy
 import com.rarible.core.reduce.service.ReduceService
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
-import com.rarible.ethereum.listener.log.EnableLogListeners
 import com.rarible.protocol.erc20.core.configuration.ProducerConfiguration
 import com.rarible.protocol.erc20.core.listener.KafkaErc20BalanceEventListener
 import com.rarible.protocol.erc20.core.producer.ProtocolEventPublisher
 import com.rarible.protocol.erc20.core.repository.BalanceSnapshotRepository
-import com.rarible.protocol.erc20.listener.Erc20ListenerApplication
 import com.rarible.protocol.erc20.listener.service.balance.BalanceReducer
 import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceEventRepository
-import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceService
+import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceServiceV1
 import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceUpdateService
 import com.rarible.protocol.erc20.listener.service.balance.Erc20TokenReduceEventRepository
 import org.springframework.beans.factory.annotation.Qualifier
@@ -31,7 +29,6 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
 @Configuration
 @EnableContractService
 @EnableScaletherMongoConversions
-@EnableLogListeners(scanPackage = [Erc20ListenerApplication::class])
 @EnableConfigurationProperties(Erc20ListenerProperties::class)
 @Import(ProducerConfiguration::class)
 class Erc20ListenerConfiguration {
@@ -49,7 +46,7 @@ class Erc20ListenerConfiguration {
         snapshotRepository: BalanceSnapshotRepository,
         erc20BalanceUpdateService: Erc20BalanceUpdateService,
         properties: Erc20ListenerProperties
-    ): Erc20BalanceReduceService {
+    ): Erc20BalanceReduceServiceV1 {
         return ReduceService(
             reducer = balanceReducer,
             eventRepository = eventRepository,
@@ -69,7 +66,7 @@ class Erc20ListenerConfiguration {
         snapshotRepository: BalanceSnapshotRepository,
         erc20BalanceUpdateService: Erc20BalanceUpdateService,
         properties: Erc20ListenerProperties
-    ): Erc20BalanceReduceService {
+    ): Erc20BalanceReduceServiceV1 {
         return ReduceService(
             reducer = balanceReducer,
             eventRepository = eventRepository,

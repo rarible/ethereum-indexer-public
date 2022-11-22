@@ -6,7 +6,7 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.log.LogEventsListener
 import com.rarible.protocol.erc20.core.model.Erc20ReduceEvent
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
-import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceService
+import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceServiceV1
 import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -17,7 +17,7 @@ import scalether.domain.Address
 
 @Service
 class BlockListenerImpl(
-    private val balanceReduceService: Erc20BalanceReduceService,
+    private val balanceReduceService: Erc20BalanceReduceServiceV1,
     private val ignoredOwnersResolver: IgnoredOwnersResolver
 ) : LogEventsListener {
 

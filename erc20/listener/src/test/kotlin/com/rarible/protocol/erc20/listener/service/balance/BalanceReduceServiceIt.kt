@@ -37,7 +37,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
-import java.util.*
+import java.util.Date
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
 
@@ -52,7 +52,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
     private lateinit var application: ApplicationEnvironmentInfo
 
     @Autowired
-    protected lateinit var balanceReduceService: Erc20BalanceReduceService
+    protected lateinit var balanceReduceService: Erc20BalanceReduceServiceV1
 
     @Autowired
     protected lateinit var historyRepository: Erc20TransferHistoryRepository
