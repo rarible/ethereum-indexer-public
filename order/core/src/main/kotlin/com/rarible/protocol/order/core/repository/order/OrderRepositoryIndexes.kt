@@ -233,6 +233,26 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    // TODO PT-1746 already exists in prod, but hasn't been declared in the code. Originally, this index is NOT correct
+    // Its better to replace it with default-named index and include only token field in the index
+    // since nft/status already "filtered" by sparse filter configuration
+    //
+    // name=idx_floor_price,
+    // key=Document{{status=1.0, make.type.nft=1.0, make.type.token=1.0}},
+    // partialFilterExpression=Document{{status=ACTIVE, make.type.nft=true}}}})]) // ADD
+    val FLOOR_PRICE = Index()
+        .named("idx_floor_price")
+        .on(Order::status.name, Sort.Direction.ASC)
+        .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .partial(
+            PartialIndexFilter.of(
+                Criteria.where(Order::status.name).isEqualTo(OrderStatus.ACTIVE)
+                    .and("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
+                    .and(Order::status.name).isEqualTo(OrderStatus.ACTIVE)
+            )
+        )
+
     // --------------------- for searching by hash ---------------------//
     val BY_HASH = Index()
         .on(Order::hash.name, Sort.Direction.ASC)

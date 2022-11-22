@@ -8,18 +8,11 @@ import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.annotation.Version
-import org.springframework.data.mongodb.core.index.CompoundIndex
-import org.springframework.data.mongodb.core.index.CompoundIndexes
 import org.springframework.data.mongodb.core.mapping.Document
 import scalether.domain.Address
 import java.time.Instant
 
 @Document(Ownership.COLLECTION)
-@CompoundIndexes(
-    CompoundIndex(def = "{token: 1, tokenId: 1, owner: 1}", background = true, unique = true, sparse = true),
-    CompoundIndex(def = "{owner: 1, date: 1, _id: 1}", background = true),
-    CompoundIndex(def = "{token: 1, date: 1, _id: 1}", background = true)
-)
 data class Ownership(
     val token: Address,
     val tokenId: EthUInt256,
