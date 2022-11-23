@@ -14,12 +14,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 
 @ChangeLog(order = "00026")
-class ChangeLog00026DeleteManuallyCreateIndices {
+class ChangeLog00026DeleteManuallyCreatedIndices {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @ChangeSet(
-        id = "ChangeLog00026DeleteManuallyCreateIndices.dropIndices",
+        id = "ChangeLog00026DeleteManuallyCreatedIndices.dropIndices",
         order = "1",
         author = "protocol",
         runAlways = false
