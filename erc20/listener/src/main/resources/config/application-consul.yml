@@ -9,3 +9,8 @@ parityWebSocketUrls: ${node.webSocketHosts}
 
 common:
   kafka-replica-set: ${kafka.hosts}
+
+blockchain:
+  scanner:
+    kafka:
+      broker-replica-set: ${kafka.hosts}
