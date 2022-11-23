@@ -95,8 +95,8 @@ class SudoSwapOutNftPairDescriptor(
                 date = date,
                 source = HistorySource.SUDOSWAP,
                 priceUsd = priceUpdateService.getAssetUsdValue(poolInfo.currencyAssetType, amount.value, date)
-            ).apply {
-                PoolTargetNftOut.addMarketplaceMarker(this, transaction.input(), wrapperSudoSwapMatchEventCounter)
+            ).let {
+                PoolTargetNftOut.addMarketplaceMarker(it, transaction.input(), wrapperSudoSwapMatchEventCounter)
             }
         }.also { sudoSwapOutNftEventCounter.increment() }
     }

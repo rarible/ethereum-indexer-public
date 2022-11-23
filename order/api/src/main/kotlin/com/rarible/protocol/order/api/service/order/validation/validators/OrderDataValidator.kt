@@ -15,7 +15,6 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
-import com.rarible.protocol.order.core.model.Part
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigInteger
