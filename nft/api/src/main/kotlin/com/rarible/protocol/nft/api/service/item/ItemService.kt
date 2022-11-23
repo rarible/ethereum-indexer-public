@@ -48,7 +48,7 @@ class ItemService(
 
     suspend fun getRoyalty(itemId: ItemId): NftItemRoyaltyListDto = coroutineScope {
         val parts = cacheService
-            .get(itemId.toString(), royaltyCacheDescriptor, true)
+            .get(itemId.toString(), royaltyCacheDescriptor, false)
             .awaitSingle()
         logger.debug("Got royalty for item - $ItemId from cache: $parts")
         NftItemRoyaltyListDto(parts.map { NftItemRoyaltyDto(it.account, it.value) })
