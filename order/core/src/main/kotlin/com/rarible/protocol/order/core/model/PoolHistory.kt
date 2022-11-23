@@ -1,6 +1,8 @@
 package com.rarible.protocol.order.core.model
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
+import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.math.BigDecimal
@@ -31,6 +33,7 @@ data class PoolCreate(
     val currencyBalance: BigInteger,
     val data: PoolData,
 ) : PoolNftIn(PoolHistoryType.POOL_CREAT) {
+
     fun nftAsset(): Asset {
         return Asset(
             type = AmmNftAssetType(collection),
@@ -55,7 +58,28 @@ data class PoolTargetNftOut(
     val priceUsd: BigDecimal? = null,
     val recipient: Address,
     val outputValue: EthUInt256 = EthUInt256.ZERO,
-) : PoolNftOut(PoolHistoryType.POOL_NFT_OUT)
+    val marketplaceMarker: Word? = null,
+) : PoolNftOut(PoolHistoryType.POOL_NFT_OUT) {
+
+    companion object {
+        fun addMarketplaceMarker(change: PoolTargetNftOut, input: Bytes, counter: RegisteredCounter? = null): PoolTargetNftOut {
+            if (input.length() < 32) return change
+            val lastBytes = input.bytes().takeLast(32)
+            val marketplaceMarker = lastBytes
+                .takeIf { it.takeLast(8) == OrderSideMatch.MARKER }
+                ?.toByteArray()
+                ?.let { Word.apply(it) }
+
+            val shouldSetMarker = change.marketplaceMarker == null && marketplaceMarker != null
+            return if (shouldSetMarker) {
+                counter?.increment()
+                change.copy(marketplaceMarker = marketplaceMarker)
+            } else {
+                change
+            }
+        }
+    }
+}
 
 data class PoolNftWithdraw(
     override val hash: Word,

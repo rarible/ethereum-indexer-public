@@ -28,6 +28,7 @@ import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapUpdateDeltaE
 import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapUpdateFeeEventMetric
 import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapUpdateSpotPriceEventMetric
 import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapWithdrawNftEventMetric
+import com.rarible.protocol.order.listener.metrics.sudoswap.WrapperSudoSwapMatchEventMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelayLoadMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelaySaveMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
@@ -287,4 +288,9 @@ class MetricsCountersConfiguration(
     @Bean
     fun sudoSwapWithdrawNftEventCounter(): RegisteredCounter =
         SudoSwapWithdrawNftEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun wrapperSudoSwapMatchEventCounter(): RegisteredCounter =
+        WrapperSudoSwapMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
 }

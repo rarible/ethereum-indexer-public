@@ -36,6 +36,7 @@ class SudoSwapOutNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val nftTransferDetector: SudoSwapNftTransferDetector,
     private val sudoSwapOutNftEventCounter: RegisteredCounter,
+    private val wrapperSudoSwapMatchEventCounter: RegisteredCounter,
     private val sudoSwapPoolInfoProvider: PoolInfoProvider,
     private val poolCurve: PoolCurve,
     private val priceUpdateService: PriceUpdateService
@@ -94,7 +95,9 @@ class SudoSwapOutNftPairDescriptor(
                 date = date,
                 source = HistorySource.SUDOSWAP,
                 priceUsd = priceUpdateService.getAssetUsdValue(poolInfo.currencyAssetType, amount.value, date)
-            )
+            ).apply {
+                PoolTargetNftOut.addMarketplaceMarker(this, transaction.input(), wrapperSudoSwapMatchEventCounter)
+            }
         }.also { sudoSwapOutNftEventCounter.increment() }
     }
 

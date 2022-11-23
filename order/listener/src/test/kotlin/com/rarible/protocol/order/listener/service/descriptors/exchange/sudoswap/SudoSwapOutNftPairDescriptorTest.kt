@@ -49,6 +49,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
         nftTransferDetector = nftTransferDetector,
         sudoSwapPoolInfoProvider = sudoSwapPoolInfoProvider,
         sudoSwapOutNftEventCounter = counter,
+        wrapperSudoSwapMatchEventCounter = counter,
         poolCurve = sudoSwapCurve,
         priceUpdateService = priceUpdateService
     )

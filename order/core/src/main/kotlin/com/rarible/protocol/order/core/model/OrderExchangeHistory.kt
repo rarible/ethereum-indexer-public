@@ -57,7 +57,7 @@ data class OrderSideMatch(
     val counterMarketplaceMarker: Word? = null
 ) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH) {
     companion object {
-        private val MARKER = listOf<Byte>(9, 97, 108, 108, 100, 97, 116, 97)
+        val MARKER = listOf<Byte>(9, 97, 108, 108, 100, 97, 116, 97)
         val MARKER_BYTES: Bytes = Binary.apply(MARKER.toByteArray())
 
         /**
