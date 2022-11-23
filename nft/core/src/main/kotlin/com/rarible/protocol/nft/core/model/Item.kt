@@ -14,6 +14,7 @@ import scalether.domain.Address
 import java.time.Instant
 
 @Document(Item.COLLECTION)
+// TODO check and fix in PT-1745
 @CompoundIndexes(
     CompoundIndex(def = "{token: 1, tokenId: 1}", background = true, unique = true, sparse = true)
 )
