@@ -40,3 +40,6 @@ springdoc:
     path: /v0.1/swagger/swagger-ui.html
   api-docs:
     path: /v0.1/swagger/v3/api-docs
+
+common:
+  metric-root-path: "protocol.erc20.indexer"
