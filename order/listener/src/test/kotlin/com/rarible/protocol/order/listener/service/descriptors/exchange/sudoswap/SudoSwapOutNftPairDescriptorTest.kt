@@ -49,6 +49,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
         nftTransferDetector = nftTransferDetector,
         sudoSwapPoolInfoProvider = sudoSwapPoolInfoProvider,
         sudoSwapOutNftEventCounter = counter,
+        wrapperSudoSwapMatchEventCounter = counter,
         poolCurve = sudoSwapCurve,
         priceUpdateService = priceUpdateService
     )
@@ -60,7 +61,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
             every { hash() } returns Word.apply(randomWord())
             every { from() } returns randomAddress()
             every { to() } returns randomAddress()
-            every { input() } returns Binary.apply("0x6d8b99f700000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000002bc120d8ac42604000000000000000000000000c2681d0606ebd7719040f2bc1c0fda3e9215db900000000000000000000000000000000000000000000000000000000000000001000000000000000000000000c2681d0606ebd7719040f2bc1c0fda3e9215db900000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000351c")
+            every { input() } returns Binary.apply("0x6d8b99f700000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000002bc120d8ac42604000000000000000000000000c2681d0606ebd7719040f2bc1c0fda3e9215db900000000000000000000000000000000000000000000000000000000000000001000000000000000000000000c2681d0606ebd7719040f2bc1c0fda3e9215db900000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000351c00000000000000000000000000000000000000000000000109616c6c64617461")
             every { value() } returns BigInteger.ZERO
         }
         val date = Instant.now().truncatedTo(ChronoUnit.SECONDS)
@@ -97,6 +98,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
         assertThat(nftOut.date).isEqualTo(date)
         assertThat(nftOut.outputValue.value).isEqualTo(purchaseValue.value)
         assertThat(nftOut.source).isEqualTo(HistorySource.SUDOSWAP)
+        assertThat(nftOut.marketplaceMarker).isNotNull
     }
 
     @Test

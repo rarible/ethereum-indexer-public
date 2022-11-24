@@ -35,6 +35,7 @@ data class OrderListenerProperties(
     var fixApproval: Boolean = false,
     var fixX2Y2: Boolean = false,
     val approvalEvenHandleDelay: Duration = Duration.ZERO,
+    val handleApprovalAfterBlock: Long = 0,
 ) {
     enum class OrderSide {
         ALL,

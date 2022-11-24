@@ -26,3 +26,6 @@ class SudoSwapUpdateSpotPriceEventMetric(root: String, blockchain: Blockchain) :
 
 class SudoSwapWithdrawNftEventMetric(root: String, blockchain: Blockchain) : CountingMetric(
     "$root.sudoswap.event.withdraw.nft", tag("blockchain", blockchain.value))
+
+class WrapperSudoSwapMatchEventMetric(root: String, blockchain: Blockchain) : CountingMetric(
+    "$root.wrapper.sudoswap.event.match", tag("blockchain", blockchain.value))

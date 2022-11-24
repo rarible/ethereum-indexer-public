@@ -16,8 +16,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactor.mono
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import java.time.Duration
-import java.util.Random
 import java.util.concurrent.ThreadLocalRandom
 
 @Component
@@ -38,6 +36,14 @@ class ApprovalAllLogListener(
 
     private suspend fun reduceOrders(logEvent: LogEvent) {
         val history = logEvent.data as ApprovalHistory
+        val blockNumber = logEvent.blockNumber ?: error("blockTimestamp can't be null")
+        if (properties.handleApprovalAfterBlock > blockNumber) {
+            logger.info(
+                "Skip approval reindex event: block={}, tc={}, logIndex={}",
+                logEvent.blockNumber, logEvent.transactionHash, logEvent.logIndex
+            )
+            return
+        }
         val platform = approveService.getPlatform(history.operator) ?: run {
             logger.error("Can't get platform by operator ${history.operator}, event: $history")
             return
