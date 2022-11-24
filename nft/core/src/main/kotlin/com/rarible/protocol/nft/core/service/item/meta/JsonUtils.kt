@@ -26,7 +26,7 @@ fun JsonNode.getInt(vararg paths: String): Int? {
 }
 
 fun ObjectNode.parseAttributes(milliTimestamps: Boolean = false): List<ItemAttribute> {
-    for (attrName in listOf("attributes", "traits")) {
+    for (attrName in listOf("attributes", "traits", "properties")) {
         val attrPath = path(attrName)
         if (!attrPath.isEmpty && attrPath.isArray) {
             return attrPath.mapNotNull { it.toAttribute(milliTimestamps) }
