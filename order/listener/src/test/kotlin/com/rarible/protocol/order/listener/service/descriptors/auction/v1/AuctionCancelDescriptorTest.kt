@@ -10,11 +10,9 @@ import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 @IntegrationTest
-@Disabled("Fix in PT-1654")
 internal class AuctionCancelDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test
     fun `should cancel auction`() = runBlocking<Unit> {

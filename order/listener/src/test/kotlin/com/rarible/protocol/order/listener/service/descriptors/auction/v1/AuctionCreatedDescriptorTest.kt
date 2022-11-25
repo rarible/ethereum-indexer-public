@@ -7,11 +7,9 @@ import com.rarible.protocol.order.core.model.AuctionStatus
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 @IntegrationTest
-@Disabled("Fix in PT-1654")
 internal class AuctionCreatedDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test
     fun `should create auction`() = runBlocking<Unit> {
