@@ -84,6 +84,7 @@ class RaribleExchangeV2OrderParser(
             exchangeContractAddresses.v2,
             ExchangeV2.matchOrdersSignature().id(),
             ExchangeV2.directPurchaseSignature().id(),
+            ExchangeV2.directAcceptBidSignature().id(),
         )
     }
 
@@ -160,6 +161,56 @@ class RaribleExchangeV2OrderParser(
                 salt = EthUInt256.ZERO
             )
             RaribleMatchedOrders(left = leftOrder, right = rightOrder)
+        } else if (input.methodSignatureId() == ExchangeV2.directAcceptBidSignature().id()) {
+            /*
+            struct AcceptBid {
+            1. address bidMaker; //
+            2. uint256 bidNftAmount;
+            3. bytes4 nftAssetClass;
+            4. bytes nftData;
+            5. uint256 bidPaymentAmount;
+            6. address paymentToken;
+            7. uint256 bidSalt;
+            8. uint bidStart;
+            9. uint bidEnd;
+            10. bytes4 bidDataType;
+            11. bytes bidData;
+            12. bytes bidSignature;
+
+            13. uint256 sellOrderPaymentAmount;
+            14. uint256 sellOrderNftAmount;
+            15. bytes sellOrderData;
+            }*/
+
+            val signature = ExchangeV2.directAcceptBidSignature()
+            val value = signature.`in`().decode(input, 4).value()
+            val paymentToken = value._6()
+            val nftAssetType = Tuple2(value._3(), value._4()).toAssetType()
+            val paymentAssetType = if (paymentToken == Address.ZERO()) EthAssetType else Erc20AssetType(paymentToken)
+
+            val buyOrderData = convertOrderData(
+                version = Binary.apply(value._10()),
+                data = Binary.apply(value._11())
+            )
+            val sellOrderData = convertOrderData(
+                version = if (buyOrderData.version == OrderDataVersion.RARIBLE_V2_DATA_V3_BUY) OrderDataVersion.RARIBLE_V2_DATA_V3_SELL.ethDataType!! else buyOrderData.version.ethDataType!!,
+                data = Binary.apply(value._15())
+            )
+            val leftOrder = SimpleOrder(
+                maker = value._1(),
+                makeAssetType = paymentAssetType,
+                takeAssetType = nftAssetType,
+                data = buyOrderData,
+                salt = EthUInt256.of(value._7())
+            )
+            val rightOrder = SimpleOrder(
+                maker = Address.ZERO(),
+                makeAssetType = nftAssetType,
+                takeAssetType = paymentAssetType,
+                data = sellOrderData,
+                salt = EthUInt256.ZERO
+            )
+            RaribleMatchedOrders(left = leftOrder, right = rightOrder)
         } else {
             throw IllegalArgumentException("Unsupported function: ${input.methodSignatureId()}")
         }
@@ -228,7 +279,7 @@ class RaribleExchangeV2OrderParser(
     }
 
     private fun BigInteger.toPart(): Part? {
-       return takeUnless { it == BigInteger.ZERO }?.let { Part.from(it) }
+        return takeUnless { it == BigInteger.ZERO }?.let { Part.from(it) }
     }
 
     private fun ByteArray.toMarketplaceMarker(): Word? {
@@ -250,6 +301,7 @@ class RaribleExchangeV2OrderParser(
         get() = this is CollectionAssetType
 
     private companion object {
+
         val WRONG_ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX: Binary =
             Binary.apply("0x0000000000000000000000000000000000000000000000000000000000000040")
         val ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX: Binary =
