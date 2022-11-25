@@ -37,6 +37,7 @@ rarible:
       blockchain: ${listener.blockchain}
 
 common:
+  metric-root-path: "protocol.erc20.indexer"
   blockchain: ${listener.blockchain}
   feature-flags:
     scanner-version: V1
