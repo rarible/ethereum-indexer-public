@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.toAssetType
+import com.rarible.protocol.order.core.parser.ExchangeV2OrderDataParser
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
 import io.daonomic.rpc.domain.Binary
@@ -47,7 +48,7 @@ class ExchangeV2UpsertOrderDescriptor(
         val make = Asset(order._2()._1().toAssetType(), EthUInt256(order._2()._2()))
         val take = Asset(order._4()._1().toAssetType(), EthUInt256(order._4()._2))
         val salt = EthUInt256(order._5())
-        val orderData = raribleExchangeV2OrderParser.convertOrderData(
+        val orderData = ExchangeV2OrderDataParser.parse(
             version = Binary.apply(order._8()),
             data = Binary.apply(order._9())
         )

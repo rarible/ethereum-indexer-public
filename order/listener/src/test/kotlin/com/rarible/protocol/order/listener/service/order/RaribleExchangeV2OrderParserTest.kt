@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.parser.ExchangeV2OrderParser
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
 import com.rarible.protocol.order.listener.data.createOrder
@@ -14,7 +15,6 @@ import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
-import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -114,9 +114,9 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
 
         val input = prepareTxService.prepareTxFor2Orders(orderLeft, orderRight).transaction.data
 
-        val result = raribleExchangeV2OrderParser.parseMatchedOrders(input)
+        val result = ExchangeV2OrderParser.parseMatchedOrders(input)
         assertThat(result).isNotNull
-        assertThat(result!!.left.data).isEqualTo(leftData)
+        assertThat(result.left.data).isEqualTo(leftData)
         assertThat(result.right.data).isEqualTo(rightData)
     }
 }
