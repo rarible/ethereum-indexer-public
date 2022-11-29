@@ -51,7 +51,12 @@ class ERC1155TransferLogDescriptor(
                 if (standard == TokenStandard.ERC1155) {
                     val e = when (log.topics().size()) {
                         1 -> TransferSingleEventTopics1.apply(log)
-                        else -> TransferSingleEvent.apply(log)
+                        else -> try {
+                            TransferSingleEvent.apply(log)
+                        } catch (ex: Throwable) {
+                            logger.error("Can't convert log: $log")
+                            return@flatMap Mono.error(ex)
+                        }
                     }
                     if (e._from() == Address.ZERO() && e._to() == Address.ZERO()) {
                         Mono.empty()
