@@ -1,11 +1,16 @@
 package com.rarible.protocol.order.core.repository.exchange
 
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
 
 object ExchangeHistoryRepositoryIndexes {
+
     val ALL_SELL_DEFINITION: Index = Index()
         .on("${LogEvent::data.name}.${OrderExchangeHistory::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on("${LogEvent::data.name}.${OrderExchangeHistory::date.name}", Sort.Direction.ASC)
@@ -80,14 +85,6 @@ object ExchangeHistoryRepositoryIndexes {
         .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
         .background()
 
-    val HASH_AND_SOURCE_DEFINITION: Index = Index()
-        .on("${LogEvent::data.name}.${OrderExchangeHistory::hash.name}", Sort.Direction.ASC)
-        .on("${LogEvent::data.name}.${OrderExchangeHistory::source.name}", Sort.Direction.ASC)
-        .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
-        .on(LogEvent::logIndex.name, Sort.Direction.ASC)
-        .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
-        .background()
-
     val BY_UPDATED_AT_FIELD: Index = Index()
         .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
@@ -105,7 +102,6 @@ object ExchangeHistoryRepositoryIndexes {
         COLLECTION_BID_DEFINITION,
         AGGREGATION_DEFINITION,
         HASH_DEFINITION,
-        HASH_AND_SOURCE_DEFINITION,
         BY_UPDATED_AT_FIELD
     )
 }
