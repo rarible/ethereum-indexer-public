@@ -5,6 +5,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.erc1155.TransferSingleEventTopics1
+import com.rarible.protocol.contracts.erc1155.TransferSingleEventTopics3
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.model.ItemId
@@ -51,12 +52,8 @@ class ERC1155TransferLogDescriptor(
                 if (standard == TokenStandard.ERC1155) {
                     val e = when (log.topics().size()) {
                         1 -> TransferSingleEventTopics1.apply(log)
-                        else -> try {
-                            TransferSingleEvent.apply(log)
-                        } catch (ex: Throwable) {
-                            logger.error("Can't convert log: $log")
-                            return@flatMap Mono.error(ex)
-                        }
+                        3 -> TransferSingleEventTopics3.apply(log)
+                        else -> TransferSingleEvent.apply(log)
                     }
                     if (e._from() == Address.ZERO() && e._to() == Address.ZERO()) {
                         Mono.empty()
