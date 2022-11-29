@@ -1,7 +1,8 @@
 package com.rarible.protocol.nft.core.repository.item
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.item.ItemRepository.Indexes.ALL_INDEXES
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -78,23 +79,11 @@ class ItemRepository(
     }
 
     private object Indexes {
-        val BY_OWNER_DEFINITION: Index = Index()
-            .on(Item::owners.name, Sort.Direction.ASC)
-            .on(Item::date.name, Sort.Direction.DESC)
-            .on("_id", Sort.Direction.DESC)
-            .background()
 
         val BY_COLLECTION_DEFINITION: Index = Index()
             .on(Item::token.name, Sort.Direction.ASC)
             .on(Item::date.name, Sort.Direction.DESC)
             .on("_id", Sort.Direction.DESC)
-            .background()
-
-        val BY_TOKEN_TOKEN_ID_DEFINITION: Index = Index()
-            .on(Item::token.name, Sort.Direction.ASC)
-            .on(Item::tokenId.name, Sort.Direction.ASC)
-            .on(Item::date.name, Sort.Direction.ASC)
-            .on("_id", Sort.Direction.ASC)
             .background()
 
         val BY_RECIPIENT_DEFINITION: Index = Index()
@@ -116,9 +105,7 @@ class ItemRepository(
             .background()
 
         val ALL_INDEXES = listOf(
-            BY_OWNER_DEFINITION,
             BY_COLLECTION_DEFINITION,
-            BY_TOKEN_TOKEN_ID_DEFINITION,
             BY_RECIPIENT_DEFINITION,
             FOR_ALL_DEFINITION,
             BY_COLLECTION_AND_OWNER_DEFINITION
