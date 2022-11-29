@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderSide
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
 
@@ -15,6 +16,14 @@ object ExchangeHistoryRepositoryIndexes {
         .on("${LogEvent::data.name}.${OrderExchangeHistory::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on("${LogEvent::data.name}.${OrderExchangeHistory::date.name}", Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
+        .background()
+
+    val RIGHT_SELL_DEFINITION: Index = Index()
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::date.name}", Sort.Direction.ASC)
+        .on("${LogEvent::data.name}.${OrderSideMatch::side.name}", Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .named("right_data.make.type.nft_1_data.date_1__id_1")
         .background()
 
     val ALL_BID_DEFINITION: Index = Index()
@@ -92,6 +101,7 @@ object ExchangeHistoryRepositoryIndexes {
 
     val ALL_INDEXES = listOf(
         ALL_SELL_DEFINITION,
+        RIGHT_SELL_DEFINITION,
         MAKER_SELL_DEFINITION,
         TAKER_SELL_DEFINITION,
         ITEM_SELL_DEFINITION,
