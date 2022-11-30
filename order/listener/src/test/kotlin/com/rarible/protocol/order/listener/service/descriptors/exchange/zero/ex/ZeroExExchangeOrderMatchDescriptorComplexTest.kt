@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.zero.ex
 
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
@@ -14,6 +15,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.NoopTransactionTraceProvider
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderEventConverter
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderParser
 import io.daonomic.rpc.domain.Binary
@@ -21,6 +23,7 @@ import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -63,8 +66,11 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
             }
         } returns 1.toBigDecimal()
 
+        val contractsProvider = mockk<ContractsProvider>() {
+            every { zeroEx() } returns listOf(randomAddress())
+        }
         zeroExExchangeOrderMatchDescriptor = ZeroExExchangeOrderMatchDescriptor(
-            exchangeContractAddresses = exchangeContractAddresses,
+            contractsProvider = contractsProvider,
             zeroExOrderEventConverter = ZeroExOrderEventConverter(
                 priceUpdateService = priceUpdateService,
                 priceNormalizer = priceNormalizer,

@@ -1,8 +1,8 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.zero.ex
 
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.zero.ex.FillEvent
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderSide
@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.ZeroExFeeData
 import com.rarible.protocol.order.core.model.ZeroExMatchOrdersData
 import com.rarible.protocol.order.core.model.ZeroExOrder
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderEventConverter
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderParser
 import io.daonomic.rpc.domain.Binary
@@ -17,15 +18,12 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
-import io.mockk.impl.annotations.MockK
-import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import scalether.domain.response.Log
@@ -34,21 +32,18 @@ import scalether.java.Lists
 import java.math.BigInteger
 import java.time.Instant
 
-@ExtendWith(MockKExtension::class)
 class ZeroExExchangeOrderMatchDescriptorTest {
+    private val contractsProvider = mockk<ContractsProvider> {
+        every { zeroEx() } returns listOf(randomAddress())
+    }
+    private val zeroExOrderEventConverter = mockk<ZeroExOrderEventConverter>()
+    private val zeroExOrderParser = mockk<ZeroExOrderParser>()
 
-    @InjectMockKs
-    private lateinit var zeroExExchangeOrderMatchDescriptor: ZeroExExchangeOrderMatchDescriptor
-
-    @Suppress("unused")
-    @MockK
-    private lateinit var exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
-
-    @MockK
-    private lateinit var zeroExOrderEventConverter: ZeroExOrderEventConverter
-
-    @MockK
-    private lateinit var zeroExOrderParser: ZeroExOrderParser
+    private val zeroExExchangeOrderMatchDescriptor = ZeroExExchangeOrderMatchDescriptor(
+        contractsProvider,
+        zeroExOrderEventConverter,
+        zeroExOrderParser
+    )
 
     @BeforeEach
     fun before() {

@@ -25,11 +25,11 @@ class ContractsProvider(
     }
 
     fun looksrareV1(): List<Address> {
-        return LambdaList { listOf(exchangeContractAddresses.looksrareV1) }
+        return listOf(exchangeContractAddresses.looksrareV1)
     }
 
     fun seaportV1(): List<Address> {
-        return LambdaList { listOf(exchangeContractAddresses.seaportV1) }
+        return listOf(exchangeContractAddresses.seaportV1)
     }
 
     fun openSeaV2(): Address {
@@ -41,7 +41,11 @@ class ContractsProvider(
     }
 
     fun x2y2V1(): List<Address> {
-        return LambdaList { listOf(exchangeContractAddresses.x2y2V1) }
+        return listOf(exchangeContractAddresses.x2y2V1)
+    }
+
+    fun zeroEx(): List<Address> {
+        return listOf(exchangeContractAddresses.zeroEx)
     }
 
     fun weth(): Address {
