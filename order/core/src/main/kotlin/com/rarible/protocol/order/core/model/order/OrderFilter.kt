@@ -150,7 +150,7 @@ fun Criteria.forStatus(status: List<OrderStatusDto>?) =
         }
         and(Order::status).inValues(statuses)
     } else {
-        and(Order::status).inValues(OrderStatus.ALL_EXCEPT_HISTORICAL)
+        and(Order::status).ne(OrderStatus.HISTORICAL)
     }
 
 fun Criteria.forPlatform(platforms: List<Platform>): Criteria {

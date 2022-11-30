@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.find
-import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
@@ -41,6 +40,7 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
 import org.springframework.data.mongodb.core.query.lte
 import org.springframework.data.mongodb.core.query.ne
+import org.springframework.data.mongodb.core.query.nin
 import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -106,14 +106,17 @@ class MongoOrderRepository(
             Query(
                 Criteria().andOperator(
                     Order::cancelled isEqualTo false,
-                    Order::makeStock ne EthUInt256.ZERO
+                    Order::makeStock ne EthUInt256.ZERO,
+                    Order::status ne OrderStatus.HISTORICAL
                 )
             )
         ).all().asFlow()
     }
 
     override fun findAll(): Flow<Order> {
-        return template.findAll<Order>().asFlow()
+        return template.query<Order>().matching(
+            Query(where(Order::status).ne(OrderStatus.HISTORICAL))
+        ).all().asFlow()
     }
 
     override fun findAll(platform: Platform, status: OrderStatus, fromHash: Word?): Flow<Order> {
@@ -137,6 +140,7 @@ class MongoOrderRepository(
                 .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
                 .and(Order::maker).isEqualTo(maker)
                 .and(Order::cancelled).isEqualTo(false)
+                .and(Order::status).ne(OrderStatus.HISTORICAL)
 
         val query = Query(criteria)
         return template.query<Order>().matching(query).all().asFlow()
@@ -145,13 +149,13 @@ class MongoOrderRepository(
     override fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
         val criteria = Criteria().andOperator(
             Order::make / Asset::type / NftAssetType::token isEqualTo token,
-            Order::status inValues OrderStatus.ALL_EXCEPT_HISTORICAL,
             Criteria().orOperator(
                 Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
                 (Order::make / Asset::type / NftAssetType::tokenId exists false)
                     .and(Order::make / Asset::type / NftAssetType::nft).isEqualTo(true)
+            ),
+            Order::status ne OrderStatus.HISTORICAL
             )
-        )
         return template.findDistinct<AssetType>(
             Query(criteria),
             "${Order::take.name}.${Asset::type.name}",
@@ -164,12 +168,12 @@ class MongoOrderRepository(
         @Suppress("DuplicatedCode")
         val criteria = Criteria().andOperator(
             Order::take / Asset::type / NftAssetType::token isEqualTo token,
-            Order::status inValues OrderStatus.ALL_EXCEPT_HISTORICAL,
             Criteria().orOperator(
                 Order::take / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
                 (Order::take / Asset::type / NftAssetType::tokenId exists false)
                     .and(Order::take / Asset::type / NftAssetType::nft).isEqualTo(true)
-            )
+            ),
+            Order::status ne OrderStatus.HISTORICAL
         )
         return template.findDistinct<AssetType>(
             Query(criteria),
@@ -194,7 +198,7 @@ class MongoOrderRepository(
         val idFiled = "_id"
         val query = Query(
             Criteria().andOperator(
-                Order::status ne OrderStatus.CANCELLED,
+                Order::status nin listOf(OrderStatus.CANCELLED, OrderStatus.HISTORICAL),
                 Order::platform isEqualTo Platform.OPEN_SEA,
                 Order::maker isEqualTo maker,
                 Order::data / OrderOpenSeaV1DataV1::nonce gte fromIncluding,
@@ -213,7 +217,7 @@ class MongoOrderRepository(
         val idFiled = "_id"
         val query = Query(
             Criteria().andOperator(
-                Order::status ne OrderStatus.CANCELLED,
+                Order::status nin listOf(OrderStatus.CANCELLED, OrderStatus.HISTORICAL),
                 Order::maker isEqualTo maker,
                 Order::data / OrderSeaportDataV1::counter isEqualTo counter,
             )
@@ -231,7 +235,7 @@ class MongoOrderRepository(
             Criteria().andOperator(
                 Order::platform isEqualTo platform,
                 Order::maker isEqualTo maker,
-                Order::status ne OrderStatus.CANCELLED,
+                Order::status nin listOf(OrderStatus.CANCELLED, OrderStatus.HISTORICAL),
                 Order::data / OrderCounterableData::counter lt counter,
                 Order::data / OrderCounterableData::counter exists true
             )
@@ -256,15 +260,20 @@ class MongoOrderRepository(
             .and(Order::maker.name).isEqualTo(maker)
             .and(Order::cancelled.name).isEqualTo(false)
             .and("${Order::make.name}.${Asset::type.name}.${Erc20AssetType::token.name}").isEqualTo(token)
+            .and(Order::status.name).ne(OrderStatus.HISTORICAL)
 
         val query = Query(criteria)
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    override fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?, status: OrderStatus?, platform: Platform?): Flow<Order> {
+    override fun findAllBeforeLastUpdateAt(
+        lastUpdatedAt: Date?,
+        status: OrderStatus?,
+        platform: Platform?
+    ): Flow<Order> {
         val criteria = Criteria()
             .run { lastUpdatedAt?.let { and(Order::lastUpdateAt).lte(it) } ?: this }
-            .run { status?.let { and(Order::status).isEqualTo(it) } ?: this }
+            .run { status?.let { and(Order::status).isEqualTo(it) } ?: and(Order::status).ne(OrderStatus.HISTORICAL) }
             .run { platform?.let { and(Order::platform).isEqualTo(it) } ?: this }
             .run { and(Order::cancelled).ne(true) }
 
@@ -278,7 +287,7 @@ class MongoOrderRepository(
         val idFiled = "_id"
         val criteria = (Order::take / Asset::type / AssetType::nft isEqualTo true)
             .and(Order::platform).isEqualTo(Platform.RARIBLE)
-            .and(Order::status).`in`(OrderStatus.ACTIVE, OrderStatus.INACTIVE)
+            .and(Order::status).inValues(OrderStatus.ACTIVE, OrderStatus.INACTIVE)
             .and(Order::lastUpdateAt).lte(before)
 
         val query = Query.query(criteria)
@@ -365,6 +374,7 @@ class MongoOrderRepository(
                 if (counters.isSingleton) and(Order::data / OrderCounterableData::counter).isEqualTo(counters.single())
                 else and(Order::data / OrderCounterableData::counter).inValues(counters)
             }
+            .and(Order::status).ne(OrderStatus.HISTORICAL)
 
         val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
         return template.query<Order>().matching(query).all().asFlow()
