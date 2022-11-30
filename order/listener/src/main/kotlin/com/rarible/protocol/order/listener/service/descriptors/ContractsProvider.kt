@@ -40,6 +40,10 @@ class ContractsProvider(
         return LambdaList { listOf(exchangeContractAddresses.openSeaV1, openSeaV2()) }
     }
 
+    fun x2y2V1(): List<Address> {
+        return LambdaList { listOf(exchangeContractAddresses.x2y2V1) }
+    }
+
     fun weth(): Address {
         return currencyContractAddresses.weth
     }
