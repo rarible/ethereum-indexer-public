@@ -26,6 +26,18 @@ class ContractsProvider(
         return LambdaList { listOf(exchangeContractAddresses.looksrareV1) }
     }
 
+    fun seaportV1(): List<Address> {
+        return LambdaList { listOf(exchangeContractAddresses.seaportV1) }
+    }
+
+    fun openSeaV2(): Address {
+        return exchangeContractAddresses.openSeaV2
+    }
+
+    fun openSea(): List<Address> {
+        return LambdaList { listOf(exchangeContractAddresses.openSeaV1, openSeaV2()) }
+    }
+
     fun weth(): Address {
         return currencyContractAddresses.weth
     }
