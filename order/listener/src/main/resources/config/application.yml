@@ -70,6 +70,8 @@ common:
     looksrare-transfer-manager-erc1155: "0x0000000000000000000000000000000000000000"
   currency-contract-addresses:
     weth: "0x0000000000000000000000000000000000000000"
+  feature-flags:
+    scanner-version: V1
 
 listener:
   updateAuctionOngoingState: PT1M

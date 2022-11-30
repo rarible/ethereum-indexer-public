@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.configuration
 
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.protocol.order.core.model.ScannerVersion
 import com.rarible.protocol.order.core.model.TraceMethod
 import io.daonomic.rpc.domain.Binary
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -111,7 +112,8 @@ data class OrderIndexerProperties(
         val applyOnChainApprove: Boolean = false,
         val searchSudoSwapErc1155Transfer: Boolean = false,
         val checkMinimalBidPrice: Boolean = false,
-        val checkMinimalCollectionBidPriceOnly: Boolean = false
+        val checkMinimalCollectionBidPriceOnly: Boolean = false,
+        val scannerVersion: ScannerVersion = ScannerVersion.V1
     )
 
     data class RaribleOrderExpirationProperties(
