@@ -3,10 +3,10 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.x2y2
 import com.rarible.core.common.nowMillis
 import com.rarible.core.contract.model.Erc20Token
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.common.keccak256
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -48,9 +49,11 @@ class X2Y2OrderMatchDescriptorTest {
         },
         PriceNormalizer(contractService), mockk()
     )
-
+    private val contractsProvider = mockk<ContractsProvider>() {
+        every { x2y2V1() } returns listOf(randomAddress())
+    }
     private val descriptor = X2Y2SellOrderMatchDescriptor(
-        mockk { every { x2y2V1 } returns Address.ZERO() },
+        contractsProvider,
         converter, matchMetric
     )
 

@@ -5,7 +5,6 @@ import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkNoLongerForSaleEvent
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
@@ -14,14 +13,12 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
-import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
-import io.daonomic.rpc.domain.Word
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
-import scalether.domain.Address
 import scalether.domain.request.LogFilter
 import scalether.domain.request.TopicFilter
 import scalether.domain.response.Log
@@ -32,17 +29,15 @@ import java.time.Instant
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkNoLongerForSaleLogDescriptor(
-    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val contractsProvider: ContractsProvider,
     private val ethereum: MonoEthereum
-) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
-
+) : ExchangeSubscriber<OrderExchangeHistory>(
+    topic = PunkNoLongerForSaleEvent.id(),
+    contracts = contractsProvider.cryptoPunks()
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.cryptoPunks))
-
-    override val topic: Word = PunkNoLongerForSaleEvent.id()
-
-    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
+    override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderExchangeHistory> {
         if (shouldIgnoreThisLog(log)) {
             return emptyList()
         }
@@ -62,7 +57,7 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
                 maker = ownerAddress,
                 make = Asset(CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex.value)), EthUInt256.ONE),
                 take = Asset(EthAssetType, EthUInt256.ZERO),
-                date = date,
+                date = timestamp,
                 source = HistorySource.CRYPTO_PUNKS
             )
         )
@@ -75,7 +70,7 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
     private suspend fun shouldIgnoreThisLog(log: Log): Boolean {
         val filter = LogFilter
             .apply(TopicFilter.or(PunkBoughtEvent.id()))
-            .address(exchangeContractAddresses.cryptoPunks)
+            .address(*contractsProvider.cryptoPunks().toTypedArray())
             .blockHash(log.blockHash())
         val blockLogs = try {
             ethereum.ethGetLogsJava(filter).awaitSingle()

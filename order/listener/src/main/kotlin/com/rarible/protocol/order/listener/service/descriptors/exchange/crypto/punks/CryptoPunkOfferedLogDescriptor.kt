@@ -18,10 +18,9 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
-import io.daonomic.rpc.domain.Word
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
@@ -30,17 +29,15 @@ import java.time.Instant
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkOfferedLogDescriptor(
-    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    contractsProvider: ContractsProvider,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
     private val priceUpdateService: PriceUpdateService,
     private val exchangeHistoryRepository: ExchangeHistoryRepository
-) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
-
-    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.cryptoPunks))
-
-    override val topic: Word = PunkOfferedEvent.id()
-
-    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
+) : ExchangeSubscriber<OrderExchangeHistory>(
+    topic = PunkOfferedEvent.id(),
+    contracts = contractsProvider.cryptoPunks()
+) {
+    override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderExchangeHistory> {
         val punkOfferedEvent = PunkOfferedEvent.apply(log)
         val grantedBuyer = punkOfferedEvent.toAddress().takeUnless { it == Address.ZERO() }
         val punkIndex = EthUInt256(punkOfferedEvent.punkIndex())
@@ -48,7 +45,7 @@ class CryptoPunkOfferedLogDescriptor(
             CryptoPunkBoughtLogDescriptor.getCancelOfSellOrder(
                 exchangeHistoryRepository = exchangeHistoryRepository,
                 marketAddress = log.address(),
-                blockDate = date,
+                blockDate = timestamp,
                 blockNumber = log.blockNumber().toLong(),
                 logIndex = log.logIndex().toInt(),
                 punkIndex = punkIndex.value
@@ -89,7 +86,7 @@ class CryptoPunkOfferedLogDescriptor(
                 end = null,
                 data = OrderCryptoPunksData,
                 signature = null,
-                createdAt = date,
+                createdAt = timestamp,
                 platform = Platform.CRYPTO_PUNKS,
                 priceUsd = usdValue?.makePriceUsd ?: usdValue?.takePriceUsd
             )

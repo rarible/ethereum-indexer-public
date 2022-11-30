@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toBinary
@@ -9,10 +10,12 @@ import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderParser
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -38,20 +41,12 @@ class ExchangeWrapperUnitTest {
         callDataEncoder = CallDataEncoder(),
         featureFlags = OrderIndexerProperties.FeatureFlags()
     )
-
+    private val contractsProvider = mockk<ContractsProvider>() {
+        every { openSeaV2() } returns randomAddress()
+        every { openSea() } returns listOf(randomAddress())
+    }
     private val descriptor = WyvernExchangeOrderMatchDescriptor(
-        exchangeContractAddresses = OrderIndexerProperties.ExchangeContractAddresses(
-            v1 = Address.ZERO(),
-            v1Old = null,
-            v2 = Address.ZERO(),
-            openSeaV1 = Address.ZERO(),
-            openSeaV2 = Address.ZERO(),
-            cryptoPunks = Address.ZERO(),
-            zeroEx = Address.ZERO(),
-            seaportV1 = Address.ZERO(),
-            looksrareV1 = Address.ZERO(),
-            x2y2V1 = Address.ZERO(),
-        ),
+        contractsProvider = contractsProvider,
         openSeaOrdersSideMatcher = OpenSeaOrderEventConverter(
             priceUpdateService = priceUpdateService,
             prizeNormalizer = prizeNormalizer,

@@ -1,22 +1,29 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.looksrare
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
+import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import scalether.domain.Address
 import java.time.Instant
 
 abstract class AbstractLooksrareExchangeDescriptor<T : EventData>(
+    topic: Word,
+    protected val contractsProvider: ContractsProvider,
     private val orderRepository: OrderRepository,
-    private val looksrareCancelOrdersEventMetric: RegisteredCounter
-) : LogEventDescriptor<T> {
-
+    private val looksrareCancelOrdersEventMetric: RegisteredCounter,
+) : ExchangeSubscriber<OrderExchangeHistory>(
+    topic = topic,
+    contracts = contractsProvider.looksrareV1()
+) {
     protected suspend fun cancelUserOrders(date: Instant, maker: Address, nonces: List<Long>): List<OrderCancel> {
         val result = orderRepository.findByMakeAndByCounters(Platform.LOOKSRARE, maker, nonces).map {
             OrderCancel(

@@ -1,10 +1,11 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.looksrare
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
@@ -19,11 +20,12 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 internal class LooksrareV1ExchangeCancelAllDescriptorTest {
-    private val exchangeContractAddresses = mockk<OrderIndexerProperties.ExchangeContractAddresses>()
     private val looksrareCancelAllEventMetric = mockk<RegisteredCounter> { every { increment() } returns Unit }
-
+    private val contractsProvider = mockk<ContractsProvider> {
+        every { looksrareV1() } returns listOf(randomAddress())
+    }
     private val descriptor = LooksrareV1ExchangeCancelAllDescriptor(
-        exchangeContractAddresses,
+        contractsProvider,
         looksrareCancelAllEventMetric
     )
 

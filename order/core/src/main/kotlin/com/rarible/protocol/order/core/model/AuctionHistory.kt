@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.model
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.math.BigDecimal
@@ -14,6 +14,10 @@ sealed class AuctionHistory(
     abstract val date: Instant
     abstract val contract: Address
     abstract val source: HistorySource
+
+    override fun getKey(log: EthereumLog): String {
+        return hash.prefixed()
+    }
 }
 
 data class OnChainAuction(

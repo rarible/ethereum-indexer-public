@@ -20,13 +20,12 @@ import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
-import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
-import io.daonomic.rpc.domain.Word
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.domain.request.LogFilter
@@ -39,19 +38,17 @@ import java.time.Instant
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkBoughtLogDescriptor(
-    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val contractsProvider: ContractsProvider,
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
     private val ethereum: MonoEthereum
-) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
-
+) : ExchangeSubscriber<OrderExchangeHistory>(
+    topic = PunkBoughtEvent.id(),
+    contracts = contractsProvider.cryptoPunks()
+) {
     private val logger = LoggerFactory.getLogger(CryptoPunkBoughtLogDescriptor::class.java)
 
-    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.cryptoPunks))
-
-    override val topic: Word = PunkBoughtEvent.id()
-
-    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
+    override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderExchangeHistory> {
         val punkBoughtEvent = PunkBoughtEvent.apply(log)
         val marketAddress = log.address()
         val punkIndex = punkBoughtEvent.punkIndex()
@@ -85,7 +82,7 @@ class CryptoPunkBoughtLogDescriptor(
             getCancelOfSellOrder(
                 exchangeHistoryRepository = exchangeHistoryRepository,
                 marketAddress = marketAddress,
-                blockDate = date,
+                blockDate = timestamp,
                 blockNumber = log.blockNumber().toLong(),
                 logIndex = log.logIndex().toInt(),
                 punkIndex = punkIndex
@@ -98,7 +95,7 @@ class CryptoPunkBoughtLogDescriptor(
                 marketAddress = marketAddress,
                 blockNumber = log.blockNumber().toLong(),
                 logIndex = log.logIndex().toInt(),
-                blockDate = date,
+                blockDate = timestamp,
                 punkIndex = punkIndex
             )
             if (cancelOfPreviousBidOrder != null && cancelOfPreviousBidOrder.maker == buyerAddress) {
@@ -122,7 +119,7 @@ class CryptoPunkBoughtLogDescriptor(
                 taker = buyerAddress,
                 make = make,
                 take = take,
-                date = date,
+                date = timestamp,
                 fill = take.value,
                 makeUsd = null,
                 takeUsd = null,
@@ -143,7 +140,7 @@ class CryptoPunkBoughtLogDescriptor(
                 taker = sellerAddress,
                 make = take,
                 take = make,
-                date = date,
+                date = timestamp,
                 fill = EthUInt256.ONE,
                 makeUsd = null,
                 takeUsd = null,
@@ -206,7 +203,7 @@ class CryptoPunkBoughtLogDescriptor(
         */
         val filter = LogFilter
             .apply(TopicFilter.simple(TransferEvent.id()))
-            .address(exchangeContractAddresses.cryptoPunks)
+            .address(*contractsProvider.cryptoPunks().toTypedArray())
             .blockHash(punkBoughtEvent.log().blockHash())
         val logs = try {
             ethereum.ethGetLogsJava(filter).awaitSingle()

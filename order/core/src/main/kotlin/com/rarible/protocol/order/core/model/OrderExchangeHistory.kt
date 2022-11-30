@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.model
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256

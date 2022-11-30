@@ -1,8 +1,10 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.x2y2
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
 import io.daonomic.rpc.domain.Word
 import io.mockk.Runs
@@ -34,9 +36,12 @@ class X2Y2OrderCancelDescriptorTest {
         },
         mockk(), mockk(), mockk()
     )
-
+    private val contractsProvider = mockk<ContractsProvider>() {
+        every { x2y2V1() } returns listOf(randomAddress())
+    }
     private val descriptor = X2Y2OrderCancelDescriptor(
-        mockk(), converter, cancerMetric
+        contractsProvider,
+        converter, cancerMetric
     )
 
     @Test

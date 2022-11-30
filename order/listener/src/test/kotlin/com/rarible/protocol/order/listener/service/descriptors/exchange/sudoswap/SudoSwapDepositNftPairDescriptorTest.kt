@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -28,9 +29,11 @@ internal class SudoSwapDepositNftPairDescriptorTest {
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
     private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
-
+    private val contractsProvider = mockk<ContractsProvider> {
+        every { pairFactoryV1() } returns listOf(randomAddress())
+    }
     private val descriptor = SudoSwapDepositNftPairDescriptor(
-        sudoSwapAddresses = SudoSwapAddresses(),
+        contractsProvider = contractsProvider,
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapDepositNftEventCounter = counter,
     )

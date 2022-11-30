@@ -3,8 +3,8 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
@@ -19,14 +19,14 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 internal class SeaportExchangeChangeCounterDescriptorTest {
-    private val exchangeContractAddresses = mockk<OrderIndexerProperties.ExchangeContractAddresses> {
-        every { seaportV1 } returns randomAddress()
+    private val contractsProvider = mockk<ContractsProvider>() {
+        every { seaportV1() } returns listOf(randomAddress())
     }
     private val seaportCounterEventCounter = mockk<RegisteredCounter> {
         every { increment() } returns Unit
     }
     private val descriptor =  SeaportExchangeChangeCounterDescriptor(
-        exchangeContractAddresses,
+        contractsProvider,
         seaportCounterEventCounter
     )
 
