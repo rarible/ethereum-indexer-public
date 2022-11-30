@@ -4,7 +4,6 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.v1.BuyEvent
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Order
@@ -13,11 +12,9 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
-import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
-import io.daonomic.rpc.domain.Word
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
-import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.math.BigInteger
@@ -26,15 +23,15 @@ import java.time.Instant
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class ExchangeBuyDescriptor(
-    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    contractsProvider: ContractsProvider,
     private val assetTypeService: AssetTypeService,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer
-) : ItemExchangeHistoryLogEventDescriptor<OrderSideMatch> {
-
-    override val topic: Word = BuyEvent.id()
-
-    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
+) : ExchangeSubscriber<OrderSideMatch>(
+    topic = BuyEvent.id(),
+    contracts = contractsProvider.raribleExchangeV1()
+) {
+    override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
         val event = BuyEvent.apply(log)
 
         val makeAssetType = assetTypeService.toAssetType(event.sellToken(), EthUInt256(event.sellTokenId()))
@@ -43,7 +40,7 @@ class ExchangeBuyDescriptor(
         val takeAssetType = assetTypeService.toAssetType(event.buyToken(), EthUInt256(event.buyTokenId()))
         val take = Asset(takeAssetType, EthUInt256(event.fill))
 
-        val usdValue = priceUpdateService.getAssetsUsdValue(make, take, date)
+        val usdValue = priceUpdateService.getAssetsUsdValue(make, take, timestamp)
         val hash = Order.hashKey(event.owner(), makeAssetType, takeAssetType, event.salt())
         val counterHash = Order.hashKey(event.buyer(), takeAssetType, makeAssetType, BigInteger.ZERO)
 
@@ -69,7 +66,7 @@ class ExchangeBuyDescriptor(
                 source = HistorySource.RARIBLE,
                 adhoc = adhoc,
                 counterAdhoc = counterAdhoc,
-                date = date
+                date = timestamp
             ),
             OrderSideMatch(
                 hash = counterHash,
@@ -89,14 +86,11 @@ class ExchangeBuyDescriptor(
                 source = HistorySource.RARIBLE,
                 adhoc = counterAdhoc,
                 counterAdhoc = adhoc,
-                date = date,
+                date = timestamp,
             )
         )
         return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
     }
-
-    override fun getAddresses(): Mono<Collection<Address>> =
-        Mono.just(listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old))
 }
 
 val BuyEvent.fill: BigInteger

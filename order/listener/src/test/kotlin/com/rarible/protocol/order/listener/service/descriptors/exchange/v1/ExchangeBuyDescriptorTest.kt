@@ -58,9 +58,8 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(8000000),
-            { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
 
         val buyerPrivateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val buyer = MonoSigningTransactionSender(

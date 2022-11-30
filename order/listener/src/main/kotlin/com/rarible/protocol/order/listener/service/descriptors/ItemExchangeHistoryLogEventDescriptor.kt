@@ -23,6 +23,7 @@ import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.time.Instant
 
+@Deprecated("Should remove after switch to new scanner")
 interface ItemExchangeHistoryLogEventDescriptor<T : OrderExchangeHistory> : LogEventDescriptor<T> {
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION

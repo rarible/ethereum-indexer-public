@@ -54,6 +54,12 @@
             <artifactId>protocol-client-erc20-starter</artifactId>
         </dependency>
 
+        <!-- =============== Blockchain-scanner ================ -->
+        <dependency>
+            <groupId>com.rarible.blockchain.scanner</groupId>
+            <artifactId>rarible-blockchain-scanner-ethereum</artifactId>
+        </dependency>
+
         <!-- =============== Rarible-core ================ -->
         <dependency>
             <groupId>com.rarible.protocol.contracts</groupId>
