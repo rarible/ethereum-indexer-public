@@ -12,4 +12,8 @@ class ContractsProvider(
     fun raribleExchangeV1(): List<Address> {
         return LambdaList { listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old) }
     }
+
+    fun raribleExchangeV2(): List<Address> {
+        return LambdaList { listOf(exchangeContractAddresses.v2) }
+    }
 }
