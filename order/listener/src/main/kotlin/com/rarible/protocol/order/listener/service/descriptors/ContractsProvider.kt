@@ -9,6 +9,7 @@ import scalether.domain.Address
 @Component
 class ContractsProvider(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val auctionContractAddresses: OrderIndexerProperties.AuctionContractAddresses,
     private val currencyContractAddresses: OrderIndexerProperties.CurrencyContractAddresses,
     private val sudoSwapAddresses: SudoSwapAddresses,
 ) {
@@ -18,6 +19,10 @@ class ContractsProvider(
 
     fun raribleExchangeV2(): List<Address> {
         return LambdaList { listOf(exchangeContractAddresses.v2) }
+    }
+
+    fun raribleAuctionV1(): List<Address> {
+        return LambdaList { listOf(auctionContractAddresses.v1) }
     }
 
     fun cryptoPunks(): List<Address> {

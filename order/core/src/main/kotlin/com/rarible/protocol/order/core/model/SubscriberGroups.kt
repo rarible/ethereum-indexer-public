@@ -5,5 +5,7 @@ object SubscriberGroups {
     const val NONCE_HISTORY = "nonce-history"
     const val POOL_HISTORY = "pool-history"
     const val APPROVAL_HISTORY = "approval-history"
+    const val AUCTION_HISTORY = "auction-history"
+
 }
 

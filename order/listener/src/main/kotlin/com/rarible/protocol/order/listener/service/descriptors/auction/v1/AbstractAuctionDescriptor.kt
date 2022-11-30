@@ -3,43 +3,26 @@ package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.LogEventDescriptor
-import com.rarible.ethereum.listener.log.domain.EventData
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
+import com.rarible.protocol.order.listener.service.descriptors.AuctionSubscriber
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import io.daonomic.rpc.domain.Binary
-import kotlinx.coroutines.reactor.mono
-import org.reactivestreams.Publisher
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
+import io.daonomic.rpc.domain.Word
 import scala.Tuple11
 import scala.Tuple2
 import scala.Tuple3
 import scalether.domain.Address
-import scalether.domain.response.Log
-import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 
 @CaptureSpan(type = SpanType.EVENT)
-abstract class AbstractAuctionDescriptor<T : EventData>(
-    private val auctionContractAddresses: OrderIndexerProperties.AuctionContractAddresses
-) : LogEventDescriptor<T> {
-
-    override val collection: String
-        get() = AuctionHistoryRepository.COLLECTION
-
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<T> {
-        return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
-    }
-
-    protected abstract suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<T>
-
-    override fun getAddresses(): Mono<Collection<Address>> {
-        return Mono.just(listOf(auctionContractAddresses.v1))
-    }
-
+abstract class AbstractAuctionDescriptor<T : AuctionHistory>(
+    topic: Word,
+    contractsProvider: ContractsProvider,
+) : AuctionSubscriber<T>(
+    topic = topic,
+    contracts = contractsProvider.raribleAuctionV1()
+) {
     protected companion object {
 
         fun toBid(tuple: Tuple3<BigInteger, ByteArray, ByteArray>, date: Instant): Bid {
