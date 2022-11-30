@@ -3,10 +3,12 @@ package com.rarible.protocol.order.listener.service.descriptors
 import com.rarible.blockchain.scanner.ethereum.model.SubscriberGroup
 import com.rarible.blockchain.scanner.ethereum.subscriber.AbstractSubscriber
 import com.rarible.ethereum.listener.log.LogEventDescriptor
+import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.EventData
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.SubscriberGroups
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -46,6 +48,16 @@ abstract class ExchangeSubscriber<T : OrderExchangeHistory>(
 ) : HistorySubscriber<T>(
     group = SubscriberGroups.ORDER_HISTORY,
     collection = ExchangeHistoryRepository.COLLECTION,
+    topic = topic,
+    contracts = contracts
+)
+
+abstract class NonceSubscriber(
+    topic: Word,
+    contracts: List<Address>,
+) : HistorySubscriber<ChangeNonceHistory>(
+    group = SubscriberGroups.NONCE_HISTORY,
+    collection = NonceHistoryRepository.COLLECTION,
     topic = topic,
     contracts = contracts
 )

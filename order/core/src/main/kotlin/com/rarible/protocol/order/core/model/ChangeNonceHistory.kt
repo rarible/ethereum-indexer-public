@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.model
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
 import scalether.domain.Address
 import java.time.Instant
 
@@ -10,4 +10,8 @@ data class ChangeNonceHistory(
     val newNonce: EthUInt256,
     val date: Instant,
     val source: HistorySource
-) : EventData
+) : EventData {
+    override fun getKey(log: EthereumLog): String {
+        return "$maker.$source"
+    }
+}

@@ -8,6 +8,7 @@ import scalether.domain.Address
 @Component
 class ContractsProvider(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val currencyContractAddresses: OrderIndexerProperties.CurrencyContractAddresses
 ) {
     fun raribleExchangeV1(): List<Address> {
         return LambdaList { listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old) }
@@ -19,5 +20,13 @@ class ContractsProvider(
 
     fun cryptoPunks(): List<Address> {
         return LambdaList { listOf(exchangeContractAddresses.cryptoPunks) }
+    }
+
+    fun looksrareV1(): List<Address> {
+        return LambdaList { listOf(exchangeContractAddresses.looksrareV1) }
+    }
+
+    fun weth(): Address {
+        return currencyContractAddresses.weth
     }
 }

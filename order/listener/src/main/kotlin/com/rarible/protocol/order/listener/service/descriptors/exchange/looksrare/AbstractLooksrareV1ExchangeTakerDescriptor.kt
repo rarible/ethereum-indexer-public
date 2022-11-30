@@ -3,7 +3,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.looksra
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.common.keccak256
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
@@ -14,24 +13,22 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.TokenStandard
-import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.misc.looksrareError
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.reactor.mono
-import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.time.Instant
 
 abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
+    topic: Word,
+    contractsProvider: ContractsProvider,
     orderRepository: OrderRepository,
     looksrareCancelOrdersEventMetric: RegisteredCounter,
     private val looksrareTakeEventMetric: RegisteredCounter,
@@ -39,30 +36,17 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
     private val tokenStandardProvider: TokenStandardProvider,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
-    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val currencyContractAddresses: OrderIndexerProperties.CurrencyContractAddresses
 ) : AbstractLooksrareExchangeDescriptor<OrderExchangeHistory>(
+    topic,
+    contractsProvider,
     orderRepository,
     looksrareCancelOrdersEventMetric
 ) {
-
     private val logger = LoggerFactory.getLogger(javaClass::class.java)
+
     protected abstract fun getTakeEvent(log: Log): TakeEvent
 
-    override val collection: String
-        get() = ExchangeHistoryRepository.COLLECTION
-
-    override fun convert(
-        log: Log,
-        transaction: Transaction,
-        timestamp: Long,
-        index: Int,
-        totalLogs: Int
-    ): Publisher<OrderExchangeHistory> {
-        return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
-    }
-
-    private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
+    override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderExchangeHistory> {
         val event = getTakeEvent(log)
         val collectionType = tokenStandardProvider.getTokenStandard(event.collection)
         val taker = OrderSideMatch.getRealTaker(event.taker, transaction)
@@ -81,13 +65,13 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                 value = event.amount
             )
             val currency = Asset(
-                type = if (event.currency == currencyContractAddresses.weth) EthAssetType else Erc20AssetType(event.currency),
+                type = if (event.currency == contractsProvider.weth()) EthAssetType else Erc20AssetType(event.currency),
                 value = event.price
             )
             if (event.isAsk) (nft to currency) else (currency to nft)
         }
-        val leftUsdValue = priceUpdateService.getAssetsUsdValue(make, take, date)
-        val rightUsdValue = priceUpdateService.getAssetsUsdValue(take, make, date)
+        val leftUsdValue = priceUpdateService.getAssetsUsdValue(make, take, timestamp)
+        val rightUsdValue = priceUpdateService.getAssetsUsdValue(take, make, timestamp)
         val events = listOf(
             OrderSideMatch(
                 hash = event.orderHash,
@@ -104,7 +88,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                 takeUsd = leftUsdValue?.takeUsd,
                 makePriceUsd = leftUsdValue?.makePriceUsd,
                 takePriceUsd = leftUsdValue?.takePriceUsd,
-                date = date,
+                date = timestamp,
                 source = HistorySource.LOOKSRARE,
                 adhoc = false,
                 counterAdhoc = true,
@@ -124,7 +108,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                 takeUsd = rightUsdValue?.takeUsd,
                 makePriceUsd = rightUsdValue?.makePriceUsd,
                 takePriceUsd = rightUsdValue?.takePriceUsd,
-                date = date,
+                date = timestamp,
                 source = HistorySource.LOOKSRARE,
                 adhoc = true,
                 counterAdhoc = false,
@@ -138,16 +122,12 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
             wrapperLooksrareMatchEventMetric
         )
 
-        val cancelEvents = cancelUserOrders(date, event.maker, listOf(event.orderNonce))
+        val cancelEvents = cancelUserOrders(timestamp, event.maker, listOf(event.orderNonce))
             // All orders with same nonce should be cancelled, except executed one
             .filter { it.hash != event.orderHash }
 
         return matchEvents + cancelEvents
     }
-
-    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(
-        listOf(exchangeContractAddresses.looksrareV1)
-    )
 
     protected data class TakeEvent(
         val maker: Address,

@@ -5,7 +5,6 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomBidOrderUsdValue
 import com.rarible.protocol.order.core.data.randomSellOrderUsdValue
@@ -24,6 +23,7 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -44,18 +44,17 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 internal class LooksrareV1ExchangeTakerDescriptorTest {
-
+    private val contractsProvider = mockk<ContractsProvider> {
+        every { looksrareV1() } returns listOf(randomAddress())
+        every { weth() } returns Address.apply("0xc778417e063141139fce010982780140aa0cd5ab")
+    }
     private val looksrareTakeEventMetric = mockk<RegisteredCounter> {
         every { increment() } returns Unit
     }
     private val wrapperLooksrareMetric = mockk<RegisteredCounter> {
         every { increment() } returns Unit
     }
-    private val currencyContractAddresses = OrderIndexerProperties.CurrencyContractAddresses(
-        weth = Address.apply("0xc778417e063141139fce010982780140aa0cd5ab")
-    )
     private val looksrareCancelOrdersEventMetric = mockk<RegisteredCounter> { every { increment(any()) } returns Unit }
-    private val exchangeContractAddresses = mockk<OrderIndexerProperties.ExchangeContractAddresses>()
     private val tokenStandardProvider = mockk<TokenStandardProvider>()
     private val priceUpdateService = mockk<PriceUpdateService>()
     private val contractService = mockk<ContractService>()
@@ -63,6 +62,7 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
     private val prizeNormalizer = PriceNormalizer(contractService)
 
     private val descriptorBid = LooksrareV1ExchangeTakerBidDescriptor(
+        contractsProvider,
         orderRepository,
         looksrareCancelOrdersEventMetric,
         looksrareTakeEventMetric,
@@ -70,10 +70,9 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
         tokenStandardProvider,
         priceUpdateService,
         prizeNormalizer,
-        exchangeContractAddresses,
-        currencyContractAddresses
     )
     private val descriptorAsk = LooksrareV1ExchangeTakerAskDescriptor(
+        contractsProvider,
         orderRepository,
         looksrareCancelOrdersEventMetric,
         looksrareTakeEventMetric,
@@ -81,8 +80,6 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
         tokenStandardProvider,
         priceUpdateService,
         prizeNormalizer,
-        exchangeContractAddresses,
-        currencyContractAddresses
     )
 
     @Test
