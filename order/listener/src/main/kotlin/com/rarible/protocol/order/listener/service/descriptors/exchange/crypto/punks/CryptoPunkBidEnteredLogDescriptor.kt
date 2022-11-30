@@ -5,7 +5,6 @@ import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBidEnteredEvent
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
@@ -20,11 +19,10 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
-import io.daonomic.rpc.domain.Word
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
@@ -34,16 +32,14 @@ import java.time.Instant
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkBidEnteredLogDescriptor(
-    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    contractsProvider: ContractsProvider,
     private val priceUpdateService: PriceUpdateService,
     private val exchangeHistoryRepository: ExchangeHistoryRepository
-) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
-
-    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.cryptoPunks))
-
-    override val topic: Word = PunkBidEnteredEvent.id()
-
-    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
+) : ExchangeSubscriber<OrderExchangeHistory>(
+    topic = PunkBidEnteredEvent.id(),
+    contracts = contractsProvider.cryptoPunks()
+) {
+    override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderExchangeHistory> {
         val punkBidEnteredEvent = PunkBidEnteredEvent.apply(log)
         val bidPrice = punkBidEnteredEvent.value()
         val punkIndex = punkBidEnteredEvent.punkIndex()
@@ -57,7 +53,7 @@ class CryptoPunkBidEnteredLogDescriptor(
             marketAddress = marketAddress,
             blockNumber = log.blockNumber().toLong(),
             logIndex = log.logIndex().toInt(),
-            blockDate = date,
+            blockDate = timestamp,
             punkIndex = punkIndex
         )
         return listOfNotNull(
@@ -73,7 +69,7 @@ class CryptoPunkBidEnteredLogDescriptor(
                 end = null,
                 data = OrderCryptoPunksData,
                 signature = null,
-                createdAt = date,
+                createdAt = timestamp,
                 platform = Platform.CRYPTO_PUNKS,
                 priceUsd = usdValue?.makePriceUsd ?: usdValue?.takePriceUsd,
                 hash = Order.hashKey(bidderAddress, make.type, take.type, CRYPTO_PUNKS_SALT.value)

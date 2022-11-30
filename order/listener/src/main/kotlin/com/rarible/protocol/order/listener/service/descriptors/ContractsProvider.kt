@@ -16,4 +16,8 @@ class ContractsProvider(
     fun raribleExchangeV2(): List<Address> {
         return LambdaList { listOf(exchangeContractAddresses.v2) }
     }
+
+    fun cryptoPunks(): List<Address> {
+        return LambdaList { listOf(exchangeContractAddresses.cryptoPunks) }
+    }
 }
