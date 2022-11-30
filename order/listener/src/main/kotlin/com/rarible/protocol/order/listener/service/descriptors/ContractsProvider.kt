@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors
 
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
 import com.rarible.protocol.order.listener.misc.LambdaList
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -8,7 +9,8 @@ import scalether.domain.Address
 @Component
 class ContractsProvider(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val currencyContractAddresses: OrderIndexerProperties.CurrencyContractAddresses
+    private val currencyContractAddresses: OrderIndexerProperties.CurrencyContractAddresses,
+    private val sudoSwapAddresses: SudoSwapAddresses,
 ) {
     fun raribleExchangeV1(): List<Address> {
         return LambdaList { listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old) }
@@ -40,5 +42,17 @@ class ContractsProvider(
 
     fun weth(): Address {
         return currencyContractAddresses.weth
+    }
+
+    fun pairFactoryV1(): List<Address> {
+        return listOf(sudoSwapAddresses.pairFactoryV1)
+    }
+
+    fun linearCurveV1(): Address {
+        return sudoSwapAddresses.linearCurveV1
+    }
+
+    fun exponentialCurveV1(): Address {
+        return sudoSwapAddresses.exponentialCurveV1
     }
 }

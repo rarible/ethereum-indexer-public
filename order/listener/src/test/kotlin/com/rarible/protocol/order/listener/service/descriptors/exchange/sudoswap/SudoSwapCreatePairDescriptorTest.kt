@@ -5,7 +5,6 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.EthAssetType
@@ -16,6 +15,7 @@ import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -35,18 +35,18 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 internal class SudoSwapCreatePairDescriptorTest {
-    private val addresses = SudoSwapAddresses(
-        pairFactoryV1 = randomAddress(),
-        linearCurveV1 = Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"),
-        exponentialCurveV1 = randomAddress()
-    )
+    private val contractsProvider = mockk<ContractsProvider> {
+        every { pairFactoryV1() } returns listOf(randomAddress())
+        every { linearCurveV1() } returns Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee")
+        every { exponentialCurveV1() } returns randomAddress()
+    }
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
     private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
     private val priceUpdateService = mockk<PriceUpdateService>()
 
     private val descriptor = SudoSwapCreatePairDescriptor(
-        sudoSwapAddresses = addresses,
+        contractsProvider = contractsProvider,
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapCreatePairEventCounter = counter,
     )

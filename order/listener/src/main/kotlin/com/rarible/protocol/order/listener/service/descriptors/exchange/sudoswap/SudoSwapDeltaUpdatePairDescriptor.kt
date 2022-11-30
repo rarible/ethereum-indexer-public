@@ -3,21 +3,13 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswa
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.DeltaUpdateEvent
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolDeltaUpdate
-import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
+import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.reactor.mono
-import org.reactivestreams.Publisher
 import java.time.Instant
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.core.publisher.toMono
-import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 
@@ -26,25 +18,19 @@ import scalether.domain.response.Transaction
 class SudoSwapDeltaUpdatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapUpdateDeltaEventCounter: RegisteredCounter
-): LogEventDescriptor<PoolDeltaUpdate> {
-
-    override val collection: String = PoolHistoryRepository.COLLECTION
-
-    override val topic: Word = DeltaUpdateEvent.id()
-
-    override fun getAddresses(): Mono<Collection<Address>> = emptyList<Address>().toMono()
-
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<PoolDeltaUpdate> {
-        return mono { listOfNotNull(convert(log, Instant.ofEpochSecond(timestamp))) }.flatMapMany { it.toFlux() }
-    }
-
-    private suspend fun convert(log: Log, date: Instant): PoolDeltaUpdate {
+): PoolSubscriber<PoolDeltaUpdate>(
+    topic = DeltaUpdateEvent.id(),
+    contracts = emptyList()
+) {
+    override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolDeltaUpdate> {
         val event = DeltaUpdateEvent.apply(log)
-        return PoolDeltaUpdate(
-            hash = sudoSwapEventConverter.getPoolHash(log.address()),
-            newDelta = event.newDelta(),
-            date = date,
-            source = HistorySource.SUDOSWAP
+        return listOf(
+            PoolDeltaUpdate(
+                hash = sudoSwapEventConverter.getPoolHash(log.address()),
+                newDelta = event.newDelta(),
+                date = timestamp,
+                source = HistorySource.SUDOSWAP
+            )
         ).also { sudoSwapUpdateDeltaEventCounter.increment() }
     }
 }
