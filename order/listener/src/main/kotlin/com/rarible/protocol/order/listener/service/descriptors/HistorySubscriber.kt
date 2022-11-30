@@ -3,12 +3,14 @@ package com.rarible.protocol.order.listener.service.descriptors
 import com.rarible.blockchain.scanner.ethereum.model.SubscriberGroup
 import com.rarible.blockchain.scanner.ethereum.subscriber.AbstractSubscriber
 import com.rarible.ethereum.listener.log.LogEventDescriptor
+import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.AuctionHistory
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.EventData
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.SubscriberGroups
+import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
@@ -82,6 +84,16 @@ abstract class AuctionSubscriber<T : AuctionHistory>(
 ) : HistorySubscriber<T>(
     group = SubscriberGroups.AUCTION_HISTORY,
     collection = AuctionHistoryRepository.COLLECTION,
+    topic = topic,
+    contracts = contracts
+)
+
+abstract class ApprovalSubscriber(
+    topic: Word,
+    contracts: List<Address>,
+) : HistorySubscriber<ApprovalHistory>(
+    group = SubscriberGroups.APPROVAL_HISTORY,
+    collection = ApprovalHistoryRepository.COLLECTION,
     topic = topic,
     contracts = contracts
 )

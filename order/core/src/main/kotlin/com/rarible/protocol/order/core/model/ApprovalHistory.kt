@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.model
 
-import com.rarible.ethereum.listener.log.domain.EventData
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import scalether.domain.Address
 
 /**
@@ -16,4 +16,8 @@ data class ApprovalHistory(
     val owner: Address,
     val operator: Address,
     val approved: Boolean,
-): EventData
+): EventData {
+    override fun getKey(log: EthereumLog): String {
+        return "$owner.$collection.$operator"
+    }
+}
