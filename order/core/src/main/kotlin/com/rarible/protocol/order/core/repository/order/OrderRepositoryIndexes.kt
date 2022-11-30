@@ -232,7 +232,7 @@ object OrderRepositoryIndexes {
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .partial(
-            PartialIndexFilter.of(ч
+            PartialIndexFilter.of(
                 Criteria.where(Order::status.name).isEqualTo(OrderStatus.ACTIVE)
                     .and("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
                     .and(Order::status.name).isEqualTo(OrderStatus.ACTIVE)
