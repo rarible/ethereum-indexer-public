@@ -104,15 +104,16 @@ class ItemOwnershipConsistencyJobHandler(
         when (checkResult) {
             is Failure -> {
                 if (!properties.autofix) {
-                    saveToInconsistentItems(item, checkResult, triedToFix = false)
+                    saveToInconsistentItems(item, checkResult, triedToFix = false, null)
                     return
                 }
 
-                val fixedItem = itemOwnershipConsistencyService.tryFix(item).item ?: item
+                val fixResult = itemOwnershipConsistencyService.tryFix(item)
+                val fixedItem = fixResult.item ?: item
                 checkResult = itemOwnershipConsistencyService.checkItem(fixedItem)
                 when (checkResult) {
                     is Failure -> {
-                        saveToInconsistentItems(item, checkResult, triedToFix = true)
+                        saveToInconsistentItems(item, checkResult, triedToFix = true, fixResult.fixVersionApplied)
                     }
 
                     Success -> {
@@ -164,6 +165,7 @@ class ItemOwnershipConsistencyJobHandler(
         item: Item,
         checkResult: Failure,
         triedToFix: Boolean,
+        fixVersionApplied: Int?,
     ) {
         if (inconsistentItemRepository.insert(
                 InconsistentItem(
@@ -173,7 +175,7 @@ class ItemOwnershipConsistencyJobHandler(
                     ownerships = checkResult.ownerships,
                     supplyValue = checkResult.supply.value,
                     ownershipsValue = checkResult.ownerships.value,
-                    fixVersionApplied = if (triedToFix) 2 else null,
+                    fixVersionApplied = if (triedToFix) fixVersionApplied else null,
                     status = if (triedToFix) InconsistentItemStatus.UNFIXED else InconsistentItemStatus.NEW,
                     lastUpdatedAt = nowMillis(),
                 )
