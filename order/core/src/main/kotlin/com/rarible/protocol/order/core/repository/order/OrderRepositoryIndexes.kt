@@ -121,14 +121,6 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val SELL_ORDERS_BY_COLLECTION_STATUS_DEFINITION = Index()
-        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::nft.name}", Sort.Direction.ASC)
-        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
-        .on(Order::status.name, Sort.Direction.ASC)
-        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC)
-        .background()
-
     val SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::nft.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
@@ -227,12 +219,6 @@ object OrderRepositoryIndexes {
         .partial(PartialIndexFilter.of(Order::make / Asset::type / AssetType::nft isEqualTo true))
         .background()
 
-    // Required for analytics/DWH PT-611
-    val BY_CREATED_AT_AND_ID = Index()
-        .on(Order::createdAt.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC)
-        .background()
-
     // TODO PT-1746 already exists in prod, but hasn't been declared in the code. Originally, this index is NOT correct
     // Its better to replace it with default-named index and include only token field in the index
     // since nft/status already "filtered" by sparse filter configuration
@@ -271,7 +257,6 @@ object OrderRepositoryIndexes {
         SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION,
 
         SELL_ORDERS_BY_COLLECTION_DEFINITION,
-        SELL_ORDERS_BY_COLLECTION_STATUS_DEFINITION,
         SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION,
 
         SELL_ORDERS_BY_MAKER_DEFINITION,
@@ -289,7 +274,6 @@ object OrderRepositoryIndexes {
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,
-        BY_CREATED_AT_AND_ID,
         SELL_ORDERS_BY_CURRENCY_COLLECTION_DEFINITION,
 
         BY_HASH
