@@ -1,0 +1,6 @@
+{
+  "skipTransferContracts" : [
+    "0x05f76e1db28eaeabd6568ce80f97b7bd090c815f",
+    "0x0a89ae662d60abc45da8cdbf4ba7cc2ea66247f5"
+  ]
+}
