@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.integration
 
 import com.rarible.core.test.ext.EthereumTest
+import com.rarible.core.test.ext.KafkaTest
 import com.rarible.core.test.ext.MongoTest
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson
@@ -11,6 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 
 @Retention
 @MongoTest
+@KafkaTest
 @AutoConfigureJson
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,

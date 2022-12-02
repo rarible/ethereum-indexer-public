@@ -233,7 +233,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         exchange.directPurchase(Tuple15(
             sellOrder.maker,
             sellOrder.make.value.value,
-            sellOrder.make.type.type.bytes(),
+            sellOrder.make.type.type.id.bytes(),
             sellOrder.make.type.data.bytes(),
             sellOrder.take.value.value,
             token2.address(),

@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.model
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.order.core.misc.zeroWord
@@ -13,6 +15,20 @@ import scala.Tuple5
 import scalether.domain.Address
 import java.math.BigInteger
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "version")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = OrderDataLegacy::class, name = "LEGACY"),
+    JsonSubTypes.Type(value = OrderRaribleV2DataV1::class, name = "RARIBLE_V2_DATA_V1"),
+    JsonSubTypes.Type(value = OrderRaribleV2DataV2::class, name = "RARIBLE_V2_DATA_V2"),
+    JsonSubTypes.Type(value = OrderRaribleV2DataV3Sell::class, name = "RARIBLE_V2_DATA_V3_SELL"),
+    JsonSubTypes.Type(value = OrderRaribleV2DataV3Buy::class, name = "RARIBLE_V2_DATA_V3_BUY"),
+    JsonSubTypes.Type(value = OrderOpenSeaV1DataV1::class, name = "OPEN_SEA_V1_DATA_V1"),
+    JsonSubTypes.Type(value = OrderBasicSeaportDataV1::class, name = "BASIC_SEAPORT_DATA_V1"),
+    JsonSubTypes.Type(value = OrderCryptoPunksData::class, name = "CRYPTO_PUNKS"),
+    JsonSubTypes.Type(value = OrderLooksrareDataV1::class, name = "LOOKSRARE_V1"),
+    JsonSubTypes.Type(value = OrderX2Y2DataV1::class, name = "X2Y2_V1"),
+    JsonSubTypes.Type(value = OrderSudoSwapAmmDataV1::class, name = "SUDOSWAP_V1"),
+)
 sealed class OrderData {
     abstract val version: OrderDataVersion
 

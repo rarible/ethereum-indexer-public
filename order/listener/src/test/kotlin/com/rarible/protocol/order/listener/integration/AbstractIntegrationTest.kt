@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.integration
 
+import com.rarible.blockchain.scanner.block.Block
 import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
@@ -14,7 +15,8 @@ import com.rarible.ethereum.listener.log.domain.BlockHead
 import com.rarible.ethereum.listener.log.domain.BlockStatus
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.ethereum.listener.log.persist.BlockRepository
+import com.rarible.ethereum.listener.log.persist.BlockRepository as LegacyBlockRepository
+import com.rarible.blockchain.scanner.block.BlockRepository
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
@@ -139,8 +141,11 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     @Autowired
     lateinit var meterRegistry: MeterRegistry
 
-    @Autowired
-    lateinit var blockRepository: BlockRepository
+    @Autowired(required = false)
+    var blockRepository: BlockRepository? = null
+
+    @Autowired(required = false)
+    var legacyBlockRepository: LegacyBlockRepository? = null
 
     @Autowired
     lateinit var approvalHistoryRepository: ApprovalHistoryRepository
@@ -205,13 +210,21 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         val currentBlockNumber = ethereum.ethBlockNumber().awaitFirst()
         val currentBlock = ethereum.ethGetBlockByNumber(currentBlockNumber).awaitFirst()
         try {
-            val blockHead = BlockHead(
+            val legacyBlockHead = BlockHead(
                 id = currentBlock.blockNumber.toLong(),
                 hash = currentBlock.hash(),
                 timestamp = currentBlock.timestamp().toLong(),
                 status = BlockStatus.SUCCESS
             )
-            blockRepository.save(blockHead)
+            val block = Block(
+                id = currentBlock.blockNumber.toLong(),
+                hash = currentBlock.hash().prefixed(),
+                parentHash = currentBlock.parentHash().prefixed(),
+                timestamp = currentBlock.timestamp().toLong(),
+                status = com.rarible.blockchain.scanner.block.BlockStatus.SUCCESS
+            )
+            blockRepository!!.save(block)
+            legacyBlockRepository?.save(legacyBlockHead)
         } catch (ex: Throwable) {
         }
     }

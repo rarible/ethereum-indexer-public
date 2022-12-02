@@ -5,7 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.contracts.x2y2.v1.events.EvInventoryEvent
 import com.rarible.protocol.order.core.model.OrderSideMatch
-import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
+import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
 import java.time.Instant

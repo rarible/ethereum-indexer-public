@@ -48,8 +48,7 @@ class BlockchainScannerV2Configuration(
         entityEventListener: List<EntityEventListener>,
         consumerWorkerFactory: ConsumerWorkerFactory
     ): KafkaEntityEventConsumer {
-        return KafkaEntityEventConsumer(consumerWorkerFactory)
-            .apply { start(entityEventListener) }
+        return KafkaEntityEventConsumer(consumerWorkerFactory).apply { start(entityEventListener) }
     }
 
     //TODO: Remove this workaround after full migrate to blockchain scanner v2

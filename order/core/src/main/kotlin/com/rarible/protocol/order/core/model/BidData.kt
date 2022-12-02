@@ -1,14 +1,20 @@
 package com.rarible.protocol.order.core.model
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.rarible.protocol.contracts.Tuples
 import io.daonomic.rpc.domain.Binary
 import org.springframework.data.annotation.Transient
 import scala.Tuple2
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "version")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = BidDataV1::class, name = "RARIBLE_AUCTION_BID_V1_DATA_V1"),
+)
 sealed class BidData {
     abstract val version: BidDataVersion
 
-    fun getDataVersion(): ByteArray = version.ethDataType.bytes()
+    fun toDataVersion(): ByteArray = version.ethDataType.bytes()
 
     abstract fun toEthereum(): Binary
 

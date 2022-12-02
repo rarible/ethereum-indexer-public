@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.converters.dto
 
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
@@ -53,7 +54,7 @@ class OrderActivityConverter(
         }
     }
 
-    private suspend fun convertExchangeHistory(history: LogEvent, reverted: Boolean): OrderActivityDto? {
+    private suspend fun convertExchangeHistory(history: ReversedEthereumLogRecord, reverted: Boolean): OrderActivityDto? {
         val transactionHash = history.transactionHash
         val blockHash = history.blockHash ?: DEFAULT_BLOCK_HASH
         val blockNumber = history.blockNumber ?: DEFAULT_BLOCK_NUMBER
@@ -86,7 +87,7 @@ class OrderActivityConverter(
                         price(data.take, data.make /* NFT */)
                     },
                     priceUsd = data.takePriceUsd ?: data.makePriceUsd,
-                    transactionHash = transactionHash,
+                    transactionHash = Word.apply(transactionHash),
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
@@ -106,7 +107,7 @@ class OrderActivityConverter(
                     make = AssetTypeDtoConverter.convert(data.make!!.type),
                     take = AssetTypeDtoConverter.convert(data.take!!.type),
                     date = data.date,
-                    transactionHash = transactionHash,
+                    transactionHash = Word.apply(transactionHash),
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
@@ -122,7 +123,7 @@ class OrderActivityConverter(
                     make = AssetTypeDtoConverter.convert(data.make!!.type),
                     take = AssetTypeDtoConverter.convert(data.take!!.type),
                     date = data.date,
-                    transactionHash = transactionHash,
+                    transactionHash = Word.apply(transactionHash),
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,

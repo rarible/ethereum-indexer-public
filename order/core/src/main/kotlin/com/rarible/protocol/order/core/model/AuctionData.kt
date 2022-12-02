@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.model
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import io.daonomic.rpc.domain.Binary
@@ -8,6 +10,10 @@ import scala.Tuple5
 import java.math.BigInteger
 import java.time.Instant
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "version")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = RaribleAuctionV1DataV1::class, name = "RARIBLE_AUCTION_V1_DATA_V1"),
+)
 sealed class AuctionData {
     abstract val version: AuctionDataVersion
     abstract val startTime: Instant?

@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.core.service.block
+package com.rarible.protocol.order.core.service.block.auction
 
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
 @Service
+@Deprecated("Should be removed after switch to the new scanner")
 class AuctionBlockProcessor(
     private val auctionReduceService: AuctionReduceService,
     private val eventPublisher: ProtocolAuctionPublisher,
@@ -29,19 +30,17 @@ class AuctionBlockProcessor(
         val auctionEvents = logs
             .filter { log -> log.data is AuctionHistory }
 
-        val events = auctionEvents.map { log -> AuctionReduceEvent(log) }
+        val events = auctionEvents
+            .map { log -> AuctionReduceEvent(log) }
             .distinct()
 
         return LoggingUtils.withMarker { marker ->
             mono {
                 // Reduce events first in order to have Auctions in DB
-                try {
-                    auctionReduceService.onEvents(events)
-                } catch (e: Exception) {
-                    logger.error("OOPS", e)
-                }
+                auctionReduceService.onEvents(events)
                 // Then send all kafka Auction Activity events with attached actual Auctions
-                auctionEvents.filter { it.status == LogEventStatus.CONFIRMED }
+                auctionEvents
+                    .filter { it.status == LogEventStatus.CONFIRMED }
                     .forEach { publicActivity(it) }
             }.toOptional()
                 .elapsed()

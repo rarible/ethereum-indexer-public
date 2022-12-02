@@ -17,7 +17,7 @@ import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
-import com.rarible.protocol.order.core.service.block.NonceBlockProcessor
+import com.rarible.protocol.order.core.service.block.nonce.NonceBlockProcessor
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery

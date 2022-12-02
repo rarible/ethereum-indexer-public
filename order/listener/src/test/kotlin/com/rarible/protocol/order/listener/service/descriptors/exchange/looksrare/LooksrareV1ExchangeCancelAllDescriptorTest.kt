@@ -5,7 +5,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.listener.data.log
-import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
+import com.rarible.protocol.order.core.service.ContractsProvider
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk

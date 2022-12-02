@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.core.service.block
+package com.rarible.protocol.order.core.service.block.order
 
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
 @Service
+@Deprecated("Should be removed after switch to the new scanner")
 class OrderBlockProcessor(
     private val orderUpdateService: OrderUpdateService,
     private val poolOrderEventListener: PoolOrderEventListener

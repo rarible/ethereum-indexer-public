@@ -3,7 +3,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkTransferEvent
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
-import com.rarible.protocol.order.listener.service.descriptors.ContractsProvider
+import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks.CryptoPunkBidEnteredLogDescriptor.Companion.getCancelOfPreviousBid
 import org.springframework.stereotype.Service

@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.converters.dto
 
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.dto.AuctionActivityBidDto
 import com.rarible.protocol.dto.AuctionActivityCancelDto
@@ -8,6 +9,7 @@ import com.rarible.protocol.dto.AuctionActivityEndDto
 import com.rarible.protocol.dto.AuctionActivityFinishDto
 import com.rarible.protocol.dto.AuctionActivityOpenDto
 import com.rarible.protocol.dto.AuctionActivityStartDto
+import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import com.rarible.protocol.order.core.model.Auction
 import com.rarible.protocol.order.core.model.AuctionCancelled
 import com.rarible.protocol.order.core.model.AuctionFinished
@@ -32,7 +34,11 @@ class AuctionActivityConverter(
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun convert(history: LogEvent, auction: Auction? = null): AuctionActivityDto? {
-        val transactionHash = history.transactionHash
+        return convert(history.toReversedEthereumLogRecord(), auction)
+    }
+
+    suspend fun convert(history: ReversedEthereumLogRecord, auction: Auction? = null): AuctionActivityDto? {
+        val transactionHash = Word.apply(history.transactionHash)
         val blockHash = history.blockHash ?: DEFAULT_BLOCK_HASH
         val blockNumber = history.blockNumber ?: DEFAULT_BLOCK_NUMBER
         val logIndex = history.logIndex ?: DEFAULT_LOG_INDEX
@@ -54,7 +60,7 @@ class AuctionActivityConverter(
                     date = auctionHistory.date,
                     source = source,
                     auction = auctionDto,
-                    transactionHash = transactionHash,
+                    transactionHash = Word.apply(transactionHash),
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,

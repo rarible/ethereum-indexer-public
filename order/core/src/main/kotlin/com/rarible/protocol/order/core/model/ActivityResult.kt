@@ -1,11 +1,12 @@
 package com.rarible.protocol.order.core.model
 
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import org.bson.types.ObjectId
+import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import java.time.Instant
 
 sealed class ActivityResult {
-    abstract fun getId(): ObjectId
+    abstract fun getId(): String
     abstract fun getDate(): Instant
     abstract fun getUpdatedAt(): Instant
 
@@ -28,8 +29,10 @@ sealed class ActivityResult {
 
 sealed class OrderActivityResult: ActivityResult() {
 
-    data class History(val value: LogEvent): OrderActivityResult() {
-        override fun getId(): ObjectId = this.value.id
+    data class History(val value: ReversedEthereumLogRecord): OrderActivityResult() {
+        constructor(value: LogEvent): this(value.toReversedEthereumLogRecord())
+
+        override fun getId(): String = this.value.id
         override fun getDate(): Instant = when (this.value.data) {
             is OrderExchangeHistory -> (this.value.data as OrderExchangeHistory).date
             is AuctionHistory -> (this.value.data as AuctionHistory).date
@@ -39,7 +42,7 @@ sealed class OrderActivityResult: ActivityResult() {
     }
 
     data class Version(val value: OrderVersion): OrderActivityResult() {
-        override fun getId(): ObjectId = this.value.id
+        override fun getId(): String = this.value.id.toHexString()
         override fun getDate(): Instant = value.createdAt
         override fun getUpdatedAt(): Instant = this.value.createdAt
     }
@@ -47,7 +50,7 @@ sealed class OrderActivityResult: ActivityResult() {
 
 sealed class PoolActivityResult: OrderActivityResult() {
     data class History(val value: LogEvent): PoolActivityResult() {
-        override fun getId(): ObjectId = this.value.id
+        override fun getId(): String = this.value.id.toHexString()
         override fun getDate(): Instant = when (this.value.data) {
             is PoolTargetNftIn -> (this.value.data as PoolTargetNftIn).date
             is PoolTargetNftOut -> (this.value.data as PoolTargetNftOut).date
@@ -60,7 +63,7 @@ sealed class PoolActivityResult: OrderActivityResult() {
 sealed class AuctionActivityResult: ActivityResult() {
 
     data class History(val value: LogEvent): AuctionActivityResult() {
-        override fun getId(): ObjectId = this.value.id
+        override fun getId(): String = this.value.id.toHexString()
         override fun getDate(): Instant = when (this.value.data) {
             is OrderExchangeHistory -> (this.value.data as OrderExchangeHistory).date
             is AuctionHistory -> (this.value.data as AuctionHistory).date
@@ -70,7 +73,7 @@ sealed class AuctionActivityResult: ActivityResult() {
     }
 
     data class OffchainHistory(val value: AuctionOffchainHistory): AuctionActivityResult() {
-        override fun getId(): ObjectId = ObjectId(this.value.id)
+        override fun getId(): String = this.value.id
         override fun getDate(): Instant = value.date
         override fun getUpdatedAt(): Instant = this.value.createdAt
     }
