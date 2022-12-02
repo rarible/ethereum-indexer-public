@@ -36,7 +36,8 @@ data class NftIndexerProperties(
     val contractAddresses: ContractAddresses = ContractAddresses(),
     val action: ActionProperties = ActionProperties(),
     val collection: CollectionProperties = CollectionProperties(),
-    val ipfs: IpfsProperties
+    val ipfs: IpfsProperties,
+    val ownershipFetchBatchSize: Int = 1000,
 ) : MetricProperties {
     data class ActionProperties(
         val burnDelay: Duration = Duration.ofHours(24)

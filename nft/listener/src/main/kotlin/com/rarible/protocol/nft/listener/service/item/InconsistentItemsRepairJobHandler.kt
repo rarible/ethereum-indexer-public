@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.time.Instant
-
+import kotlin.math.log
 
 
 @Component
@@ -110,22 +110,56 @@ class InconsistentItemsRepairJobHandler(
     }
 
     private suspend fun processNew(item: InconsistentItem) {
-        val fixResult = applyFix(item)
-        checkAndSave(item, fixResult.fixVersion)
+        process(item)
     }
 
     private suspend fun processUnfixed(item: InconsistentItem) {
-        if ((item.fixVersionApplied ?: 0) < ItemOwnershipConsistencyService.CURRENT_FIX_VERSION) {
-            val fixResult = applyFix(item)
-            checkAndSave(item, fixResult.fixVersion)
-        } else {
-            logger.info("InconsistentItem ${item.id} was already attempted to be fixed with ${item.fixVersionApplied}, skipped")
-        }
+        process(item)
     }
 
     private suspend fun processRelapsed(item: InconsistentItem) {
         logger.info("InconsistentItem ${item.id} relapsedCount: ${item.relapseCount}")
-        processUnfixed(item)
+        process(item)
+    }
+
+    private suspend fun process(initialItem: InconsistentItem) {
+        var item = initialItem
+        var attempts = 0
+        var repeat = true
+
+        do {
+            val fixAttemptResult = applyFix(item)
+            if (fixAttemptResult.fixVersionApplied != null) {
+                attempts++
+                item = item.copy(
+                    fixVersionApplied = fixAttemptResult.fixVersionApplied
+                )
+                when (val checkResult = itemOwnershipConsistencyService.checkItem(item.id)) {
+                    is ItemOwnershipConsistencyService.CheckResult.Success -> {
+                        logger.info("InconsistentItem $item was fixed successfully")
+                        saveWithStatus(item, InconsistentItemStatus.FIXED)
+                        repeat = false
+                    }
+                    is ItemOwnershipConsistencyService.CheckResult.Failure -> {
+                        item = item.copy(
+                            type = checkResult.type,
+                            supply = checkResult.supply,
+                            ownerships = checkResult.ownerships,
+                            supplyValue = checkResult.supply.value,
+                            ownershipsValue = checkResult.ownerships.value,
+                        )
+                    }
+                }
+            } else {
+                if (attempts > 0) {
+                    logger.info("$attempts attempts were done, but ${item.id} is still unfixed")
+                    saveWithStatus(item, InconsistentItemStatus.UNFIXED)
+                } else {
+                    logger.info("No attempts were done for ${item.id}, previous fix version applied: ${item.fixVersionApplied}")
+                }
+                repeat = false
+            }
+        } while (repeat)
     }
 
     // Currently fix for different problems is the same, but it may change in the future
@@ -134,35 +168,20 @@ class InconsistentItemsRepairJobHandler(
         logger.info("Applying fix for item ${item.id}, problem type ${item.type}")
         return when (item.type) {
             ItemProblemType.NOT_FOUND, ItemProblemType.SUPPLY_MISMATCH -> {
-                itemOwnershipConsistencyService.tryFix(item.id)
+                itemOwnershipConsistencyService.tryFix(item.id, item.fixVersionApplied)
             }
         }
     }
 
-    private suspend fun checkAndSave(item: InconsistentItem, fixVersion: Int) {
-        when (val checkResult = itemOwnershipConsistencyService.checkItem(item.id)) {
-            is ItemOwnershipConsistencyService.CheckResult.Success -> {
-                logger.info("InconsistentItem $item was fixed successfully")
-                inconsistentItemRepository.save(
-                    item.copy(
-                        status = InconsistentItemStatus.FIXED,
-                        fixVersionApplied = fixVersion,
-                    )
-                )
-                fixedCounter.increment()
-            }
-
-            is ItemOwnershipConsistencyService.CheckResult.Failure -> {
-                logger.info("InconsistentItem $item wasn't fixed, $checkResult")
-                inconsistentItemRepository.save(
-                    item.copy(
-                        status = InconsistentItemStatus.UNFIXED,
-                        type = checkResult.type,
-                        fixVersionApplied = fixVersion,
-                    )
-                )
-                unfixedCounter.increment()
-            }
+    private suspend fun saveWithStatus(item: InconsistentItem, newStatus: InconsistentItemStatus) {
+        inconsistentItemRepository.save(
+            item.copy(
+                status = newStatus,
+            )
+        )
+        when (newStatus) {
+            InconsistentItemStatus.FIXED -> fixedCounter.increment()
+            InconsistentItemStatus.UNFIXED -> unfixedCounter.increment()
         }
     }
 

@@ -1,11 +1,13 @@
 package com.rarible.protocol.nft.core.repository.ownership
 
+import com.mongodb.client.result.UpdateResult
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.collect
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.find
@@ -13,6 +15,8 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
+import org.springframework.data.mongodb.core.query.UpdateDefinition
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -58,6 +62,7 @@ class OwnershipRepository(
             .asFlow()
     }
 
+    @Deprecated("Not to be actively used, as we don't typically remove ownerships")
     fun deleteById(id: OwnershipId): Mono<Ownership> {
         return mongo.findAndRemove(Query(Criteria("_id").isEqualTo(id)), Ownership::class.java)
     }
@@ -68,6 +73,7 @@ class OwnershipRepository(
      * @param itemId    Item ID
      * @return          flux of deleted ownerships
      */
+    @Deprecated("Not to be actively used, as we don't typically remove ownerships")
     fun deleteAllByItemId(itemId: ItemId): Flux<Ownership> {
         val query =
             Query(where(Ownership::token).isEqualTo(itemId.token).and(Ownership::tokenId).isEqualTo(itemId.tokenId))

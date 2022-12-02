@@ -5,8 +5,11 @@ import com.rarible.core.common.orNull
 import com.rarible.core.common.toOptional
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.OwnershipContinuation
+import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.OwnershipSaveResult
+import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.Logger
@@ -22,6 +25,10 @@ class OwnershipService(
 ) {
 
     val logger: Logger = LoggerFactory.getLogger(OwnershipService::class.java)
+
+    suspend fun search(filter: OwnershipFilter, continuation: OwnershipContinuation?, limit: Int?): List<Ownership> {
+        return ownershipRepository.search(filter.toCriteria(continuation = continuation, limit = limit))
+    }
 
     fun get(id: OwnershipId): Mono<Ownership> {
         return ownershipRepository.findById(id)
@@ -55,7 +62,8 @@ class OwnershipService(
     }
 
     private fun isOwnershipChanged(existOwnership: Ownership?, updatedOwnership: Ownership): Boolean =
-        existOwnership == null || existOwnership != updatedOwnership.copy(lastUpdatedAt = existOwnership.lastUpdatedAt).withCalculatedFields()
+        existOwnership == null || existOwnership != updatedOwnership.copy(lastUpdatedAt = existOwnership.lastUpdatedAt)
+            .withCalculatedFields()
 
     private fun saveInternal(marker: Marker, ownership: Ownership): Mono<Ownership> {
         logger.info(marker, "Saving Ownership ${ownership.id}")
