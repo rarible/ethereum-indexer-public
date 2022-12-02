@@ -41,6 +41,7 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val featureFlags: FeatureFlags = FeatureFlags(),
     val blockCountBeforeSnapshot: Int = 12,
+    val handleApprovalAfterBlock: Long = 0,
     val traceMethod: TraceMethod = TraceMethod.TRACE_TRANSACTION,
     @NestedConfigurationProperty
     val raribleOrderExpiration: RaribleOrderExpirationProperties = RaribleOrderExpirationProperties(),

@@ -83,7 +83,7 @@ class EncodeController(
         @RequestBody assetType: AssetTypeDto
     ): ResponseEntity<EncodedOrderDataDto> {
         val source = AssetTypeConverter.convert(assetType)
-        val encodedOrderData = EncodedOrderDataDto(source.type, source.data)
+        val encodedOrderData = EncodedOrderDataDto(source.type.id, source.data)
         return ResponseEntity.ok(encodedOrderData)
     }
 

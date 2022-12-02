@@ -1,40 +1,34 @@
-package com.rarible.protocol.order.listener.service.descriptors.approval
+package com.rarible.protocol.order.core.service.block.approval
 
-import com.rarible.contracts.erc721.ApprovalForAllEvent
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
-import com.rarible.ethereum.listener.log.OnLogEventListener
-import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
+import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
-import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
-import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.reactor.mono
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Mono
-import java.util.concurrent.ThreadLocalRandom
 
 @Component
-@CaptureSpan(type = SpanType.EVENT)
-class ApprovalAllLogListener(
+@Qualifier("approval-event-subscriber")
+class ApprovalEventSubscriber(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
     private val approveService: ApproveService,
-    private val properties: OrderListenerProperties
-) : OnLogEventListener {
+    private val properties: OrderIndexerProperties
+) : EntityEventsSubscriber {
 
-    override val topics: List<Word>
-        get() = listOf(ApprovalForAllEvent.id())
+    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+        for (event in events) {
+            reduceOrders(event.record.asEthereumLogRecord())
+        }
+    }
 
-    override fun onLogEvent(logEvent: LogEvent): Mono<Void> = mono { reduceOrders(logEvent) }.then()
-
-    override fun onRevertedLogEvent(logEvent: LogEvent): Mono<Void> = mono { reduceOrders(logEvent) }.then()
-
-    private suspend fun reduceOrders(logEvent: LogEvent) {
+    private suspend fun reduceOrders(logEvent: ReversedEthereumLogRecord) {
         val history = logEvent.data as ApprovalHistory
         val blockNumber = logEvent.blockNumber ?: error("blockTimestamp can't be null")
         if (properties.handleApprovalAfterBlock > blockNumber) {
@@ -55,17 +49,8 @@ class ApprovalAllLogListener(
         orderRepository
             .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
             .collect {
-                randomDelay()
                 orderUpdateService.updateApproval(it, history.approved)
             }
     }
-
-    //TODO://Need to remove this on PT-1657
-    private suspend fun randomDelay() {
-        val maxDelayMs = properties.approvalEvenHandleDelay.toMillis()
-        if (maxDelayMs == 0L) return
-        val delayMs = ThreadLocalRandom.current().nextLong(0, maxDelayMs)
-        delay(timeMillis = delayMs)
-
-    }
 }
+

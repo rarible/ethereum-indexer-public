@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.approval
 
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.randomApproveHistory
@@ -7,7 +8,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
-import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
+import com.rarible.protocol.order.core.service.block.approval.ApprovalAllLogListener
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -22,7 +23,7 @@ internal class ApprovalAllLogListenerTest {
     private val orderRepository = mockk<OrderRepository>()
     private val orderUpdateService = mockk<OrderUpdateService>()
     private val approveService = mockk<ApproveService>()
-    private val properties = mockk<OrderListenerProperties>()
+    private val properties = mockk<OrderIndexerProperties>()
 
     private val logListener = ApprovalAllLogListener(
         orderRepository = orderRepository,
@@ -39,7 +40,6 @@ internal class ApprovalAllLogListenerTest {
         val foundOrder1 = createOrder()
         val foundOrder2 = createOrder()
 
-        every { properties.approvalEvenHandleDelay } returns Duration.ZERO
         every { properties.handleApprovalAfterBlock } returns 5
         every { approveService.getPlatform(approval.operator) } returns platform
         every { orderRepository.findActiveSaleOrdersHashesByMakerAndToken(
