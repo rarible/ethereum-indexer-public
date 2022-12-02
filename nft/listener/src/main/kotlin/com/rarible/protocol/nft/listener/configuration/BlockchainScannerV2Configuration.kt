@@ -9,12 +9,12 @@ import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.ethereum.listener.log.LogEventDescriptorHolder
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
+import com.rarible.protocol.nft.listener.service.ignored.IgnoredTokenResolver
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import scalether.domain.Address
 
 @Configuration
 @EnableOnScannerV2
@@ -24,7 +24,8 @@ class BlockchainScannerV2Configuration(
     private val nftListenerProperties: NftListenerProperties,
     private val ethereumScannerProperties: EthereumScannerProperties,
     private val meterRegistry: MeterRegistry,
-    private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
+    private val applicationEnvironmentInfo: ApplicationEnvironmentInfo,
+    private val ignoredTokenResolver: IgnoredTokenResolver,
 ) {
     private val logger = LoggerFactory.getLogger(BlockchainScannerV2Configuration::class.java)
 
@@ -44,7 +45,7 @@ class BlockchainScannerV2Configuration(
             blockchain = nftIndexerProperties.blockchain.value,
             service = ethereumScannerProperties.service,
             workerCount = nftListenerProperties.logConsumeWorkerCount,
-            ignoreContracts = nftListenerProperties.skipTransferContracts.map { Address.apply(it) }.toSet(),
+            ignoreContracts = ignoredTokenResolver.resolve(),
         ).apply { start(entityEventListener) }
     }
 

@@ -11,8 +11,8 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
-import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEventDescriptor
+import com.rarible.protocol.nft.listener.service.ignored.IgnoredTokenResolver
 import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
@@ -29,16 +29,16 @@ import java.time.Instant
 class ERC1155TransferLogDescriptor(
     private val tokenRegistrationService: TokenRegistrationService,
     private val customMintDetector: CustomMintDetector,
-    properties: NftListenerProperties,
+    ignoredTokenResolver: IgnoredTokenResolver,
     indexerProperties: NftIndexerProperties
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
 
-    private val skipContracts = properties.skipTransferContracts.map { Address.apply(it) }
+    private val skipContracts = ignoredTokenResolver.resolve()
     private val skipTransferContractTokens = indexerProperties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
     private val logger = LoggerFactory.getLogger(ERC1155TransferLogDescriptor::class.java)
 
     init {
-        logger.info("Creating ERC1155TransferLogDescriptor with config: $properties")
+        logger.info("Creating ERC1155TransferLogDescriptor, found ${skipContracts.size} skip tokens")
     }
 
     override fun convert(log: Log, transaction: Transaction, date: Instant): Mono<ItemTransfer> {
