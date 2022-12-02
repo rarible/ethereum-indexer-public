@@ -14,11 +14,14 @@ import org.testcontainers.junit.jupiter.Testcontainers
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = [
         "application.environment = e2e",
+        "spring.application.name = test",
+        "common.blockchain = ethereum",
         "spring.cloud.service-registry.auto-registration.enabled = false",
         "spring.cloud.discovery.enabled = false",
-        "common.kafka-replica-set = localhost:\${random.int(5000,5100)}",
-        "rarible.core.contract.enabled = true",
+        "rarible.common.jms-brokerUrls = localhost:\${random.int(5000,5100)}",
+        "rarible.common.jms-eventTopic = protocol",
         "spring.cloud.consul.config.enabled = false",
+        "logging.logjson.enabled = false",
         "logging.logstash.tcp-socket.enabled = false"
     ]
 )

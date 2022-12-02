@@ -3,18 +3,16 @@ package com.rarible.protocol.order.core.repository.pool
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomWord
-import com.rarible.core.test.ext.MongoCleanup
-import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.order.core.TestPropertiesConfiguration
-import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
 import com.rarible.protocol.order.core.data.randomPoolSpotPriceUpdate
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
+import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
+import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.PoolHistoryType
@@ -27,22 +25,9 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 
-@MongoTest
-@DataMongoTest
-@MongoCleanup
-@EnableAutoConfiguration
-@ContextConfiguration(classes = [RepositoryConfiguration::class, TestPropertiesConfiguration::class])
-@ActiveProfiles("integration")
-internal class PoolHistoryRepositoryTest {
-
-    @Autowired
-    private lateinit var poolHistoryRepository: PoolHistoryRepository
+@IntegrationTest
+internal class PoolHistoryRepositoryTest : AbstractIntegrationTest() {
 
     @BeforeEach
     fun setup() = runBlocking {

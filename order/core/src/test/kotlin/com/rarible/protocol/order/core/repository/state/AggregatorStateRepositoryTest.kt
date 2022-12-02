@@ -1,9 +1,7 @@
 package com.rarible.protocol.order.core.repository.state
 
-import com.rarible.core.test.ext.MongoCleanup
-import com.rarible.core.test.ext.MongoTest
-import com.rarible.protocol.order.core.TestPropertiesConfiguration
-import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
+import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
+import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.LooksrareFetchState
 import com.rarible.protocol.order.core.model.SeaportFetchState
 import com.rarible.protocol.order.core.model.X2Y2CancelListEventFetchState
@@ -12,18 +10,9 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 
-@MongoTest
-@MongoCleanup
-@DataMongoTest
-@ContextConfiguration(classes = [RepositoryConfiguration::class, TestPropertiesConfiguration::class])
-@EnableAutoConfiguration
-@ActiveProfiles("integration")
-internal class AggregatorStateRepositoryTest {
+@IntegrationTest
+internal class AggregatorStateRepositoryTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var repository: AggregatorStateRepository
