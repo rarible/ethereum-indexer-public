@@ -76,5 +76,5 @@ blockchain:
     ethereum:
       scan:
         batch-load:
-          batch-size: 1000
-          confirmation-block-distance: 1
+          batch-size: 100
+          confirmation-block-distance: 12
