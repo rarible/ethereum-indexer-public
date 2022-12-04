@@ -237,7 +237,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
             buy.forTx(),
             minimalStep.value,
             minimalPrice.value,
-            data.getDataVersion(),
+            data.toDataVersion(),
             data.toEthereum().bytes()
         )
 

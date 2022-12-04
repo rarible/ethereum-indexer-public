@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.model
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.ethereum.domain.EthUInt256
 import io.daonomic.rpc.domain.Word
@@ -7,6 +9,13 @@ import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Instant
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = OnChainAuction::class, name = "ON_CHAIN_AUCTION"),
+    JsonSubTypes.Type(value = BidPlaced::class, name = "BID_PLACED"),
+    JsonSubTypes.Type(value = AuctionFinished::class, name = "AUCTION_FINISHED"),
+    JsonSubTypes.Type(value = AuctionCancelled::class, name = "AUCTION_CANCELLED"),
+)
 sealed class AuctionHistory(
     var type: AuctionHistoryType
 ) : EventData {

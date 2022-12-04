@@ -188,6 +188,14 @@ fun createOrderRaribleV2DataV1(): OrderRaribleV2DataV1 {
     )
 }
 
+fun createOrderRaribleV2DataV2(): OrderRaribleV2DataV2 {
+    return OrderRaribleV2DataV2(
+        originFees = listOf(Part(randomAddress(), EthUInt256.TEN), Part(randomAddress(), EthUInt256.ONE)),
+        payouts = listOf(Part(randomAddress(), EthUInt256.ONE), Part(randomAddress(), EthUInt256.TEN)),
+        isMakeFill = randomBoolean()
+    )
+}
+
 fun createOrderRaribleV1DataV3Sell(): OrderRaribleV2DataV3Sell {
     return OrderRaribleV2DataV3Sell(
         payout = cratePart(),

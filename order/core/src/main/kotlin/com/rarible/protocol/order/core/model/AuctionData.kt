@@ -18,7 +18,7 @@ sealed class AuctionData {
     abstract val version: AuctionDataVersion
     abstract val startTime: Instant?
 
-    fun getDataVersion(): ByteArray? = version.ethDataType.bytes()
+    fun toDataVersion(): ByteArray? = version.ethDataType.bytes()
 
     abstract fun toEthereum(): Binary
 
