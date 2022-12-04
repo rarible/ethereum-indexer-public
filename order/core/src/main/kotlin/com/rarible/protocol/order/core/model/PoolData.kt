@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.model
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import org.springframework.data.annotation.Transient
 import scalether.domain.Address
 import java.math.BigInteger
 
@@ -27,6 +28,7 @@ data class SudoSwapPoolDataV1(
     val delta: BigInteger,
     val fee: BigInteger
 ): PoolData() {
+    @get:Transient
     override val version = PoolDataVersion.SUDOSWAP_POOL_DATA_V1
 
     override fun toOrderData(): OrderSudoSwapAmmDataV1 {
