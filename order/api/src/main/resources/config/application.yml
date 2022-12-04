@@ -65,6 +65,12 @@ common:
   feature-flags:
     check-on-chain-approve: true
 
+blockchain:
+  scanner:
+    ethereum:
+      scan:
+        enabled: false
+
 springdoc:
   swagger-ui:
     path: /v0.1/swagger/swagger-ui.html
