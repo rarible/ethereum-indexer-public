@@ -1,9 +1,17 @@
 package com.rarible.protocol.order.core.model
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import scalether.domain.Address
 import java.math.BigInteger
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "version")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = SudoSwapPoolDataV1::class, name = "SUDOSWAP_POOL_DATA_V1"),
+)
 sealed class PoolData {
+    abstract val version: PoolDataVersion
+
     abstract val poolAddress: Address
     abstract fun toOrderData(): OrderAmmData
 }
@@ -19,6 +27,8 @@ data class SudoSwapPoolDataV1(
     val delta: BigInteger,
     val fee: BigInteger
 ): PoolData() {
+    override val version = PoolDataVersion.SUDOSWAP_POOL_DATA_V1
+
     override fun toOrderData(): OrderSudoSwapAmmDataV1 {
         return OrderSudoSwapAmmDataV1(
             poolAddress = poolAddress,
@@ -32,4 +42,8 @@ data class SudoSwapPoolDataV1(
             fee = fee
         )
     }
+}
+
+enum class PoolDataVersion {
+    SUDOSWAP_POOL_DATA_V1,
 }

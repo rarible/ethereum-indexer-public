@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.model
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import io.daonomic.rpc.domain.Bytes
@@ -9,6 +11,17 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = PoolCreate::class, name = "POOL_CREAT"),
+    JsonSubTypes.Type(value = PoolTargetNftOut::class, name = "POOL_NFT_OUT"),
+    JsonSubTypes.Type(value = PoolTargetNftIn::class, name = "POOL_NFT_IN"),
+    JsonSubTypes.Type(value = PoolNftWithdraw::class, name = "POOL_NFT_WITHDRAW"),
+    JsonSubTypes.Type(value = PoolNftDeposit::class, name = "POOL_NFT_DEPOSIT"),
+    JsonSubTypes.Type(value = PoolSpotPriceUpdate::class, name = "POOL_SPOT_PRICE_UPDATE"),
+    JsonSubTypes.Type(value = PoolDeltaUpdate::class, name = "POOL_DELTA_UPDATE"),
+    JsonSubTypes.Type(value = PoolFeeUpdate::class, name = "POOL_FEE_UPDATE"),
+)
 sealed class PoolHistory(var type: PoolHistoryType) : OrderHistory {
     abstract val date: Instant
     abstract val source: HistorySource
