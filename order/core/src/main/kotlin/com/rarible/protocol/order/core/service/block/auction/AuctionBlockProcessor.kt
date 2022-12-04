@@ -41,7 +41,7 @@ class AuctionBlockProcessor(
                 // Then send all kafka Auction Activity events with attached actual Auctions
                 auctionEvents
                     .filter { it.status == LogEventStatus.CONFIRMED }
-                    .forEach { publicActivity(it) }
+                    .forEach { publishActivity(it) }
             }.toOptional()
                 .elapsed()
                 .doOnNext { logger.info(marker, "Auction logs process time: ${it.t1}ms") }
@@ -49,7 +49,7 @@ class AuctionBlockProcessor(
         }
     }
 
-    suspend fun publicActivity(logEvent: LogEvent) {
+    suspend fun publishActivity(logEvent: LogEvent) {
         logger.info("Auction log event: id=${logEvent.id}, dataType=${logEvent.data::class.java.simpleName}")
         auctionActivityConverter.convert(logEvent)?.let { eventPublisher.publish(it) }
     }

@@ -60,7 +60,7 @@ class AuctionActivityConverter(
                     date = auctionHistory.date,
                     source = source,
                     auction = auctionDto,
-                    transactionHash = Word.apply(transactionHash),
+                    transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
