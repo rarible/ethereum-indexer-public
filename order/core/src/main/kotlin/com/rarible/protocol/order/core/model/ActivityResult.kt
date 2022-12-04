@@ -49,8 +49,8 @@ sealed class OrderActivityResult: ActivityResult() {
 }
 
 sealed class PoolActivityResult: OrderActivityResult() {
-    data class History(val value: LogEvent): PoolActivityResult() {
-        override fun getId(): String = this.value.id.toHexString()
+    data class History(val value: ReversedEthereumLogRecord): PoolActivityResult() {
+        override fun getId(): String = this.value.id
         override fun getDate(): Instant = when (this.value.data) {
             is PoolTargetNftIn -> (this.value.data as PoolTargetNftIn).date
             is PoolTargetNftOut -> (this.value.data as PoolTargetNftOut).date

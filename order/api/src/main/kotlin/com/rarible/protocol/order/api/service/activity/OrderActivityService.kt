@@ -2,6 +2,7 @@ package com.rarible.protocol.order.api.service.activity
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import com.rarible.protocol.order.core.model.ActivityResult
 import com.rarible.protocol.order.core.repository.exchange.ActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
@@ -48,7 +49,7 @@ class OrderActivityService(
     suspend fun findByIds(ids: List<ObjectId>) : List<OrderActivityResult> {
         val histories = exchangeHistoryRepository.findByIds(ids).map { OrderActivityResult.History(it) }
         val versions = orderVersionRepository.findByIds(ids).map { OrderActivityResult.Version(it) }
-        val pools = poolHistoryRepository.findByIds(ids).map { PoolActivityResult.History(it) }
+        val pools = poolHistoryRepository.findByIds(ids).map { PoolActivityResult.History(it.toReversedEthereumLogRecord()) }
         return Flux.merge(histories, versions, pools).collectList().awaitFirst()
     }
 }

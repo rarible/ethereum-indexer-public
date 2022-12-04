@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
 import com.rarible.protocol.order.core.data.randomPoolSpotPriceUpdate
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
+import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import com.rarible.protocol.order.core.model.PoolActivityResult
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
@@ -48,7 +49,10 @@ internal class PoolActivityListenerTest {
     @ParameterizedTest
     @MethodSource("swapEvents")
     fun `should publish events`(event: PoolHistory, reverted: Boolean) = runBlocking<Unit> {
-        val logEvent = createLogEvent(event).copy(status = if (reverted) LogEventStatus.REVERTED else LogEventStatus.CONFIRMED)
+        val logEvent = createLogEvent(event)
+            .copy(status = if (reverted) LogEventStatus.REVERTED else LogEventStatus.CONFIRMED)
+            .toReversedEthereumLogRecord()
+
         val activityDto = mockk<OrderActivityDto>()
 
         coEvery { orderActivityConverter.convert(PoolActivityResult.History(logEvent), reverted) } returns activityDto

@@ -168,8 +168,8 @@ class OrderActivityConverter(
         }
     }
 
-    private suspend fun convertPoolHistory(history: LogEvent, reverted: Boolean): OrderActivityDto? {
-        val transactionHash = history.transactionHash
+    private suspend fun convertPoolHistory(history: ReversedEthereumLogRecord, reverted: Boolean): OrderActivityDto? {
+        val transactionHash = Word.apply(history.transactionHash)
         val blockHash = history.blockHash ?: DEFAULT_BLOCK_HASH
         val blockNumber = history.blockNumber ?: DEFAULT_BLOCK_NUMBER
         val logIndex = history.logIndex ?: DEFAULT_LOG_INDEX
