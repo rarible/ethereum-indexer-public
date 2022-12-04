@@ -33,11 +33,13 @@ class PoolEventSubscriber(
                 .awaitAll()
         }
         coroutineScope {
-            ethereumLogRecords.map { event -> async {
-                poolEventListeners.forEach {
-                    it.onPoolEvent(event)
-                } }
-            }
+            ethereumLogRecords
+                .map { event -> async {
+                    poolEventListeners.forEach {
+                        it.onPoolEvent(event)
+                    } }
+                }
+                .awaitAll()
         }
     }
 }
