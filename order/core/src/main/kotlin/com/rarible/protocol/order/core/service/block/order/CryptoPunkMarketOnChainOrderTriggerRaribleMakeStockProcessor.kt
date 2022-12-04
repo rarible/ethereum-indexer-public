@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.core.service.block
+package com.rarible.protocol.order.core.service.block.order
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -22,6 +22,7 @@ import reactor.core.publisher.Mono
  * (only one sell order is supported in the CryptoPunkMarket contract).
  */
 @Service
+@Deprecated("Should be removed after switch to the new scanner")
 class CryptoPunkMarketOnChainOrderTriggerRaribleMakeStockProcessor(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService

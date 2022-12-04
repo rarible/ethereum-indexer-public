@@ -68,3 +68,13 @@ protocol:
   order:
     subscriber:
       broker-replica-set: ${kafka.hosts}
+
+blockchain:
+  scanner:
+    kafka:
+      broker-replica-set: ${kafka.hosts}
+    ethereum:
+      scan:
+        batch-load:
+          batch-size: 100
+          confirmation-block-distance: 12

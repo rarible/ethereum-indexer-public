@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
+import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
@@ -24,6 +25,7 @@ import com.rarible.protocol.order.core.model.OrderActivityResult
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.PoolActivityResult
+import com.rarible.protocol.order.core.model.toLogEventKey
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -134,7 +136,7 @@ internal class OrderActivityConverterTest {
     fun `should convert pool nft in event`() = runBlocking<Unit> {
         val pool = randomSellOnChainAmmOrder().copy(currency = Address.ZERO())
         val event = randomPoolTargetNftIn()
-        val logEvent = createLogEvent(event)
+        val logEvent = createLogEvent(event).toReversedEthereumLogRecord()
         val expectedCurrency = AssetDto(EthAssetTypeDto(), event.inputValue.value)
         val expectedNft = AssetDto(Erc721AssetTypeDto(event.collection, event.tokenIds.first().value), BigInteger.ONE)
 
@@ -169,7 +171,7 @@ internal class OrderActivityConverterTest {
     fun `should convert pool nft out event`() = runBlocking<Unit> {
         val pool = randomSellOnChainAmmOrder().copy(currency = Address.ZERO())
         val event = randomPoolTargetNftOut()
-        val logEvent = createLogEvent(event)
+        val logEvent = createLogEvent(event).toReversedEthereumLogRecord()
         val expectedCurrency = AssetDto(EthAssetTypeDto(), event.outputValue.value)
         val expectedNft = AssetDto(Erc721AssetTypeDto(event.collection, event.tokenIds.first().value), BigInteger.ONE)
 

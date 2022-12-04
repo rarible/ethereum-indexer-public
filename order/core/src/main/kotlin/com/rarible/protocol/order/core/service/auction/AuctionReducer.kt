@@ -1,10 +1,10 @@
 package com.rarible.protocol.order.core.service.auction
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EventData
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.reduce.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Auction
 import com.rarible.protocol.order.core.model.AuctionCancelled
@@ -35,10 +35,10 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
         val update = AuctionUpdate(event.logEvent)
 
         val result = when (update.logStatus) {
-            LogEventStatus.CONFIRMED -> {
+            EthereumLogStatus.CONFIRMED -> {
                 auction.withUpdate(update)
             }
-            LogEventStatus.PENDING -> {
+            EthereumLogStatus.PENDING -> {
                 auction.withUpdate(update).withPending(update)
             }
             else -> auction
@@ -146,11 +146,11 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
             pending = emptyList()
         )
 
-        private class AuctionUpdate(private val logEvent: LogEvent) {
+        private class AuctionUpdate(private val logEvent: ReversedEthereumLogRecord) {
             val contract get() = logEvent.address
             val logStatus get() = logEvent.status
             val history get() = logEvent.data.toAuctionHistory()
-            val eventId: String get() = logEvent.id.toHexString()
+            val eventId: String get() = logEvent.id
         }
 
         private fun EventData.toAuctionHistory(): AuctionHistory {

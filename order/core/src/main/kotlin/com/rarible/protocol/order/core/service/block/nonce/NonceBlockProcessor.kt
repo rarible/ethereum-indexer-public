@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.core.service.block
+package com.rarible.protocol.order.core.service.block.nonce
 
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
+@Deprecated("Should be removed after switch to the new scanner")
 class NonceBlockProcessor(
     private val changeNonceListener: ChangeCounterListener,
     private val properties: OrderIndexerProperties

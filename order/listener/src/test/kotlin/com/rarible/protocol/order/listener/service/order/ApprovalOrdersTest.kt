@@ -16,7 +16,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -40,7 +39,6 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
     }
 
     @Test
-    @Disabled("Doesn't work in Jenkins, but works locally")
     internal fun `should handle approve for punks`() {
         checkPlatform(Platform.CRYPTO_PUNKS, transferProxyAddresses.cryptoPunksTransferProxy)
     }
@@ -80,25 +78,33 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
             val token = createToken(userSender)
             val saved = createOrder(owner, token.address(), platform)
 
+            setApproval(token, proxy, true)
             Wait.waitAssert(Duration.ofSeconds(10)) {
-                setApprovalAndCheckStatus(token, proxy, true, saved.hash, OrderStatus.ACTIVE)
+                checkStatus(true, saved.hash, OrderStatus.ACTIVE)
                 assertThat(approveService.checkOnChainApprove(owner, token.address(), platform)).isEqualTo(true)
             }
+
+            setApproval(token, proxy, false)
             Wait.waitAssert(Duration.ofSeconds(10)) {
-                setApprovalAndCheckStatus(token, proxy, false, saved.hash, noApprovalStatus)
+                checkStatus( false, saved.hash, noApprovalStatus)
                 assertThat(approveService.checkOnChainApprove(owner, token.address(), platform)).isEqualTo(false)
             }
         }
     }
 
-    private suspend fun setApprovalAndCheckStatus(
+    private suspend fun setApproval(
         token: TestERC721,
         proxy: Address,
         approved: Boolean,
-        hash: Word,
-        expectedStatus: OrderStatus
     ) {
         token.setApprovalForAll(proxy, approved).execute().verifySuccess()
+    }
+
+    private suspend fun checkStatus(
+        approved: Boolean,
+        hash: Word,
+        expectedStatus: OrderStatus,
+    ) {
         val updated = orderRepository.findById(Word.apply(hash))
         assertThat(updated).isNotNull
         assertThat(updated!!.approved).isEqualTo(approved)

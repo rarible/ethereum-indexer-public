@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.createOrderSideMatch
+import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import com.rarible.protocol.order.core.model.OrderActivityResult
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
@@ -35,7 +36,7 @@ internal class OnExchangeLogEventListenerTest {
             orderActivityConverter.convert(
                 withArg {
                         assertThat(it).isInstanceOf(OrderActivityResult.History::class.java)
-                    assertThat((it as OrderActivityResult.History).value).isEqualTo(logEvent)
+                    assertThat((it as OrderActivityResult.History).value).isEqualTo(logEvent.toReversedEthereumLogRecord())
                 },
                 eq(false)
             )
@@ -56,7 +57,7 @@ internal class OnExchangeLogEventListenerTest {
             orderActivityConverter.convert(
                 withArg {
                     assertThat(it).isInstanceOf(OrderActivityResult.History::class.java)
-                    assertThat((it as OrderActivityResult.History).value).isEqualTo(logEvent)
+                    assertThat((it as OrderActivityResult.History).value).isEqualTo(logEvent.toReversedEthereumLogRecord())
                 },
                 eq(true)
             )

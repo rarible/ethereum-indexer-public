@@ -1,8 +1,8 @@
-package com.rarible.protocol.order.listener.service.descriptors
+package com.rarible.protocol.order.core.service
 
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
-import com.rarible.protocol.order.listener.misc.LambdaList
+import com.rarible.protocol.order.core.misc.LambdaList
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 

@@ -1,16 +1,15 @@
 package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.core.test.data.randomAddress
-import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.TestPropertiesConfiguration
-import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderRaribleV2DataV1
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
+import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
@@ -22,27 +21,10 @@ import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 import scalether.domain.Address
 
-@MongoTest
-@DataMongoTest
-@EnableAutoConfiguration
-@ContextConfiguration(classes = [RepositoryConfiguration::class, TestPropertiesConfiguration::class])
-@ActiveProfiles("integration")
-internal class OrderRepositoryIt {
-
-    @Autowired
-    private lateinit var mongo: ReactiveMongoTemplate
-
-    @Autowired
-    private lateinit var orderRepository: OrderRepository
-
+@IntegrationTest
+internal class OrderRepositoryIt : AbstractIntegrationTest() {
     // Simple Order repository
     private lateinit var delegate: OrderRepository
 

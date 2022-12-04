@@ -4,14 +4,12 @@ import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
+import com.rarible.core.task.EnableRaribleTask
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.ethereum.listener.log.EnableLogListeners
-import com.rarible.ethereum.listener.log.persist.BlockRepository
-import com.rarible.ethereum.monitoring.BlockchainMonitoringWorker
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFactory
@@ -57,7 +55,7 @@ import org.springframework.context.annotation.Configuration
 @EnableMongock
 @EnableContractService
 @EnableScaletherMongoConversions
-@EnableLogListeners(scanPackage = [OrderListenerConfiguration::class])
+@EnableRaribleTask
 @EnableConfigurationProperties(OrderIndexerProperties::class, OrderListenerProperties::class)
 class OrderListenerConfiguration(
     environmentInfo: ApplicationEnvironmentInfo,
@@ -66,8 +64,6 @@ class OrderListenerConfiguration(
     private val meterRegistry: MeterRegistry,
     private val erc20IndexerEventsConsumerFactory: Erc20IndexerEventsConsumerFactory,
     private val nftIndexerEventsConsumerFactory: NftIndexerEventsConsumerFactory,
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-    private val blockRepository: BlockRepository,
     private val micrometer: MeterRegistry,
     private val seaportLoadCounter: RegisteredCounter,
     private val seaportOrderDelayGauge : RegisteredGauge<Long>
@@ -155,16 +151,6 @@ class OrderListenerConfiguration(
         ).apply { start() }
     }
 
-    // TODO: this bean is apparently configured in the ethereum-core (BlockchainMonitoringConfiguration), no need to configure here.
-    @Bean
-    fun blockchainMonitoringWorker(): BlockchainMonitoringWorker {
-        return BlockchainMonitoringWorker(
-            properties = listenerProperties.monitoringWorker,
-            blockchain = commonProperties.blockchain,
-            meterRegistry = meterRegistry,
-            blockRepository = blockRepository
-        )
-    }
 
     @Bean
     @ExperimentalCoroutinesApi

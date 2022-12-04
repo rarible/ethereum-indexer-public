@@ -4,12 +4,10 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomWord
-import com.rarible.core.test.ext.MongoCleanup
-import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.TestPropertiesConfiguration
-import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.data.createOrderVersion
+import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
+import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.LogEventKey
@@ -26,26 +24,13 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.dao.DuplicateKeyException
-import org.springframework.test.context.ContextConfiguration
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
-import org.springframework.test.context.ActiveProfiles
 
-@MongoTest
-@DataMongoTest
-@MongoCleanup
-@EnableAutoConfiguration
-@ContextConfiguration(classes = [RepositoryConfiguration::class, TestPropertiesConfiguration::class])
-@ActiveProfiles("integration")
-internal class OrderVersionRepositoryTest {
-
-    @Autowired
-    private lateinit var orderVersionRepository: OrderVersionRepository
+@IntegrationTest
+internal class OrderVersionRepositoryTest : AbstractIntegrationTest() {
 
     @BeforeEach
     fun beforeEach() = runBlocking {

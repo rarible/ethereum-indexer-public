@@ -90,11 +90,11 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
         punkTransferProxy = PunkTransferProxy.deployAndWait(sender, poller).awaitFirst()
         transferProxyAddresses.cryptoPunksTransferProxy = punkTransferProxy.address()
-        exchangeV2.setTransferProxy(AssetType.CRYPTO_PUNKS.bytes(), punkTransferProxy.address())
+        exchangeV2.setTransferProxy(AssetType.Companion.Type.CRYPTO_PUNKS.id.bytes(), punkTransferProxy.address())
             .execute().verifySuccess()
 
         assetMatcherPunk = AssetMatcherPunk.deployAndWait(sender, poller).awaitFirst()
-        exchangeV2.setAssetMatcher(AssetType.CRYPTO_PUNKS.bytes(), assetMatcherPunk.address())
+        exchangeV2.setAssetMatcher(AssetType.Companion.Type.CRYPTO_PUNKS.id.bytes(), assetMatcherPunk.address())
             .execute().verifySuccess()
         Unit
     }

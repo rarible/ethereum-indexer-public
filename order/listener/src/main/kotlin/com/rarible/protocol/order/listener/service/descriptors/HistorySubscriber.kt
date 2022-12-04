@@ -31,8 +31,7 @@ abstract class HistorySubscriber<T : EventData>(
     collection: String,
     topic: Word,
     contracts: List<Address>
-) : AbstractSubscriber<T>(group, collection, topic, contracts), LogEventDescriptor<T>
-{
+) : AbstractSubscriber<T>(group, collection, topic, contracts), LogEventDescriptor<T> {
     @Deprecated("Should remove after switch to new scanner")
     override val topic: Word = ethereumDescriptor.ethTopic
 
