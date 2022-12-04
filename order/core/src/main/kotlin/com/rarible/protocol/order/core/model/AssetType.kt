@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.rarible.ethereum.domain.EthUInt256
@@ -18,7 +19,7 @@ import scalether.abi.AddressType
 import scalether.domain.Address
 import java.math.BigInteger
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @JsonSubTypes(
     JsonSubTypes.Type(value = GenerativeArtAssetType::class, name = "GEN_ART"),
     JsonSubTypes.Type(value = EthAssetType::class, name = "ETH"),
@@ -39,12 +40,12 @@ sealed class AssetType(
     /**
      * defined as bytes in smart-contracts
      */
-    @get:Transient val data: Binary,
+    @get:Transient @JsonIgnore val data: Binary,
 
     /**
      * shows if a type is NFT
      */
-    var nft: Boolean
+    @JsonIgnore var nft: Boolean
 ) {
 
     /**

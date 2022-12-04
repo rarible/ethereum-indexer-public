@@ -34,12 +34,14 @@ import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CollectionAssetType
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
 import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import com.rarible.protocol.order.core.model.HeadTransaction
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
@@ -503,6 +505,8 @@ fun createLogEvent(
     )
 }
 
+fun randomErc20Type() = Erc20AssetType(AddressFactory.create())
+
 fun randomErc20(value: EthUInt256) = Asset(Erc20AssetType(AddressFactory.create()), value)
 
 fun randomErc20(token: Address = randomAddress()) = Asset(Erc20AssetType(token), EthUInt256.of(randomInt()))
@@ -528,6 +532,18 @@ fun randomAmmNftAsset(token: Address = randomAddress()) = Asset(AmmNftAssetType(
 fun randomPart() = Part(randomAddress(), EthUInt256(randomBigInt()))
 
 fun randomPartDto() = PartDto(randomAddress(), randomInt())
+
+fun randomCryptoPunksAssetType() =
+    CryptoPunksAssetType(
+        token = AddressFactory.create(),
+        tokenId = EthUInt256(randomBigInt()),
+    )
+
+fun randomCollectionType() = CollectionAssetType(token = AddressFactory.create())
+
+fun randomAmmNftType() = AmmNftAssetType(token = AddressFactory.create())
+
+fun randomGenerativeArtAssetType() = GenerativeArtAssetType(token = AddressFactory.create())
 
 fun randomErc1155LazyAssetType() =
     Erc1155LazyAssetType(
