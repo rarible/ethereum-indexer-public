@@ -2,6 +2,7 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
+import com.rarible.protocol.dto.IdsDto
 import com.rarible.protocol.dto.OrderActivitiesDto
 import com.rarible.protocol.dto.OrderActivityFilterDto
 import com.rarible.protocol.dto.SyncSortDto
@@ -122,22 +123,22 @@ class OrderActivityController(
     override suspend fun getOrderSellRightActivities(
         continuation: String?,
         size: Int?
-    ): ResponseEntity<OrderActivitiesDto> {
+    ): ResponseEntity<IdsDto> {
         val requestSize = PageSize.ORDER_ACTIVITY.limit(size)
         val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
         val historyFilter = ActivityExchangeHistoryFilter.AllSellRight(
-            ActivitySort.LATEST_FIRST,
+            ActivitySort.SYNC_EARLIEST_FIRST,
             continuationDto?.let { ContinuationConverter.convert(it) })
         val result = orderActivityService
-            .search(listOf(historyFilter), emptyList(), ActivitySort.LATEST_FIRST, requestSize)
-            .mapNotNull { orderActivityConverter.convert(it) }
+            .searchRight(historyFilter, ActivitySort.LATEST_FIRST, requestSize)
+            .map { it.toString() }
 
         val nextContinuation = if (result.isEmpty() || result.size < requestSize) {
             null
         } else {
-            ContinuationMapper.toSyncString(result.last())
+            result.last()
         }
-        val orderActivities = OrderActivitiesDto(nextContinuation, result)
-        return ResponseEntity.ok(orderActivities)
+        val idsDto = IdsDto(nextContinuation, result)
+        return ResponseEntity.ok(idsDto)
     }
 }

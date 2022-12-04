@@ -50,11 +50,11 @@ class OrderActivityControllerIt : AbstractIntegrationTest() {
             exchangeHistoryRepository.save(it).awaitFirst()
         }
         val dto = controller.getOrderSellRightActivities(null, size)
-        val orderList = dto.body?.items
+        val idsList = dto.body?.items
 
-        Assertions.assertThat(orderList).hasSize(2)
+        Assertions.assertThat(idsList).hasSize(2)
 
-        Assertions.assertThat(orderList?.map { it.id }).containsExactlyInAnyOrder(activity2.id.toHexString(),activity3.id.toHexString())
+        Assertions.assertThat(idsList).containsExactlyInAnyOrder(activity2.id.toHexString(),activity3.id.toHexString())
     }
 
     @Test

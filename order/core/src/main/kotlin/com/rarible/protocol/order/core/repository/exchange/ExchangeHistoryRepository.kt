@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.LogEventShort
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
@@ -166,6 +167,17 @@ class ExchangeHistoryRepository(
             query.withHint(hint)
         }
         return template.find(query.with(filter.sort.toMongo()), LogEvent::class.java, COLLECTION)
+    }
+
+    fun searchShortActivity(filter: ActivityExchangeHistoryFilter): Flux<ObjectId> {
+        val hint = filter.hint
+        val criteria = filter.getCriteria().and(LogEvent::status).isEqualTo(filter.status)
+        val query = Query(criteria)
+
+        if (hint != null) {
+            query.withHint(hint)
+        }
+        return template.find(query.with(filter.sort.toMongo()), LogEventShort::class.java, COLLECTION).map { it.id }
     }
 
     fun findByIds(ids: List<ObjectId>): Flux<LogEvent> {
