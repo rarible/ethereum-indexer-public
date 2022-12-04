@@ -54,7 +54,7 @@ sealed class ActivityExchangeHistoryFilter {
     class AllSellRight(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
         override fun getCriteria(): Criteria {
-            return AllSell(sort, null).getCriteria()
+            return (makeNftKey isEqualTo true sideMatch true)
                 .andOperator(orderSideMatchSide isEqualTo OrderSide.RIGHT)
                 .scrollTo(sort, continuation)
         }

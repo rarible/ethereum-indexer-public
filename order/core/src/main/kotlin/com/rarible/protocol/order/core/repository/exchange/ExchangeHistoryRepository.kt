@@ -62,7 +62,8 @@ class ExchangeHistoryRepository(
             "data.make.type.nft_1_data.maker_1_data.date_-1_id_-1",
             "data.make.type.token_1_data.make.type.tokenId_1_data.date_-1_id_-1",
             "data.make.type.token_1_data.make.type.tokenId_1_data.date_-1_id_-1",
-            "data.make.type.nft_1_data.date_1__id_-1"
+            "data.make.type.nft_1_data.date_1__id_-1",
+            "right_data.make.type.nft_1_data.date_1__id_1"
         )
     }
 
