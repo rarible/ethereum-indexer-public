@@ -44,6 +44,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import com.rarible.protocol.order.core.model.HeadTransaction
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OnChainOrder
 import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
 import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
 import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
@@ -486,6 +487,26 @@ fun createOrderSideMatch(): OrderSideMatch {
         takeValue = null
     )
 }
+
+fun createOnChainOrder(): OnChainOrder {
+    return OnChainOrder(
+        maker = randomAddress(),
+        taker = null,
+        make = randomErc721(),
+        take = randomErc20(),
+        orderType = OrderType.RARIBLE_V2,
+        salt = EthUInt256.of(randomBigInt()),
+        start = null,
+        end = null,
+        data = createOrderRaribleV1DataV3Buy(),
+        signature = null,
+        createdAt = nowMillis(),
+        platform = Platform.RARIBLE,
+        priceUsd = null,
+        hash = Word.apply(randomWord())
+    )
+}
+
 
 fun createLogEvent(
     data: EventData,

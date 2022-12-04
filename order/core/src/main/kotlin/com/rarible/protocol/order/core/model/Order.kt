@@ -116,7 +116,7 @@ data class Order(
         salt.value,
         start?.toBigInteger() ?: BigInteger.ZERO,
         end?.toBigInteger() ?: BigInteger.ZERO,
-        data.getDataVersion(),
+        data.toDataVersion(),
         data.toEthereum(wrongDataEncode).bytes()
     )
 
@@ -474,7 +474,7 @@ data class Order(
                         salt,
                         (start ?: 0).toBigInteger(),
                         (end ?: 0).toBigInteger(),
-                        data.getDataVersion(),
+                        data.toDataVersion(),
                         keccak256(data.toEthereum()).bytes()
                     )
                 )

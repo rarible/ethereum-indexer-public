@@ -1,17 +1,15 @@
 package com.rarible.protocol.order.core.model
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.protocol.order.core.data.randomAmmNftType
 import com.rarible.protocol.order.core.data.randomCollectionType
 import com.rarible.protocol.order.core.data.randomCryptoPunksAssetType
 import com.rarible.protocol.order.core.data.randomErc1155LazyAssetType
 import com.rarible.protocol.order.core.data.randomErc1155Type
-import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc20Type
 import com.rarible.protocol.order.core.data.randomErc721LazyAssetType
 import com.rarible.protocol.order.core.data.randomErc721Type
 import com.rarible.protocol.order.core.data.randomGenerativeArtAssetType
+import com.rarible.protocol.order.core.misc.MAPPER
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -19,9 +17,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
 internal class AssetTypeTest {
-    private val mapper = ObjectMapper()
-        .registerKotlinModule()
-        .registerModules()
 
     private companion object {
         private val assetTypes = listOf<Pair<AssetType, Class<*>>>(
@@ -51,8 +46,8 @@ internal class AssetTypeTest {
     @ParameterizedTest
     @MethodSource("assetTypesStream")
     fun `serialize and deserialize - ok`(assetType: AssetType, assetTypeClass: Class<*>) {
-        val jsonAssetType = mapper.writeValueAsString(assetType)
-        val deserializedAssetType = mapper.readValue(jsonAssetType, assetTypeClass)
-        assertThat(deserializedAssetType)
+        val jsonAssetType = MAPPER.writeValueAsString(assetType)
+        val deserializedAssetType = MAPPER.readValue(jsonAssetType, assetTypeClass)
+        assertThat(deserializedAssetType).isEqualTo(assetType)
     }
 }

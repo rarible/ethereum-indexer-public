@@ -58,7 +58,7 @@ class EncodeController(
                         .put("salt", salt.value.toString())
                         .put("start", start ?: 0L)
                         .put("end", end ?: 0L)
-                        .put("dataType", Binary.apply(data.getDataVersion()).toString())
+                        .put("dataType", Binary.apply(data.toDataVersion()).toString())
                         .put("data", data.toEthereum().toString())
                 }
                 EIP712SignMessageDto(
@@ -92,7 +92,7 @@ class EncodeController(
     ): ResponseEntity<EncodedOrderDataDto> {
         val source = OrderDataConverter.convert(data)
         val encodedOrderData = EncodedOrderDataDto(
-            Binary.apply(source.getDataVersion()),
+            Binary.apply(source.toDataVersion()),
             source.toEthereum()
         )
         return ResponseEntity.ok(encodedOrderData)

@@ -1,6 +1,8 @@
 package com.rarible.protocol.order.core.model
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
@@ -15,6 +17,12 @@ import scalether.domain.response.Transaction
 import java.math.BigDecimal
 import java.time.Instant
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = OrderSideMatch::class, name = "ORDER_SIDE_MATCH"),
+    JsonSubTypes.Type(value = OrderCancel::class, name = "CANCEL"),
+    JsonSubTypes.Type(value = OnChainOrder::class, name = "ON_CHAIN_ORDER"),
+)
 sealed class OrderExchangeHistory(var type: ItemType) : OrderHistory {
     abstract val make: Asset?
     abstract val take: Asset?
@@ -22,6 +30,7 @@ sealed class OrderExchangeHistory(var type: ItemType) : OrderHistory {
     abstract val maker: Address?
     abstract val source: HistorySource
 
+    @JsonIgnore
     fun isBid() = take?.type?.nft ?: false
 }
 

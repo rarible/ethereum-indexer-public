@@ -15,7 +15,7 @@ import scala.Tuple5
 import scalether.domain.Address
 import java.math.BigInteger
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "version")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "version")
 @JsonSubTypes(
     JsonSubTypes.Type(value = OrderDataLegacy::class, name = "LEGACY"),
     JsonSubTypes.Type(value = OrderRaribleV2DataV1::class, name = "RARIBLE_V2_DATA_V1"),
@@ -32,7 +32,7 @@ import java.math.BigInteger
 sealed class OrderData {
     abstract val version: OrderDataVersion
 
-    fun getDataVersion(): ByteArray? = version.ethDataType?.bytes()
+    fun toDataVersion(): ByteArray? = version.ethDataType?.bytes()
 
     abstract fun toEthereum(wrongEncode: Boolean = false): Binary
 }

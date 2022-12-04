@@ -240,7 +240,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             sellOrder.salt.value,
             sellOrder.start?.toBigInteger() ?: BigInteger.ZERO,
             sellOrder.end?.toBigInteger() ?: BigInteger.ZERO,
-            sellOrder.data.getDataVersion(),
+            sellOrder.data.toDataVersion(),
             sellOrder.data.toEthereum().bytes(),
             signature.bytes(),
             sellOrder.take.value.value,
