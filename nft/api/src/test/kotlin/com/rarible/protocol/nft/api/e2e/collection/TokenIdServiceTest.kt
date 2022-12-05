@@ -1,18 +1,27 @@
 package com.rarible.protocol.nft.api.e2e.collection
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.NftCollectionMetaDto
+import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.service.colllection.CollectionService
+import com.rarible.protocol.nft.core.converters.dto.ExtendedCollectionDtoConverter
 import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.TokenMeta
+import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
+import io.mockk.CoFunctionAnswer
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
@@ -31,11 +40,23 @@ class CollectionServiceIt {
     private val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
     private val publicKey = Sign.publicKeyFromPrivate(privateKey)
 
-    private val operator = OperatorProperties(Hex.prefixed(privateKey.toByteArray()))
+    private val mockOperator = OperatorProperties(Hex.prefixed(privateKey.toByteArray()))
+    private val properties = mockk<NftIndexerApiProperties> {
+        every { operator } returns mockOperator
+        every { metaTimeout } returns 1
+    }
     private val tokenRepository = mockk<TokenRepository>()
     private val tokenIdRepository = mockk<TokenIdRepository>()
     private val tokenRegistrationService = mockk<TokenRegistrationService>()
-    private val collectionService = CollectionService(operator, mockk(), tokenRegistrationService, tokenRepository, tokenIdRepository, mockk())
+    private val tokenMetaService = mockk<TokenMetaService>()
+    private val collectionService = CollectionService(
+        properties,
+        ExtendedCollectionDtoConverter(),
+        tokenRegistrationService,
+        tokenRepository,
+        tokenIdRepository,
+        tokenMetaService
+    )
 
     @BeforeEach
     fun setup() {
@@ -105,5 +126,33 @@ class CollectionServiceIt {
         assertThat(result.sign.r).isEqualTo(sign.r)
         assertThat(result.sign.s).isEqualTo(sign.s)
         assertThat(result.sign.v).isEqualTo(sign.v)
+    }
+
+    @Test
+    fun testMetaTimeout() = runBlocking<Unit> {
+        val token = createToken()
+
+        every { tokenRepository.findByIds(any()) } returns flowOf(token)
+        coEvery { tokenMetaService.get(any()) } answers CoFunctionAnswer {
+            delay(10_000)
+            TokenMeta(
+                properties = TokenProperties(
+                    name = "Bored ape",
+                    description = null,
+                    externalUri = null,
+                    feeRecipient = null,
+                    sellerFeeBasisPoints = null
+                )
+            )
+        }
+
+        val tokenWithMeta = collectionService.get(listOf(token.id))[0]
+
+        assertThat(tokenWithMeta.id).isEqualTo(token.id)
+        assertThat(tokenWithMeta.meta).isEqualTo(
+            NftCollectionMetaDto(
+                "Untitled"
+            )
+        )
     }
 }

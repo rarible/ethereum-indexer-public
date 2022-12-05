@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.api.service.colllection
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftCollectionDto
-import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
+import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.core.converters.dto.ExtendedCollectionDtoConverter
 import com.rarible.protocol.nft.core.model.ContractStatus
@@ -11,20 +11,19 @@ import com.rarible.protocol.nft.core.model.SignedTokenId
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenFilter
+import com.rarible.protocol.nft.core.model.TokenMeta
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
-import java.math.BigInteger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.withTimeoutOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.web3j.crypto.Sign
@@ -32,10 +31,11 @@ import org.web3j.utils.Numeric
 import scalether.abi.Uint256Type
 import scalether.domain.Address
 import scalether.util.Hex
+import java.math.BigInteger
 
 @Component
 class CollectionService(
-    operator: OperatorProperties,
+    private val nftIndexerApiProperties: NftIndexerApiProperties,
     private val collectionDtoConverter: ExtendedCollectionDtoConverter,
     private val tokenRegistrationService: TokenRegistrationService,
     private val tokenRepository: TokenRepository,
@@ -43,7 +43,7 @@ class CollectionService(
     private val tokenMetaService: TokenMetaService
 ) {
     private val logger = LoggerFactory.getLogger(CollectionService::class.java)
-    private val operatorPrivateKey = Numeric.toBigInt(Hex.toBytes(operator.privateKey))
+    private val operatorPrivateKey = Numeric.toBigInt(Hex.toBytes(nftIndexerApiProperties.operator.privateKey))
     private val operatorPublicKey = Sign.publicKeyFromPrivate(operatorPrivateKey)
 
     suspend fun get(collectionId: Address): NftCollectionDto {
@@ -114,7 +114,10 @@ class CollectionService(
     private suspend fun enrichWithMeta(tokens: List<Token>): List<ExtendedToken> = coroutineScope {
         tokens.map { token ->
             async {
-                val meta = tokenMetaService.get(token.id)
+                val meta = withTimeoutOrNull(timeMillis = nftIndexerApiProperties.metaTimeout) {
+                    tokenMetaService.get(token.id)
+                } ?: TokenMeta.EMPTY
+
                 ExtendedToken(token, meta)
             }
         }.awaitAll()

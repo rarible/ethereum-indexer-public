@@ -13,7 +13,8 @@ data class NftIndexerApiProperties(
     @NestedConfigurationProperty
     val operator: OperatorProperties,
     val skipHeavyRequest: Boolean = false,
-    val metaSyncLoadingTimeout: Long = 10000
+    val metaSyncLoadingTimeout: Long = 10000,
+    val metaTimeout: Long = 25_000
 ) {
     data class OperatorProperties(
         val privateKey: String
