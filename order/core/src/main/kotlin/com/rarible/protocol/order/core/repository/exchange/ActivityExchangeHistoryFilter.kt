@@ -52,14 +52,14 @@ sealed class ActivityExchangeHistoryFilter {
         }
     }
 
-    class AllSellRight(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
+    class AllSellRight(override val sort: ActivitySort, private val continuation: String?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.RIGHT_SELL_DEFINITION.indexKeys
         override fun getCriteria(): Criteria {
             return (makeNftKey isEqualTo true sideMatch true)
                 .andOperator(orderSideMatchSide isEqualTo OrderSide.RIGHT)
                 .apply {
                     if (continuation != null) {
-                        this.and("_id").gt(ObjectId(continuation.afterId))
+                        this.and("_id").gt(ObjectId(continuation))
                     }
                 }
         }

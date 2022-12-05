@@ -125,10 +125,9 @@ class OrderActivityController(
         size: Int?
     ): ResponseEntity<IdsDto> {
         val requestSize = PageSize.ORDER_ACTIVITY.limit(size)
-        val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
         val historyFilter = ActivityExchangeHistoryFilter.AllSellRight(
             ActivitySort.BY_ID,
-            continuationDto?.let { ContinuationConverter.convert(it) })
+            continuation)
         val result = orderActivityService
             .searchRight(historyFilter, ActivitySort.LATEST_FIRST, requestSize)
             .map { it.toString() }
