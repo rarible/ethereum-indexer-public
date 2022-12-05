@@ -21,9 +21,7 @@ object ExchangeHistoryRepositoryIndexes {
         .on("${LogEvent::data.name}.${OrderExchangeHistory::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on("${LogEvent::data.name}.${OrderSideMatch::type.name}", Sort.Direction.ASC)
         .on("${LogEvent::data.name}.${OrderSideMatch::side.name}", Sort.Direction.ASC)
-        .on("${LogEvent::data.name}.${OrderExchangeHistory::date.name}", Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
-        .named("right_2_data.make.type.nft_1_data.date_1__id_1")
         .background()
 
     val ALL_BID_DEFINITION: Index = Index()
