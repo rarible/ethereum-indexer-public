@@ -144,6 +144,9 @@ sealed class ActivityExchangeHistoryFilter {
                     LogEvent::updatedAt gt continuation.afterDate,
                     (LogEvent::updatedAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
                 )
+            ActivitySort.BY_ID ->
+                this.and("_id").gt(continuation.afterId.safeQueryParam())
+
         }
 
     protected fun Criteria.dateBoundary(
@@ -166,6 +169,7 @@ sealed class ActivityExchangeHistoryFilter {
             ActivitySort.EARLIEST_FIRST -> this.and(LogEvent::data / OrderExchangeHistory::date).lte(end)
             ActivitySort.SYNC_LATEST_FIRST -> this.and(LogEvent::updatedAt).gte(start)
             ActivitySort.SYNC_EARLIEST_FIRST -> this.and(LogEvent::updatedAt).lte(end)
+            ActivitySort.BY_ID -> this.and(LogEvent::id).gt(end)
         }
     }
 }
