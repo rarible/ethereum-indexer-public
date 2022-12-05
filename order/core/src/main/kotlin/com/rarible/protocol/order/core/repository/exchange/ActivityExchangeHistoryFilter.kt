@@ -16,6 +16,7 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import org.bson.Document
+import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.exists
@@ -52,11 +53,15 @@ sealed class ActivityExchangeHistoryFilter {
     }
 
     class AllSellRight(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
-        override val hint: Document = ExchangeHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
+        override val hint: Document = ExchangeHistoryRepositoryIndexes.RIGHT_SELL_DEFINITION.indexKeys
         override fun getCriteria(): Criteria {
             return (makeNftKey isEqualTo true sideMatch true)
                 .andOperator(orderSideMatchSide isEqualTo OrderSide.RIGHT)
-                .scrollTo(sort, continuation)
+                .apply {
+                    if (continuation != null) {
+                        this.and("_id").gt(ObjectId(continuation.afterId))
+                    }
+                }
         }
     }
 

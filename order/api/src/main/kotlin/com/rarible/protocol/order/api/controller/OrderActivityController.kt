@@ -136,7 +136,7 @@ class OrderActivityController(
         val nextContinuation = if (result.isEmpty() || result.size < requestSize) {
             null
         } else {
-            "0_${result.last()}"
+            result.last()
         }
         val idsDto = IdsDto(nextContinuation, result)
         return ResponseEntity.ok(idsDto)
