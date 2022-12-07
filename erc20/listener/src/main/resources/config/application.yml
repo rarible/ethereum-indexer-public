@@ -35,6 +35,9 @@ rarible:
   blockchain:
     monitoring:
       blockchain: ${listener.blockchain}
+  ethereum:
+    cache:
+      enabled: true
 
 common:
   metric-root-path: "protocol.erc20.indexer"

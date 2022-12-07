@@ -36,6 +36,8 @@ rarible:
       k8s: true
   ethereum:
     max-frame-size: 104857600
+    cache:
+      enabled: true
     converter:
       enabled: true
     read-only-transaction-sender:

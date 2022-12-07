@@ -5,6 +5,7 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
+import com.rarible.ethereum.cache.CacheableMonoEthereum
 import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.NftCollectionEventDto
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Primary
 import scalether.core.MonoEthereum
 import scalether.transaction.MonoTransactionPoller
+import java.time.Duration
 
 @TestConfiguration
 @ComponentScan(basePackageClasses = [IntegrationTest::class])
@@ -35,7 +37,12 @@ class TestConfiguration {
 
     @Bean
     fun testEthereum(@Value("\${parityUrls}") url: String): MonoEthereum {
-        return MonoEthereum(WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000))
+        val transport = WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000)
+        return CacheableMonoEthereum(
+            transport = transport,
+            expireAfter = Duration.ofMinutes(1),
+            cacheMaxSize = 100
+        )
     }
 
     @Bean
