@@ -114,7 +114,8 @@ data class OrderIndexerProperties(
         val searchSudoSwapErc1155Transfer: Boolean = false,
         val checkMinimalBidPrice: Boolean = false,
         val checkMinimalCollectionBidPriceOnly: Boolean = false,
-        val scannerVersion: ScannerVersion = ScannerVersion.V1
+        val scannerVersion: ScannerVersion = ScannerVersion.V1,
+        val enableAuction: Boolean = false
     )
 
     data class RaribleOrderExpirationProperties(

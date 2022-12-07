@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.auction.v1.event.BidPlacedEvent
+import com.rarible.protocol.order.core.configuration.EnableAuction
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -12,6 +13,7 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
+@EnableAuction
 class AuctionBidDescriptor(
     contractsProvider: ContractsProvider,
     private val prizeNormalizer: PriceNormalizer,

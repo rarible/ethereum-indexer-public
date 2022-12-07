@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.auction.v1.event.AuctionFinishedEvent
+import com.rarible.protocol.order.core.configuration.EnableAuction
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.ContractsProvider
 import org.springframework.stereotype.Service
@@ -10,6 +11,7 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
+@EnableAuction
 class AuctionFinishedDescriptor(
     contractsProvider: ContractsProvider,
 ) : AbstractAuctionDescriptor<AuctionFinished>(AuctionFinishedEvent.id(), contractsProvider) {

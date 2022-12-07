@@ -43,6 +43,7 @@ common:
     publishAuctionActivity: true
   feature-flags:
     check-on-chain-approve: true
+    enable-auction: true
 
 listener:
   load-open-sea-orders: false

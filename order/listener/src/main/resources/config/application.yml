@@ -28,6 +28,8 @@ rarible:
       enabled: true
     read-only-transaction-sender:
       enabled: true
+    cache:
+      enabled: true
   core:
     apm:
       agent:

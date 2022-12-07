@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.integration
 
 import com.rarible.core.common.nowMillis
+import com.rarible.ethereum.cache.CacheableMonoEthereum
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
@@ -21,12 +22,18 @@ import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionPoller
 import scalether.transaction.ReadOnlyMonoTransactionSender
+import java.time.Duration
 
 @TestConfiguration
 class TestPropertiesConfiguration {
     @Bean
     fun testEthereum(@Value("\${parityUrls}") url: String): MonoEthereum {
-        return MonoEthereum(WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000))
+        val transport = WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000)
+        return CacheableMonoEthereum(
+            transport = transport,
+            expireAfter = Duration.ofMinutes(1),
+            cacheMaxSize = 100
+        )
     }
 
     @Bean
