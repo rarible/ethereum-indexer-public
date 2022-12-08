@@ -97,13 +97,6 @@ class TokenRegistrationService(
         return savedToken
     }
 
-    fun updateFeatures(token: Token): Mono<Token> {
-        logger.info("updateFeatures ${token.id}")
-        return fetchFeatures(token.id)
-            .map { token.copy(features = it) }
-            .flatMap { tokenRepository.save(it) }
-    }
-
     private fun fetchToken(address: Address): Mono<Token> {
         val nft = IERC721(address, sender)
         val ownable = Ownable(address, sender)
@@ -123,16 +116,17 @@ class TokenRegistrationService(
                 owner = owner.orNull()
             )
         }.flatMap {  token ->
-            filterTokenByteCode(token)
+            detectScam(token)
         }.withSpan(name = "fetchToken", labels = listOf("address" to address.toString()))
     }
 
-    private fun <T> Mono<T>.emptyIfError(): Mono<Optional<T>> {
-        return this.map { Optional.ofNullable(it) }
+    private fun <T : Any> Mono<T>.emptyIfError(): Mono<Optional<T>> {
+        return this
+            .map { Optional.ofNullable(it) }
             .onErrorResume { Mono.just(Optional.empty()) }
     }
 
-    private fun filterTokenByteCode(token: Token): Mono<Token> = mono {
+    fun detectScam(token: Token): Mono<Token> = mono {
         val code = tokenByteCodeProvider.fetchByteCode(token.id) ?: return@mono token
         val isValidToken = tokeByteCodeFilters.all { it.isValid(code) }
         if (isValidToken) {
