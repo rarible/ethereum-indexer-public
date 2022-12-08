@@ -15,10 +15,12 @@ data class ByteCodeMarker(
     }
 }
 
-data class ByteCodeFragment(
+class ByteCodeFragment(
     val offset: Int,
-    val fragment: Binary
+    fragment: String
 ) {
+    val fragment: Binary = Binary.apply(fragment)
+
     fun matchFragment(code: Binary): Boolean {
         return code.length() >= (offset + fragment.length()) &&
                code.slice(offset, offset + fragment.length()) == fragment
