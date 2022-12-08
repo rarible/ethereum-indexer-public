@@ -19,6 +19,7 @@ import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.model.calculateFunctionId
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
+import com.rarible.protocol.nft.core.service.token.filter.TokeByteCodeFilter
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.reactive.awaitFirst
@@ -43,6 +44,7 @@ class TokenRegistrationService(
     private val tokenRepository: TokenRepository,
     private val sender: MonoTransactionSender,
     private val tokenByteCodeProvider: TokenByteCodeProvider,
+    private val tokeByteCodeFilters: List<TokeByteCodeFilter>,
     @Value("\${nft.token.cache.max.size:10000}") private val cacheMaxSize: Long,
 ) {
     private val cache = CacheBuilder.newBuilder()
@@ -120,12 +122,27 @@ class TokenRegistrationService(
                 standard = standard,
                 owner = owner.orNull()
             )
+        }.flatMap {  token ->
+            filterTokenByteCode(token)
         }.withSpan(name = "fetchToken", labels = listOf("address" to address.toString()))
     }
 
     private fun <T> Mono<T>.emptyIfError(): Mono<Optional<T>> {
         return this.map { Optional.ofNullable(it) }
             .onErrorResume { Mono.just(Optional.empty()) }
+    }
+
+    private fun filterTokenByteCode(token: Token): Mono<Token> = mono {
+        val code = tokenByteCodeProvider.fetchByteCode(token.id) ?: return@mono token
+        val isValidToken = tokeByteCodeFilters.all { it.isValid(code) }
+        if (isValidToken) {
+            token
+        } else {
+            token.copy(
+                standard =TokenStandard.NONE,
+                scam = true
+            )
+        }
     }
 
     private suspend fun fetchTokenStandard(address: Address): TokenStandard {

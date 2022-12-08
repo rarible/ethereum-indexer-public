@@ -29,7 +29,8 @@ data class Token(
     // Better off would be to introduce a TokenVersion enum (RPN-1264).
     val isRaribleContract: Boolean = false,
     val deleted: Boolean = false,
-    override val revertableEvents: List<TokenEvent> = emptyList()
+    override val revertableEvents: List<TokenEvent> = emptyList(),
+    val scam: Boolean = false
 ) : Entity<Address, TokenEvent, Token> {
 
     override fun withRevertableEvents(events: List<TokenEvent>): Token {

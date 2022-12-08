@@ -19,7 +19,7 @@ class TokenRegistrationServiceMainNetTest {
     private val tokenRepository = mockk<TokenRepository>()
     private val sender = createSender()
     private val tokenByteCodeProvider = TokenByteCodeProvider(sender, 3, 5, 1, Duration.ofMinutes(1))
-    private val service = TokenRegistrationService(tokenRepository, sender, tokenByteCodeProvider, 1)
+    private val service = TokenRegistrationService(tokenRepository, sender, tokenByteCodeProvider, emptyList(), 1)
 
     private fun createSender() = ReadOnlyMonoTransactionSender(
         MonoEthereum(

@@ -26,7 +26,7 @@ internal class TokenRegistrationServiceUnitTest {
     private val tokenRepository = mockk<TokenRepository>()
     private val sender = mockk<MonoTransactionSender>()
     private val tokenByteCodeProvider = TokenByteCodeProvider(sender, 3, 5, 1, Duration.ofMinutes(1))
-    private val tokenRegistrationService = TokenRegistrationService(tokenRepository, sender, tokenByteCodeProvider, 1)
+    private val tokenRegistrationService = TokenRegistrationService(tokenRepository, sender, tokenByteCodeProvider, emptyList(), 1)
 
     @Test
     fun `should return NONE token standard on RpcCodeException`() = runBlocking<Unit> {
@@ -69,7 +69,7 @@ internal class TokenRegistrationServiceUnitTest {
 
     @Test
     fun `cache limit`() = runBlocking<Unit> {
-        val limitedCache = TokenRegistrationService(tokenRepository, mockk(), tokenByteCodeProvider, 3)
+        val limitedCache = TokenRegistrationService(tokenRepository, mockk(), tokenByteCodeProvider, emptyList(), 3)
 
         every { tokenRepository.findById(any()) } answers {
             Token(
