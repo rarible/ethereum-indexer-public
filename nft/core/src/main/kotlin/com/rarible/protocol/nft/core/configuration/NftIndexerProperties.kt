@@ -4,7 +4,9 @@ import com.rarible.blockchain.scanner.ethereum.reduce.MetricProperties
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.misc.toAddressSet
+import com.rarible.protocol.nft.core.model.ByteCodeMarker
 import com.rarible.protocol.nft.core.model.FeatureFlags
+import io.daonomic.rpc.domain.Binary
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.time.Duration
@@ -36,7 +38,8 @@ data class NftIndexerProperties(
     val contractAddresses: ContractAddresses = ContractAddresses(),
     val action: ActionProperties = ActionProperties(),
     val collection: CollectionProperties = CollectionProperties(),
-    val ipfs: IpfsProperties
+    val scamByteCodes: ScamByteCodeProperties = ScamByteCodeProperties(),
+    val ipfs: IpfsProperties,
 ) : MetricProperties {
     data class ActionProperties(
         val burnDelay: Duration = Duration.ofHours(24)
@@ -66,5 +69,9 @@ data class NftIndexerProperties(
 
     data class CollectionProperties(
         val tokenIdInitialValue: Long = 0
+    )
+
+    data class ScamByteCodeProperties(
+        val markers: List<ByteCodeMarker> = emptyList()
     )
 }

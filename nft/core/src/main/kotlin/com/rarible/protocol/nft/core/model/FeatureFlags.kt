@@ -11,5 +11,6 @@ data class FeatureFlags(
     val enableProxyForMetaDownload: Boolean = false,
     @Deprecated("Need remove this flag in release 1.31")
     val pendingDisabled: Boolean = true,
-    val enableTokenMetaSelfRepair: Boolean = false
+    val enableTokenMetaSelfRepair: Boolean = false,
+    val filterScamToken: Boolean = false
 )

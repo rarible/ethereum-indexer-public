@@ -63,6 +63,11 @@ class CoreConfiguration(
     }
 
     @Bean
+    fun scamByteCodeProperties(): NftIndexerProperties.ScamByteCodeProperties {
+        return properties.scamByteCodes
+    }
+
+    @Bean
     fun collectionProperties(): NftIndexerProperties.CollectionProperties {
         return properties.collection
     }
