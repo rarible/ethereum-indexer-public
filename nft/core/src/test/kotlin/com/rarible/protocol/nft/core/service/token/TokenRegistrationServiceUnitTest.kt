@@ -20,11 +20,13 @@ import scala.Option
 import scalether.domain.AddressFactory
 import scalether.transaction.MonoTransactionSender
 import java.io.IOException
+import java.time.Duration
 
 internal class TokenRegistrationServiceUnitTest {
     private val tokenRepository = mockk<TokenRepository>()
     private val sender = mockk<MonoTransactionSender>()
-    private val tokenRegistrationService = TokenRegistrationService(tokenRepository, sender, 1000, 3, 1)
+    private val tokenByteCodeProvider = TokenByteCodeProvider(sender, 3, 5, 1, Duration.ofMinutes(1))
+    private val tokenRegistrationService = TokenRegistrationService(tokenRepository, sender, tokenByteCodeProvider, 1)
 
     @Test
     fun `should return NONE token standard on RpcCodeException`() = runBlocking<Unit> {
@@ -67,7 +69,7 @@ internal class TokenRegistrationServiceUnitTest {
 
     @Test
     fun `cache limit`() = runBlocking<Unit> {
-        val limitedCache = TokenRegistrationService(tokenRepository, mockk(), 3, 3, 1)
+        val limitedCache = TokenRegistrationService(tokenRepository, mockk(), tokenByteCodeProvider, 3)
 
         every { tokenRepository.findById(any()) } answers {
             Token(

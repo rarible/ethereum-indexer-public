@@ -12,11 +12,14 @@ import org.junit.jupiter.api.Test
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
+import java.time.Duration
 
 @Disabled
 class TokenRegistrationServiceMainNetTest {
     private val tokenRepository = mockk<TokenRepository>()
-    private val service = TokenRegistrationService(tokenRepository, createSender(), 1000, 3, 1)
+    private val sender = createSender()
+    private val tokenByteCodeProvider = TokenByteCodeProvider(sender, 3, 5, 1, Duration.ofMinutes(1))
+    private val service = TokenRegistrationService(tokenRepository, sender, tokenByteCodeProvider, 1)
 
     private fun createSender() = ReadOnlyMonoTransactionSender(
         MonoEthereum(

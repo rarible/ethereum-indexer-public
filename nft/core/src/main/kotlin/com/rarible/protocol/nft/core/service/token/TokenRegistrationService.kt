@@ -21,8 +21,6 @@ import com.rarible.protocol.nft.core.model.calculateFunctionId
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
-import javassist.bytecode.Bytecode
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
@@ -40,13 +38,13 @@ import scalether.transaction.MonoTransactionSender
 import java.util.*
 
 @Service
+@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class TokenRegistrationService(
     private val tokenRepository: TokenRepository,
     private val sender: MonoTransactionSender,
+    private val tokenByteCodeProvider: TokenByteCodeProvider,
     @Value("\${nft.token.cache.max.size:10000}") private val cacheMaxSize: Long,
-    @Value("\${nft.token.registration.retryCount:3}") private val retryCount: Int,
-    @Value("\${nft.token.registration.retryDelay:5000}") private val retryDelay: Long,
-    ) {
+) {
     private val cache = CacheBuilder.newBuilder()
         .maximumSize(cacheMaxSize)
         .build<Address, TokenStandard>()
@@ -161,8 +159,7 @@ class TokenRegistrationService(
 
     suspend fun fetchTokenStandardByFunctionSignatures(sender: MonoTransactionSender, address: Address): TokenStandard {
         logStandard(address, "determine standard by presence of function signatures")
-
-        val bytecode = getBytecodeWithRetry(address) ?: return TokenStandard.NONE
+        val bytecode = getBytecode(address) ?: return TokenStandard.NONE
 
         val hexBytecode = bytecode.hex()
         for (standard in TokenStandard.values()) {
@@ -192,7 +189,7 @@ class TokenRegistrationService(
 
     private fun fetchFeatures(address: Address): Mono<Set<TokenFeature>> {
         return Mono.zip(
-            sender.ethereum().ethGetCode(address, "latest")
+            getBytecodeWithMono(address)
                 .map { it.toString() }
                 .map { code ->
                     FEATURES.entries
@@ -227,30 +224,11 @@ class TokenRegistrationService(
             .onErrorResume { false.toMono() }
     }
 
-    private suspend fun getBytecodeWithRetry(address: Address): Binary? {
-        var retriesLeft = retryCount
-        var bytecode: Binary?
-
-        while (retriesLeft > 0) {
-            bytecode = try {
-                sender.ethereum()
-                    .ethGetCode(address, "latest")
-                    .awaitFirstOrNull()
-            } catch (e: Exception) {
-                logStandard(address, "failed to get contract bytecode: ${e.message}")
-                null
-            }
-
-            if (bytecode?.hex().isNullOrEmpty()) {
-                delay(retryDelay)
-                retriesLeft--
-            } else {
-                return bytecode
-            }
-        }
-
-        return null
+    private suspend fun getBytecode(address: Address): Binary? {
+        return tokenByteCodeProvider.fetchByteCode(address)
     }
+
+    private fun getBytecodeWithMono(address: Address): Mono<Binary> = mono { getBytecode(address) }
 
     companion object {
         val FEATURES = mapOf(
