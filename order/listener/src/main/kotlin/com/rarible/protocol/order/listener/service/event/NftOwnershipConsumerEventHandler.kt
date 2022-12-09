@@ -15,7 +15,6 @@ class NftOwnershipConsumerEventHandler(
 
     override suspend fun handle(event: NftOwnershipEventDto) {
         logger.info("Got nft ownership event: $event")
-        delay(Duration.ofSeconds(10))
         orderBalanceService.handle(event)
     }
 }

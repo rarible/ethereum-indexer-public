@@ -15,7 +15,6 @@ class Erc20BalanceConsumerEventHandler(
 
     override suspend fun handle(event: Erc20BalanceEventDto) {
         logger.info("Got erc20 event: $event")
-        delay(Duration.ofSeconds(10))
         orderBalanceService.handle(event)
     }
 }
