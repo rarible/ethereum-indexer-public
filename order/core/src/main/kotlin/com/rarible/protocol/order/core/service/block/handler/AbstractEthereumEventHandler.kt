@@ -4,7 +4,6 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import org.slf4j.LoggerFactory
 
 abstract class AbstractEthereumEventHandler<E>(
     private val properties: OrderIndexerProperties.EthereumEventHandleProperties,
@@ -21,7 +20,6 @@ abstract class AbstractEthereumEventHandler<E>(
     }
 
     private suspend fun parallel(events: List<E>) = coroutineScope {
-        logger.info("Order event parallel handle")
         events
             .chunked(properties.chunkSize)
             .map { chunk ->
@@ -33,8 +31,5 @@ abstract class AbstractEthereumEventHandler<E>(
             }
             .flatten()
             .lastOrNull()
-        logger.info("Order event parallel handle, end ok")
     }
-
-    private val logger = LoggerFactory.getLogger(javaClass)
 }
