@@ -4,13 +4,13 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import com.rarible.protocol.order.core.model.ActivityResult
+import com.rarible.protocol.order.core.model.ActivitySort
+import com.rarible.protocol.order.core.model.OrderActivityResult
+import com.rarible.protocol.order.core.model.PoolActivityResult
 import com.rarible.protocol.order.core.repository.exchange.ActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.ActivityOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.model.ActivitySort
-import com.rarible.protocol.order.core.model.OrderActivityResult
-import com.rarible.protocol.order.core.model.PoolActivityResult
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import org.bson.types.ObjectId
@@ -46,7 +46,18 @@ class OrderActivityService(
         ).take(size.toLong()).collectList().awaitFirst()
     }
 
-    suspend fun findByIds(ids: List<ObjectId>) : List<OrderActivityResult> {
+    suspend fun searchRight(
+        historyFilter: ActivityExchangeHistoryFilter,
+        sort: ActivitySort,
+        size: Int
+    ): List<ObjectId> {
+
+        return exchangeHistoryRepository
+            .searchShortActivity(historyFilter)
+            .take(size.toLong()).collectList().awaitFirst()
+    }
+
+    suspend fun findByIds(ids: List<ObjectId>): List<OrderActivityResult> {
         val histories = exchangeHistoryRepository.findByIds(ids).map { OrderActivityResult.History(it) }
         val versions = orderVersionRepository.findByIds(ids).map { OrderActivityResult.Version(it) }
         val pools = poolHistoryRepository.findByIds(ids).map { PoolActivityResult.History(it.toReversedEthereumLogRecord()) }

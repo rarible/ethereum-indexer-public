@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.LogEventShort
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
@@ -61,7 +62,8 @@ class ExchangeHistoryRepository(
             "data.make.type.nft_1_data.maker_1_data.date_-1_id_-1",
             "data.make.type.token_1_data.make.type.tokenId_1_data.date_-1_id_-1",
             "data.make.type.token_1_data.make.type.tokenId_1_data.date_-1_id_-1",
-            "data.make.type.nft_1_data.date_1__id_-1"
+            "data.make.type.nft_1_data.date_1__id_-1",
+            "right_data.make.type.nft_1_data.date_1__id_1"
         )
     }
 
@@ -168,6 +170,17 @@ class ExchangeHistoryRepository(
         return template.find(query.with(filter.sort.toMongo()), LogEvent::class.java, COLLECTION)
     }
 
+    fun searchShortActivity(filter: ActivityExchangeHistoryFilter): Flux<ObjectId> {
+        val hint = filter.hint
+        val criteria = filter.getCriteria().and(LogEvent::status).isEqualTo(filter.status)
+        val query = Query(criteria)
+
+        if (hint != null) {
+            query.withHint(hint)
+        }
+        return template.find(query.with(filter.sort.toMongo()), LogEventShort::class.java, COLLECTION).map { it.id }
+    }
+
     fun findByIds(ids: List<ObjectId>): Flux<LogEvent> {
         val query = Query(LogEvent::id inValues ids)
         return template.find(query, LogEvent::class.java, COLLECTION)
@@ -194,6 +207,9 @@ class ExchangeHistoryRepository(
             )
             ActivitySort.SYNC_EARLIEST_FIRST -> Sort.by(
                 Sort.Order.asc(LogEvent::updatedAt.name),
+                Sort.Order.asc(LogEvent::id.name)
+            )
+            ActivitySort.BY_ID -> Sort.by(
                 Sort.Order.asc(LogEvent::id.name)
             )
         }

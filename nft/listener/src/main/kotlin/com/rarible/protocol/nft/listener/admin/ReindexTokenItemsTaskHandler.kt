@@ -13,6 +13,7 @@ import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.admin.descriptor.AdminErc1155TransferLogDescriptor
 import com.rarible.protocol.nft.listener.admin.descriptor.AdminErc721TransferLogDescriptor
 import com.rarible.protocol.nft.listener.configuration.EnableOnScannerV1
+import com.rarible.protocol.nft.listener.service.ignored.IgnoredTokenResolver
 import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,7 @@ class ReindexTokenItemsTaskHandler(
     private val customMintDetector: CustomMintDetector,
     private val logListenService: LogListenService,
     private val tokenRegistrationService: TokenRegistrationService,
+    private val ignoredTokenResolver: IgnoredTokenResolver,
     private val ethereum: MonoEthereum
 ) : TaskHandler<Long> {
 
@@ -58,10 +60,10 @@ class ReindexTokenItemsTaskHandler(
     private fun reindexTokenItems(params: ReindexTokenItemsTaskParams, from: Long?, end: Long): Flux<LongRange> {
         val descriptor = when (params.standard) {
             TokenStandard.ERC721 -> AdminErc721TransferLogDescriptor(
-                tokenRegistrationService, customMintDetector, params.tokens
+                tokenRegistrationService, customMintDetector, ignoredTokenResolver, params.tokens
             )
             // TODO Maybe we need custom mint detector here too?
-            TokenStandard.ERC1155 -> AdminErc1155TransferLogDescriptor(tokenRegistrationService, params.tokens)
+            TokenStandard.ERC1155 -> AdminErc1155TransferLogDescriptor(tokenRegistrationService, ignoredTokenResolver, params.tokens)
             TokenStandard.CRYPTO_PUNKS, TokenStandard.DEPRECATED, TokenStandard.NONE -> return Flux.empty()
         }
         return logListenService.reindexWithDescriptor(descriptor, from ?: 1, end)

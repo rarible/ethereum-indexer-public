@@ -6,7 +6,6 @@ import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.misc.toAddressSet
 import com.rarible.protocol.nft.core.model.ByteCodeMarker
 import com.rarible.protocol.nft.core.model.FeatureFlags
-import io.daonomic.rpc.domain.Binary
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.time.Duration
@@ -40,6 +39,7 @@ data class NftIndexerProperties(
     val collection: CollectionProperties = CollectionProperties(),
     val scamByteCodes: ScamByteCodeProperties = ScamByteCodeProperties(),
     val ipfs: IpfsProperties,
+    val ownershipFetchBatchSize: Int = 1000,
 ) : MetricProperties {
     data class ActionProperties(
         val burnDelay: Duration = Duration.ofHours(24)

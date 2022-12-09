@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import com.rarible.protocol.nft.core.repository.InconsistentItemRepository
 import com.rarible.protocol.nft.core.repository.JobStateRepository
 import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService
-import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.Companion.CURRENT_FIX_VERSION
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
@@ -125,7 +124,7 @@ class InconsistentItemsRepairJobHandlerIt : AbstractIntegrationTest() {
 
         // then
         assertThat(actual.status).isEqualTo(InconsistentItemStatus.FIXED)
-        assertThat(actual.fixVersionApplied).isEqualTo(CURRENT_FIX_VERSION)
+        assertThat(actual.fixVersionApplied).isEqualTo(2)
         assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 1)
         assertThat(fixedCounter.count()).isEqualTo(fixedBefore + 1)
     }
@@ -153,7 +152,7 @@ class InconsistentItemsRepairJobHandlerIt : AbstractIntegrationTest() {
 
         // then
         assertThat(actual.status).isEqualTo(InconsistentItemStatus.UNFIXED)
-        assertThat(actual.fixVersionApplied).isEqualTo(CURRENT_FIX_VERSION)
+        assertThat(actual.fixVersionApplied).isEqualTo(3)
         assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
         assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 1)
         assertThat(unfixedCounter.count()).isEqualTo(unfixedBefore + 1)
@@ -166,7 +165,7 @@ class InconsistentItemsRepairJobHandlerIt : AbstractIntegrationTest() {
         initHandler()
         val inconsistentItem = createRandomInconsistentItem().copy(
             status = InconsistentItemStatus.UNFIXED,
-            fixVersionApplied = CURRENT_FIX_VERSION,
+            fixVersionApplied = 2,
         )
         inconsistentItemRepository.save(inconsistentItem)
 
@@ -198,7 +197,7 @@ class InconsistentItemsRepairJobHandlerIt : AbstractIntegrationTest() {
             tokenId = item.tokenId,
             status = InconsistentItemStatus.RELAPSED,
             relapseCount = 1,
-            fixVersionApplied = CURRENT_FIX_VERSION - 1,
+            fixVersionApplied = 1,
         )
         inconsistentItemRepository.save(inconsistentItem)
 
@@ -208,7 +207,7 @@ class InconsistentItemsRepairJobHandlerIt : AbstractIntegrationTest() {
 
         // then
         assertThat(actual.status).isEqualTo(InconsistentItemStatus.FIXED)
-        assertThat(actual.fixVersionApplied).isEqualTo(CURRENT_FIX_VERSION)
+        assertThat(actual.fixVersionApplied).isEqualTo(2)
 
         assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
         assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 1)

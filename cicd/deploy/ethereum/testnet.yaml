@@ -1,6 +1,11 @@
 global:
   network: rinkeby
 
+ethereum-nft-api:
+  resources:
+    jvm:
+      max_direct_memory_megabytes: 64
+
 ethereum-nft-listener:
   livenessProbe:
     initialDelaySeconds: 360
@@ -16,6 +21,12 @@ ethereum-order-listener:
     jvm:
       xmx_megabytes: 512
       max_direct_memory_megabytes: 256
+
+ethereum-erc20-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 512
 
 ethereum-gateway:
   service:

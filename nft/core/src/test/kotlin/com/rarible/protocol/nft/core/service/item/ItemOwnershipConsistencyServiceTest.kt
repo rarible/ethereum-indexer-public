@@ -7,7 +7,8 @@ import com.rarible.protocol.nft.core.data.createRandomOwnership
 import com.rarible.protocol.nft.core.model.ItemProblemType
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
-import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService.Companion.CURRENT_FIX_VERSION
+import com.rarible.protocol.nft.core.service.ownership.OwnershipService
+import com.rarible.protocol.nft.core.service.ownership.reduce.OwnershipUpdateService
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
@@ -29,7 +30,10 @@ class ItemOwnershipConsistencyServiceTest {
     private lateinit var itemReduceService: ItemReduceService
 
     @RelaxedMockK
-    private lateinit var ownershipRepository: OwnershipRepository
+    private lateinit var ownershipService: OwnershipService
+
+    @RelaxedMockK
+    private lateinit var ownershipUpdateService: OwnershipUpdateService
 
     @RelaxedMockK
     private lateinit var itemRepository: ItemRepository
@@ -37,13 +41,16 @@ class ItemOwnershipConsistencyServiceTest {
     @InjectMockKs
     private lateinit var service: ItemOwnershipConsistencyService
 
+    private val FIRST_FIX_VERSION = 2
+    private val LAST_FIX_VERSION = 3
+
     @Test
     fun `should check item - success`() = runBlocking<Unit> {
         // given
         val item = createRandomItem().copy(supply = EthUInt256.Companion.of(5))
         val ownership1 = createRandomOwnership().copy(value = EthUInt256.Companion.of(3))
         val ownership2 = createRandomOwnership().copy(value = EthUInt256.Companion.of(2))
-        coEvery { ownershipRepository.search(any()) } returns listOf(ownership1, ownership2)
+        coEvery { ownershipService.search(any(), any(), any()) } returns listOf(ownership1, ownership2)
 
         // when
         val actual = service.checkItem(item)
@@ -51,9 +58,9 @@ class ItemOwnershipConsistencyServiceTest {
         // then
         assertThat(actual).isExactlyInstanceOf(ItemOwnershipConsistencyService.CheckResult.Success::class.java)
         coVerify {
-            ownershipRepository.search(any())
+            ownershipService.search(any(), any(), any())
         }
-        confirmVerified(ownershipRepository)
+        confirmVerified(ownershipService)
     }
 
     @Test
@@ -62,7 +69,7 @@ class ItemOwnershipConsistencyServiceTest {
         val item = createRandomItem().copy(supply = EthUInt256.Companion.of(10))
         val ownership1 = createRandomOwnership().copy(value = EthUInt256.Companion.of(3))
         val ownership2 = createRandomOwnership().copy(value = EthUInt256.Companion.of(2))
-        coEvery { ownershipRepository.search(any()) } returns listOf(ownership1, ownership2)
+        coEvery { ownershipService.search(any(), any(), any()) } returns listOf(ownership1, ownership2)
 
         // when
         val actual = service.checkItem(item)
@@ -74,9 +81,9 @@ class ItemOwnershipConsistencyServiceTest {
         assertThat(actual.supply).isEqualTo(item.supply)
         assertThat(actual.ownerships).isEqualTo(EthUInt256.of(5))
         coVerify {
-            ownershipRepository.search(any())
+            ownershipService.search(any(), any(), any())
         }
-        confirmVerified(ownershipRepository)
+        confirmVerified(ownershipService)
     }
 
     @Test
@@ -85,7 +92,7 @@ class ItemOwnershipConsistencyServiceTest {
         val item = createRandomItem().copy(supply = EthUInt256.Companion.of(5))
         val ownership1 = createRandomOwnership().copy(value = EthUInt256.Companion.of(3))
         val ownership2 = createRandomOwnership().copy(value = EthUInt256.Companion.of(2))
-        coEvery { ownershipRepository.search(any()) } returns listOf(ownership1, ownership2)
+        coEvery { ownershipService.search(any(), any(), any()) } returns listOf(ownership1, ownership2)
         coEvery { itemRepository.findById(item.id) } returns item.toMono()
 
         // when
@@ -95,9 +102,9 @@ class ItemOwnershipConsistencyServiceTest {
         assertThat(actual).isExactlyInstanceOf(ItemOwnershipConsistencyService.CheckResult.Success::class.java)
         coVerify {
             itemRepository.findById(item.id)
-            ownershipRepository.search(any())
+            ownershipService.search(any(), any(), any())
         }
-        confirmVerified(ownershipRepository, itemRepository)
+        confirmVerified(ownershipService, itemRepository)
     }
 
     @Test
@@ -116,7 +123,7 @@ class ItemOwnershipConsistencyServiceTest {
         coVerify {
             itemRepository.findById(item.id)
         }
-        confirmVerified(ownershipRepository, itemRepository)
+        confirmVerified(ownershipService, itemRepository)
     }
 
     @Test
@@ -132,12 +139,12 @@ class ItemOwnershipConsistencyServiceTest {
         // then
         assertThat(actual.itemId).isEqualTo(item.id)
         assertThat(actual.item).isEqualTo(item)
-        assertThat(actual.fixVersion).isEqualTo(CURRENT_FIX_VERSION)
+        assertThat(actual.fixVersionApplied).isEqualTo(FIRST_FIX_VERSION)
         coVerify {
             itemReduceService.update(item.token, item.tokenId)
             itemRepository.findById(item.id)
         }
-        confirmVerified(itemReduceService, itemRepository, ownershipRepository)
+        confirmVerified(itemReduceService, itemRepository, ownershipService)
     }
 
     @Test
@@ -154,12 +161,12 @@ class ItemOwnershipConsistencyServiceTest {
         // then
         assertThat(actual.itemId).isEqualTo(itemId)
         assertThat(actual.item).isEqualTo(item)
-        assertThat(actual.fixVersion).isEqualTo(CURRENT_FIX_VERSION)
+        assertThat(actual.fixVersionApplied).isEqualTo(FIRST_FIX_VERSION)
         coVerify {
             itemReduceService.update(itemId.token, itemId.tokenId)
             itemRepository.findById(itemId)
         }
-        confirmVerified(itemReduceService, itemRepository, ownershipRepository)
+        confirmVerified(itemReduceService, itemRepository, ownershipService)
     }
 
     @Test
@@ -168,20 +175,19 @@ class ItemOwnershipConsistencyServiceTest {
         val item = createRandomItem()
         coEvery { itemReduceService.update(item.token, item.tokenId) } returns flux {  }
         coEvery { itemRepository.findById(item.id) } returns item.toMono()
-        coEvery { ownershipRepository.deleteAllByItemId(item.id) } returns flux {  }
 
         // when
-        val actual = service.tryFix(item, true)
+        val actual = service.tryFix(item, FIRST_FIX_VERSION)
 
         // then
         assertThat(actual.itemId).isEqualTo(item.id)
         assertThat(actual.item).isEqualTo(item)
-        assertThat(actual.fixVersion).isEqualTo(CURRENT_FIX_VERSION)
+        assertThat(actual.fixVersionApplied).isEqualTo(LAST_FIX_VERSION)
         coVerify {
-            ownershipRepository.deleteAllByItemId(item.id)
+            ownershipUpdateService.deleteByItemId(item.id)
             itemReduceService.update(item.token, item.tokenId)
             itemRepository.findById(item.id)
         }
-        confirmVerified(itemReduceService, itemRepository, ownershipRepository)
+        confirmVerified(itemReduceService, itemRepository, ownershipService)
     }
 }

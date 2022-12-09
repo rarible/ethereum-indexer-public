@@ -46,5 +46,5 @@ polygon-nft-listener:
     MANAGEMENT_HEALTH_PROBES_ENABLED: false
   resources:
     jvm:
-      xmx_megabytes: 6048
-      max_direct_memory_megabytes: 3048
+      xmx_megabytes: 5120
+      max_direct_memory_megabytes: 4096

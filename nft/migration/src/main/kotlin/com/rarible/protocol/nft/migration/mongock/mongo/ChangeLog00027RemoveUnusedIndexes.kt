@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
@@ -34,7 +35,6 @@ class ChangeLog00027RemoveUnusedIndexes {
             logger.warn("We want to drop index $collection.$indexName but it now found. Skipping ...")
             return
         }
-
-        template.indexOps(collection).dropIndex(indexName).awaitFirst()
+        template.indexOps(collection).dropIndex(indexName).awaitFirstOrNull()
     }
 }

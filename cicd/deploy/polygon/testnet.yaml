@@ -1,10 +1,11 @@
 global:
   network: rinkeby
 
-polygon-erc20-listener:
+ethereum-erc20-listener:
   resources:
     jvm:
-      xmx_megabytes: 768
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
 
 polygon-nft-listener:
   livenessProbe:
