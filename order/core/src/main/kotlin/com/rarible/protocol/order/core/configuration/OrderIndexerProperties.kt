@@ -45,7 +45,9 @@ data class OrderIndexerProperties(
     val raribleOrderExpiration: RaribleOrderExpirationProperties = RaribleOrderExpirationProperties(),
     @NestedConfigurationProperty
     val sudoSwapAddresses: SudoSwapAddresses = SudoSwapAddresses(),
-    val bidValidation: BidValidationProperties = BidValidationProperties()
+    val bidValidation: BidValidationProperties = BidValidationProperties(),
+    val orderEventHandle: OrderEventHandleProperties = OrderEventHandleProperties(),
+    val poolEventHandle: PoolEventHandleProperties = PoolEventHandleProperties()
 ) {
     val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong()) * BigDecimal.valueOf(1, 18);
 
@@ -111,13 +113,28 @@ data class OrderIndexerProperties(
         val applyOnChainApprove: Boolean = false,
         val searchSudoSwapErc1155Transfer: Boolean = false,
         val checkMinimalBidPrice: Boolean = false,
-        val checkMinimalCollectionBidPriceOnly: Boolean = false
+        val checkMinimalCollectionBidPriceOnly: Boolean = false,
     )
 
     data class RaribleOrderExpirationProperties(
         val bidExpirePeriod: Duration = Duration.ofDays(60L),
         val delayPeriod: Duration = Duration.ofMinutes(10L)
     )
+
+    sealed class EthereumEventHandleProperties {
+        abstract val parallelHandle: Boolean
+        abstract val chunkSize: Int
+    }
+
+    data class OrderEventHandleProperties(
+        override val parallelHandle: Boolean = false,
+        override val chunkSize: Int = 20
+    ) : EthereumEventHandleProperties()
+
+    data class PoolEventHandleProperties(
+        override val parallelHandle: Boolean = false,
+        override val chunkSize: Int = 20
+    ) : EthereumEventHandleProperties()
 }
 
 data class SudoSwapAddresses(

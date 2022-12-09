@@ -34,6 +34,12 @@ class OrderIndexerPropertiesConfiguration(
     fun raribleOrderExpiration() = indexerProperties.raribleOrderExpiration
 
     @Bean
+    fun ethereumOrderEventHandleProperties() = indexerProperties.orderEventHandle
+
+    @Bean
+    fun ethereumPoolEventHandleProperties() = indexerProperties.poolEventHandle
+
+    @Bean
     @Qualifier("raribleExchangeV2")
     fun raribleEip712Domain(): EIP712Domain {
         logger.info("Order-Api was started with chainId=${indexerProperties.chainId}")
