@@ -11,7 +11,7 @@ abstract class AbstractEthereumEventHandler<E>(
     private val handle: suspend (E) -> Unit
 ) {
     suspend fun handle(events: List<E>) {
-        if (properties.parallelHandle) parallel(events) else sequential(events)
+        if (properties.parallel) parallel(events) else sequential(events)
     }
 
     private suspend fun sequential(events: List<E>) {

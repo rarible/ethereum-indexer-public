@@ -122,17 +122,17 @@ data class OrderIndexerProperties(
     )
 
     sealed class EthereumEventHandleProperties {
-        abstract val parallelHandle: Boolean
+        abstract val parallel: Boolean
         abstract val chunkSize: Int
     }
 
     data class OrderEventHandleProperties(
-        override val parallelHandle: Boolean = false,
+        override val parallel: Boolean = false,
         override val chunkSize: Int = 20
     ) : EthereumEventHandleProperties()
 
     data class PoolEventHandleProperties(
-        override val parallelHandle: Boolean = false,
+        override val parallel: Boolean = false,
         override val chunkSize: Int = 20
     ) : EthereumEventHandleProperties()
 }
