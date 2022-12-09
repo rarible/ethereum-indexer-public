@@ -22,6 +22,7 @@ sealed class ActivityResult {
                 ActivitySort.EARLIEST_FIRST -> COMPARATOR.reversed()
                 ActivitySort.SYNC_LATEST_FIRST -> SYNC_COMPARATOR
                 ActivitySort.SYNC_EARLIEST_FIRST -> SYNC_COMPARATOR.reversed()
+                ActivitySort.BY_ID -> compareByDescending(ActivityResult::getId)
             }
     }
 }

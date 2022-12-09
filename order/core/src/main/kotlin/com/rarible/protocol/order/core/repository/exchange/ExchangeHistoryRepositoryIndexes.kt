@@ -17,6 +17,13 @@ object ExchangeHistoryRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    val RIGHT_SELL_DEFINITION: Index = Index()
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on("${LogEvent::data.name}.${OrderSideMatch::type.name}", Sort.Direction.ASC)
+        .on("${LogEvent::data.name}.${OrderSideMatch::side.name}", Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
     val ALL_BID_DEFINITION: Index = Index()
         .on("${LogEvent::data.name}.${OrderExchangeHistory::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on("${LogEvent::data.name}.${OrderExchangeHistory::date.name}", Sort.Direction.ASC)
@@ -92,6 +99,7 @@ object ExchangeHistoryRepositoryIndexes {
 
     val ALL_INDEXES = listOf(
         ALL_SELL_DEFINITION,
+        RIGHT_SELL_DEFINITION,
         MAKER_SELL_DEFINITION,
         TAKER_SELL_DEFINITION,
         ITEM_SELL_DEFINITION,

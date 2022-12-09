@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.data.log
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
+import com.rarible.protocol.nft.listener.service.ignored.IgnoredTokenResolver
 import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
@@ -28,10 +29,13 @@ internal class ERC1155TransferLogDescriptorTest {
     private val indexerProperties = mockk<NftIndexerProperties> {
         every { scannerProperties } returns NftIndexerProperties.ScannerProperties()
     }
+    private val ignoredTokenResolver = mockk<IgnoredTokenResolver> {
+        every { resolve() } returns emptySet()
+    }
     private val descriptor = ERC1155TransferLogDescriptor(
         tokenRegistrationService,
         customMintDetector,
-        properties,
+        ignoredTokenResolver,
         indexerProperties
     )
 

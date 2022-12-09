@@ -16,6 +16,7 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import org.bson.Document
+import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.exists
@@ -51,12 +52,16 @@ sealed class ActivityExchangeHistoryFilter {
         }
     }
 
-    class AllSellRight(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
-
+    class AllSellRight(override val sort: ActivitySort, private val continuation: String?) : ActivityExchangeHistoryFilter() {
+        override val hint: Document = ExchangeHistoryRepositoryIndexes.RIGHT_SELL_DEFINITION.indexKeys
         override fun getCriteria(): Criteria {
-            return AllSell(sort, null).getCriteria()
+            return (makeNftKey isEqualTo true sideMatch true)
                 .andOperator(orderSideMatchSide isEqualTo OrderSide.RIGHT)
-                .scrollTo(sort, continuation)
+                .apply {
+                    if (continuation != null) {
+                        this.and("_id").gt(ObjectId(continuation))
+                    }
+                }
         }
     }
 
@@ -139,6 +144,9 @@ sealed class ActivityExchangeHistoryFilter {
                     LogEvent::updatedAt gt continuation.afterDate,
                     (LogEvent::updatedAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
                 )
+            ActivitySort.BY_ID ->
+                this.and("_id").gt(continuation.afterId.safeQueryParam())
+
         }
 
     protected fun Criteria.dateBoundary(
@@ -161,6 +169,7 @@ sealed class ActivityExchangeHistoryFilter {
             ActivitySort.EARLIEST_FIRST -> this.and(LogEvent::data / OrderExchangeHistory::date).lte(end)
             ActivitySort.SYNC_LATEST_FIRST -> this.and(LogEvent::updatedAt).gte(start)
             ActivitySort.SYNC_EARLIEST_FIRST -> this.and(LogEvent::updatedAt).lte(end)
+            ActivitySort.BY_ID -> this.and(LogEvent::id).gt(end)
         }
     }
 }

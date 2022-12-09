@@ -4,14 +4,20 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.misc.safeQueryParam
-import com.rarible.protocol.order.core.model.Continuation
-import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.ActivitySort
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.Continuation
+import com.rarible.protocol.order.core.model.OrderVersion
 import org.bson.Document
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.exists
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 import java.time.Instant
 
@@ -28,6 +34,9 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
             ActivitySort.EARLIEST_FIRST,
             ActivitySort.SYNC_EARLIEST_FIRST -> Sort.by(
                 Sort.Order.asc(OrderVersion::createdAt.name),
+                Sort.Order.asc("_id")
+            )
+            ActivitySort.BY_ID -> Sort.by(
                 Sort.Order.asc("_id")
             )
         }
@@ -73,6 +82,8 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
                     OrderVersion::createdAt gt continuation.afterDate,
                     (OrderVersion::createdAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
                 )
+            ActivitySort.BY_ID ->
+                this.and("_id").gt(continuation.afterId.safeQueryParam())
         }
     }
 
@@ -96,6 +107,7 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
             ActivitySort.SYNC_LATEST_FIRST -> this.and(OrderVersion::createdAt).gte(start)
             ActivitySort.EARLIEST_FIRST,
             ActivitySort.SYNC_EARLIEST_FIRST -> this.and(OrderVersion::createdAt).lte(end)
+            ActivitySort.BY_ID -> this.and(OrderVersion::id).gte(end)
         }
     }
 }
