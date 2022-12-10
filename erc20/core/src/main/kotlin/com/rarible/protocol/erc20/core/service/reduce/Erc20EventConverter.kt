@@ -14,60 +14,48 @@ import org.springframework.stereotype.Component
 class Erc20EventConverter {
 
     fun convert(source: ReversedEthereumLogRecord): Erc20Event? {
-
         return when (val data = source.data as? Erc20TokenHistory) {
             is Erc20IncomeTransfer -> Erc20Event.Erc20IncomeTransferEvent(
                 entityId = data.getKey(source.log),
                 log = source.log,
-
                 owner = data.owner,
                 value = data.value,
                 token = data.token,
                 date = data.date
             )
-
             is Erc20OutcomeTransfer -> Erc20Event.Erc20OutcomeTransferEvent(
                 entityId = data.getKey(source.log),
                 log = source.log,
-
                 owner = data.owner,
                 value = data.value,
                 token = data.token,
                 date = data.date
             )
-
             is Erc20Deposit -> Erc20Event.Erc20DepositEvent(
                 entityId = data.getKey(source.log),
                 log = source.log,
-
                 owner = data.owner,
                 value = data.value,
                 token = data.token,
                 date = data.date
             )
-
             is Erc20Withdrawal -> Erc20Event.Erc20WithdrawalEvent(
                 entityId = data.getKey(source.log),
                 log = source.log,
-
                 owner = data.owner,
                 value = data.value,
                 token = data.token,
                 date = data.date
             )
-
             is Erc20TokenApproval -> Erc20Event.Erc20TokenApprovalEvent(
                 entityId = data.getKey(source.log),
                 log = source.log,
-
                 owner = data.owner,
                 value = data.value,
                 token = data.token,
                 date = data.date,
-
                 spender = data.spender
             )
-
             null -> null
         }
     }
