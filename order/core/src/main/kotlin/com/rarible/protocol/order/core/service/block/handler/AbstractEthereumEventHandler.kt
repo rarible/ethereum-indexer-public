@@ -5,27 +5,31 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
-abstract class AbstractEthereumEventHandler<E>(
+abstract class AbstractEthereumEventHandler<E,M>(
     private val properties: OrderIndexerProperties.EthereumEventHandleProperties,
-    private val handle: suspend (E) -> Unit
 ) {
     suspend fun handle(events: List<E>) {
-        if (properties.parallel) parallel(events) else sequential(events)
+        val mapped = map(events)
+        if (properties.parallel) parallel(mapped) else sequential(mapped)
     }
 
-    private suspend fun sequential(events: List<E>) {
+    protected abstract suspend fun handleSingle(event: M)
+
+    protected abstract fun map(events: List<E>): List<M>
+
+    private suspend fun sequential(events: List<M>) {
         for (event in events) {
-            handle(event)
+            handleSingle(event)
         }
     }
 
-    private suspend fun parallel(events: List<E>) = coroutineScope {
+    private suspend fun parallel(events: List<M>) = coroutineScope {
         events
             .chunked(properties.chunkSize)
             .map { chunk ->
                 chunk
                     .map { event ->
-                        async { handle(event) }
+                        async { handleSingle(event) }
                     }
                     .awaitAll()
             }
