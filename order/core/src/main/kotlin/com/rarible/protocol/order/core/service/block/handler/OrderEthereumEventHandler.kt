@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 class OrderEthereumEventHandler(
     private val orderUpdateService: OrderUpdateService,
-    @Qualifier("order-event-handle") private val eventFilters: List<EthereumEventFilter>,
+    @Qualifier("order-event-handler") private val eventFilters: List<EthereumEventFilter>,
     properties: OrderIndexerProperties.OrderEventHandleProperties
 ) : AbstractEthereumEventHandler<LogEvent, Word>(properties) {
 

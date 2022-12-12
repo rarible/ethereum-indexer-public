@@ -6,7 +6,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import org.springframework.stereotype.Component
 
-@Component("order-event-handle")
+@Component("order-event-handler")
 class SourceOrderEventHandleFilter(
     private val properties: OrderIndexerProperties.OrderEventHandleProperties
 ) : EthereumEventFilter {
