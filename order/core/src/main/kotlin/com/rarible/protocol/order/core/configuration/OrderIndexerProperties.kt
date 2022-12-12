@@ -47,7 +47,7 @@ data class OrderIndexerProperties(
     val sudoSwapAddresses: SudoSwapAddresses = SudoSwapAddresses(),
     val bidValidation: BidValidationProperties = BidValidationProperties(),
     val orderEventHandle: OrderEventHandleProperties = OrderEventHandleProperties(),
-    val poolEventHandle: PoolEventHandleProperties = PoolEventHandleProperties()
+    val poolEventHandle: PoolEventHandleProperties = PoolEventHandleProperties(),
 ) {
     val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong()) * BigDecimal.valueOf(1, 18);
 
@@ -128,7 +128,8 @@ data class OrderIndexerProperties(
 
     data class OrderEventHandleProperties(
         override val parallel: Boolean = false,
-        override val chunkSize: Int = 20
+        override val chunkSize: Int = 20,
+        val handleSeaport: Boolean = true,
     ) : EthereumEventHandleProperties()
 
     data class PoolEventHandleProperties(

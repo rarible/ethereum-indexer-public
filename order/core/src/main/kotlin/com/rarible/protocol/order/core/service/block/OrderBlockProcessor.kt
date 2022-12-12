@@ -4,8 +4,6 @@ import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.log.LogEventsListener
-import com.rarible.protocol.order.core.model.OrderHistory
-import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.service.block.handler.OrderEthereumEventHandler
 import com.rarible.protocol.order.core.service.block.handler.PoolEthereumEventHandler
 import kotlinx.coroutines.reactor.mono
@@ -24,19 +22,10 @@ class OrderBlockProcessor(
         val blockNumber = logs.firstOrNull()?.blockNumber
         logger.info("Order logs process start, blockNumber=$blockNumber")
 
-        val hashes = logs
-            .map { log -> log.data }
-            .filterIsInstance<OrderHistory>()
-            .map { orderHistory -> orderHistory.hash }
-            .distinct()
-
-        val poolEvents = logs
-            .filter { log -> log.data is PoolHistory }
-
         return LoggingUtils.withMarker { marker ->
             mono {
-                orderEthereumEventHandler.handle(hashes)
-                poolEthereumEventHandler.handle(poolEvents)
+                orderEthereumEventHandler.handle(logs)
+                poolEthereumEventHandler.handle(logs)
             }
                 .toOptional()
                 .elapsed()
