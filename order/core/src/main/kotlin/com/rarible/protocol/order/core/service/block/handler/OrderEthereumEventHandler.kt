@@ -32,8 +32,7 @@ class OrderEthereumEventHandler(
     }
 
     private fun filter(event: LogEvent): Boolean {
-        return if (eventFilters.size == 1) eventFilters.single().filter(event)
-        else eventFilters.all { it.filter(event) }
+        return eventFilters.all { it.filter(event) }
     }
 }
 

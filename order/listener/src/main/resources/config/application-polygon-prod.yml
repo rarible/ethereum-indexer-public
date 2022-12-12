@@ -9,7 +9,7 @@ common:
     seaport-transfer-proxy: "0x1e0049783f008a0085193e00003d00cd54003c71"
   order-event-handle:
     parallel: true
-    handle-seaport: false
+    handleSeaport: false
 listener:
   handle-approval-after-block: 35953300
 rarible:
