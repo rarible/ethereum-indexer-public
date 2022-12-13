@@ -1,8 +1,12 @@
 package com.rarible.protocol.nft.listener.service.suspicios
 
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemExState
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
+import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
 import com.rarible.protocol.nft.listener.service.opensea.OpenSeaService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -14,8 +18,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class SuspiciousItemsService(
+    private val itemRepository: ItemRepository,
+    private val itemStateRepository: ItemExStateRepository,
     private val openSeaService: OpenSeaService,
-    private val itemRepository: ItemRepository
+    private val itemUpdateService: ItemUpdateService,
 ) {
     suspend fun update(asset: UpdateSuspiciousItemsState.Asset): UpdateSuspiciousItemsState.Asset {
         val openSeaAssets = openSeaService.getOpenSeaAssets(asset.contract, asset.cursor)
@@ -41,7 +47,22 @@ class SuspiciousItemsService(
             logger.info("Update item suspicious: {}, {} -> {}",
                 itemId.decimalStringValue, item.isSuspiciousOnOS, suspicious
             )
+            item.withSuspiciousOnOS(suspicious).apply {
+                updateState(this)
+                updateItem(this)
+            }
         }
+    }
+
+    private suspend fun updateItem(item: Item) {
+        itemUpdateService.update(item)
+    }
+
+    private suspend fun updateState(item: Item) {
+        val itemId = item.id
+        val exState = itemStateRepository.getById(itemId) ?: ItemExState.initial(itemId)
+        val updatedState = exState.withSuspiciousOnOS(item.isSuspiciousOnOS)
+        itemStateRepository.save(updatedState)
     }
 
     private companion object {
