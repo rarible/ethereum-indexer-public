@@ -53,8 +53,8 @@ class MaintenanceServiceIt : AbstractIntegrationTest() {
         saveOwnership(validItemId, user)
         saveOwnership(fixableItemId, user)
         saveOwnership(unfixableItemId, user)
-        every { itemReduceService.update(any<Address>(), any<EthUInt256>(), null, null) } answers {
-            val itemId = ItemId(firstArg(), secondArg())
+        every { itemReduceService.update(any(), any(), null, null) } answers {
+            val itemId = ItemId(firstArg(), secondArg<EthUInt256>())
             if (itemId == fixableItemId) {
                 runBlocking { saveItem(itemId, user) }
             }
