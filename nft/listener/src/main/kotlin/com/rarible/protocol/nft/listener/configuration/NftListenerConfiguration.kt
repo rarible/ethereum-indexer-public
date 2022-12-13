@@ -50,6 +50,11 @@ class NftListenerConfiguration(
     }
 
     @Bean
+    fun updateSuspiciousItemsHandlerProperties(): UpdateSuspiciousItemsHandlerProperties {
+        return nftListenerProperties.updateSuspiciousItemsHandler
+    }
+
+    @Bean
     fun collectionMetaExtenderWorker(internalCollectionHandler: InternalCollectionHandler): ConsumerWorkerHolder<NftCollectionEventDto> {
         logger.info("Creating batch of ${nftIndexerProperties.nftCollectionMetaExtenderWorkersCount} collection meta extender workers")
         val workers = (1..nftIndexerProperties.nftCollectionMetaExtenderWorkersCount).map {
