@@ -8,10 +8,10 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.time.Duration
 import java.time.Instant
 
 internal class UpdateSuspiciousItemsHandlerTest {
@@ -28,7 +28,7 @@ internal class UpdateSuspiciousItemsHandlerTest {
         val state = UpdateSuspiciousItemsState(Instant.now(), runningStateAssets + finishedStateAssets)
 
         coEvery { stateService.getState() } returns state
-        coEvery { stateService.save(any()) } answers { it.invocation.args.first() }
+        coEvery { stateService.save(any()) } returns Unit
 
         every { properties.chunkSize } returns 5
 
@@ -49,6 +49,64 @@ internal class UpdateSuspiciousItemsHandlerTest {
         }
         coVerify(exactly = 10) {
             suspiciousItemsService.update(any())
+        }
+    }
+
+    @Test
+    fun `handle - from init state`() = runBlocking<Unit> {
+        val state = UpdateSuspiciousItemsState(Instant.now(), listOf(randomUpdateSuspiciousItemsStateAsset()))
+        coEvery { stateService.getState() } returns null
+        coEvery { stateService.getInitState(any()) } returns state
+        coEvery { stateService.save(any()) } returns Unit
+        every { properties.chunkSize } returns 5
+        coEvery { suspiciousItemsService.update(state.assets.single()) } returns state.assets.single()
+
+        handler.handle()
+
+        coVerify(exactly = 1) {
+            stateService.getInitState(any())
+        }
+        coVerify(exactly = 1) {
+            suspiciousItemsService.update(any())
+        }
+    }
+
+    @Test
+    fun `delay - if not yet next start`() = runBlocking<Unit> {
+        val statedAt = Instant.now()
+        val state = UpdateSuspiciousItemsState(statedAt, emptyList())
+
+        coEvery { stateService.getState() } returns state
+        coEvery { stateService.save(state) } returns Unit
+        every { properties.handlePeriod } returns Duration.ofDays(1)
+        every { properties.awakePeriod } returns Duration.ZERO
+
+        handler.handle()
+
+        coVerify(exactly = 0) {
+            stateService.getInitState(any())
+            suspiciousItemsService.update(any())
+        }
+    }
+
+    @Test
+    fun `update nothing - re-init state`() = runBlocking<Unit> {
+        val statedAt = Instant.now() - Duration.ofMinutes(1)
+        val state = UpdateSuspiciousItemsState(statedAt, emptyList())
+        val initState = randomUpdateSuspiciousItemsState()
+
+        coEvery { stateService.getState() } returns state
+        coEvery { stateService.getInitState(any()) } returns initState
+        coEvery { stateService.save(initState) } returns Unit
+        every { properties.handlePeriod } returns Duration.ofSeconds(30)
+
+        handler.handle()
+
+        coVerify(exactly = 0) {
+            suspiciousItemsService.update(any())
+        }
+        coVerify(exactly = 1) {
+            stateService.save(initState)
         }
     }
 }
