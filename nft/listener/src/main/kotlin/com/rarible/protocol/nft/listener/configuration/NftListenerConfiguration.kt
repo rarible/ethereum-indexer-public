@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.listener.configuration
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.cache.EnableRaribleCache
+import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.job.JobDaemonWorker
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.daemon.sequential.ConsumerWorkerHolder
@@ -22,6 +23,7 @@ import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandle
 import com.rarible.protocol.nft.listener.service.item.InconsistentItemsRepairJobHandler
 import com.rarible.protocol.nft.listener.service.item.ItemOwnershipConsistencyJobHandler
 import com.rarible.protocol.nft.listener.service.ownership.OwnershipItemConsistencyJobHandler
+import com.rarible.protocol.nft.listener.service.suspicios.UpdateSuspiciousItemsHandler
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
@@ -29,6 +31,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.time.Duration
 
 @EnableMongock
 @EnableRaribleRedisLock
@@ -164,5 +167,20 @@ class NftListenerConfiguration(
             nftListenerProperties.inconsistentItemsRepair.rateLimitPeriod,
             "inconsistent-items-repair"
         )
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = ["listener.updateSuspiciousItemsHandler.enabled"], havingValue = "true")
+    fun updateSuspiciousItemsHandlerWorker(
+        handler: UpdateSuspiciousItemsHandler
+    ): JobDaemonWorker {
+        return JobDaemonWorker(
+            jobHandler = handler,
+            meterRegistry = meterRegistry,
+            properties = DaemonWorkerProperties(
+                pollingPeriod = Duration.ZERO,
+            ),
+            workerName = "update-suspicious-items-handler-worker"
+        ).apply { start() }
     }
 }

@@ -6,6 +6,7 @@ import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomBoolean
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
@@ -19,6 +20,7 @@ import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.ItemExState
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProblemType
 import com.rarible.protocol.nft.core.model.ItemProperties
@@ -28,6 +30,7 @@ import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.TokenProperties
+import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.core.repository.data.createAddress
 import com.rarible.protocol.nft.core.repository.data.createItemHistory
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
@@ -432,3 +435,25 @@ fun createRandomInconsistentItem() = InconsistentItem(
     supplyValue = BigInteger.TEN,
     ownershipsValue = BigInteger.TEN,
 )
+
+fun randomUpdateSuspiciousItemsState(assetCount: Int = 10): UpdateSuspiciousItemsState {
+    return UpdateSuspiciousItemsState(
+        statedAt = Instant.now(),
+        assets = (1..assetCount).map { randomUpdateSuspiciousItemsStateAsset() },
+    )
+}
+
+fun randomUpdateSuspiciousItemsStateAsset(): UpdateSuspiciousItemsState.Asset {
+    return UpdateSuspiciousItemsState.Asset(
+        contract = randomAddress(),
+        cursor = randomString()
+    )
+}
+
+fun randomItemExState(id: ItemId = createRandomItemId()): ItemExState {
+    return ItemExState(
+        isSuspiciousOnOS = randomBoolean(),
+        id = id
+    )
+}
+
