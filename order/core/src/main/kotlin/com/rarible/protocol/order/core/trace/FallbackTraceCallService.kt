@@ -15,13 +15,14 @@ class FallbackTraceCallService(
     private val properties: OrderIndexerProperties
 ) : TraceCallService {
     private val traceCallServices = createTraceCallServices()
+    private val featureFlags = properties.featureFlags
 
     override suspend fun findAllRequiredCalls(
         headTransaction: HeadTransaction,
         to: Address,
         vararg ids: Binary
     ): List<SimpleTraceResult> {
-        return findTrace(headTransaction.hash, traceCallServices) { delegate ->
+        return findTrace(headTransaction.hash, traceCallServices, featureFlags.skipGetTrace) { delegate ->
             delegate.findAllRequiredCalls(headTransaction, to, *ids)
         }
     }
@@ -32,7 +33,7 @@ class FallbackTraceCallService(
         to: Address,
         vararg ids: Binary
     ): List<Binary> {
-        return findTrace(txHash, traceCallServices) { delegate ->
+        return findTrace(txHash, traceCallServices, featureFlags.skipGetTrace) { delegate ->
             delegate.findAllRequiredCallInputs(txHash, txInput, to, *ids)
         }
     }
@@ -53,7 +54,8 @@ class FallbackTraceCallService(
         inline fun <T> findTrace(
             tx: Word,
             delegates: List<TraceCallService>,
-            call: (TraceCallService) -> List<T>
+            skipGetTrace: Boolean,
+            call: (TraceCallService) -> List<T>,
         ): List<T> {
             delegates.forEach { delegate ->
                 try {
@@ -61,7 +63,8 @@ class FallbackTraceCallService(
                     if (result.isNotEmpty()) return result
                 } catch (_: TraceNotFoundException) { }
             }
-            throw TraceNotFoundException("tx trace not found for hash: $tx")
+            return if (skipGetTrace) emptyList()
+            else throw TraceNotFoundException("tx trace not found for hash: $tx")
         }
     }
 }
