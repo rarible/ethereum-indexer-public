@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.misc
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.framework.model.LogRecord
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -54,6 +55,13 @@ fun LogEvent.toReversedEthereumLogRecord(): ReversedEthereumLogRecord {
         createdAt = this.createdAt,
         updatedAt = this.updatedAt,
         data = this.data as EventData
+    )
+}
+
+fun LogEvent.toLogRecordEvent(): LogRecordEvent {
+    return LogRecordEvent(
+        record = this.toReversedEthereumLogRecord(),
+        reverted = this.status == LogEventStatus.REVERTED
     )
 }
 

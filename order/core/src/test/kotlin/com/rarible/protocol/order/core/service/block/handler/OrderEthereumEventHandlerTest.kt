@@ -2,11 +2,12 @@ package com.rarible.protocol.order.core.service.block.handler
 
 import com.rarible.core.test.data.randomWord
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.data.createLogEvent
+import com.rarible.protocol.order.core.data.createLogRecordEvent
 import com.rarible.protocol.order.core.data.createOrderCancel
 import com.rarible.protocol.order.core.data.createOrderSideMatch
 import com.rarible.protocol.order.core.data.randomApproveHistory
 import com.rarible.protocol.order.core.data.randomAuctionCreated
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.block.filter.EthereumEventFilter
 import io.daonomic.rpc.domain.Word
@@ -30,11 +31,11 @@ internal class OrderEthereumEventHandlerTest {
         val hash1 = Word.apply(randomWord())
         val hash2 = Word.apply(randomWord())
 
-        val event1 = createLogEvent(createOrderSideMatch().copy(hash = hash1))
-        val event2 = createLogEvent(createOrderCancel().copy(hash = hash1))
-        val event3 = createLogEvent(createOrderSideMatch().copy(hash = hash2))
-        val event4 = createLogEvent(createOrderCancel().copy(hash = hash2))
-        val others = listOf(createLogEvent(randomAuctionCreated()), createLogEvent(randomApproveHistory()))
+        val event1 = createLogRecordEvent(createOrderSideMatch().copy(hash = hash1))
+        val event2 = createLogRecordEvent(createOrderCancel().copy(hash = hash1))
+        val event3 = createLogRecordEvent(createOrderSideMatch().copy(hash = hash2))
+        val event4 = createLogRecordEvent(createOrderCancel().copy(hash = hash2))
+        val others = listOf(createLogRecordEvent(randomAuctionCreated()), createLogRecordEvent(randomApproveHistory()))
 
         coEvery { orderUpdateService.update(hash1) } returns Unit
         coEvery { orderUpdateService.update(hash2) } returns Unit
@@ -54,12 +55,12 @@ internal class OrderEthereumEventHandlerTest {
         val hash1 = Word.apply(randomWord())
         val hash2 = Word.apply(randomWord())
 
-        val event1 = createLogEvent(createOrderSideMatch().copy(hash = hash1))
-        val event2 = createLogEvent(createOrderSideMatch().copy(hash = hash2))
+        val event1 = createLogRecordEvent(createOrderSideMatch().copy(hash = hash1))
+        val event2 = createLogRecordEvent(createOrderSideMatch().copy(hash = hash2))
 
         coEvery { orderUpdateService.update(any()) } returns Unit
-        every { eventFilter.filter(event1) } returns true
-        every { eventFilter.filter(event2) } returns false
+        every { eventFilter.filter(event1.record.asEthereumLogRecord()) } returns true
+        every { eventFilter.filter(event2.record.asEthereumLogRecord()) } returns false
         every { properties.parallel } returns true
         every { properties.chunkSize } returns 10
 

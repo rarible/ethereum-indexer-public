@@ -2,13 +2,14 @@ package com.rarible.protocol.order.core.service.block.handler
 
 import com.rarible.core.test.data.randomWord
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.data.createLogEvent
+import com.rarible.protocol.order.core.data.createLogRecordEvent
 import com.rarible.protocol.order.core.data.createOrderCancel
 import com.rarible.protocol.order.core.data.createOrderSideMatch
 import com.rarible.protocol.order.core.data.randomApproveHistory
 import com.rarible.protocol.order.core.data.randomAuctionCreated
 import com.rarible.protocol.order.core.data.randomPoolDeltaUpdate
 import com.rarible.protocol.order.core.data.randomPoolFeeUpdate
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.pool.listener.PoolOrderEventListener
 import io.daonomic.rpc.domain.Word
@@ -31,22 +32,22 @@ internal class PoolEthereumEventHandlerTest {
         val hash1 = Word.apply(randomWord())
         val hash2 = Word.apply(randomWord())
 
-        val event1 = createLogEvent(randomPoolDeltaUpdate().copy(hash = hash1))
-        val event2 = createLogEvent(randomPoolFeeUpdate().copy(hash = hash1))
-        val event3 = createLogEvent(randomPoolDeltaUpdate().copy(hash = hash2))
-        val event4 = createLogEvent(randomPoolFeeUpdate().copy(hash = hash2))
+        val event1 = createLogRecordEvent(randomPoolDeltaUpdate().copy(hash = hash1))
+        val event2 = createLogRecordEvent(randomPoolFeeUpdate().copy(hash = hash1))
+        val event3 = createLogRecordEvent(randomPoolDeltaUpdate().copy(hash = hash2))
+        val event4 = createLogRecordEvent(randomPoolFeeUpdate().copy(hash = hash2))
 
         val others = listOf(
-            createLogEvent(createOrderSideMatch()),
-            createLogEvent(createOrderCancel()),
-            createLogEvent(randomAuctionCreated()),
-            createLogEvent(randomApproveHistory())
+            createLogRecordEvent(createOrderSideMatch()),
+            createLogRecordEvent(createOrderCancel()),
+            createLogRecordEvent(randomAuctionCreated()),
+            createLogRecordEvent(randomApproveHistory())
         )
         coEvery {
-            poolOrderEventListener.onPoolEvent(event1)
-            poolOrderEventListener.onPoolEvent(event2)
-            poolOrderEventListener.onPoolEvent(event3)
-            poolOrderEventListener.onPoolEvent(event4)
+            poolOrderEventListener.onPoolEvent(event1.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord())
             orderUpdateService.update(hash1)
             orderUpdateService.update(hash2)
         } returns Unit
@@ -56,10 +57,10 @@ internal class PoolEthereumEventHandlerTest {
         handler.handle(listOf(event1, event2, event3, event4) + others)
 
         coVerify(exactly = 1) {
-            poolOrderEventListener.onPoolEvent(event1)
-            poolOrderEventListener.onPoolEvent(event2)
-            poolOrderEventListener.onPoolEvent(event3)
-            poolOrderEventListener.onPoolEvent(event4)
+            poolOrderEventListener.onPoolEvent(event1.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord())
         }
         coVerify(exactly = 1) {
             orderUpdateService.update(hash1)
@@ -67,13 +68,13 @@ internal class PoolEthereumEventHandlerTest {
         }
         coVerifyOrder {
             orderUpdateService.update(hash1)
-            poolOrderEventListener.onPoolEvent(event1)
-            poolOrderEventListener.onPoolEvent(event2)
+            poolOrderEventListener.onPoolEvent(event1.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord())
         }
         coVerifyOrder {
             orderUpdateService.update(hash2)
-            poolOrderEventListener.onPoolEvent(event3)
-            poolOrderEventListener.onPoolEvent(event4)
+            poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord())
         }
     }
 }

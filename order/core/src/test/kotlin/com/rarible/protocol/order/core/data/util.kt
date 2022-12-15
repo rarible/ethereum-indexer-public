@@ -1,5 +1,10 @@
 package com.rarible.protocol.order.core.data
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.blockchain.scanner.ethereum.model.EventData as ScannerEventData
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
@@ -791,3 +796,36 @@ fun randomApproveHistory(
     )
 }
 
+fun createRandomEthereumLog(
+    transactionSender: Address = randomAddress()
+): EthereumLog =
+    EthereumLog(
+        transactionHash = randomWord(),
+        status = EthereumLogStatus.values().random(),
+        address = randomAddress(),
+        topic = Word.apply(randomWord()),
+        blockHash = Word.apply(randomWord()),
+        blockNumber = randomLong(),
+        logIndex = randomInt(),
+        minorLogIndex = randomInt(),
+        index = randomInt(),
+        from = transactionSender,
+        blockTimestamp = nowMillis().epochSecond,
+        createdAt = nowMillis()
+    )
+
+fun createLogRecord(data: ScannerEventData): ReversedEthereumLogRecord =
+    ReversedEthereumLogRecord(
+        id = randomString(),
+        version = randomLong(),
+        data = data,
+        log = createRandomEthereumLog()
+    )
+
+fun createLogRecordEvent(data: ScannerEventData): LogRecordEvent {
+    val record = createLogRecord(data)
+    return LogRecordEvent(
+        record = record,
+        reverted = record.status == EthereumLogStatus.REVERTED
+    )
+}

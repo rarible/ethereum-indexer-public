@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.service.block.filter
 
-import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 
 interface EthereumEventFilter {
-    fun filter(event: LogEvent): Boolean
+    fun filter(event: ReversedEthereumLogRecord): Boolean
 }

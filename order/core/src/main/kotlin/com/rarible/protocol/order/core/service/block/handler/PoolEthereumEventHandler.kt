@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.core.service.block.handler
 
-import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.pool.listener.PoolOrderEventListener
@@ -13,7 +15,7 @@ class PoolEthereumEventHandler(
     private val poolOrderEventListener: PoolOrderEventListener,
     private val orderUpdateService: OrderUpdateService,
     properties: OrderIndexerProperties.PoolEventHandleProperties
-) : AbstractEthereumEventHandler<LogEvent, PoolEthereumEventHandler.PoolEvent>(properties) {
+) : AbstractEthereumEventHandler<LogRecordEvent, PoolEthereumEventHandler.PoolEvent>(properties) {
     override suspend fun handleSingle(event: PoolEvent) {
         orderUpdateService.update(event.hash)
         event.events.forEach {
@@ -21,8 +23,9 @@ class PoolEthereumEventHandler(
         }
     }
 
-    override fun map(events: List<LogEvent>): List<PoolEvent> {
+    override fun map(events: List<LogRecordEvent>): List<PoolEvent> {
         return events
+            .map { record -> record.record.asEthereumLogRecord() }
             .filter { log -> log.data is PoolHistory }
             .groupBy { log -> (log.data as PoolHistory).hash }
             .map { entity -> PoolEvent(entity.key, entity.value) }
@@ -30,6 +33,6 @@ class PoolEthereumEventHandler(
 
     data class PoolEvent(
         val hash: Word,
-        val events: List<LogEvent>
+        val events: List<ReversedEthereumLogRecord>
     )
 }

@@ -111,6 +111,6 @@ object ExchangeHistoryRepositoryIndexes {
         COLLECTION_BID_DEFINITION,
         AGGREGATION_DEFINITION,
         HASH_DEFINITION,
-        BY_UPDATED_AT_FIELD
+        BY_UPDATED_AT_FIELD,
     )
 }

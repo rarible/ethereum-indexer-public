@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.OrderSide
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -20,6 +21,11 @@ class OrderActivityControllerIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var controller: OrderActivityController
+
+    @BeforeEach
+    fun createIndexes() = runBlocking<Unit> {
+        exchangeHistoryRepository.createIndexes()
+    }
 
     @Test
     fun `should get all needed history activities - asc`() = runBlocking<Unit> {
