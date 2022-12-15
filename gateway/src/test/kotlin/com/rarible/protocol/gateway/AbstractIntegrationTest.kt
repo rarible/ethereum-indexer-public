@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.client.NoopWebClientCustomizer
+import com.rarible.protocol.gateway.api.client.FixedGatewayApiServiceUriProvider
 import com.rarible.protocol.gateway.api.client.GatewayApiClientFactory
 import com.rarible.protocol.gateway.api.client.NftCollectionControllerApi
 import com.rarible.protocol.gateway.api.client.NftItemControllerApi
 import com.rarible.protocol.gateway.api.client.NftLazyMintControllerApi
 import com.rarible.protocol.gateway.api.client.NftOwnershipControllerApi
-import com.rarible.protocol.gateway.client.FixedGatewayApiServiceUriProvider
 
 import org.springframework.boot.web.server.LocalServerPort
 import java.net.URI

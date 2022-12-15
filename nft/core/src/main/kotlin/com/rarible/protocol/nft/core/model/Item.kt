@@ -35,6 +35,7 @@ data class Item(
     val lastLazyEventTimestamp: Long? = null,
     val isRaribleContract: Boolean? = null,
     override val revertableEvents: List<ItemEvent> = emptyList(),
+    val isSuspiciousOnOS: Boolean = false,
     @Version
     override val version: Long? = null
 ) : Entity<ItemId, ItemEvent, Item> {
@@ -60,8 +61,20 @@ data class Item(
         return copy(revertableEvents = events)
     }
 
+    fun withSuspiciousOnOS(isSuspiciousOnOS: Boolean): Item {
+        return copy(isSuspiciousOnOS = isSuspiciousOnOS)
+    }
+
     fun withVersion(version: Long?): Item {
         return copy(version = version)
+    }
+
+    fun withState(state: ItemExState?): Item {
+        return if (state != null) {
+            copy(isSuspiciousOnOS = state.isSuspiciousOnOS)
+        } else {
+            this
+        }
     }
 
     companion object {

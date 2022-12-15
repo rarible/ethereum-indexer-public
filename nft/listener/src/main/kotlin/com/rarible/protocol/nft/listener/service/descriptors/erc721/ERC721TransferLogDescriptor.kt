@@ -13,7 +13,7 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEventDescriptor
-import com.rarible.protocol.nft.listener.service.ignored.IgnoredTokenResolver
+import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service

@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.listener.service.ignored
+package com.rarible.protocol.nft.listener.service.resolver
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.test.data.randomAddress

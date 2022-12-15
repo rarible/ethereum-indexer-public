@@ -4,10 +4,8 @@ import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.log.LogEventsListener
-import com.rarible.protocol.order.core.model.OrderHistory
-import com.rarible.protocol.order.core.model.PoolHistory
-import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.core.service.pool.listener.PoolOrderEventListener
+import com.rarible.protocol.order.core.service.block.handler.OrderEthereumEventHandler
+import com.rarible.protocol.order.core.service.block.handler.PoolEthereumEventHandler
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -17,31 +15,18 @@ import reactor.core.publisher.Mono
 @Service
 @Deprecated("Should be removed after switch to the new scanner")
 class OrderBlockProcessor(
-    private val orderUpdateService: OrderUpdateService,
-    private val poolOrderEventListener: PoolOrderEventListener
+    private val orderEthereumEventHandler: OrderEthereumEventHandler,
+    private val poolEthereumEventHandler: PoolEthereumEventHandler
 ) : LogEventsListener {
 
     override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> {
         val blockNumber = logs.firstOrNull()?.blockNumber
         logger.info("Order logs process start, blockNumber=$blockNumber")
 
-        val hashes = logs
-            .map { log -> log.data }
-            .filterIsInstance<OrderHistory>()
-            .map { orderHistory -> orderHistory.hash }
-            .distinct()
-
-        val poolEvents = logs
-            .filter { log -> log.data is PoolHistory }
-
         return LoggingUtils.withMarker { marker ->
             mono {
-                for (hash in hashes) {
-                    orderUpdateService.update(hash)
-                }
-                for (poolEvent in poolEvents) {
-                    poolOrderEventListener.onPoolEvent(poolEvent)
-                }
+                orderEthereumEventHandler.handle(logs)
+                poolEthereumEventHandler.handle(logs)
             }
                 .toOptional()
                 .elapsed()

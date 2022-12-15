@@ -56,7 +56,7 @@ blockchain:
       maxPollRecords: 100
     ethereum:
       blockchain: ${common.blockchain}
-      service: "nft"
+      service: "erc20"
       optimisticLockRetries: 5
       scan:
         batch-load:

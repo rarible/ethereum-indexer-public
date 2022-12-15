@@ -3,12 +3,17 @@ package com.rarible.protocol.nft.listener.test.data
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomBoolean
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.opensea.client.model.v1.Asset
+import com.rarible.opensea.client.model.v1.AssetContract
+import com.rarible.opensea.client.model.v1.AssetSchema
+import com.rarible.opensea.client.model.v1.OpenSeaAssets
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.ItemTransfer
@@ -123,6 +128,29 @@ fun createLog(
         minorLogIndex = 0,
         blockTimestamp = nowMillis().epochSecond,
         createdAt = nowMillis()
+    )
+}
+
+fun randomOpenSeaAssets(
+    assets: List<Asset> = (1..10).map { randomOpenSeaAsset() }
+): OpenSeaAssets {
+    return OpenSeaAssets(
+        assets = assets,
+        next = randomString(),
+        previous = randomString()
+
+    )
+}
+
+fun randomOpenSeaAsset(): Asset {
+    return Asset(
+        id = randomBigInt(),
+        assetContract = AssetContract(
+            randomAddress(),
+            AssetSchema.values().random()
+        ),
+        supportsWyvern = randomBoolean(),
+        tokenId = randomBigInt()
     )
 }
 

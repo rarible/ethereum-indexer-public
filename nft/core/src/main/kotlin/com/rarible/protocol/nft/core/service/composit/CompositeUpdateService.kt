@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.CompositeEntity
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
 import com.rarible.protocol.nft.core.service.ownership.reduce.OwnershipUpdateService
 import kotlinx.coroutines.async
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component
 sealed class CompositeUpdateService(
     private val itemUpdateService: ItemUpdateService,
     private val ownershipUpdateService: OwnershipUpdateService,
+    private val itemExStateRepository: ItemExStateRepository,
     private val properties: NftIndexerProperties,
     private val updateNotChanged: Boolean
 ) : EntityService<ItemId, CompositeEntity> {
@@ -49,23 +51,26 @@ sealed class CompositeUpdateService(
     }
 
     private suspend fun updateItem(reducedItem: Item): Item {
-        val existItem = itemUpdateService.get(reducedItem.id)
-        val safeVersion = reducedItem.version ?: existItem?.version
+        val exState = itemExStateRepository.getById(reducedItem.id)
+        val reducedItemWithExState = reducedItem.withState(exState)
+
+        val existItem = itemUpdateService.get(reducedItemWithExState.id)
+        val safeVersion = reducedItemWithExState.version ?: existItem?.version
 
         // Item doesn't exist, which means we have to update it anyway
         if (existItem == null || updateNotChanged) {
-            return itemUpdateService.update(reducedItem.withVersion(safeVersion))
+            return itemUpdateService.update(reducedItemWithExState.withVersion(safeVersion))
         }
 
         // Otherwise, we check if item has been changed, consider date/version as non-meaningful values
-        val safeCompareItem = reducedItem.copy(version = existItem.version, date = existItem.date)
+        val safeCompareItem = reducedItemWithExState.copy(version = existItem.version, date = existItem.date)
 
         return if (safeCompareItem != existItem) {
-            itemUpdateService.update(reducedItem.withVersion(safeVersion))
+            itemUpdateService.update(reducedItemWithExState.withVersion(safeVersion))
         } else {
             logger.info(
                 "Item [{}] hasn't been changed after the reduce, update skipped",
-                reducedItem.id.decimalStringValue
+                reducedItemWithExState.id.decimalStringValue
             )
             existItem
         }
@@ -99,13 +104,15 @@ sealed class CompositeUpdateService(
 class SilentCompositeUpdateService(
     itemUpdateService: ItemUpdateService,
     ownershipUpdateService: OwnershipUpdateService,
+    itemExStateRepository: ItemExStateRepository,
     properties: NftIndexerProperties
-) : CompositeUpdateService(itemUpdateService, ownershipUpdateService, properties, false)
+) : CompositeUpdateService(itemUpdateService, ownershipUpdateService, itemExStateRepository, properties, false)
 
 @Component
 @Qualifier("VerboseCompositeUpdateService")
 class VerboseCompositeUpdateService(
     itemUpdateService: ItemUpdateService,
     ownershipUpdateService: OwnershipUpdateService,
+    itemExStateRepository: ItemExStateRepository,
     properties: NftIndexerProperties
-) : CompositeUpdateService(itemUpdateService, ownershipUpdateService, properties, true)
+) : CompositeUpdateService(itemUpdateService, ownershipUpdateService, itemExStateRepository, properties, true)

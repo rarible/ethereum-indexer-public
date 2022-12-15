@@ -45,7 +45,8 @@ class Erc20EventReduceService(
                     ?: ""))
         ) {
             try {
-                events.mapNotNull { erc20EventConverter.convert(it.record.asEthereumLogRecord()) }
+                events
+                    .mapNotNull { erc20EventConverter.convert(it.record.asEthereumLogRecord()) }
                     .let { delegate.reduceAll(it) }
             } catch (ex: Exception) {
                 logger.error("Error on entity events $events", ex)

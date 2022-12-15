@@ -37,6 +37,7 @@ class ItemUpdateService(
             append("deleted=${item.deleted}, ")
             append("creators=${item.creators}, ")
             append("creatorsFinal=${item.creatorsFinal}, ")
+            append("isSuspiciousOnOS=${item.isSuspiciousOnOS}, ")
             append("revertableEvents=${item.revertableEvents.size}, ")
             append("last revertableEvent=${item.revertableEvents.lastOrNull()}")
         })

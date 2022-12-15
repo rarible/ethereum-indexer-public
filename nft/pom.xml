@@ -29,6 +29,11 @@
                 <artifactId>protocol-nft-indexer-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.rarible</groupId>
+                <artifactId>rarible-opensea-client-starter</artifactId>
+                <version>${opensea-client-starter.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.rarible.protocol</groupId>

@@ -18,6 +18,7 @@ class ItemDtoConverter : Converter<Item, NftItemDto> {
             lastUpdatedAt = item.date,
             mintedAt = item.mintedAt,
             deleted = item.deleted,
-            isRaribleContract = item.isRaribleContract
+            isRaribleContract = item.isRaribleContract,
+            isSuspiciousOnOS = item.isSuspiciousOnOS,
         )
 }

@@ -7,7 +7,7 @@ import com.rarible.protocol.nft.core.data.log
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
-import com.rarible.protocol.nft.listener.service.ignored.IgnoredTokenResolver
+import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
 import io.daonomic.rpc.domain.Word
 import io.mockk.every

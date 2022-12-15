@@ -60,6 +60,10 @@
             <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-starter</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rarible</groupId>
+            <artifactId>rarible-opensea-client-starter</artifactId>
+        </dependency>
 
         <!-- ================== Spring =================== -->
         <dependency>
