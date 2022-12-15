@@ -117,7 +117,8 @@ data class OrderIndexerProperties(
         val checkMinimalBidPrice: Boolean = false,
         val checkMinimalCollectionBidPriceOnly: Boolean = false,
         val scannerVersion: ScannerVersion = ScannerVersion.V1,
-        val enableAuction: Boolean = false
+        val enableAuction: Boolean = false,
+        val skipEventsIfNoTraceFound: Boolean = false
     )
 
     data class RaribleOrderExpirationProperties(

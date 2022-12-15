@@ -20,3 +20,5 @@ common:
     crypto-punks-transfer-proxy: "0x0000000000000000000000000000000000000000"
   currency-contract-addresses:
     weth: "0x8618444D5916c52Ef2BA9a64dDE5fE04249F6001"
+  feature-flags:
+    skipEventsIfNoTraceFound: true

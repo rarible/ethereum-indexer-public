@@ -5,6 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
@@ -29,7 +30,8 @@ class ExchangeOrderMatchDescriptor(
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
     private val raribleOrderParser: RaribleExchangeV2OrderParser,
-    private val raribleMatchEventMetric: RegisteredCounter
+    private val raribleMatchEventMetric: RegisteredCounter,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) : ExchangeSubscriber<OrderSideMatch>(
     topic = MatchEvent.id(),
     contracts = contractsProvider.raribleExchangeV2()
@@ -38,7 +40,10 @@ class ExchangeOrderMatchDescriptor(
         val event = MatchEvent.apply(log)
         val transactionOrders = raribleOrderParser
             .parseMatchedOrders(transaction.hash(), transaction.input(), event)
-            ?: throw IllegalStateException("Can't find transaction ${transaction.hash()} callData")
+            ?: run {
+                if (featureFlags.skipEventsIfNoTraceFound) return emptyList()
+                throw IllegalStateException("Can't find transaction ${transaction.hash()} callData")
+            }
 
         val leftHash = Word.apply(event.leftHash())
         val rightHash = Word.apply(event.rightHash())

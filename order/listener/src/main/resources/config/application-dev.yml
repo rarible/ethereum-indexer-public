@@ -7,6 +7,7 @@ common:
     linear-curve-v1: "0xdd661d1daddb8f37751a45975c1f4851faffc9bd"
   feature-flags:
     showSudoSwapOrdersWithOtherPlatforms: true
+    skipEventsIfNoTraceFound: true
     scanner-version: V2
   publish:
     publishAmmOrders: true
