@@ -9,7 +9,7 @@ import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.ethereum.listener.log.LogEventDescriptorHolder
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
-import com.rarible.protocol.nft.listener.service.ignored.IgnoredTokenResolver
+import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean

@@ -14,6 +14,7 @@ import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemCreators
+import com.rarible.protocol.nft.core.model.ItemExState
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.ItemRoyalty
@@ -27,6 +28,7 @@ import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
+import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.WordFactory
@@ -57,6 +59,9 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var nftItemActionEventRepository: NftItemActionEventRepository
+
+    @Autowired
+    private lateinit var itemExStateRepository: ItemExStateRepository
 
     @Test
     fun mintItem() = runBlocking {
@@ -92,6 +97,40 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
+    }
+
+    @Test
+    fun `set suspicious flag via state`() = runBlocking<Unit> {
+        val owner = AddressFactory.create()
+        val token = AddressFactory.create()
+        val tokenId = EthUInt256.ONE
+        val blockTimestamp = Instant.ofEpochSecond(12)
+
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
+        )
+        val transfer = ItemTransfer(
+            owner = owner,
+            token = token,
+            tokenId = tokenId,
+            date = nowMillis(),
+            from = Address.ZERO(),
+            value = EthUInt256.ONE
+        )
+        saveItemHistory(transfer, logIndex = 0, from = owner, blockTimestamp = blockTimestamp)
+
+        itemReduceService.update(token, tokenId).awaitFirstOrNull()
+
+        val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
+        assertThat(item.isSuspiciousOnOS).isFalse()
+
+        val exState = ItemExState.initial(item.id).copy(isSuspiciousOnOS = true)
+        itemExStateRepository.save(exState)
+
+        itemReduceService.update(token, tokenId).awaitFirstOrNull()
+
+        val suspiciousItem = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
+        assertThat(suspiciousItem.isSuspiciousOnOS).isTrue
     }
 
     @Test

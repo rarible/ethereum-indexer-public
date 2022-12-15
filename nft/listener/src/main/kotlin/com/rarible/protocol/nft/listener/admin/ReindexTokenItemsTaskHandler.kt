@@ -13,7 +13,7 @@ import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.admin.descriptor.AdminErc1155TransferLogDescriptor
 import com.rarible.protocol.nft.listener.admin.descriptor.AdminErc721TransferLogDescriptor
 import com.rarible.protocol.nft.listener.configuration.EnableOnScannerV1
-import com.rarible.protocol.nft.listener.service.ignored.IgnoredTokenResolver
+import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
