@@ -2,7 +2,7 @@ package com.rarible.protocol.order.core.service.block.handler
 
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.OrderHistory
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.block.filter.EthereumEventFilter
 import io.daonomic.rpc.domain.Word
@@ -25,7 +25,7 @@ class OrderEthereumEventHandler(
             .asSequence()
             .filter { filter(it)}
             .map { log -> log.data }
-            .filterIsInstance<OrderHistory>()
+            .filterIsInstance<OrderExchangeHistory>()
             .map { orderHistory -> orderHistory.hash }
             .distinct()
             .toList()
