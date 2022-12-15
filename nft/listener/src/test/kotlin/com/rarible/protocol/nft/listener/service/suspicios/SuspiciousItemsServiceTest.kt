@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
 import com.rarible.protocol.nft.listener.service.opensea.OpenSeaService
 import com.rarible.protocol.nft.listener.test.data.randomOpenSeaAsset
 import com.rarible.protocol.nft.listener.test.data.randomOpenSeaAssets
+import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -17,8 +18,12 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import reactor.core.publisher.Mono
+import java.util.stream.Stream
 
 @Suppress("ReactiveStreamsUnusedPublisher")
 internal class SuspiciousItemsServiceTest {
@@ -28,46 +33,59 @@ internal class SuspiciousItemsServiceTest {
     private val itemUpdateService = mockk<ItemUpdateService>()
     private val service = SuspiciousItemsService(itemRepository, itemStateRepository, openSeaService, itemUpdateService)
 
-    @Test
-    fun update() = runBlocking<Unit> {
-        val alreadyUpdated = randomOpenSeaAsset()
-        val alreadyUpdatedItemId = ItemId(alreadyUpdated.assetContract.address, alreadyUpdated.tokenId)
-        val alreadyUpdatedItem = createItem(alreadyUpdatedItemId).copy(isSuspiciousOnOS = alreadyUpdated.supportsWyvern)
+    @BeforeEach
+    fun cleanMocks() {
+        clearMocks(itemRepository, itemStateRepository, openSeaService, itemUpdateService)
+    }
 
-        val needUpdated = randomOpenSeaAsset()
-        val needUpdatedItemId = ItemId(needUpdated.assetContract.address, needUpdated.tokenId)
-        val needUpdatedItem = createItem(needUpdatedItemId).copy(isSuspiciousOnOS = needUpdated.supportsWyvern.not())
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `update - with existed state`(exStateExist: Boolean) = runBlocking<Unit> {
+        val asset = randomOpenSeaAsset()
+        val itemId = ItemId(asset.assetContract.address, asset.tokenId)
+        val item = createItem(itemId).copy(isSuspiciousOnOS = asset.supportsWyvern.not())
+        val savedExState = if (exStateExist) randomItemExState(itemId) else null
 
-        val openSeaItems = randomOpenSeaAssets(listOf(needUpdated, alreadyUpdated) )
+        val openSeaItems = randomOpenSeaAssets(listOf(asset) )
 
         val stateAsset = randomUpdateSuspiciousItemsStateAsset()
+        every { itemRepository.findById(itemId) } returns Mono.just(item)
         coEvery { openSeaService.getOpenSeaAssets(stateAsset.contract, stateAsset.cursor) } returns openSeaItems
-        every { itemRepository.findById(needUpdatedItemId) } returns Mono.just(needUpdatedItem)
-        every { itemRepository.findById(alreadyUpdatedItemId) } returns Mono.just(alreadyUpdatedItem)
-
-        coEvery { itemUpdateService.update(any()) } returns needUpdatedItem
-        coEvery { itemStateRepository.getById(needUpdatedItemId) } returns randomItemExState(needUpdatedItemId)
-        coEvery { itemStateRepository.save(any()) } returns randomItemExState(needUpdatedItemId)
+        coEvery { itemUpdateService.update(any()) } returns item
+        coEvery { itemStateRepository.getById(itemId) } returns savedExState
+        coEvery { itemStateRepository.save(any()) } returns randomItemExState(itemId)
 
         service.update(stateAsset)
 
         coVerify(exactly = 1) {
-            itemUpdateService.update(any())
-
+            itemStateRepository.save(withArg {
+                assertThat(it.id).isEqualTo(itemId)
+                assertThat(it.isSuspiciousOnOS).isEqualTo(asset.supportsWyvern)
+            })
             itemUpdateService.update(withArg {
-                assertThat(it.id).isEqualTo(needUpdatedItemId)
-                assertThat(it.isSuspiciousOnOS).isEqualTo(needUpdated.supportsWyvern)
+                assertThat(it.id).isEqualTo(itemId)
+                assertThat(it.isSuspiciousOnOS).isEqualTo(asset.supportsWyvern)
             })
         }
+    }
 
-        coVerify(exactly = 1) {
+    @Test
+    fun `no update`() = runBlocking<Unit> {
+        val asset = randomOpenSeaAsset()
+        val itemId = ItemId(asset.assetContract.address, asset.tokenId)
+        val item = createItem(itemId).copy(isSuspiciousOnOS = asset.supportsWyvern)
+
+        val openSeaItems = randomOpenSeaAssets(listOf(asset) )
+
+        val stateAsset = randomUpdateSuspiciousItemsStateAsset()
+        every { itemRepository.findById(itemId) } returns Mono.just(item)
+        coEvery { openSeaService.getOpenSeaAssets(stateAsset.contract, stateAsset.cursor) } returns openSeaItems
+
+        service.update(stateAsset)
+
+        coVerify(exactly = 0) {
             itemStateRepository.save(any())
-            itemStateRepository.getById(needUpdatedItemId)
-
-            itemStateRepository.save(withArg {
-                assertThat(it.id).isEqualTo(needUpdatedItemId)
-                assertThat(it.isSuspiciousOnOS).isEqualTo(needUpdated.supportsWyvern)
-            })
+            itemUpdateService.update(any())
         }
     }
 }
