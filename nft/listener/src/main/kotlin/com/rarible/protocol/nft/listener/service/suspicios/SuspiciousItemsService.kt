@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.listener.service.suspicios
 
+import com.rarible.opensea.client.model.v1.OpenSeaAssets
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemExState
 import com.rarible.protocol.nft.core.model.ItemId
@@ -24,8 +25,7 @@ class SuspiciousItemsService(
     private val itemUpdateService: ItemUpdateService,
 ) {
     suspend fun update(asset: UpdateSuspiciousItemsState.Asset): UpdateSuspiciousItemsState.Asset {
-        val openSeaAssets = openSeaService.getOpenSeaAssets(asset.contract, asset.cursor)
-
+        val openSeaAssets = getOpenSeaAssets(asset) ?: return asset
         coroutineScope {
             openSeaAssets.assets
                 .map { item -> async {
@@ -63,6 +63,15 @@ class SuspiciousItemsService(
         val exState = itemStateRepository.getById(itemId) ?: ItemExState.initial(itemId)
         val updatedState = exState.withSuspiciousOnOS(item.isSuspiciousOnOS)
         itemStateRepository.save(updatedState)
+    }
+
+    private suspend fun getOpenSeaAssets(asset: UpdateSuspiciousItemsState.Asset): OpenSeaAssets? {
+        return try {
+            openSeaService.getOpenSeaAssets(asset.contract, asset.cursor)
+        } catch (ex: Throwable) {
+            logger.error("Can't get OpenSea assets: ${asset.contract}, cursor=${asset.cursor}", ex)
+            null
+        }
     }
 
     private companion object {
