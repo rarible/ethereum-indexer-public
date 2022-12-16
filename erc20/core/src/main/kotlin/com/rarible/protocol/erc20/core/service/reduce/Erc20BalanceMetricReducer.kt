@@ -15,8 +15,8 @@ class Erc20BalanceMetricReducer(
 
     override fun getMetricName(event: Erc20Event): String {
         return when (event) {
-            is Erc20Event.Erc20IncomeTransferEvent -> "income_transfer"
-            is Erc20Event.Erc20OutcomeTransferEvent -> "outcome_transfer"
+            is Erc20Event.Erc20IncomeTransferEvent -> "income"
+            is Erc20Event.Erc20OutcomeTransferEvent -> "outcome"
             is Erc20Event.Erc20DepositEvent -> "deposit"
             is Erc20Event.Erc20WithdrawalEvent -> "withdrawal"
             is Erc20Event.Erc20TokenApprovalEvent -> "approval"
