@@ -7,6 +7,9 @@ ethereumBlockProcessingDelay: 200
 
 common:
   kafka-replica-set: ${kafka.hosts}
+  feature-flags:
+    scanner-version: V2
+    reduce-version: V2
 
 
 blockchain:
