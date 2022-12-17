@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.listener.service.suspicios
 
+import com.rarible.core.test.data.randomBoolean
 import com.rarible.protocol.nft.core.data.randomItemExState
 import com.rarible.protocol.nft.core.data.randomUpdateSuspiciousItemsStateAsset
 import com.rarible.protocol.nft.core.model.ItemId
@@ -52,9 +53,12 @@ internal class SuspiciousItemsServiceTest {
     @ParameterizedTest
     @ValueSource(booleans = [true, false])
     fun `update - with existed state`(exStateExist: Boolean) = runBlocking<Unit> {
-        val asset = randomOpenSeaAsset()
+        val supportsWyvern = randomBoolean()
+        val expectedSuspicious = supportsWyvern.not()
+
+        val asset = randomOpenSeaAsset().copy(supportsWyvern = supportsWyvern)
         val itemId = ItemId(asset.assetContract.address, asset.tokenId)
-        val item = createItem(itemId).copy(isSuspiciousOnOS = asset.supportsWyvern.not())
+        val item = createItem(itemId).copy(isSuspiciousOnOS = expectedSuspicious.not())
         val savedExState = if (exStateExist) randomItemExState(itemId) else null
 
         val openSeaItems = randomOpenSeaAssets(listOf(asset) )
@@ -71,20 +75,23 @@ internal class SuspiciousItemsServiceTest {
         coVerify(exactly = 1) {
             itemStateRepository.save(withArg {
                 assertThat(it.id).isEqualTo(itemId)
-                assertThat(it.isSuspiciousOnOS).isEqualTo(asset.supportsWyvern)
+                assertThat(it.isSuspiciousOnOS).isEqualTo(expectedSuspicious)
             })
             itemUpdateService.update(withArg {
                 assertThat(it.id).isEqualTo(itemId)
-                assertThat(it.isSuspiciousOnOS).isEqualTo(asset.supportsWyvern)
+                assertThat(it.isSuspiciousOnOS).isEqualTo(expectedSuspicious)
             })
         }
     }
 
     @Test
     fun `no update`() = runBlocking<Unit> {
-        val asset = randomOpenSeaAsset()
+        val supportsWyvern = randomBoolean()
+        val expectedSuspicious = supportsWyvern.not()
+
+        val asset = randomOpenSeaAsset().copy(supportsWyvern = supportsWyvern)
         val itemId = ItemId(asset.assetContract.address, asset.tokenId)
-        val item = createItem(itemId).copy(isSuspiciousOnOS = asset.supportsWyvern)
+        val item = createItem(itemId).copy(isSuspiciousOnOS = expectedSuspicious)
 
         val openSeaItems = randomOpenSeaAssets(listOf(asset) )
 

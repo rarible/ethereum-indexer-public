@@ -81,8 +81,9 @@ class SuspiciousItemsService(
     }
 
     private fun getSuspicious(asset: Asset): Boolean {
-        if (asset.supportsWyvern) listenerMetrics.onSuspiciousItemFound()
-        return asset.supportsWyvern
+        val suspicious = asset.supportsWyvern.not()
+        if (suspicious) listenerMetrics.onSuspiciousItemFound()
+        return suspicious
     }
 
     private companion object {
