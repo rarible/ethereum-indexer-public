@@ -34,6 +34,28 @@ class NftListenerMetricsFactory(
     val inconsistentItemsRepairJobUnfixedCounter: Counter = counter("inconsistent.items.repair.job.unfixed")
     val inconsistentItemsRepairJobDelayGauge: AtomicLong = gauge("$root.inconsistent.items.repair.job.delay")
 
+    // === Suspicious
+    private val suspiciousCollectionCheckingCounter: Counter = counter("suspicious.collection.checking")
+    private val suspiciousItemCheckingCounter: Counter = counter("suspicious.item.checking")
+    private val suspiciousItemFoundCounter: Counter = counter("suspicious.item.found")
+    private val suspiciousItemUpdateCounter: Counter = counter("suspicious.item.update")
+
+    fun onSuspiciousCollectionsGet(count: Int) {
+        suspiciousCollectionCheckingCounter.increment(count.toDouble())
+    }
+
+    fun onSuspiciousItemsGet(count: Int) {
+        suspiciousItemCheckingCounter.increment(count.toDouble())
+    }
+
+    fun onSuspiciousItemFound() {
+        suspiciousItemFoundCounter.increment()
+    }
+
+    fun onSuspiciousItemUpdate() {
+        suspiciousItemUpdateCounter.increment()
+    }
+
     private fun gauge(name: String): AtomicLong {
         return meterRegistry.gauge(
             name,

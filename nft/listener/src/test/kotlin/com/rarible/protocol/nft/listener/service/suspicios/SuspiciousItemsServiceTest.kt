@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.repository.data.createItem
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
+import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
 import com.rarible.protocol.nft.listener.service.opensea.OpenSeaService
 import com.rarible.protocol.nft.listener.test.data.randomOpenSeaAsset
 import com.rarible.protocol.nft.listener.test.data.randomOpenSeaAssets
@@ -23,7 +24,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import reactor.core.publisher.Mono
-import java.util.stream.Stream
 
 @Suppress("ReactiveStreamsUnusedPublisher")
 internal class SuspiciousItemsServiceTest {
@@ -31,7 +31,18 @@ internal class SuspiciousItemsServiceTest {
     private val itemStateRepository = mockk<ItemExStateRepository>()
     private val openSeaService = mockk<OpenSeaService>()
     private val itemUpdateService = mockk<ItemUpdateService>()
-    private val service = SuspiciousItemsService(itemRepository, itemStateRepository, openSeaService, itemUpdateService)
+    private val listenerMetrics = mockk<NftListenerMetricsFactory> {
+        every { onSuspiciousItemUpdate() } returns Unit
+        every { onSuspiciousItemsGet(any()) } returns Unit
+        every { onSuspiciousItemFound() } returns Unit
+    }
+    private val service = SuspiciousItemsService(
+        itemRepository,
+        itemStateRepository,
+        openSeaService,
+        itemUpdateService,
+        listenerMetrics
+    )
 
     @BeforeEach
     fun cleanMocks() {

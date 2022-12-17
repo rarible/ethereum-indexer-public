@@ -4,6 +4,7 @@ import com.rarible.protocol.nft.core.data.randomUpdateSuspiciousItemsState
 import com.rarible.protocol.nft.core.data.randomUpdateSuspiciousItemsStateAsset
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.listener.configuration.UpdateSuspiciousItemsHandlerProperties
+import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -18,8 +19,15 @@ internal class UpdateSuspiciousItemsHandlerTest {
     private val stateService = mockk<UpdateSuspiciousItemsStateService>()
     private val suspiciousItemsService = mockk<SuspiciousItemsService>()
     private val properties = mockk<UpdateSuspiciousItemsHandlerProperties>()
-
-    private val handler = UpdateSuspiciousItemsHandler(stateService, suspiciousItemsService, properties)
+    private val listenerMetrics = mockk<NftListenerMetricsFactory> {
+        every { onSuspiciousCollectionsGet(any()) } returns Unit
+    }
+    private val handler = UpdateSuspiciousItemsHandler(
+        stateService,
+        suspiciousItemsService,
+        properties,
+        listenerMetrics
+    )
 
     @Test
     fun `handle - from saved state`() = runBlocking<Unit> {
