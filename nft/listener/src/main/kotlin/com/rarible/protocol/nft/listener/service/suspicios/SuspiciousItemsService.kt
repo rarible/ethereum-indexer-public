@@ -5,6 +5,7 @@ import com.rarible.opensea.client.model.v1.OpenSeaAssets
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemExState
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.SuspiciousUpdateResult
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -27,19 +28,24 @@ class SuspiciousItemsService(
     private val itemUpdateService: ItemUpdateService,
     private val listenerMetrics: NftListenerMetricsFactory
 ) {
-    suspend fun update(asset: UpdateSuspiciousItemsState.Asset): UpdateSuspiciousItemsState.Asset {
-        logger.info("Get items to check suspicious: ${asset.contract}, cursor${asset.cursor}")
-        val openSeaAssets = getOpenSeaAssets(asset) ?: return asset
-        coroutineScope {
-            openSeaAssets.assets
-                .map { item -> async {
-                    val itemId = ItemId(item.assetContract.address, item.tokenId)
-                    val suspicious = getSuspicious(item)
-                    updateItem(itemId, suspicious)
-                } }
-                .awaitAll()
+    suspend fun update(asset: UpdateSuspiciousItemsState.Asset): SuspiciousUpdateResult {
+        return try {
+            logger.info("Get items to check suspicious: ${asset.contract}, cursor${asset.cursor}")
+            val openSeaAssets = getOpenSeaAssets(asset)
+            coroutineScope {
+                openSeaAssets.assets
+                    .map { item -> async {
+                        val itemId = ItemId(item.assetContract.address, item.tokenId)
+                        val suspicious = getSuspicious(item)
+                        updateItem(itemId, suspicious)
+                    } }
+                    .awaitAll()
+            }
+            SuspiciousUpdateResult.Success(asset.copy(cursor = openSeaAssets.next))
+        } catch (ex: Throwable) {
+            logger.error("Can't get OpenSea assets: ${asset.contract}, cursor=${asset.cursor}", ex)
+            SuspiciousUpdateResult.Fail(asset)
         }
-        return asset.copy(cursor = openSeaAssets.next)
     }
 
     private suspend fun updateItem(itemId: ItemId, suspicious: Boolean) {
@@ -70,14 +76,9 @@ class SuspiciousItemsService(
         itemStateRepository.save(updatedState)
     }
 
-    private suspend fun getOpenSeaAssets(asset: UpdateSuspiciousItemsState.Asset): OpenSeaAssets? {
-        return try {
-            openSeaService.getOpenSeaAssets(asset.contract, asset.cursor).also {
-                listenerMetrics.onSuspiciousItemsGet(it.assets.size)
-            }
-        } catch (ex: Throwable) {
-            logger.error("Can't get OpenSea assets: ${asset.contract}, cursor=${asset.cursor}", ex)
-            null
+    private suspend fun getOpenSeaAssets(asset: UpdateSuspiciousItemsState.Asset): OpenSeaAssets {
+        return openSeaService.getOpenSeaAssets(asset.contract, asset.cursor).also {
+            listenerMetrics.onSuspiciousItemsGet(it.assets.size)
         }
     }
 

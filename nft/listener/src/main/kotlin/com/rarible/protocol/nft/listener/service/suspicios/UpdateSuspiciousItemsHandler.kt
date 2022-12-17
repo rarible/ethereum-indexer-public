@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.listener.service.suspicios
 
 import com.rarible.core.daemon.job.JobHandler
+import com.rarible.protocol.nft.core.model.SuspiciousUpdateResult
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.listener.configuration.UpdateSuspiciousItemsHandlerProperties
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
@@ -41,7 +42,13 @@ class UpdateSuspiciousItemsHandler(
                 chunk
                     .map { asset -> async { suspiciousItemsService.update(asset) } }
                     .awaitAll()
-                    .filter { asset -> asset.cursor != null }
+                    .filter { result ->
+                        when (result) {
+                            is SuspiciousUpdateResult.Success -> result.next.cursor != null
+                            is SuspiciousUpdateResult.Fail -> true
+                        }
+                    }
+                    .map { result -> result.next }
             }
             .flatten()
 
