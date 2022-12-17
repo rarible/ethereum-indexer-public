@@ -43,7 +43,7 @@ class SuspiciousItemsService(
 
     private suspend fun updateItem(itemId: ItemId, suspicious: Boolean) {
         val item = itemRepository.findById(itemId).awaitFirstOrNull() ?: run {
-            logger.error("Can't fin item {} to update suspicious", itemId.decimalStringValue)
+            logger.error("Can't find item {} to update suspicious", itemId.decimalStringValue)
             return
         }
         if (item.isSuspiciousOnOS != suspicious) {
@@ -82,7 +82,10 @@ class SuspiciousItemsService(
 
     private fun getSuspicious(asset: Asset): Boolean {
         val suspicious = asset.supportsWyvern.not()
-        if (suspicious) listenerMetrics.onSuspiciousItemFound()
+        if (suspicious) {
+            logger.info("Found suspicious: ${asset.assetContract.address}:${asset.tokenId}, {}", suspicious)
+            listenerMetrics.onSuspiciousItemFound()
+        }
         return suspicious
     }
 
