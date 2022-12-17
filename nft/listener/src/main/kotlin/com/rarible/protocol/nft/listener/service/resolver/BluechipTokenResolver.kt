@@ -12,7 +12,7 @@ class BluechipTokenResolver(
 ) : AbstractResolver<Set<Address>>(indexerProperties, appEnv, "bluechip") {
 
     private val topCollections = lazy {
-        read(Bluechip::class.java)?.topCollections?.map { Address.apply(it.address) }?.toSet() ?: emptySet()
+        read(Bluechip::class.java)?.topCollections?.map { Address.apply(it) }?.toSet() ?: emptySet()
     }
 
     override fun resolve(): Set<Address> {
@@ -20,11 +20,6 @@ class BluechipTokenResolver(
     }
 
     private data class Bluechip(
-        val topCollections: Set<Top>
-   ) {
-        data class Top(
-            val address: String,
-            val name: String
-        )
-    }
+        val topCollections: Set<String>
+   )
 }

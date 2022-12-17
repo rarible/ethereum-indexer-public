@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.listener.service.suspicios
 
+import com.rarible.opensea.client.model.v1.Asset
+import com.rarible.opensea.client.model.v1.OpenSeaAssets
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemExState
 import com.rarible.protocol.nft.core.model.ItemId
@@ -7,6 +9,7 @@ import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
+import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
 import com.rarible.protocol.nft.listener.service.opensea.OpenSeaService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -22,15 +25,15 @@ class SuspiciousItemsService(
     private val itemStateRepository: ItemExStateRepository,
     private val openSeaService: OpenSeaService,
     private val itemUpdateService: ItemUpdateService,
+    private val listenerMetrics: NftListenerMetricsFactory
 ) {
     suspend fun update(asset: UpdateSuspiciousItemsState.Asset): UpdateSuspiciousItemsState.Asset {
-        val openSeaAssets = openSeaService.getOpenSeaAssets(asset.contract, asset.cursor)
-
+        val openSeaAssets = getOpenSeaAssets(asset) ?: return asset
         coroutineScope {
             openSeaAssets.assets
                 .map { item -> async {
                     val itemId = ItemId(item.assetContract.address, item.tokenId)
-                    val suspicious = item.supportsWyvern
+                    val suspicious = getSuspicious(item)
                     updateItem(itemId, suspicious)
                 } }
                 .awaitAll()
@@ -56,6 +59,7 @@ class SuspiciousItemsService(
 
     private suspend fun updateItem(item: Item) {
         itemUpdateService.update(item)
+        listenerMetrics.onSuspiciousItemUpdate()
     }
 
     private suspend fun updateState(item: Item) {
@@ -63,6 +67,23 @@ class SuspiciousItemsService(
         val exState = itemStateRepository.getById(itemId) ?: ItemExState.initial(itemId)
         val updatedState = exState.withSuspiciousOnOS(item.isSuspiciousOnOS)
         itemStateRepository.save(updatedState)
+    }
+
+    private suspend fun getOpenSeaAssets(asset: UpdateSuspiciousItemsState.Asset): OpenSeaAssets? {
+        return try {
+            openSeaService.getOpenSeaAssets(asset.contract, asset.cursor).also {
+                listenerMetrics.onSuspiciousItemsGet(it.assets.size)
+            }
+        } catch (ex: Throwable) {
+            logger.error("Can't get OpenSea assets: ${asset.contract}, cursor=${asset.cursor}", ex)
+            null
+        }
+    }
+
+    private fun getSuspicious(asset: Asset): Boolean {
+        val suspicious = asset.supportsWyvern.not()
+        if (suspicious) listenerMetrics.onSuspiciousItemFound()
+        return suspicious
     }
 
     private companion object {

@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.listener.service.suspicios
 import com.rarible.core.daemon.job.JobHandler
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.listener.configuration.UpdateSuspiciousItemsHandlerProperties
+import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -18,12 +19,12 @@ class UpdateSuspiciousItemsHandler(
     private val stateService: UpdateSuspiciousItemsStateService,
     private val suspiciousItemsService: SuspiciousItemsService,
     private val properties: UpdateSuspiciousItemsHandlerProperties,
+    private val listenerMetrics: NftListenerMetricsFactory,
 ) : JobHandler {
 
     override suspend fun handle() {
         val now = Instant.now()
-        val state = stateService.getState() ?: stateService.getInitState(now)
-
+        val state = getState(now)
         val newState = if (state.assets.isNotEmpty()) {
             update(state)
         } else {
@@ -58,6 +59,12 @@ class UpdateSuspiciousItemsHandler(
             val awaitDuration = minOf(properties.awakePeriod, Duration.between(nextStart, now))
             delay(awaitDuration)
             state
+        }
+    }
+
+    private suspend fun getState(now: Instant): UpdateSuspiciousItemsState {
+        return stateService.getState() ?: stateService.getInitState(now).also {
+            listenerMetrics.onSuspiciousCollectionsGet(it.assets.size)
         }
     }
 
