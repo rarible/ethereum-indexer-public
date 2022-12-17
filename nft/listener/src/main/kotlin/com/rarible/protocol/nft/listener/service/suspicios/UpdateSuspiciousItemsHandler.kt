@@ -62,7 +62,7 @@ class UpdateSuspiciousItemsHandler(
         return if (now >= nextStart) {
             stateService.getInitState(now)
         } else {
-            val awaitDuration = minOf(properties.awakePeriod, Duration.between(nextStart, now))
+            val awaitDuration = minOf(properties.awakePeriod, Duration.between(now, nextStart))
             logger.info("No runnable state: nextStart={}, await={}", nextStart, awaitDuration)
             delay(awaitDuration)
             state
