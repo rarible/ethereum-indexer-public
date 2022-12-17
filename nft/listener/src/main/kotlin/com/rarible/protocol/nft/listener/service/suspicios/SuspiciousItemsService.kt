@@ -28,6 +28,7 @@ class SuspiciousItemsService(
     private val listenerMetrics: NftListenerMetricsFactory
 ) {
     suspend fun update(asset: UpdateSuspiciousItemsState.Asset): UpdateSuspiciousItemsState.Asset {
+        logger.info("Get items to check suspicious: ${asset.contract}, cursor${asset.cursor}")
         val openSeaAssets = getOpenSeaAssets(asset) ?: return asset
         coroutineScope {
             openSeaAssets.assets
