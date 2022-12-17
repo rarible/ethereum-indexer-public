@@ -58,12 +58,12 @@ class UpdateSuspiciousItemsHandler(
     private suspend fun awaitNextStart(now: Instant, state: UpdateSuspiciousItemsState): UpdateSuspiciousItemsState {
         val previousStartTime = state.statedAt
         val nextStart = previousStartTime + properties.handlePeriod
-        logger.info("No runnable state: nextStart={}, ", state.assets.size)
 
         return if (now >= nextStart) {
             stateService.getInitState(now)
         } else {
             val awaitDuration = minOf(properties.awakePeriod, Duration.between(nextStart, now))
+            logger.info("No runnable state: nextStart={}, await={}", nextStart, awaitDuration)
             delay(awaitDuration)
             state
         }
