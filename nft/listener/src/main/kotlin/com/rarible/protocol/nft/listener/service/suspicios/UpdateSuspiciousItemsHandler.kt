@@ -63,7 +63,7 @@ class UpdateSuspiciousItemsHandler(
     }
 
     private suspend fun getState(now: Instant): UpdateSuspiciousItemsState {
-        return stateService.getState() ?: stateService.getInitState(now).also {
+        return (stateService.getState() ?: stateService.getInitState(now)).also {
             listenerMetrics.onSuspiciousCollectionsGet(it.assets.size)
         }
     }
