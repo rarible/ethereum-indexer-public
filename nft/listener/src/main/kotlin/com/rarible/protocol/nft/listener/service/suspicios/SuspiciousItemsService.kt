@@ -83,7 +83,6 @@ class SuspiciousItemsService(
     private fun getSuspicious(asset: Asset): Boolean {
         val suspicious = asset.supportsWyvern.not()
         if (suspicious) {
-            logger.info("Found suspicious: ${asset.assetContract.address}:${asset.tokenId}, {}", suspicious)
             listenerMetrics.onSuspiciousItemFound()
         }
         return suspicious
