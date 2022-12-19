@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.listener.service.suspicios
 
 import com.rarible.protocol.nft.core.data.randomUpdateSuspiciousItemsState
 import com.rarible.protocol.nft.core.data.randomUpdateSuspiciousItemsStateAsset
+import com.rarible.protocol.nft.core.model.SuspiciousUpdateResult
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.listener.configuration.UpdateSuspiciousItemsHandlerProperties
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
@@ -41,10 +42,10 @@ internal class UpdateSuspiciousItemsHandlerTest {
         every { properties.chunkSize } returns 5
 
         runningStateAssets.forEach {
-            coEvery { suspiciousItemsService.update(it) } returns it
+            coEvery { suspiciousItemsService.update(it) } returns SuspiciousUpdateResult.Success(it)
         }
         finishedStateAssets.forEach {
-            coEvery { suspiciousItemsService.update(it) } returns it.copy(cursor = null)
+            coEvery { suspiciousItemsService.update(it) } returns SuspiciousUpdateResult.Success(it.copy(cursor = null))
         }
 
         handler.handle()
@@ -61,13 +62,40 @@ internal class UpdateSuspiciousItemsHandlerTest {
     }
 
     @Test
+    fun `handle - save all states if error`() = runBlocking<Unit> {
+        val runningStateAssets = (1..5).map { randomUpdateSuspiciousItemsStateAsset() }
+        val finishedStateAssets = (1..5).map { randomUpdateSuspiciousItemsStateAsset().copy(cursor = null) }
+        val state = UpdateSuspiciousItemsState(Instant.now(), runningStateAssets + finishedStateAssets)
+
+        coEvery { stateService.getState() } returns state
+        coEvery { stateService.save(any()) } returns Unit
+
+        every { properties.chunkSize } returns 5
+
+        runningStateAssets.forEach {
+            coEvery { suspiciousItemsService.update(it) } returns SuspiciousUpdateResult.Fail(it)
+        }
+        finishedStateAssets.forEach {
+            coEvery { suspiciousItemsService.update(it) } returns SuspiciousUpdateResult.Fail(it)
+        }
+        handler.handle()
+
+        coVerify {
+            stateService.save(withArg {
+                assertThat(it.statedAt).isEqualTo(state.statedAt)
+                assertThat(it.assets).containsExactlyInAnyOrderElementsOf(runningStateAssets + finishedStateAssets)
+            })
+        }
+    }
+
+    @Test
     fun `handle - from init state`() = runBlocking<Unit> {
         val state = UpdateSuspiciousItemsState(Instant.now(), listOf(randomUpdateSuspiciousItemsStateAsset()))
         coEvery { stateService.getState() } returns null
         coEvery { stateService.getInitState(any()) } returns state
         coEvery { stateService.save(any()) } returns Unit
         every { properties.chunkSize } returns 5
-        coEvery { suspiciousItemsService.update(state.assets.single()) } returns state.assets.single()
+        coEvery { suspiciousItemsService.update(state.assets.single()) } returns SuspiciousUpdateResult.Success(state.assets.single())
 
         handler.handle()
 

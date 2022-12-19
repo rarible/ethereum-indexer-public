@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.listener.service.suspicios
 
 import com.rarible.core.daemon.job.JobHandler
+import com.rarible.protocol.nft.core.model.SuspiciousUpdateResult
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.listener.configuration.UpdateSuspiciousItemsHandlerProperties
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
@@ -41,7 +42,13 @@ class UpdateSuspiciousItemsHandler(
                 chunk
                     .map { asset -> async { suspiciousItemsService.update(asset) } }
                     .awaitAll()
-                    .filter { asset -> asset.cursor != null }
+                    .filter { result ->
+                        when (result) {
+                            is SuspiciousUpdateResult.Success -> result.next.cursor != null
+                            is SuspiciousUpdateResult.Fail -> true
+                        }
+                    }
+                    .map { result -> result.next }
             }
             .flatten()
 
@@ -51,19 +58,19 @@ class UpdateSuspiciousItemsHandler(
     private suspend fun awaitNextStart(now: Instant, state: UpdateSuspiciousItemsState): UpdateSuspiciousItemsState {
         val previousStartTime = state.statedAt
         val nextStart = previousStartTime + properties.handlePeriod
-        logger.info("No runnable state: nextStart={}, ", state.assets.size)
 
         return if (now >= nextStart) {
             stateService.getInitState(now)
         } else {
-            val awaitDuration = minOf(properties.awakePeriod, Duration.between(nextStart, now))
+            val awaitDuration = minOf(properties.awakePeriod, Duration.between(now, nextStart))
+            logger.info("No runnable state: nextStart={}, await={}", nextStart, awaitDuration)
             delay(awaitDuration)
             state
         }
     }
 
     private suspend fun getState(now: Instant): UpdateSuspiciousItemsState {
-        return stateService.getState() ?: stateService.getInitState(now).also {
+        return (stateService.getState() ?: stateService.getInitState(now)).also {
             listenerMetrics.onSuspiciousCollectionsGet(it.assets.size)
         }
     }
