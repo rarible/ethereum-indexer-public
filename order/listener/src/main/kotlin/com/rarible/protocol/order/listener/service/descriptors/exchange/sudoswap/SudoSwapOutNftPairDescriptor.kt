@@ -5,6 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SwapNFTOutPairEvent
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.lang.IllegalStateException
 import java.time.Instant
 
 @Service
@@ -31,7 +33,8 @@ class SudoSwapOutNftPairDescriptor(
     private val wrapperSudoSwapMatchEventCounter: RegisteredCounter,
     private val sudoSwapPoolInfoProvider: PoolInfoProvider,
     private val poolCurve: PoolCurve,
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ): PoolSubscriber<PoolTargetNftOut>(
     name = "sudo_nft_out_pair",
     topic = SwapNFTOutPairEvent.id(),
@@ -43,7 +46,10 @@ class SudoSwapOutNftPairDescriptor(
             it[index]
         }
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
-        val poolInfo = sudoSwapPoolInfoProvider.getPollInfo(hash, log.address())
+        val poolInfo = sudoSwapPoolInfoProvider.getPollInfo(hash, log.address()) ?: run {
+            if (featureFlags.getPoolInfoFromChain) throw IllegalStateException("Can't get pool ${log.address()} info")
+            else return emptyList()
+        }
         val tokenIds = when (details) {
             is SudoSwapAnyOutNftDetail -> {
                 logger.info("Detected swapTokenForAnyNFTs method call in tx=${transaction.hash()}")

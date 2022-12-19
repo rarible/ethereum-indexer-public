@@ -72,11 +72,6 @@ class OrderListenerConfiguration(
     private val ownershipBalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
 
     @Bean
-    fun featureFlags(): OrderIndexerProperties.FeatureFlags {
-        return commonProperties.featureFlags
-    }
-
-    @Bean
     fun blockchain(): Blockchain {
         return commonProperties.blockchain
     }

@@ -4,6 +4,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomWord
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.LSSVMPairV1
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
@@ -32,7 +33,8 @@ internal class PoolInfoProviderTest {
     private val sudoSwapPoolCollectionProvider = PoolInfoProvider(
         sender = sender,
         orderRepository = orderRepository,
-        sudoSwapProtocolFeeProvider = sudoSwapProtocolFeeProvider
+        sudoSwapProtocolFeeProvider = sudoSwapProtocolFeeProvider,
+        featureFlags = OrderIndexerProperties.FeatureFlags(),
     )
 
     @Test
@@ -47,7 +49,7 @@ internal class PoolInfoProviderTest {
         coEvery { orderRepository.findById(orderHash) } returns order
         coEvery { sudoSwapProtocolFeeProvider.getProtocolFeeMultiplier(data.factory) } returns protocolFee
 
-        val result = sudoSwapPoolCollectionProvider.getPollInfo(orderHash, poolAddress)
+        val result = sudoSwapPoolCollectionProvider.getPollInfo(orderHash, poolAddress)!!
         Assertions.assertThat(result.collection).isEqualTo(collection)
         Assertions.assertThat(result.curve).isEqualTo(data.bondingCurve)
         Assertions.assertThat(result.spotPrice).isEqualTo(data.spotPrice)
@@ -172,7 +174,7 @@ internal class PoolInfoProviderTest {
         } returns Mono.just(Uint256Type.encode(fee))
 
 
-        val result = sudoSwapPoolCollectionProvider.getPollInfo(orderHash, poolAddress)
+        val result = sudoSwapPoolCollectionProvider.getPollInfo(orderHash, poolAddress)!!
         Assertions.assertThat(result.collection).isEqualTo(collection)
         Assertions.assertThat(result.curve).isEqualTo(curve)
         Assertions.assertThat(result.spotPrice).isEqualTo(spotPrice)
