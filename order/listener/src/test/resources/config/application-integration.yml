@@ -44,6 +44,7 @@ common:
   feature-flags:
     check-on-chain-approve: true
     enable-auction: true
+    scanner-version: V2
 
 listener:
   load-open-sea-orders: false
