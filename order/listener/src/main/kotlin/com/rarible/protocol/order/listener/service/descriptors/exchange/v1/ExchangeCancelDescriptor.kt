@@ -22,6 +22,7 @@ class ExchangeCancelDescriptor(
     contractsProvider: ContractsProvider,
     private val assetTypeService: AssetTypeService
 ) : ExchangeSubscriber<OrderCancel>(
+    name = "rari_v1_cancel",
     topic = CancelEvent.id(),
     contracts = contractsProvider.raribleExchangeV1()
 ) {

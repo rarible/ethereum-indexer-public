@@ -20,6 +20,7 @@ class WyvernExchangeOrderMatchDescriptor(
     private val openSeaOrdersSideMatcher: OpenSeaOrderEventConverter,
     private val openSeaOrderParser: OpenSeaOrderParser
 ) : ExchangeSubscriber<OrderSideMatch>(
+    name = "os_matched",
     topic = OrdersMatchedEvent.id(),
     contracts = contractsProvider.openSea()
 ) {

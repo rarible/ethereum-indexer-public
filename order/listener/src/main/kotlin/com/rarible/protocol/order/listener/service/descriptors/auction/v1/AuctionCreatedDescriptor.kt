@@ -14,7 +14,11 @@ import java.time.Instant
 @EnableAuction
 class AuctionCreatedDescriptor(
     contractsProvider: ContractsProvider,
-) : AbstractAuctionDescriptor<OnChainAuction>(AuctionCreatedEvent.id(), contractsProvider) {
+) : AbstractAuctionDescriptor<OnChainAuction>(
+    name = "auction_created",
+    topic = AuctionCreatedEvent.id(),
+    contractsProvider = contractsProvider
+) {
 
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OnChainAuction> {
         val event = AuctionCreatedEvent.apply(log)

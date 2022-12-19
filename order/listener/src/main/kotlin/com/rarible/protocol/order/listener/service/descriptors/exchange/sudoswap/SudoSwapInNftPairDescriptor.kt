@@ -26,6 +26,7 @@ class SudoSwapInNftPairDescriptor(
     private val sudoSwapCurve: PoolCurve,
     private val priceUpdateService: PriceUpdateService
 ): PoolSubscriber<PoolTargetNftIn>(
+    name = "sudo_nft_in_pair",
     topic = SwapNFTInPairEvent.id(),
     contracts = emptyList()
 ) {

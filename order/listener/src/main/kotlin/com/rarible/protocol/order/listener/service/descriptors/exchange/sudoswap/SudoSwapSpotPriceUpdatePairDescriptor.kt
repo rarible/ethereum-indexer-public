@@ -19,6 +19,7 @@ class SudoSwapSpotPriceUpdatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapUpdateSpotPriceEventCounter: RegisteredCounter
 ): PoolSubscriber<PoolSpotPriceUpdate>(
+    name = "sudo_spot_price_update",
     topic = SpotPriceUpdateEvent.id(),
     contracts = emptyList()
 ) {

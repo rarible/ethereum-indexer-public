@@ -20,6 +20,7 @@ class X2Y2SellOrderMatchDescriptor(
     private val converter: X2Y2EventConverter,
     private val x2y2MatchEventCounter: RegisteredCounter,
 ): ExchangeSubscriber<OrderSideMatch>(
+    name = "x2y2_inventory",
     topic = EvInventoryEvent.id(),
     contracts = contractsProvider.x2y2V1()
 ) {

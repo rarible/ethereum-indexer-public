@@ -21,6 +21,7 @@ class ZeroExExchangeOrderMatchDescriptor(
     private val zeroExOrderEventConverter: ZeroExOrderEventConverter,
     private val zeroExOrderParser: ZeroExOrderParser
 ) : ExchangeSubscriber<OrderSideMatch>(
+    name = "0x_fill",
     topic = FillEvent.id(),
     contracts = contractsProvider.zeroEx()
 ) {

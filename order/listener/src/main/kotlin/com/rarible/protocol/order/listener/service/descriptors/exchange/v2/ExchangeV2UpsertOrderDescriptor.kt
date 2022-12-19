@@ -25,6 +25,7 @@ import java.time.Instant
 class ExchangeV2UpsertOrderDescriptor(
     contractsProvider: ContractsProvider,
 ) : ExchangeSubscriber<OnChainOrder>(
+    name = "rari_v2_upsert",
     topic = UpsertOrderEvent.id(),
     contracts = contractsProvider.raribleExchangeV2()
 ) {

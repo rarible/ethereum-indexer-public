@@ -43,6 +43,7 @@ class CryptoPunkBoughtLogDescriptor(
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
     private val ethereum: MonoEthereum
 ) : ExchangeSubscriber<OrderExchangeHistory>(
+    name = "punk_bought",
     topic = PunkBoughtEvent.id(),
     contracts = contractsProvider.cryptoPunks()
 ) {

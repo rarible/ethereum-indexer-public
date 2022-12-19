@@ -33,6 +33,7 @@ class SudoSwapOutNftPairDescriptor(
     private val poolCurve: PoolCurve,
     private val priceUpdateService: PriceUpdateService
 ): PoolSubscriber<PoolTargetNftOut>(
+    name = "sudo_nft_out_pair",
     topic = SwapNFTOutPairEvent.id(),
     contracts = emptyList()
 ) {

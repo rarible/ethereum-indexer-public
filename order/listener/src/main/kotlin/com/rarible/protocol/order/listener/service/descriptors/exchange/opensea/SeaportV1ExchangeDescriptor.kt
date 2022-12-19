@@ -22,6 +22,7 @@ class SeaportV1ExchangeDescriptor(
     private val seaportEventErrorCounter: RegisteredCounter,
     private val seaportFulfilledEventCounter: RegisteredCounter
 ) : ExchangeSubscriber<OrderSideMatch>(
+    name = "os_fulfilled",
     topic = OrderFulfilledEvent.id(),
     contracts = contractsProvider.seaportV1()
 ) {

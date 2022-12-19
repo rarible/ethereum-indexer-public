@@ -31,6 +31,7 @@ class ExchangeOrderMatchLegacyDescriptor(
     private val raribleOrderParser: RaribleExchangeV2OrderParser,
     private val raribleMatchEventMetric: RegisteredCounter
 ) : ExchangeSubscriber<OrderSideMatch>(
+    name = "rari_v2_match_legacy",
     topic = MatchEvent.id(),
     contracts = contractsProvider.raribleExchangeV2()
 ) {

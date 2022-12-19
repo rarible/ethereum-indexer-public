@@ -19,6 +19,7 @@ class SudoSwapDeltaUpdatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapUpdateDeltaEventCounter: RegisteredCounter
 ): PoolSubscriber<PoolDeltaUpdate>(
+    name = "sudo_delta_update",
     topic = DeltaUpdateEvent.id(),
     contracts = emptyList()
 ) {

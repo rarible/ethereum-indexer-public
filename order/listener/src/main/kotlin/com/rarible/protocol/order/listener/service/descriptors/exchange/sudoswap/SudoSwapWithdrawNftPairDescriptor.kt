@@ -20,6 +20,7 @@ class SudoSwapWithdrawNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapWithdrawNftEventCounter: RegisteredCounter
 ): PoolSubscriber<PoolNftWithdraw>(
+    name = "sudo_nft_withdrawal",
     topic = NFTWithdrawalEvent.id(),
     contracts = emptyList()
 ) {

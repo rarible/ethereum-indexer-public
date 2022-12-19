@@ -32,6 +32,7 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
     private val contractsProvider: ContractsProvider,
     private val ethereum: MonoEthereum
 ) : ExchangeSubscriber<OrderExchangeHistory>(
+    name = "punk_no_longer_for_sale",
     topic = PunkNoLongerForSaleEvent.id(),
     contracts = contractsProvider.cryptoPunks()
 ) {

@@ -19,6 +19,7 @@ class SudoSwapFeeUpdatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapUpdateFeeEventCounter: RegisteredCounter
 ): PoolSubscriber<PoolFeeUpdate>(
+    name = "sudo_fee_update",
     topic = FeeUpdateEvent.id(),
     contracts = emptyList()
 ) {
