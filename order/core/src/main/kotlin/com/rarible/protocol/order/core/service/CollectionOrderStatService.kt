@@ -37,6 +37,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 @Component
+@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class CollectionOrderStatService(
     private val collectionStatRepository: CollectionOrderStatRepository,
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
@@ -51,6 +52,7 @@ class CollectionOrderStatService(
     private val blockchainDto = when (blockchain) {
         Blockchain.ETHEREUM -> BlockchainDto.ETHEREUM
         Blockchain.POLYGON -> BlockchainDto.POLYGON
+        Blockchain.OPTIMISM -> BlockchainDto.OPTIMISM
     }
 
     val makeNftKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / AssetType::nft
