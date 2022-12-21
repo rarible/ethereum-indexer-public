@@ -37,7 +37,7 @@ optimism-gateway:
     repository: ethereum-indexer-gateway
   replicas: 2
   service:
-    enabled: true
+    enabled: false
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol'
