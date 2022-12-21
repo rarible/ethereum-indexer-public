@@ -17,9 +17,11 @@ import java.time.Instant
 
 @CaptureSpan(type = SpanType.EVENT)
 abstract class AbstractAuctionDescriptor<T : AuctionHistory>(
+    name: String,
     topic: Word,
     contractsProvider: ContractsProvider,
 ) : AuctionSubscriber<T>(
+    name = name,
     topic = topic,
     contracts = contractsProvider.raribleAuctionV1()
 ) {

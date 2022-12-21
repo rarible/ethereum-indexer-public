@@ -26,6 +26,7 @@ class LooksrareV1ExchangeTakerBidDescriptor(
     priceUpdateService: PriceUpdateService,
     prizeNormalizer: PriceNormalizer,
 ) : AbstractLooksrareV1ExchangeTakerDescriptor(
+    name = "lr_taker_bid",
     TakerBidEvent.id(),
     contractsProvider,
     orderRepository,

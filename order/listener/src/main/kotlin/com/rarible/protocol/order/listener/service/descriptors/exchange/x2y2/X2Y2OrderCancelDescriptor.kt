@@ -20,6 +20,7 @@ class X2Y2OrderCancelDescriptor(
     private val converter: X2Y2EventConverter,
     private val x2y2CancelEventCounter: RegisteredCounter
 ) : ExchangeSubscriber<OrderCancel>(
+    name = "x2y2_cancel",
     topic = EvCancelEvent.id(),
     contracts = contractsProvider.x2y2V1()
 ) {

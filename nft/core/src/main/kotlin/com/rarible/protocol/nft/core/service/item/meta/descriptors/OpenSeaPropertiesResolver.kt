@@ -83,6 +83,7 @@ class OpenSeaPropertiesResolver(
         return when (properties.blockchain) {
             Blockchain.ETHEREUM -> "${openseaUrl}/asset/${itemId.token}/${itemId.tokenId.value}/"
             Blockchain.POLYGON -> "${openseaUrl}/metadata/matic/${itemId.token}/${itemId.tokenId.value}"
+            Blockchain.OPTIMISM -> "${openseaUrl}/metadata/optimism/${itemId.token}/${itemId.tokenId.value}"
         }
     }
 
@@ -105,7 +106,8 @@ class DefaultOpenSeaImageUrlParser(
     override fun parseImage(node: ObjectNode): String? {
         return when (blockchain) {
             Blockchain.ETHEREUM -> node.getText("image_original_url") ?: node.getText("image_url")
-            Blockchain.POLYGON -> node.getText("image")
+            Blockchain.POLYGON,
+            Blockchain.OPTIMISM -> node.getText("image")
         }
     }
 }

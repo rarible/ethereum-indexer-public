@@ -5,6 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SwapNFTInPairEvent
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -16,6 +17,7 @@ import java.time.Instant
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.lang.IllegalStateException
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -24,8 +26,10 @@ class SudoSwapInNftPairDescriptor(
     private val sudoSwapInNftEventCounter: RegisteredCounter,
     private val sudoSwapPoolInfoProvider: PoolInfoProvider,
     private val sudoSwapCurve: PoolCurve,
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ): PoolSubscriber<PoolTargetNftIn>(
+    name = "sudo_nft_in_pair",
     topic = SwapNFTInPairEvent.id(),
     contracts = emptyList()
 ) {
@@ -35,7 +39,10 @@ class SudoSwapInNftPairDescriptor(
             it[index]
         }
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
-        val poolInfo = sudoSwapPoolInfoProvider.getPollInfo(hash, log.address())
+        val poolInfo = sudoSwapPoolInfoProvider.getPollInfo(hash, log.address()) ?: run {
+            if (featureFlags.getPoolInfoFromChain) throw IllegalStateException("Can't get pool ${log.address()} info")
+            else return emptyList()
+        }
         val outputValue = sudoSwapCurve.getSellOutputValues(
             curve = poolInfo.curve,
             spotPrice = poolInfo.spotPrice,

@@ -161,6 +161,7 @@ class PriceUpdateService(
         return when (source) {
             Blockchain.ETHEREUM -> BlockchainDto.ETHEREUM
             Blockchain.POLYGON -> BlockchainDto.POLYGON
+            Blockchain.OPTIMISM -> BlockchainDto.OPTIMISM
         }
     }
 }

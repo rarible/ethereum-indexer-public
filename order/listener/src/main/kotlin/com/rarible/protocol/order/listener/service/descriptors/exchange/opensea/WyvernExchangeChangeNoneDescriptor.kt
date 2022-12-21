@@ -21,6 +21,7 @@ class WyvernExchangeChangeNoneDescriptor(
     contractsProvider: ContractsProvider,
     private val properties: OrderIndexerProperties
 ) : NonceSubscriber(
+    name = "os_nonce_incremented",
     topic = NonceIncrementedEvent.id(),
     contracts = contractsProvider.openSea()
 ) {

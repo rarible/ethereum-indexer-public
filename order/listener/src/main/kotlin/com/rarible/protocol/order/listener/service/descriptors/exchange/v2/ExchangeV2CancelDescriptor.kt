@@ -23,6 +23,7 @@ class ExchangeV2CancelDescriptor(
     contractsProvider: ContractsProvider,
     private val raribleCancelEventMetric: RegisteredCounter
 ) : ExchangeSubscriber<OrderCancel>(
+    name = "rari_v2_cancel",
     topic = CancelEvent.id(),
     contracts = contractsProvider.raribleExchangeV2()
 ) {

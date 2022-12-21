@@ -20,6 +20,7 @@ class SeaportExchangeChangeCounterDescriptor(
     contractsProvider: ContractsProvider,
     private val seaportCounterEventCounter: RegisteredCounter
 ) : NonceSubscriber(
+    name = "os_counter_incremented",
     topic = CounterIncrementedEvent.id(),
     contracts = contractsProvider.seaportV1()
 ) {

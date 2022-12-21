@@ -36,6 +36,7 @@ class CryptoPunkBidEnteredLogDescriptor(
     private val priceUpdateService: PriceUpdateService,
     private val exchangeHistoryRepository: ExchangeHistoryRepository
 ) : ExchangeSubscriber<OrderExchangeHistory>(
+    name = "punk_bid_entered",
     topic = PunkBidEnteredEvent.id(),
     contracts = contractsProvider.cryptoPunks()
 ) {

@@ -28,6 +28,7 @@ class SudoSwapCreatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapCreatePairEventCounter: RegisteredCounter
 ): PoolSubscriber<PoolCreate>(
+    name = "sudo_new_pair",
     topic = NewPairEvent.id(),
     contracts = contractsProvider.pairFactoryV1()
 ) {

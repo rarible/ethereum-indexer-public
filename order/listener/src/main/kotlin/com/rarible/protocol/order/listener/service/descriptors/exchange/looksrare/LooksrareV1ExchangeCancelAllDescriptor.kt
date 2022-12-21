@@ -20,6 +20,7 @@ class LooksrareV1ExchangeCancelAllDescriptor(
     contractsProvider: ContractsProvider,
     private val looksrareCancelAllEventMetric: RegisteredCounter
 ) : NonceSubscriber(
+    name = "lr_cancel_all",
     topic = CancelAllOrdersEvent.id(),
     contracts = contractsProvider.looksrareV1()
 ) {

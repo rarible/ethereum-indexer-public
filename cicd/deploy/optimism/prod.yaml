@@ -1,0 +1,24 @@
+global:
+  network: mainnet
+
+optimism-gateway:
+  service:
+    nodePort: 30117
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+
+optimism-nft-api:
+  replicas: 3
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 512
+
+optimism-nft-listener:
+  environments:
+    MANAGEMENT_HEALTH_PROBES_ENABLED: false
+  resources:
+    jvm:
+      xmx_megabytes: 5120
+      max_direct_memory_megabytes: 4096

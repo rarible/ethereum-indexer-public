@@ -17,6 +17,7 @@ import java.time.Instant
 class CryptoPunkBidWithdrawnLogDescriptor(
     contractsProvider: ContractsProvider,
 ) : ExchangeSubscriber<OrderCancel>(
+    name = "punk_bid_withdrawn",
     topic = PunkBidWithdrawnEvent.id(),
     contracts = contractsProvider.cryptoPunks()
 ) {

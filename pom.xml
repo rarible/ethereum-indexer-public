@@ -29,13 +29,13 @@
         <mockserver-netty.version>5.11.2</mockserver-netty.version>
         <mockserver.version>1.15.3</mockserver.version>
 
-        <rarible.ethereum.version>1.7.1</rarible.ethereum.version>
+        <rarible.ethereum.version>1.7.3</rarible.ethereum.version>
         <rarible.ethereum.contracts.version>1.0.38</rarible.ethereum.contracts.version>
         <rarible.core.version>2.5.7</rarible.core.version>
-        <rarible.blockchain.scanner.version>2.4.15</rarible.blockchain.scanner.version>
+        <rarible.blockchain.scanner.version>2.4.16</rarible.blockchain.scanner.version>
 
         <rarible.protocol.ethereum.version>1.42.1</rarible.protocol.ethereum.version>
-        <rarible.protocol.currency.version>1.38.2</rarible.protocol.currency.version>
+        <rarible.protocol.currency.version>1.38.3</rarible.protocol.currency.version>
         <opensea-client-starter.version>2.1.5</opensea-client-starter.version>
         <looksrare-client-starter.version>1.1.0</looksrare-client-starter.version>
         <x2y2-client.version>1.1.1</x2y2-client.version>

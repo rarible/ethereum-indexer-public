@@ -4,6 +4,7 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.randomPoolInfo
 import com.rarible.protocol.order.core.data.randomSudoSwapPurchaseValue
 import com.rarible.protocol.order.core.model.HistorySource
@@ -46,7 +47,8 @@ internal class SudoSwapInNftPairDescriptorTest {
         sudoSwapInNftEventCounter = counter,
         sudoSwapPoolInfoProvider = sudoSwapPoolInfoProvider,
         sudoSwapCurve = sudoSwapCurve,
-        priceUpdateService = priceUpdateService
+        priceUpdateService = priceUpdateService,
+        featureFlags = OrderIndexerProperties.FeatureFlags()
     )
 
     @Test

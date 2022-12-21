@@ -27,6 +27,7 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
+    name: String,
     topic: Word,
     contractsProvider: ContractsProvider,
     orderRepository: OrderRepository,
@@ -37,6 +38,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
 ) : AbstractLooksrareExchangeDescriptor<OrderExchangeHistory>(
+    name,
     topic,
     contractsProvider,
     orderRepository,

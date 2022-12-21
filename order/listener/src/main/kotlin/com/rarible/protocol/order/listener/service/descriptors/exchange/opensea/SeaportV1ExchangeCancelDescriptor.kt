@@ -20,6 +20,7 @@ class SeaportV1ExchangeCancelDescriptor(
     private val seaportEventConverter: SeaportEventConverter,
     private val seaportCancelEventCounter: RegisteredCounter,
 ) : ExchangeSubscriber<OrderCancel>(
+    name = "os_cancelled",
     topic = OrderCancelledEvent.id(),
     contracts = contractsProvider.seaportV1()
 ) {

@@ -17,6 +17,7 @@ import java.time.Instant
 class ApprovalForAllDescriptor(
     private val approveService: ApproveService
 ) : ApprovalSubscriber(
+    name = "approval",
     topic = ApprovalForAllEvent.id(),
     contracts = emptyList()
 ) {

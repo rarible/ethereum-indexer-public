@@ -33,6 +33,7 @@ class ExchangeOrderMatchDeprecatedDescriptor(
     private val raribleOrderParser: RaribleExchangeV2OrderParser,
     private val raribleMatchEventMetric: RegisteredCounter
 ) : ExchangeSubscriber<OrderSideMatch>(
+    name = "rari_v2_match_deprecated",
     topic = MatchEventDeprecated.id(),
     contracts = contractsProvider.raribleExchangeV2()
 ) {

@@ -22,6 +22,7 @@ class SudoSwapDepositNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapDepositNftEventCounter: RegisteredCounter
 ): PoolSubscriber<PoolNftDeposit>(
+    name = "sudo_nft_deposit",
     topic = NFTDepositEvent.id(),
     contracts = contractsProvider.pairFactoryV1()
 ) {

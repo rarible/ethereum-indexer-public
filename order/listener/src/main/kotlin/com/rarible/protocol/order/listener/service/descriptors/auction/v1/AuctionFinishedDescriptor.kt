@@ -14,7 +14,11 @@ import java.time.Instant
 @EnableAuction
 class AuctionFinishedDescriptor(
     contractsProvider: ContractsProvider,
-) : AbstractAuctionDescriptor<AuctionFinished>(AuctionFinishedEvent.id(), contractsProvider) {
+) : AbstractAuctionDescriptor<AuctionFinished>(
+    name = "auction_finished",
+    topic = AuctionFinishedEvent.id(),
+    contractsProvider = contractsProvider
+) {
 
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<AuctionFinished> {
         val event = AuctionFinishedEvent.apply(log)

@@ -21,6 +21,7 @@ class WyvernExchangeOrderCancelDescriptor(
     private val openSeaOrderEventConverter: OpenSeaOrderEventConverter,
     private val openSeaOrderParser: OpenSeaOrderParser
 ) : ExchangeSubscriber<OrderCancel>(
+    name = "os_cancelled",
     topic = OrderCancelledEvent.id(),
     contracts = contractsProvider.openSea()
 ) {

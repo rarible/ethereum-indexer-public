@@ -28,6 +28,7 @@ class ExchangeBuyDescriptor(
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer
 ) : ExchangeSubscriber<OrderSideMatch>(
+    name = "rari_v1_buy",
     topic = BuyEvent.id(),
     contracts = contractsProvider.raribleExchangeV1()
 ) {

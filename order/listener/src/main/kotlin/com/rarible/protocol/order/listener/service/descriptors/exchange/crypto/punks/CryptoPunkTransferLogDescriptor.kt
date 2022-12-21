@@ -20,6 +20,7 @@ class CryptoPunkTransferLogDescriptor(
     contractsProvider: ContractsProvider,
     private val exchangeHistoryRepository: ExchangeHistoryRepository
 ) : ExchangeSubscriber<OrderExchangeHistory>(
+    name = "punk_transfer",
     topic = PunkTransferEvent.id(),
     contracts = contractsProvider.cryptoPunks()
 ) {

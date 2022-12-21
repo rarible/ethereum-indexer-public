@@ -33,6 +33,7 @@ class ExchangeOrderMatchDescriptor(
     private val raribleMatchEventMetric: RegisteredCounter,
     private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) : ExchangeSubscriber<OrderSideMatch>(
+    name = "rari_v2_match",
     topic = MatchEvent.id(),
     contracts = contractsProvider.raribleExchangeV2()
 ) {

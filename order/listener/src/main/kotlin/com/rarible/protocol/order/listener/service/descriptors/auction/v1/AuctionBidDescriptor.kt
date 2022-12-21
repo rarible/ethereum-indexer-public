@@ -19,8 +19,9 @@ class AuctionBidDescriptor(
     private val prizeNormalizer: PriceNormalizer,
     private val auctionRepository: AuctionRepository
 ) : AbstractAuctionDescriptor<BidPlaced>(
-    BidPlacedEvent.id(),
-    contractsProvider
+    name = "auction_bid_placed",
+    topic = BidPlacedEvent.id(),
+    contractsProvider = contractsProvider
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<BidPlaced> {
         val event = BidPlacedEvent.apply(log)

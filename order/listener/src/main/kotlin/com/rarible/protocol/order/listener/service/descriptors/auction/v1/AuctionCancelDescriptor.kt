@@ -16,7 +16,11 @@ import java.time.Instant
 class AuctionCancelDescriptor(
     contractsProvider: ContractsProvider,
     private val auctionRepository: AuctionRepository
-) : AbstractAuctionDescriptor<AuctionCancelled>(AuctionCancelledEvent.id(), contractsProvider) {
+) : AbstractAuctionDescriptor<AuctionCancelled>(
+    name = "auction_cancelled",
+    topic = AuctionCancelledEvent.id(),
+    contractsProvider = contractsProvider
+) {
 
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<AuctionCancelled> {
         val event = AuctionCancelledEvent.apply(log)

@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.service.pool
 
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.LSSVMPairV1
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderAmmData
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
@@ -20,18 +21,27 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
 import java.math.BigInteger
 
 @Component
+@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class PoolInfoProvider(
     private val sender: ReadOnlyMonoTransactionSender,
     private val orderRepository: OrderRepository,
     private val sudoSwapProtocolFeeProvider: SudoSwapProtocolFeeProvider,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
     suspend fun getPollInfo(order: Order): PoolInfo? {
         return getInfoFromOrder(order)
     }
 
-    suspend fun getPollInfo(hash: Word, poolAddress: Address): PoolInfo {
-        val order = orderRepository.findById(hash)
-        return order?.let { getInfoFromOrder(order) } ?: getInfoFromChain(poolAddress)
+    suspend fun getPollInfo(hash: Word, poolAddress: Address): PoolInfo? {
+        return orderRepository.findById(hash)
+            ?.let {
+                getInfoFromOrder(it)
+            }
+            ?: run {
+                if (featureFlags.getPoolInfoFromChain)
+                    getInfoFromChain(poolAddress)
+                else null
+            }
     }
 
     private suspend fun getInfoFromOrder(order: Order): PoolInfo? {

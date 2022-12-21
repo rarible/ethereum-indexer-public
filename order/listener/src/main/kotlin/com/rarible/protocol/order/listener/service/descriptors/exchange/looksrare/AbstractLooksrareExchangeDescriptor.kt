@@ -16,11 +16,13 @@ import scalether.domain.Address
 import java.time.Instant
 
 abstract class AbstractLooksrareExchangeDescriptor<T : EventData>(
+    name: String,
     topic: Word,
     protected val contractsProvider: ContractsProvider,
     private val orderRepository: OrderRepository,
     private val looksrareCancelOrdersEventMetric: RegisteredCounter,
 ) : ExchangeSubscriber<OrderExchangeHistory>(
+    name = name,
     topic = topic,
     contracts = contractsProvider.looksrareV1()
 ) {
