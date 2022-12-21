@@ -2,6 +2,8 @@ global:
   network: mainnet
 
 optimism-gateway:
+  service:
+    nodePort: 30118
   resources:
     jvm:
       xmx_megabytes: 1024
