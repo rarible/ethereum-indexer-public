@@ -3,7 +3,7 @@ global:
 
 optimism-gateway:
   service:
-    nodePort: 30118
+    nodePort: 30146
   resources:
     jvm:
       xmx_megabytes: 1024
