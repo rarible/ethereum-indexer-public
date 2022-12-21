@@ -7,7 +7,7 @@ optimism-gateway:
       xmx_megabytes: 1024
 
 optimism-nft-api:
-  replicas: 3
+  replicas: 2
   resources:
     jvm:
       xmx_megabytes: 1024
