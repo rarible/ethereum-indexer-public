@@ -3,13 +3,13 @@ global:
 
 optimism-gateway:
   service:
-    nodePort: 30117
+    nodePort: 30146
   resources:
     jvm:
       xmx_megabytes: 1024
 
 optimism-nft-api:
-  replicas: 3
+  replicas: 2
   resources:
     jvm:
       xmx_megabytes: 1024
