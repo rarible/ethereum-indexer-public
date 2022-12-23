@@ -56,6 +56,7 @@ blockchain:
       service: "erc20"
       optimisticLockRetries: 5
       scan:
+        enabled: true
         batch-load:
           enabled: true
           batch-size: 50
