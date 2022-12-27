@@ -5,6 +5,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.ApprovalForAllByTopicsEvent
+import com.rarible.protocol.contracts.ApprovalForAllEventWithFullData
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.service.approve.ApproveService
@@ -16,6 +17,7 @@ import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.lang.IllegalArgumentException
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -43,15 +45,26 @@ class ApprovalForAllDescriptor(
     }
 
     private fun convert(log: Log): ApprovalHistory {
-        val event = when(log.topics().size()) {
-            4 -> ApprovalForAllByTopicsEvent.apply(log)
-            else -> ApprovalForAllEvent.apply(log)
-        }
+        val event = toApprovalForAllEvent(log)
         return ApprovalHistory(
             collection = log.address(),
             owner = event.owner(),
             operator = event.operator(),
             approved = event.approved()
         )
+    }
+
+    private fun toApprovalForAllEvent(log: Log): ApprovalForAllEvent {
+        return try {
+            when(log.topics().size()) {
+                1 -> ApprovalForAllEventWithFullData.apply(log)
+                4 -> ApprovalForAllByTopicsEvent.apply(log)
+                else -> ApprovalForAllEvent.apply(log)
+            }
+        } catch (ex: Throwable) {
+            throw IllegalArgumentException(
+                "Can't convert tx ${log.transactionHash()}, logIndex ${log.logIndex()}", ex
+            )
+        }
     }
 }
