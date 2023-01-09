@@ -11,6 +11,7 @@ import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
 import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
+import com.rarible.protocol.erc20.core.model.Erc20TokenApproval
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.model.Erc20Withdrawal
 import io.daonomic.rpc.domain.Word
@@ -106,6 +107,22 @@ fun randomErc20Withdrawal(
 ): Erc20Withdrawal {
     return Erc20Withdrawal(
         owner = owner,
+        token = token,
+        date = Date(date.toEpochMilli()),
+        value = EthUInt256.of(value)
+    )
+}
+
+fun randomErc20TokenApproval(
+    token: Address = randomAddress(),
+    owner: Address = randomAddress(),
+    spender: Address = randomAddress(),
+    value: BigInteger = BigInteger.ONE,
+    date: Instant = nowMillis()
+): Erc20TokenApproval {
+    return Erc20TokenApproval(
+        owner = owner,
+        spender = spender,
         token = token,
         date = Date(date.toEpochMilli()),
         value = EthUInt256.of(value)

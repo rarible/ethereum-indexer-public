@@ -12,7 +12,8 @@ enum class EventType {
     OUTCOME_TRANSFER,
     DEPOSIT,
     WITHDRAWAL,
-    APPROVAL
+    APPROVAL,
+    ;
 }
 
 @JsonTypeInfo(property = "type", use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY)

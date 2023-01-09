@@ -6,8 +6,8 @@ import com.rarible.protocol.erc20.core.model.BalanceReduceSnapshot
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20ReduceEvent
 import com.rarible.protocol.erc20.core.service.reduce.Erc20BalanceFullReduceService
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.asFlux
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -20,10 +20,12 @@ class Erc20BalanceReduceService(
     private val erc20BalanceReduceEventRepository: Erc20BalanceReduceEventRepository,
     private val erc20BalanceFullReduceService: Erc20BalanceFullReduceService
 ) {
-    fun update(token: Address?, owner: Address?, from: BalanceId?): Flux<BalanceId> {
+    fun update(token: Address?, owner: Address?, from: BalanceId?): Flux<Erc20Balance> {
         val events = erc20BalanceReduceEventRepository.findOwnerLogEvents(token, owner, from = from)
-        return erc20BalanceFullReduceService.reduce(events.asFlow())
-            .map { it.id }
-            .asFlux()
+        return erc20BalanceFullReduceService.reduce(events.asFlow()).asFlux()
+    }
+
+    suspend fun update(token: Address, owner: Address): Erc20Balance? {
+        return update(token, owner, from = null).collectList().awaitFirstOrNull()?.firstOrNull()
     }
 }

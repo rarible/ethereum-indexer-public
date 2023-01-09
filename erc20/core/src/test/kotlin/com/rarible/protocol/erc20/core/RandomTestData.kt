@@ -2,10 +2,13 @@ package com.rarible.protocol.erc20.core
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EventData
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomLong
+import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.core.model.BalanceId
@@ -32,6 +35,14 @@ fun createRandomEthereumLog(
         blockTimestamp = nowMillis().epochSecond,
         createdAt = nowMillis()
     )
+
+fun randomReversedEthereumLogRecord(data: EventData): ReversedEthereumLogRecord {
+    return ReversedEthereumLogRecord(
+        id = randomString(),
+        log = createRandomEthereumLog(),
+        data = data)
+}
+
 
 fun createRandomIncomeTransferEvent(): Erc20Event.Erc20IncomeTransferEvent {
     val token = randomAddress()
