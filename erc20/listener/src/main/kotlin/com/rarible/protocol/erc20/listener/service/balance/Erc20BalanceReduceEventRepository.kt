@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
+import scalether.domain.Address
 
 @Component
 class Erc20BalanceReduceEventRepository(
@@ -25,10 +26,9 @@ class Erc20BalanceReduceEventRepository(
             .asFlow()
     }
 
-    fun getBusinessEvents(key: BalanceId?, after: Long?): Flux<Erc20Event> {
-        return erc20TransferHistoryRepository.findBalanceLogEvents(key, after)
-            .filter { it.blockNumber != null }
-            .map { LogEventToReversedEthereumLogRecordConverter.convert(it) }
+    fun findOwnerLogEvents(token: Address?, owner: Address?, from: BalanceId?): Flux<Erc20Event> {
+        return erc20TransferHistoryRepository.findOwnerLogEvents(token = token, owner = owner, from = from)
+            .map { LogEventToReversedEthereumLogRecordConverter.convert(it.log) }
             .mapNotNull { erc20EventConverter.convert(it) }
     }
 }

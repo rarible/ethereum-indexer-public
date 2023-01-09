@@ -38,8 +38,8 @@ class BalanceReduceTaskHandler(
     }
 
     override fun runLongTask(from: BalanceReduceState?, param: String): Flow<BalanceReduceState> {
-        return erc20BalanceReduceService.update(key = from?.toBalanceId(), minMark = Long.MIN_VALUE)
-            .map { it.toState() }
+        return erc20BalanceReduceService.update(token = null, owner = null, from = from?.toBalanceId())
+            .map { it.id.toState() }
             .windowTimeout(Int.MAX_VALUE, Duration.ofSeconds(5))
             .flatMap {
                 it.next()

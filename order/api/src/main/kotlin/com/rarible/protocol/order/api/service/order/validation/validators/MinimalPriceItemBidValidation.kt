@@ -13,6 +13,8 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.service.floor.FloorSellService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigDecimal
@@ -50,13 +52,16 @@ class MinimalPriceItemBidValidation(
         if (floorPriceUsd == null) {
             validateMinimumPrice(takePriceUsd)
         } else if (floorPriceUsd >= takePriceUsd)  {
-            validateWithFloorPrice(takePriceUsd, floorPriceUsd)
+            validateWithFloorPrice(token, takePriceUsd, floorPriceUsd)
         }
     }
 
-    private fun validateWithFloorPrice(price: BigDecimal, floorPriceUsd: BigDecimal) {
+    private fun validateWithFloorPrice(token: Address, price: BigDecimal, floorPriceUsd: BigDecimal) {
         val minimumFromFloorPrice = floorPriceUsd * bidValidation.minPercentFromFloorPrice
         if (price < minimumFromFloorPrice) {
+            logger.error("Can't set bid for {}, price={}, minimum={}",
+                token, price, minimumFromFloorPrice
+            )
             throw OrderUpdateException(
                 "Order has invalid bid price. Price should be not less 0.75% from floor price ($floorPriceUsd)",
                 EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
@@ -71,5 +76,9 @@ class MinimalPriceItemBidValidation(
                 EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
             )
         }
+    }
+
+    private companion object {
+        val logger: Logger = LoggerFactory.getLogger(MinimalPriceItemBidValidation::class.java)
     }
 }
