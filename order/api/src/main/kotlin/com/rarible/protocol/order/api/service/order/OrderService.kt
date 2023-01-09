@@ -33,6 +33,7 @@ import com.rarible.protocol.order.core.model.PoolTradePrice
 import com.rarible.protocol.order.core.model.currency
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
@@ -61,7 +62,8 @@ class OrderService(
     private val raribleOrderSaveMetric: RegisteredCounter,
     private val poolCurve: PoolCurve,
     private val poolInfoProvider: PoolInfoProvider,
-    private val approveService: ApproveService
+    private val approveService: ApproveService,
+    private val commonSigner: CommonSigner
 ) {
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
         val maker = form.maker
@@ -71,6 +73,7 @@ class OrderService(
         val hash = Order.hashKey(form.maker, make.type, take.type, form.salt, data)
         val platform = Platform.RARIBLE
         val approved = approveService.checkOnChainApprove(maker, make.type, platform)
+        val signature = commonSigner.fixSignature(form.signature)
         return OrderVersion(
             maker = maker,
             make = make,
@@ -81,7 +84,7 @@ class OrderService(
             start = form.start,
             end = form.end,
             data = data,
-            signature = form.signature,
+            signature = signature,
             platform = platform,
             hash = hash,
             approved = approved,
