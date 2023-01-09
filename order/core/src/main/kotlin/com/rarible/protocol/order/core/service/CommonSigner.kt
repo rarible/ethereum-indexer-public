@@ -13,6 +13,21 @@ import kotlin.experimental.and
 
 @Component
 class CommonSigner {
+    fun fixSignature(signature: Binary): Binary {
+        if (signature.length() != 65) return signature
+
+        val v = signature.bytes()[64]
+        val fixedV = fixV(v)
+        return if (fixedV == v) {
+            signature
+        } else {
+            val byteArray = ByteArray(65)
+            byteArray[64] = fixedV
+            System.arraycopy(signature.bytes(), 0, byteArray, 0, 64)
+            Binary(byteArray)
+        }
+    }
+
     fun recover(message: String, signature: Binary): Address {
         val v = fixV(signature.bytes()[64])
         val r = ByteArray(32)
