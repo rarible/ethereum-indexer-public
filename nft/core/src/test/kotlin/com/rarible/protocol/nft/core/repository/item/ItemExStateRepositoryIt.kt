@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.repository.item
 import com.rarible.protocol.nft.core.data.randomItemExState
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -23,5 +24,14 @@ internal class ItemExStateRepositoryIt : AbstractIntegrationTest() {
         stateRepository.save(state)
         val saved = stateRepository.getById(state.id)
         assertThat(saved).isNotNull
+    }
+
+    @Test
+    fun `find all`() = runBlocking<Unit> {
+        val states = listOf(randomItemExState(), randomItemExState())
+        states.forEach { stateRepository.save(it) }
+
+        val saved = stateRepository.getAll(null).toList()
+        assertThat(saved.map { it.id }).containsExactlyInAnyOrderElementsOf(states.map { it.id })
     }
 }
