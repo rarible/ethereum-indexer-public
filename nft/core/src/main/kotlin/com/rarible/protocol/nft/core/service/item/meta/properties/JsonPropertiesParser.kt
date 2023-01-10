@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta.properties
 
+import com.fasterxml.jackson.core.json.JsonReadFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -14,6 +15,7 @@ object JsonPropertiesParser {
     private const val JSON_PREFIX = "data:application/json;utf8,"
 
     private val mapper = ObjectMapper().registerKotlinModule()
+        .enable(JsonReadFeature.ALLOW_TRAILING_COMMA.mappedFeature())
 
     fun parse(itemId: ItemId, data: String): ObjectNode = parse(itemId.decimalStringValue, data)
 

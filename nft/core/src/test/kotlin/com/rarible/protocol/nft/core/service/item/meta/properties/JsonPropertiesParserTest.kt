@@ -46,4 +46,12 @@ class JsonPropertiesParserTest {
 
         assertThat(node.getText("a")).isEqualTo("b")
     }
+
+    @Test
+    fun `base64 json - trailing comma`() {
+        val data = """data:application/json;base64,eyJhIjogImIiLH0="""
+        val node = JsonPropertiesParser.parse(createRandomItemId(), data)!!
+
+        assertThat(node.getText("a")).isEqualTo("b")
+    }
 }
