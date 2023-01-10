@@ -24,6 +24,7 @@ import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.isMakeFillOrder
+import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Binary
 import org.springframework.stereotype.Component
@@ -35,6 +36,7 @@ class OrderDtoConverter(
     private val priceNormalizer: PriceNormalizer,
     private val assetDtoConverter: AssetDtoConverter,
     private val properties: OrderIndexerProperties,
+    private val commonSigner: CommonSigner,
 ) {
     suspend fun convert(source: Order): OrderDto {
         val orderStatus = OrderStatusDtoConverter.convert(source.status)
@@ -54,7 +56,7 @@ class OrderDtoConverter(
                 signature = when(orderStatus) {
                     OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
                     else -> source.signature.orEmpty()
-                },
+                }?.let { commonSigner.fixSignature(it) },
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
