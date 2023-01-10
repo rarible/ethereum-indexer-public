@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.listener.service.item
 
+import com.rarible.core.kafka.chunked
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
@@ -7,7 +8,6 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -31,18 +31,22 @@ class SyncSuspiciousItemsTaskHandler(
         val fromItemId = from?.let { ItemId.parseId(from) }
         return itemExStateRepository
             .getAll(fromItemId)
-            .mapNotNull {
-                itemRepository.findById(it.id).awaitFirstOrNull()
-            }
-            .map {
-                logger.info("Send sync suspicious event: itemId={}, suspicious={}", it.id, it.isSuspiciousOnOS)
-                eventListener.onItemChanged(it).awaitFirstOrNull()
-                it.id.stringValue
+            .chunked(CHUNK_SIZE)
+            .map { chunk ->
+                itemRepository
+                    .searchByIds(chunk.map { it.id }.toSet())
+                    .map { item ->
+                        logger.info("Suspicious item event: itemId={}, suspicious={}", item.id, item.isSuspiciousOnOS)
+                        eventListener.onItemChanged(item).awaitFirstOrNull()
+                        item.id.stringValue
+                    }
+                    .last()
             }
     }
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(SyncSuspiciousItemsTaskHandler::class.java)
-        const val SYNC_SUSPICIOUS_ITEMS = "SYNC_SUSPICIOUS_ITEMS"
+        private const val SYNC_SUSPICIOUS_ITEMS = "SYNC_SUSPICIOUS_ITEMS"
+        private const val CHUNK_SIZE = 500
     }
 }

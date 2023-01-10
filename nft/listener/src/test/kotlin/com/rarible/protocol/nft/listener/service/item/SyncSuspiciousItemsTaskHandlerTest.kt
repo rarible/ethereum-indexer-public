@@ -6,6 +6,8 @@ import com.rarible.protocol.nft.core.repository.data.createItem
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -36,8 +38,7 @@ class SyncSuspiciousItemsTaskHandlerTest {
             emit(state1)
             emit(state2)
         }
-        every { itemRepository.findById(state1.id) } returns Mono.just(item1)
-        every { itemRepository.findById(state2.id) } returns Mono.just(item2)
+        coEvery { itemRepository.searchByIds(setOf(state1.id, state2.id)) } returns listOf(item1, item2)
         every { eventListener.onItemChanged(item1) } returns Mono.empty()
         every { eventListener.onItemChanged(item2) } returns Mono.empty()
 
@@ -46,10 +47,11 @@ class SyncSuspiciousItemsTaskHandlerTest {
 
         verify(exactly = 1) {
             itemExStateRepository.getAll(from)
-            itemRepository.findById(state1.id)
-            itemRepository.findById(state2.id)
             eventListener.onItemChanged(item1)
             eventListener.onItemChanged(item2)
+        }
+        coVerify(exactly = 1) {
+            itemRepository.searchByIds(setOf(state1.id, state2.id))
         }
     }
 }
