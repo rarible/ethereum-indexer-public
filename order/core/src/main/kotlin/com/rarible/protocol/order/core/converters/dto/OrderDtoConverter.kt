@@ -53,10 +53,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = when(orderStatus) {
-                    OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
-                    else -> source.signature.orEmpty()
-                }?.let { commonSigner.fixSignature(it) },
+                signature = convertSignature(orderStatus, source.signature),
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
@@ -85,10 +82,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = when (orderStatus) {
-                    OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
-                    else -> source.signature.orEmpty()
-                },
+                signature = convertSignature(orderStatus, source.signature),
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
@@ -303,6 +297,13 @@ class OrderDtoConverter(
                 optionalRoyalties = source.isOptionalRoyalties(),
             )
         }
+    }
+
+    private fun convertSignature(status: OrderStatusDto, signature: Binary?): Binary? {
+        return when(status) {
+            OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
+            else -> signature.orEmpty()
+        }?.let { commonSigner.fixSignature(it) }
     }
 
     private suspend fun convertFillValue(source: Order): BigDecimal {
