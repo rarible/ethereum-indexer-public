@@ -53,9 +53,6 @@ class SudoSwapInNftPairDescriptor(
         if (log.address() in sudoSwapLoad.ignorePairs) {
             return emptyList()
         }
-        if (log.address() in sudoSwapLoad.ignorePairs ) {
-            return emptyList()
-        }
         val details = sudoSwapEventConverter.getSwapInNftDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
