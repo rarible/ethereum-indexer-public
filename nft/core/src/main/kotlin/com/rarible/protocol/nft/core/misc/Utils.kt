@@ -4,8 +4,11 @@ import com.rarible.core.entity.reducer.chain.ReducersChain
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
+import org.slf4j.Logger
 import scalether.domain.Address
+import scalether.domain.response.Log
 import scalether.util.Bytes
+import java.lang.RuntimeException
 import java.math.BigInteger
 
 fun <T : Any> List<T>.ifNotEmpty(): List<T>? {
@@ -90,4 +93,12 @@ fun splitToRanges(from: ItemId, to: ItemId, count: Int): List<Pair<ItemId, ItemI
     }
     result.add(left to to)
     return result
+}
+
+fun <T> applyLog(log: Log, applyMethod: (Log) -> T): T {
+    return try {
+        applyMethod(log)
+    } catch (ex: Throwable) {
+        throw RuntimeException("Can't apply log: tx=${log.transactionHash()}, logIndex=${log.logIndex()}", ex)
+    }
 }

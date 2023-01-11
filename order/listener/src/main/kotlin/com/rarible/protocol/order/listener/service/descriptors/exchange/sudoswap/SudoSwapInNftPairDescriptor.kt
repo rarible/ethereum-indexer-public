@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import java.time.Instant
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
@@ -28,6 +29,7 @@ class SudoSwapInNftPairDescriptor(
     private val sudoSwapPoolInfoProvider: PoolInfoProvider,
     private val sudoSwapCurve: PoolCurve,
     private val priceUpdateService: PriceUpdateService,
+    private val sudoSwapLoad: SudoSwapLoadProperties,
     private val featureFlags: OrderIndexerProperties.FeatureFlags
 ): PoolSubscriber<PoolTargetNftIn>(
     name = "sudo_nft_in_pair",
@@ -35,6 +37,10 @@ class SudoSwapInNftPairDescriptor(
     contracts = emptyList()
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftIn> {
+        //TODO: Remove this in release 1.41
+        if (log.address() in sudoSwapLoad.ignorePairs) {
+            return emptyList()
+        }
         val details = sudoSwapEventConverter.getSwapInNftDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]

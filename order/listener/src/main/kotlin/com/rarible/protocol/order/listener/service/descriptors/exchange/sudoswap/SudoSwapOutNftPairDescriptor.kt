@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
 import org.slf4j.Logger
@@ -35,6 +36,7 @@ class SudoSwapOutNftPairDescriptor(
     private val sudoSwapPoolInfoProvider: PoolInfoProvider,
     private val poolCurve: PoolCurve,
     private val priceUpdateService: PriceUpdateService,
+    private val sudoSwapLoad: SudoSwapLoadProperties,
     private val featureFlags: OrderIndexerProperties.FeatureFlags
 ): PoolSubscriber<PoolTargetNftOut>(
     name = "sudo_nft_out_pair",
@@ -42,6 +44,10 @@ class SudoSwapOutNftPairDescriptor(
     contracts = emptyList()
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftOut> {
+        //TODO: Remove this in release 1.41
+        if (log.address() in sudoSwapLoad.ignorePairs) {
+            return emptyList()
+        }
         val details = sudoSwapEventConverter.getSwapOutNftDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
