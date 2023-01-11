@@ -24,6 +24,7 @@ import scalether.domain.response.Transaction
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
+@EnableSudoSwap
 class SudoSwapWithdrawNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapWithdrawNftEventCounter: RegisteredCounter

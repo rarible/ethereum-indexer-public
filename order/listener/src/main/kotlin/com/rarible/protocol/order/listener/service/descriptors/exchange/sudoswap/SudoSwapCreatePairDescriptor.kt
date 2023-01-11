@@ -30,6 +30,7 @@ import scalether.domain.response.Transaction
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
+@EnableSudoSwap
 class SudoSwapCreatePairDescriptor(
     private val sudoSwapAddresses: SudoSwapAddresses,
     private val sudoSwapEventConverter: SudoSwapEventConverter,

@@ -114,6 +114,7 @@ data class OrderIndexerProperties(
         val searchSudoSwapErc1155Transfer: Boolean = false,
         val checkMinimalBidPrice: Boolean = false,
         val checkMinimalCollectionBidPriceOnly: Boolean = false,
+        val sudoswapEnabled: Boolean = true,
     )
 
     data class RaribleOrderExpirationProperties(

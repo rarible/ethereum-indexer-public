@@ -25,6 +25,7 @@ import scalether.domain.response.Transaction
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
+@EnableSudoSwap
 class SudoSwapDepositNftPairDescriptor(
     private val sudoSwapAddresses: SudoSwapAddresses,
     private val sudoSwapEventConverter: SudoSwapEventConverter,

@@ -2,3 +2,5 @@ common:
   blockchain: ethereum
   exchange-contract-addresses:
     seaport-v1: "0x00000000006c3852cbef3e08e8df289169ede581"
+  feature-flags:
+    sudoswapEnabled: true
