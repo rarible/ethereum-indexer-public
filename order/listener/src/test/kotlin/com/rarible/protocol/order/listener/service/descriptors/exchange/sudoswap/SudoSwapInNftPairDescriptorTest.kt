@@ -14,14 +14,17 @@ import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
@@ -37,6 +40,7 @@ internal class SudoSwapInNftPairDescriptorTest {
     private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapCurve = mockk<PoolCurve>()
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
+    private val sudoSwapLoad = mockk<SudoSwapLoadProperties>()
     private val priceUpdateService = mockk<PriceUpdateService> {
         coEvery { getAssetUsdValue(any(), any(), any()) }  returns BigDecimal.ONE
     }
@@ -46,7 +50,8 @@ internal class SudoSwapInNftPairDescriptorTest {
         sudoSwapInNftEventCounter = counter,
         sudoSwapPoolInfoProvider = sudoSwapPoolInfoProvider,
         sudoSwapCurve = sudoSwapCurve,
-        priceUpdateService = priceUpdateService
+        priceUpdateService = priceUpdateService,
+        sudoSwapLoad = sudoSwapLoad
     )
 
     @Test
@@ -70,20 +75,30 @@ internal class SudoSwapInNftPairDescriptorTest {
         )
         val orderHash = sudoSwapEventConverter.getPoolHash(log.address())
 
+        every { sudoSwapLoad.ignorePairs } returns emptySet()
         coEvery { sudoSwapPoolInfoProvider.getPollInfo(orderHash, log.address()) } returns poolInfo
         coEvery { sudoSwapCurve.getSellOutputValues(poolInfo.curve, poolInfo.spotPrice, poolInfo.delta, 1, poolInfo.fee, poolInfo.protocolFee) } returns listOf(purchaseValue)
         val nftOut = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
 
-        Assertions.assertThat(nftOut).isInstanceOf(PoolTargetNftIn::class.java)
+        assertThat(nftOut).isInstanceOf(PoolTargetNftIn::class.java)
         nftOut as PoolTargetNftIn
 
-        Assertions.assertThat(nftOut.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(log.address()))
-        Assertions.assertThat(nftOut.collection).isEqualTo(poolInfo.collection)
-        Assertions.assertThat(nftOut.tokenIds).containsExactlyInAnyOrder(EthUInt256.of(6209))
-        Assertions.assertThat(nftOut.tokenRecipient).isEqualTo(Address.apply("0x3Cb23ccc26a1870eb9E79B7A061907BDaeF4F7D6"))
-        Assertions.assertThat(nftOut.date).isEqualTo(date)
-        Assertions.assertThat(nftOut.inputValue.value).isEqualTo(purchaseValue.value)
-        Assertions.assertThat(nftOut.source).isEqualTo(HistorySource.SUDOSWAP)
-        Assertions.assertThat(nftOut.priceUsd).isEqualTo(BigDecimal.ONE)
+        assertThat(nftOut.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(log.address()))
+        assertThat(nftOut.collection).isEqualTo(poolInfo.collection)
+        assertThat(nftOut.tokenIds).containsExactlyInAnyOrder(EthUInt256.of(6209))
+        assertThat(nftOut.tokenRecipient).isEqualTo(Address.apply("0x3Cb23ccc26a1870eb9E79B7A061907BDaeF4F7D6"))
+        assertThat(nftOut.date).isEqualTo(date)
+        assertThat(nftOut.inputValue.value).isEqualTo(purchaseValue.value)
+        assertThat(nftOut.source).isEqualTo(HistorySource.SUDOSWAP)
+        assertThat(nftOut.priceUsd).isEqualTo(BigDecimal.ONE)
+    }
+
+    @Test
+    fun `convert - ignore pair`() = runBlocking<Unit> {
+        val transaction = mockk<Transaction>()
+        val log = log()
+        every { sudoSwapLoad.ignorePairs } returns setOf(log.address())
+        val nftOut = descriptor.convert(log, transaction, Instant.now().epochSecond, 0, 1).toFlux().awaitFirstOrNull()
+        assertThat(nftOut).isNull()
     }
 }

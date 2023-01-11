@@ -111,6 +111,11 @@ class OrderListenerConfiguration(
     }
 
     @Bean
+    fun sudoSwapLoadProperties(): SudoSwapLoadProperties {
+        return listenerProperties.sudoSwapLoad
+    }
+
+    @Bean
     fun startEndWorkerProperties(): StartEndWorkerProperties {
         return listenerProperties.startEndWorker
     }

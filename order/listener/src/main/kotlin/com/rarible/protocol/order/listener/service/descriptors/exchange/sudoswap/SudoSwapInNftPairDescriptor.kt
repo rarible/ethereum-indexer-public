@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -33,7 +34,8 @@ class SudoSwapInNftPairDescriptor(
     private val sudoSwapInNftEventCounter: RegisteredCounter,
     private val sudoSwapPoolInfoProvider: PoolInfoProvider,
     private val sudoSwapCurve: PoolCurve,
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val sudoSwapLoad: SudoSwapLoadProperties
 ): LogEventDescriptor<PoolTargetNftIn> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -47,6 +49,13 @@ class SudoSwapInNftPairDescriptor(
     }
 
     private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): List<PoolTargetNftIn> {
+        //TODO: Remove this in release 1.41
+        if (log.address() in sudoSwapLoad.ignorePairs) {
+            return emptyList()
+        }
+        if (log.address() in sudoSwapLoad.ignorePairs ) {
+            return emptyList()
+        }
         val details = sudoSwapEventConverter.getSwapInNftDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]

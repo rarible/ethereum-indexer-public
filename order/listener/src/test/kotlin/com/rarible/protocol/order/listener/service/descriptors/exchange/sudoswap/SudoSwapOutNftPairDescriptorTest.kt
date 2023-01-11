@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswa
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.randomPoolInfo
@@ -16,11 +17,13 @@ import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -40,6 +43,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
     private val nftTransferDetector = mockk<SudoSwapNftTransferDetector>()
     private val sudoSwapPoolInfoProvider = mockk<PoolInfoProvider>()
     private val sudoSwapCurve = mockk<PoolCurve>()
+    private val sudoSwapLoad = mockk<SudoSwapLoadProperties>()
     private val priceUpdateService = mockk<PriceUpdateService> {
         coEvery { getAssetUsdValue(any(), any(), any()) } returns BigDecimal.ONE
     }
@@ -51,7 +55,8 @@ internal class SudoSwapOutNftPairDescriptorTest {
         sudoSwapOutNftEventCounter = counter,
         wrapperSudoSwapMatchEventCounter = counter,
         poolCurve = sudoSwapCurve,
-        priceUpdateService = priceUpdateService
+        priceUpdateService = priceUpdateService,
+        sudoSwapLoad = sudoSwapLoad
     )
 
     @Test
@@ -75,6 +80,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
         )
         val orderHash = sudoSwapEventConverter.getPoolHash(log.address())
 
+        every { sudoSwapLoad.ignorePairs } returns emptySet()
         coEvery { sudoSwapPoolInfoProvider.getPollInfo(orderHash, log.address()) } returns poolInfo
         coEvery {
             sudoSwapCurve.getBuyInputValues(
@@ -123,6 +129,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
         val purchaseValue = randomSudoSwapPurchaseValue()
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
         val expectedTokenId = randomBigInt()
+        every { sudoSwapLoad.ignorePairs } returns emptySet()
         coEvery { sudoSwapPoolInfoProvider.getPollInfo(orderHash, log.address()) } returns poolInfo
         coEvery { nftTransferDetector.detectNftTransfers(log, poolInfo.collection) } returns listOf(expectedTokenId)
         coEvery {
@@ -147,5 +154,14 @@ internal class SudoSwapOutNftPairDescriptorTest {
         assertThat(nftOut.date).isEqualTo(date)
         assertThat(nftOut.source).isEqualTo(HistorySource.SUDOSWAP)
         assertThat(nftOut.priceUsd).isEqualTo(BigDecimal.ONE)
+    }
+
+    @Test
+    fun `convert - ignore pair`() = runBlocking<Unit> {
+        val transaction = mockk<Transaction>()
+        val log = log()
+        every { sudoSwapLoad.ignorePairs } returns setOf(log.address())
+        val nftOut = descriptor.convert(log, transaction, Instant.now().epochSecond, 0, 1).toFlux().awaitFirstOrNull()
+        assertThat(nftOut).isNull()
     }
 }

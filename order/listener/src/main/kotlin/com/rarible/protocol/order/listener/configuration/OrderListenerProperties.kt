@@ -31,6 +31,7 @@ data class OrderListenerProperties(
     val looksrareLoad: LooksrareLoadProperties = LooksrareLoadProperties(),
     val x2y2Load: X2Y2OrderLoadProperties = X2Y2OrderLoadProperties(),
     val x2y2CancelListEventLoad: X2Y2EventLoadProperties = X2Y2EventLoadProperties(),
+    val sudoSwapLoad: SudoSwapLoadProperties = SudoSwapLoadProperties(),
     val startEndWorker: StartEndWorkerProperties = StartEndWorkerProperties(),
     var fixApproval: Boolean = false,
     var fixX2Y2: Boolean = false,
@@ -147,3 +148,7 @@ data class X2Y2EventLoadProperties(
     override val pollingPeriod: Duration = Duration.ofSeconds(10),
     override val errorDelay: Duration = Duration.ofSeconds(5),
 ) : X2Y2LoadProperties()
+
+data class SudoSwapLoadProperties(
+    val ignorePairs: Set<Address> = emptySet(),
+)
