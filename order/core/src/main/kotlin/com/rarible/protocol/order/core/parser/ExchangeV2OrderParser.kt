@@ -122,21 +122,21 @@ object ExchangeV2OrderParser {
                 version = if (buyOrderData.version == OrderDataVersion.RARIBLE_V2_DATA_V3_BUY) OrderDataVersion.RARIBLE_V2_DATA_V3_SELL.ethDataType!! else buyOrderData.version.ethDataType!!,
                 data = Binary.apply(value._15())
             )
-            val leftOrder = RaribleMatchedOrders.SimpleOrder(
+            val bidOrder = RaribleMatchedOrders.SimpleOrder(
                 maker = value._1(),
                 makeAssetType = paymentAssetType,
                 takeAssetType = nftAssetType,
                 data = buyOrderData,
                 salt = EthUInt256.of(value._7())
             )
-            val rightOrder = RaribleMatchedOrders.SimpleOrder(
+            val sellOrder = RaribleMatchedOrders.SimpleOrder(
                 maker = Address.ZERO(),
                 makeAssetType = nftAssetType,
                 takeAssetType = paymentAssetType,
                 data = sellOrderData,
                 salt = EthUInt256.ZERO
             )
-            RaribleMatchedOrders(left = leftOrder, right = rightOrder)
+            RaribleMatchedOrders(left = sellOrder, right = bidOrder)
         } else {
             throw IllegalArgumentException("Unsupported function: ${input.methodSignatureId()}")
         }
