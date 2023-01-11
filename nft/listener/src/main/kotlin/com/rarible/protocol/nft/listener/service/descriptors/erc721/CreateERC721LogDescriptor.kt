@@ -4,6 +4,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.collection.CreateEvent
+import com.rarible.protocol.contracts.collection.CreateEventWithFullData
 import com.rarible.protocol.nft.core.misc.applyLog
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -24,7 +25,10 @@ class CreateERC721LogDescriptor : LogEventDescriptor<CreateCollection> {
 
     override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Mono<CreateCollection> {
         val e = applyLog(log) {
-            CreateEvent.apply(it)
+            when (it.topics().size()) {
+                1 -> CreateEventWithFullData.apply(it)
+                else -> CreateEvent.apply(it)
+            }
         }
         return CreateCollection(
             id = e.log().address(),
