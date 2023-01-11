@@ -26,6 +26,7 @@ import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
+@EnableSudoSwap
 class SudoSwapOutNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val nftTransferDetector: SudoSwapNftTransferDetector,

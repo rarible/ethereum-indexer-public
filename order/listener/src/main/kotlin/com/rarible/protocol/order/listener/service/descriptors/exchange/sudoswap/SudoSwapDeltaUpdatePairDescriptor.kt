@@ -15,6 +15,7 @@ import scalether.domain.response.Transaction
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
+@EnableSudoSwap
 class SudoSwapDeltaUpdatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapUpdateDeltaEventCounter: RegisteredCounter

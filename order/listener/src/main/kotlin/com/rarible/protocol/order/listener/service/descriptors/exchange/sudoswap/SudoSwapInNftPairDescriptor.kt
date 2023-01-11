@@ -21,6 +21,7 @@ import java.lang.IllegalStateException
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
+@EnableSudoSwap
 class SudoSwapInNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapInNftEventCounter: RegisteredCounter,
