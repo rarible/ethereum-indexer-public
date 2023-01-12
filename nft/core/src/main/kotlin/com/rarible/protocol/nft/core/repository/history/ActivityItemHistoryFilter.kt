@@ -34,22 +34,29 @@ sealed class ActivityItemHistoryFilter {
     internal open val hint: Document? = null
 
     class AllBurn(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
+
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(ownerKey).isEqualTo(Address.ZERO())
                 .scrollTo(sort, continuation)
         }
     }
 
-    class AllSync(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
+    class AllSync(
+        override val sort: ActivitySort,
+        private val continuation: Continuation?,
+        private val reverted: Boolean
+    ) : ActivityItemHistoryFilter() {
+
         override val hint: Document = NftItemHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
 
         override fun getCriteria(): Criteria {
+            val status = if (reverted) LogEventStatus.REVERTED else LogEventStatus.CONFIRMED
             return (typeKey isEqualTo ItemType.TRANSFER)
-                .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
+                .and(statusKey).isEqualTo(status)
                 .scrollTo(sort, continuation)
         }
     }

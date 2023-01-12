@@ -26,6 +26,7 @@ class ActivityController(
     private val historyFilterConverter: ActivityHistoryFilterConverter,
     private val nftActivityConverter: NftActivityConverter
 ) : NftActivityControllerApi {
+
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override suspend fun getNftActivities(
@@ -62,15 +63,20 @@ class ActivityController(
     }
 
     override suspend fun getNftActivitiesSync(
+        reverted: Boolean?,
         continuation: String?,
         size: Int?,
-        sort: SyncSortDto?
+        sort: SyncSortDto?,
     ): ResponseEntity<NftActivitiesDto> {
         val requestSize = PageSize.ITEM_ACTIVITY.limit(size)
         val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
         val activitySort = sort?.let { ActivitySyncSortConverter.convert(it) } ?: ActivitySort.SYNC_EARLIEST_FIRST
         val activityFilter =
-            ActivityItemHistoryFilter.AllSync(activitySort, continuationDto?.let { ContinuationConverter.convert(it) })
+            ActivityItemHistoryFilter.AllSync(
+                sort = activitySort,
+                continuation = continuationDto?.let { ContinuationConverter.convert(it) },
+                reverted = reverted ?: false
+            )
 
         val result = nftActivityService
             .search(listOf(activityFilter), activitySort, requestSize)
@@ -83,4 +89,5 @@ class ActivityController(
 
         return ResponseEntity.ok(NftActivitiesDto(nextContinuation, result))
     }
+
 }

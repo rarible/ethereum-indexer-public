@@ -47,12 +47,12 @@ class ActivityControllerIt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `activity controller test`() = runBlocking<Unit>  {
+    fun `activity controller test`() = runBlocking<Unit> {
         repeat(20) {
             historyRepository.save(createItemTransfer()).awaitFirst()
             delay(1)
         }
-        val result = activityController.getNftActivitiesSync(null, 20, SyncSortDto.DB_UPDATE_ASC)
+        val result = activityController.getNftActivitiesSync(null, null, 20, SyncSortDto.DB_UPDATE_ASC)
 
         assertThat(result.body!!.items).hasSize(20)
         assertThat(result.body!!.items).isSortedAccordingTo { o1, o2 ->
@@ -71,7 +71,7 @@ class ActivityControllerIt : AbstractIntegrationTest() {
             historyRepository.save(createItemTransfer().copy(data = createItemLazyMint())).awaitFirst()
             historyRepository.save(createItemTransfer()).awaitFirst()
         }
-        val result = activityController.getNftActivitiesSync(null, size, SyncSortDto.DB_UPDATE_ASC)
+        val result = activityController.getNftActivitiesSync(null, null, size, SyncSortDto.DB_UPDATE_ASC)
 
         assertThat(result.body!!.items).hasSize(size)
         assertThat(result.body!!.items).isSortedAccordingTo { o1, o2 ->
@@ -83,30 +83,7 @@ class ActivityControllerIt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `activity controller pagination earlies first test`() = runBlocking<Unit>  {
-        repeat(95) {
-            historyRepository.save(createItemTransfer()).awaitFirst()
-            delay(1)
-        }
-
-        var continuation: String? = null
-        val activities = mutableListOf<ActivityDto>()
-        var totalPages = 0
-
-        do{
-            val result = activityController.getNftActivitiesSync(continuation, 20, SyncSortDto.DB_UPDATE_ASC)
-            result.body?.let { activities.addAll(it.items) }
-            continuation = result.body?.continuation
-            totalPages += 1
-        }while (continuation != null)
-
-        assertThat(totalPages).isEqualTo(5)
-        assertThat(activities).hasSize(95)
-        assertThat(activities).isSortedAccordingTo { o1, o2 -> compareValues(o1.lastUpdatedAt , o2.lastUpdatedAt) }
-    }
-
-    @Test
-    fun `activity controller pagination latest first test`() = runBlocking<Unit>  {
+    fun `activity controller pagination earlies first test`() = runBlocking<Unit> {
         repeat(95) {
             historyRepository.save(createItemTransfer()).awaitFirst()
             delay(1)
@@ -117,7 +94,30 @@ class ActivityControllerIt : AbstractIntegrationTest() {
         var totalPages = 0
 
         do {
-            val result = activityController.getNftActivitiesSync(continuation, 20, SyncSortDto.DB_UPDATE_DESC)
+            val result = activityController.getNftActivitiesSync(null, continuation, 20, SyncSortDto.DB_UPDATE_ASC)
+            result.body?.let { activities.addAll(it.items) }
+            continuation = result.body?.continuation
+            totalPages += 1
+        } while (continuation != null)
+
+        assertThat(totalPages).isEqualTo(5)
+        assertThat(activities).hasSize(95)
+        assertThat(activities).isSortedAccordingTo { o1, o2 -> compareValues(o1.lastUpdatedAt, o2.lastUpdatedAt) }
+    }
+
+    @Test
+    fun `activity controller pagination latest first test`() = runBlocking<Unit> {
+        repeat(95) {
+            historyRepository.save(createItemTransfer()).awaitFirst()
+            delay(1)
+        }
+
+        var continuation: String? = null
+        val activities = mutableListOf<ActivityDto>()
+        var totalPages = 0
+
+        do {
+            val result = activityController.getNftActivitiesSync(false, continuation, 20, SyncSortDto.DB_UPDATE_DESC)
             result.body?.let { activities.addAll(it.items) }
             continuation = result.body?.continuation
             totalPages += 1
@@ -143,7 +143,12 @@ class ActivityControllerIt : AbstractIntegrationTest() {
             .onEach { historyRepository.save(it).awaitFirst() }
         repeat(10) { historyRepository.save(createItemTransfer()).awaitFirst() }
 
-        val filter = NftActivityFilterByItemAndOwnerDto(token, tokenId.value, owner, NftActivityFilterByItemAndOwnerDto.Types.values().asList())
+        val filter = NftActivityFilterByItemAndOwnerDto(
+            token,
+            tokenId.value,
+            owner,
+            NftActivityFilterByItemAndOwnerDto.Types.values().asList()
+        )
         val result = activityController.getNftActivities(filter, null, 10, ActivitySortDto.LATEST_FIRST)
 
         assertThat(result.body).isNotNull
@@ -173,12 +178,31 @@ class ActivityControllerIt : AbstractIntegrationTest() {
                 historyRepository.save(it).awaitFirstOrNull()
             }
 
-            val all = activityController.getNftActivities(NftActivityFilterAllDto(NftActivityFilterAllDto.Types.values().toList()), null, null, null).body!!.items.map { it.id }.sorted()
-            val sync = activityController.getNftActivitiesSync(null, null, null).body!!.items.map { it.id }.sorted()
+            val all = activityController.getNftActivities(
+                NftActivityFilterAllDto(
+                    NftActivityFilterAllDto.Types.values().toList()
+                ), null, null, null
+            ).body!!.items.map { it.id }.sorted()
+
+            val sync = activityController.getNftActivitiesSync(false, null, null, null)
+                .body!!.items.map { it.id }.sorted()
 
             assertThat(all).isEqualTo(sync)
-
         }
+    }
 
+    @Test
+    fun `sync - reverted events`() = runBlocking<Unit> {
+
+        val confirmed = historyRepository.save(createItemTransfer()).awaitFirst()
+        val reverted = historyRepository.save(createItemTransfer().copy(status = LogEventStatus.REVERTED)).awaitFirst()
+
+        val revertedResult = activityController.getNftActivitiesSync(true, null, 20, SyncSortDto.DB_UPDATE_ASC)
+        assertThat(revertedResult.body!!.items).hasSize(1)
+        assertThat(revertedResult.body!!.items.first().id).isEqualTo(reverted.id.toString())
+
+        val confirmedResult = activityController.getNftActivitiesSync(false, null, 20, SyncSortDto.DB_UPDATE_ASC)
+        assertThat(confirmedResult.body!!.items).hasSize(1)
+        assertThat(confirmedResult.body!!.items.first().id).isEqualTo(confirmed.id.toString())
     }
 }
