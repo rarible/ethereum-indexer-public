@@ -157,6 +157,15 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
+    override suspend fun getByIds(orderIdsDto: OrderIdsDto): ResponseEntity<OrdersPaginationDto> {
+        val result = orderService
+            .getAll(orderIdsDto.ids.map { it.toOrderId().hash })
+            .map { orderDtoConverter.convert(it) }
+            .toList()
+
+        return ResponseEntity.ok(OrdersPaginationDto(result))
+    }
+
     override suspend fun getOrderByHash(hash: String): ResponseEntity<OrderDto> {
         val order = orderService.get(hash.toOrderId().hash)
         val result = orderDtoConverter.convert(order)
