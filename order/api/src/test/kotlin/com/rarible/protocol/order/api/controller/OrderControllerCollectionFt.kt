@@ -2,16 +2,19 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.OrderIdsDto
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.order.api.data.createOrderVersion
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
+import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import com.rarible.protocol.order.core.model.MakeBalanceState
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderVersion
 import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
@@ -147,7 +150,22 @@ class OrderControllerCollectionFt : AbstractIntegrationTest() {
         assertThat(dto.body.orders.map { it.maker }).containsExactlyInAnyOrder(maker, maker2)
     }
 
+    @Test
+    fun `should return orders by id`() = runBlocking<Unit> {
+        val order1 = createOrder()
+        val order2 = createOrder()
+        saveOrders(order1, order2)
+        val request = OrderIdsDto(ids = listOf(order1.hash.prefixed(), order2.hash.prefixed()))
+
+        val dto = controller.getByIds(request).body?.orders
+        assertThat(dto?.map { it.id }).containsExactlyInAnyOrderElementsOf(request.ids)
+    }
+
     private suspend fun saveOrderVersions(vararg order: OrderVersion) {
         order.forEach { orderUpdateService.save(it) }
+    }
+
+    private suspend fun saveOrders(vararg order: Order) {
+        order.forEach { orderRepository.save(it) }
     }
 }
