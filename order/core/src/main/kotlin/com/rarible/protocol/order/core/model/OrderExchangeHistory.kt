@@ -88,6 +88,7 @@ data class OrderSideMatch(
             return when (transaction.input().methodSignatureId()) {
                 GemSwapV1.batchBuyWithETHSignature().id(),
                 GemSwapV1.batchBuyWithERC20sSignature().id(),
+                ExchangeWrapper.singlePurchaseSignature().id(),
                 ExchangeWrapper.bulkPurchaseSignature().id(),
                 ExchangeWrapper.bulkPurchaseSignature().id() -> transaction.from()
                 else -> originTaker
