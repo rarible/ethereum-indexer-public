@@ -16,6 +16,7 @@ import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEvent
 import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
 import io.daonomic.rpc.domain.Word
+import org.reactivestreams.Publisher
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -41,10 +42,17 @@ class ERC721TransferLogDescriptor(
 
     override val topic: Word = TransferEvent.id()
 
-    override fun convert(log: Log, transaction: Transaction, date: Instant): Mono<ItemTransfer> {
+    override fun convert(
+        log: Log,
+        transaction: Transaction,
+        timestamp: Long,
+        index: Int,
+        totalLogs: Int
+    ): Publisher<ItemTransfer> {
         if (log.address() in skipContracts) {
             return Mono.empty()
         }
+        val date = Instant.ofEpochSecond(timestamp)
         return tokenRegistrationService.getTokenStandard(log.address())
             .flatMap { standard ->
                 if (standard !in ignoredStandards) {
@@ -58,6 +66,7 @@ class ERC721TransferLogDescriptor(
                     } else if (ItemId(log.address(), EthUInt256.of(e.tokenId())) in skipTransferContractTokens) {
                         Mono.empty()
                     } else {
+                        val isMint = customMintDetector.isErc721Mint(e, transaction).takeIf { it }
                         ItemTransfer(
                             from = e.from(),
                             owner = e.to(),
@@ -65,13 +74,18 @@ class ERC721TransferLogDescriptor(
                             tokenId = EthUInt256.of(e.tokenId()),
                             date = date,
                             value = EthUInt256.of(1),
-                            isMint = customMintDetector.isErc721Mint(e, transaction).takeIf { it }
+                            isMint = isMint,
+                            mintPrice = mintPrice(isMint, transaction.value(), totalLogs)
                         ).toMono()
                     }
                 } else {
                     Mono.empty()
                 }
             }
+    }
+
+    override fun convert(log: Log, transaction: Transaction, date: Instant): Publisher<ItemTransfer> {
+        throw RuntimeException("Shouldn't call")
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {

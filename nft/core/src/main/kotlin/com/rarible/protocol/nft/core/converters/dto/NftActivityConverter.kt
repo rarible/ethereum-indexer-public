@@ -11,6 +11,7 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.math.BigInteger
 
 @Component
 class NftActivityConverter(
@@ -86,6 +87,7 @@ class NftActivityConverter(
                     contract = itemTransfer.token,
                     tokenId = itemTransfer.tokenId.value,
                     value = itemTransfer.value.value,
+                    mintPrice = itemTransfer.mintPrice?.let(::normalize),
                     date = itemTransfer.date,
                     transactionHash = transactionHash,
                     blockHash = blockHash,
@@ -131,6 +133,8 @@ class NftActivityConverter(
             }
         }
     }
+
+    private fun normalize(value: BigInteger) = value.toBigDecimal(18)
 
     private val DEFAULT_BLOCK_HASH: Word = Word.apply(ByteArray(32))
     private val DEFAULT_BLOCK_NUMBER: Long = 0
