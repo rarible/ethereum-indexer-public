@@ -16,6 +16,7 @@ import org.bson.types.ObjectId
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import scalether.domain.Address
+import java.math.BigInteger
 import java.time.Instant
 import com.rarible.protocol.contracts.test.crypto.punks.AssignEvent as PunkAssignEvent
 
@@ -56,7 +57,8 @@ data class ItemTransfer(
      * URI of the token metadata. Currently, available only for pending logs.
      */
     val tokenUri: String? = null,
-    private val isMint: Boolean? = null
+    private val isMint: Boolean? = null,
+    val mintPrice: BigInteger? = null
 ) : ItemHistory(ItemType.TRANSFER) {
 
     fun isMintTransfer(): Boolean {
