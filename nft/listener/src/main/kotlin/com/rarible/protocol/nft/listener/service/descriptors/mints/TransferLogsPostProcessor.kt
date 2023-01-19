@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.listener.service.descriptors.erc721
+package com.rarible.protocol.nft.listener.service.descriptors.mints
 
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
@@ -22,17 +22,19 @@ class TransferLogsPostProcessor {
             .filter { it.value() > BigInteger.ZERO }
             .associateBy({ tx -> tx.hash().toString() }, { tx -> tx.value() })
 
-        // tx hash -> mintPrice
         val priceByHash: Map<String, BigInteger?> = ethereumLogs
             .filter { it.transactionHash in valueByHash.keys }
+            .filter { it.data is ItemTransfer } // Actually data is always ItemTransfer
             .filter { (it.data as ItemTransfer).isMintTransfer() }
-            .groupingBy { it.transactionHash }
-            .eachCount()
 
-            // tx hash -> mint count
-            .entries.associate { (hash, count) ->
+            // tx hash -> mint counts
+            .groupBy({ it.transactionHash }, { (it.data as ItemTransfer).value.value })
+
+            // tx hash -> mintPrice
+            .entries.associate { (hash, counts) ->
                 val value = valueByHash[hash]
-                hash to value?.divide(count.toBigInteger())
+                val count = counts.reduce { acc, bigInteger -> acc + bigInteger }
+                hash to value?.divide(count)
             }
 
         return ethereumLogs
