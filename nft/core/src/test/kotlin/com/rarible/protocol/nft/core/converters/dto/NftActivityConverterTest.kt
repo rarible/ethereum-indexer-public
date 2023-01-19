@@ -92,7 +92,7 @@ class NftActivityConverterTest {
 
     @Test
     fun `convert - mint, not reverted`() {
-        val transfer = createItemHistory().copy(from = Address.ZERO())
+        val transfer = createItemHistory().copy(from = Address.ZERO(), mintPrice = 300000000000000000L.toBigInteger())
         val record = randomReversedLogRecord(transfer)
 
         val converted = converter.convert(record, false) as MintDto
@@ -100,6 +100,7 @@ class NftActivityConverterTest {
         assertThat(converted.owner).isEqualTo(transfer.owner)
         assertThat(converted.tokenId).isEqualTo(transfer.tokenId.value)
         assertThat(converted.value).isEqualTo(transfer.value.value)
+        assertThat(converted.mintPrice).isEqualTo(0.3.toBigDecimal().setScale(18))
         assertThat(converted.date).isEqualTo(transfer.date)
         assertThat(converted.contract).isEqualTo(transfer.token)
         assertThat(converted.transactionHash.prefixed()).isEqualTo(record.transactionHash)
