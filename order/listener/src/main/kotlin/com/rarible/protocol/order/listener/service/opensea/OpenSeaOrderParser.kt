@@ -81,9 +81,8 @@ class OpenSeaOrderParser(
         val signature = ExchangeWrapper.singlePurchaseSignature()
         val decoded = signature.`in`().decode(input, 4)
         val purchaseDetails = decoded.value()._1()
-        val originFees = decoded.value()._2().map { convertToFeePart(it) }
-        val data: ByteArray = purchaseDetails._3()
-
+        val originFees = convertToFeePart(purchaseDetails._3(), decoded.value()._2(), decoded.value()._3())
+        val data: ByteArray = purchaseDetails._4()
         val orders = parseOrdersForAtomicMatch(Binary.apply(data))
 
         val buyCallData = orders.buyOrder.callData
@@ -95,6 +94,24 @@ class OpenSeaOrderParser(
                 originFees = originFees
             )
         )
+    }
+
+    internal fun convertToFeePart(
+        fees: BigInteger,
+        feeRecipientFirst: Address,
+        feeRecipientSecond: Address
+    ): List<Part> {
+        val parts = mutableListOf<Part>()
+        val decodedFee = Uint256Type.encode(fees)
+        val firstFee = EthUInt256.of(decodedFee.slice(28, 30).toBigInteger())
+        val secondFee = EthUInt256.of(decodedFee.slice(30, 32).toBigInteger())
+        if (feeRecipientFirst != Address.ZERO()) {
+            parts.add(Part(feeRecipientFirst, firstFee))
+        }
+        if (feeRecipientSecond != Address.ZERO()) {
+            parts.add(Part(feeRecipientSecond, secondFee))
+        }
+        return parts
     }
 
     private fun convertToFeePart(feeUint256: BigInteger): Part =

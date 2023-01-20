@@ -26,7 +26,7 @@ class X2Y2SellOrderMatchDescriptor(
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
         val event = EvInventoryEvent.apply(log)
-        val converted = converter.convert(event, timestamp, transaction.input())
+        val converted = converter.convert(event, timestamp, transaction)
         x2y2MatchEventCounter.increment()
         return converted
     }

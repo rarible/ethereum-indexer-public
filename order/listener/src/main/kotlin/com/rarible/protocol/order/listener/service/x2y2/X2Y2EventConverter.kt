@@ -19,10 +19,10 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
-import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Component
@@ -45,12 +45,17 @@ class X2Y2EventConverter(
             )
     }
 
-    suspend fun convert(event: EvInventoryEvent, date: Instant, input: Bytes): List<OrderSideMatch> {
+    suspend fun convert(
+        event: EvInventoryEvent,
+        date: Instant,
+        transaction: Transaction
+    ): List<OrderSideMatch> {
+        val input = transaction.input()
         val op = event.detail()._1().toInt()
         if ((op == 1 || op == 2).not()) return emptyList()
 
         val maker = event.maker()
-        val taker = event.taker()
+        val taker = OrderSideMatch.getRealTaker(event.taker(), transaction)
         val tokenData = Tuples.addressUintType().decode(Binary(event.item()._2), 64).value()
 
         val nft = Asset(
