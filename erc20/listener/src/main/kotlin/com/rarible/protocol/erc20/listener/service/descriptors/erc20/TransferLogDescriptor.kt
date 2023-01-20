@@ -32,6 +32,7 @@ class TransferLogDescriptor(
     }
 
     override suspend fun convert(log: Log, date: Date): List<Erc20TokenHistory> {
+        logger.info("{}, {}:{}", log.transactionHash(), log.logIndex(), log.address()) //TODO: For debug, need remove
         val erc20Token = registrationService.tryRegister(log.address()) ?: return emptyList()
         val event = when {
             log.topics().size() == 1 -> TransferEventWithFullData.apply(log)
