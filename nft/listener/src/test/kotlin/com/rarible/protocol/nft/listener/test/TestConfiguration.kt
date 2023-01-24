@@ -12,7 +12,9 @@ import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
 import io.daonomic.rpc.mono.WebClientTransport
+import io.mockk.mockk
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -95,4 +97,9 @@ class TestConfiguration {
         )
         return ConsumerWorker(consumer, handler, "test-kafka-activity-worker")
     }
+
+    @Bean
+    @Primary
+    fun testEntityEventConsumer(): KafkaEntityEventConsumer = mockk()
+
 }
