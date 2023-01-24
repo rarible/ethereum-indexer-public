@@ -6,9 +6,11 @@ import io.daonomic.rpc.domain.Binary
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.NestedConfigurationProperty
+import org.springframework.data.mongodb.core.aggregation.ArrayOperators.In
 import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Duration
+import java.time.Instant
 
 const val RARIBLE_PROTOCOL_ORDER_INDEXER = "common"
 
@@ -119,7 +121,8 @@ data class OrderIndexerProperties(
 
     data class RaribleOrderExpirationProperties(
         val bidExpirePeriod: Duration = Duration.ofDays(60L),
-        val delayPeriod: Duration = Duration.ofMinutes(10L)
+        val fixedExpireDate: Instant = Instant.parse("2022-04-14T00:00:00.00Z"),
+        val delayPeriod: Duration = Duration.ofMinutes(60L),
     )
 
     sealed class EthereumEventHandleProperties {
