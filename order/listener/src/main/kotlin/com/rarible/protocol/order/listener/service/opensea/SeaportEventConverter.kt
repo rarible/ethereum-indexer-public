@@ -51,6 +51,10 @@ class SeaportEventConverter(
         date: Instant,
         input: Bytes,
     ): List<OrderSideMatch> {
+        if (event.zone() == Address.ZERO()) run {
+            logger.info("Skip with zero zone, tx={}, logIndex={}", event.log().transactionHash(), event.log().logIndex())
+            return emptyList()
+        }
         val spentItems = convert(event.offer())
         val receivedItems = convert(event.consideration())
         val make = convertSpentItems(spentItems) ?: return emptyList()
