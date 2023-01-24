@@ -130,7 +130,7 @@ class CollectionServiceIt {
 
     @Test
     fun testMetaTimeout() = runBlocking<Unit> {
-        val token = createToken()
+        val token = createToken().copy(standard = TokenStandard.ERC721)
 
         every { tokenRepository.findByIds(any()) } returns flowOf(token)
         coEvery { tokenMetaService.get(any()) } answers CoFunctionAnswer {

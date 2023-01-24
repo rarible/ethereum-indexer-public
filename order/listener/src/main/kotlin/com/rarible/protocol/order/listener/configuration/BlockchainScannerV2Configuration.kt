@@ -44,6 +44,7 @@ class BlockchainScannerV2Configuration(
     }
 
     @Bean
+    @ConditionalOnMissingBean(KafkaEntityEventConsumer::class)
     fun entityEventConsumer(
         entityEventListener: List<EntityEventListener>,
         consumerWorkerFactory: ConsumerWorkerFactory

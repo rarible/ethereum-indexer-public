@@ -29,6 +29,7 @@ class BlockchainScannerV2Configuration(
     private val logger = LoggerFactory.getLogger(BlockchainScannerV2Configuration::class.java)
 
     @Bean
+    @ConditionalOnMissingBean(KafkaEntityEventConsumer::class)
     fun entityEventConsumer(
         entityEventListener: List<EntityEventListener>
     ): KafkaEntityEventConsumer {

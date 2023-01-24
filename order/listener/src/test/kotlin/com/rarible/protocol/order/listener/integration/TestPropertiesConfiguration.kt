@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.integration
 
+import com.rarible.blockchain.scanner.ethereum.consumer.KafkaEntityEventConsumer
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.cache.CacheableMonoEthereum
 import com.rarible.ethereum.sign.service.ERC1271SignService
@@ -83,7 +84,12 @@ class TestPropertiesConfiguration {
     fun mockERC1271SignService(): ERC1271SignService = mockk {
     }
 
+    @Bean
+    @Primary
+    fun testEntityEventConsumer(): KafkaEntityEventConsumer = mockk()
+
     companion object {
+
         val ETH_CURRENCY_RATE = 3000.toBigDecimal() // 3000$
     }
 }
