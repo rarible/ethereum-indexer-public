@@ -18,7 +18,6 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
-import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
 import com.rarible.protocol.order.listener.job.LooksrareOrdersFetchWorker
@@ -175,14 +174,14 @@ class OrderListenerConfiguration(
     )
     fun raribleBidsCanceledAfterExpiredJob(
         orderRepository: OrderRepository,
-        orderReduceService: OrderReduceService,
+        orderUpdateService: OrderUpdateService,
         raribleOrderExpiration: OrderIndexerProperties.RaribleOrderExpirationProperties,
         properties: OrderListenerProperties,
         meterRegistry: MeterRegistry
     ): RaribleBidsCanceledAfterExpiredJob {
         return RaribleBidsCanceledAfterExpiredJob(
             orderRepository,
-            orderReduceService,
+            orderUpdateService,
             raribleOrderExpiration,
             properties,
             meterRegistry
