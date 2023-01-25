@@ -13,13 +13,10 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
-import com.rarible.protocol.order.core.model.SeaportConsideration
-import com.rarible.protocol.order.core.model.SeaportItemType
-import com.rarible.protocol.order.core.model.SeaportOffer
 import com.rarible.protocol.order.core.model.SeaportOrderComponents
-import com.rarible.protocol.order.core.model.SeaportOrderType
 import com.rarible.protocol.order.core.model.SeaportReceivedItem
 import com.rarible.protocol.order.core.model.SeaportSpentItem
+import com.rarible.protocol.order.core.parser.SeaportOrderParser
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
@@ -27,10 +24,6 @@ import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import scala.Tuple11
-import scala.Tuple4
-import scala.Tuple5
-import scala.Tuple6
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.math.BigInteger
@@ -51,12 +44,8 @@ class SeaportEventConverter(
         date: Instant,
         input: Bytes,
     ): List<OrderSideMatch> {
-        if (event.zone() == Address.ZERO()) run {
-            logger.info("Skip with zero zone, tx={}, logIndex={}", event.log().transactionHash(), event.log().logIndex())
-            return emptyList()
-        }
-        val spentItems = convert(event.offer())
-        val receivedItems = convert(event.consideration())
+        val spentItems = SeaportOrderParser.convert(event.offer())
+        val receivedItems = SeaportOrderParser.convert(event.consideration())
         val make = convertSpentItems(spentItems) ?: return emptyList()
         val take = convertReceivedItems(receivedItems) ?: return emptyList()
         val maker = event.offerer()
@@ -146,7 +135,7 @@ class SeaportEventConverter(
                 "Order components size (${components.size}) is net equals totalLogs=${totalLogs} (tx=${transaction.hash()})"
             }
 
-            val targetComponent = convert(components[index])
+            val targetComponent = SeaportOrderParser.convert(components[index])
             require(Order.seaportV1Hash(targetComponent) == orderHash) {
                 "Components hash needn't match order hash $orderHash in  (tx=${transaction.hash()})"
             }
@@ -166,22 +155,6 @@ class SeaportEventConverter(
         )
     }
 
-    private fun convert(component: Tuple11<Address, Address, Array<Tuple5<BigInteger, Address, BigInteger, BigInteger, BigInteger>>, Array<Tuple6<BigInteger, Address, BigInteger, BigInteger, BigInteger, Address>>, BigInteger, BigInteger, BigInteger, ByteArray, BigInteger, ByteArray, BigInteger>): SeaportOrderComponents {
-        return SeaportOrderComponents(
-            offerer = component._1(),
-            zone = component._2(),
-            offer = convertOrderOffer(component._3()),
-            consideration = convertOrderConsideration(component._4()),
-            orderType = SeaportOrderType.fromValue(component._5().intValueExact()) ,
-            startTime = component._6(),
-            endTime = component._7(),
-            zoneHash = Word.apply(component._8()),
-            salt = component._9(),
-            conduitKey = Word.apply(component._10()),
-            counter = component._11().toLong()
-        )
-    }
-
     private fun convertToAsserts(components: SeaportOrderComponents): OrderAssets? {
         val offer = components.offer
         val consideration = components.consideration
@@ -195,54 +168,6 @@ class SeaportEventConverter(
         val make = offer.single().takeIf { it.isSupportedItem() } ?: return null
         val take = offererConsideration.withStartAmount(totalConsiderationAmount).takeIf { it.isSupportedItem() } ?: return null
         return OrderAssets(make.toAssetWithStartAmount(), take.toAssetWithStartAmount())
-    }
-
-    private fun convertOrderConsideration(consideration: Array<Tuple6<BigInteger, Address, BigInteger, BigInteger, BigInteger, Address>>): List<SeaportConsideration> {
-        return consideration.map {
-            SeaportConsideration(
-                itemType = SeaportItemType.fromValue(it._1().intValueExact()),
-                token = it._2(),
-                identifier = it._3(),
-                startAmount = it._4(),
-                endAmount = it._5(),
-                recipient = it._6()
-            )
-        }
-    }
-
-    private fun convertOrderOffer(offer: Array<Tuple5<BigInteger, Address, BigInteger, BigInteger, BigInteger>>): List<SeaportOffer> {
-        return offer.map {
-            SeaportOffer(
-                itemType = SeaportItemType.fromValue(it._1().intValueExact()),
-                token = it._2(),
-                identifier = it._3(),
-                startAmount = it._4(),
-                endAmount = it._5()
-            )
-        }
-    }
-
-    private fun convert(offer: Array<Tuple4<BigInteger, Address, BigInteger, BigInteger>>): List<SeaportSpentItem> {
-        return offer.map {
-            SeaportSpentItem(
-                itemType = SeaportItemType.fromValue(it._1().intValueExact()),
-                token = it._2(),
-                identifier = it._3(),
-                amount = it._4(),
-            )
-        }
-    }
-
-    private fun convert(consideration: Array<Tuple5<BigInteger, Address, BigInteger, BigInteger, Address>>): List<SeaportReceivedItem> {
-        return consideration.map {
-            SeaportReceivedItem(
-                itemType = SeaportItemType.fromValue(it._1().intValueExact()),
-                token = it._2(),
-                identifier = it._3(),
-                amount = it._4(),
-                recipient = it._5()
-            )
-        }
     }
 
     private fun convertSpentItems(spentItems: List<SeaportSpentItem>): Asset? {
