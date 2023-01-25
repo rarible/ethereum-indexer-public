@@ -186,6 +186,5 @@
         <module>order</module>
         <module>gateway</module>
         <module>unlockable</module>
-        <module>test-coverage</module>
     </modules>
 </project>
