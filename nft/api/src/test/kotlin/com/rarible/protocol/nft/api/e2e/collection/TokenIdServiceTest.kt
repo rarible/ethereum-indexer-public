@@ -6,7 +6,6 @@ import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.service.colllection.CollectionService
-import com.rarible.protocol.nft.core.converters.dto.ExtendedCollectionDtoConverter
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenMeta
 import com.rarible.protocol.nft.core.model.TokenProperties
@@ -51,7 +50,6 @@ class CollectionServiceIt {
     private val tokenMetaService = mockk<TokenMetaService>()
     private val collectionService = CollectionService(
         properties,
-        ExtendedCollectionDtoConverter(),
         tokenRegistrationService,
         tokenRepository,
         tokenIdRepository,

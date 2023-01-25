@@ -9,15 +9,13 @@ import org.junit.jupiter.api.Test
 
 class NftCollectionMetaDtoConverterTest {
 
-    private val converter = NftCollectionMetaDtoConverter
-
     @Test
     fun `convert token`() {
         // We don't need to check content conversion here, we should have separate test for it
         val properties = randomTokenProperties().copy(
             content = ContentBuilder.getTokenMetaContent(randomString())
         )
-        val meta = converter.convert(TokenMeta(properties))
+        val meta = NftCollectionMetaDtoConverter.convert(TokenMeta(properties))
 
         assertThat(meta.name).isEqualTo(properties.name)
         assertThat(meta.description).isEqualTo(properties.description)

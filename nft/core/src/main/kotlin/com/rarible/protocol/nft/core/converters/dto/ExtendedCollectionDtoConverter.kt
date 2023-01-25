@@ -5,15 +5,12 @@ import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.ExtendedToken
 import com.rarible.protocol.nft.core.model.TokenFeature
 import org.slf4j.LoggerFactory
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
 
-@Component
-class ExtendedCollectionDtoConverter : Converter<ExtendedToken, NftCollectionDto> {
+object ExtendedCollectionDtoConverter {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun convert(source: ExtendedToken): NftCollectionDto {
+    fun convert(source: ExtendedToken): NftCollectionDto {
         val (token, meta) = source
         try {
             return NftCollectionDto(

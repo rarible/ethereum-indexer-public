@@ -82,12 +82,6 @@ class ItemControllerFt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
 
-    private lateinit var itemDtoConverter: ItemDtoConverter
-
-    @BeforeEach
-    fun beforeEach() {
-        itemDtoConverter = ItemDtoConverter()
-    }
 
     companion object {
 
@@ -144,7 +138,7 @@ class ItemControllerFt : AbstractIntegrationTest() {
         } catch (ex: NftItemControllerApi.ErrorGetNftLazyItemById) {
             val dto = ex.on400
             assertEquals(400, ex.rawStatusCode)
-            assertEquals(EthereumApiErrorBadRequestDto.Code.BAD_REQUEST, dto.code)
+            assertEquals(EthereumApiErrorBadRequestDto.Code.VALIDATION, dto.code)
         }
     }
 
@@ -158,12 +152,12 @@ class ItemControllerFt : AbstractIntegrationTest() {
 
         // On the first request, item meta is null (because it was not loaded before). Loading gets scheduled.
         assertThat(nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitSingle())
-            .isEqualTo(itemDtoConverter.convert(item))
+            .isEqualTo(ItemDtoConverter.convert(item))
 
         // Then the meta gets loaded. Wait for it.
         Wait.waitAssert {
             assertThat(nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitSingle())
-                .isEqualTo(itemDtoConverter.convert(item))
+                .isEqualTo(ItemDtoConverter.convert(item))
         }
         val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitSingle()
 
@@ -427,7 +421,7 @@ class ItemControllerFt : AbstractIntegrationTest() {
             ).collectList().awaitFirst()
 
         assertThat(fetchItems(item.id))
-            .isEqualTo(listOf(itemDtoConverter.convert(item)))
+            .isEqualTo(listOf(ItemDtoConverter.convert(item)))
     }
 
     @ParameterizedTest

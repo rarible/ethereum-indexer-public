@@ -2,12 +2,10 @@ package com.rarible.protocol.nft.core.converters.dto
 
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.nft.core.model.Ownership
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
 
-@Component
-class OwnershipDtoConverter : Converter<Ownership, NftOwnershipDto> {
-    override fun convert(source: Ownership): NftOwnershipDto {
+object OwnershipDtoConverter {
+
+    fun convert(source: Ownership): NftOwnershipDto {
         return NftOwnershipDto(
             id = source.id.decimalStringValue,
             contract = source.token,

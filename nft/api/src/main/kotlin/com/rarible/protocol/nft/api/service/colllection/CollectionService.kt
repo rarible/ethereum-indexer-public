@@ -36,7 +36,6 @@ import java.math.BigInteger
 @Component
 class CollectionService(
     private val nftIndexerApiProperties: NftIndexerApiProperties,
-    private val collectionDtoConverter: ExtendedCollectionDtoConverter,
     private val tokenRegistrationService: TokenRegistrationService,
     private val tokenRepository: TokenRepository,
     private val tokenIdRepository: TokenIdRepository,
@@ -50,13 +49,13 @@ class CollectionService(
         val token = tokenRepository.findById(collectionId).awaitFirstOrNull()
             ?.takeIf { it.standard != TokenStandard.NONE && it.status != ContractStatus.ERROR }
             ?: throw EntityNotFoundApiException("Collection", collectionId)
-        return collectionDtoConverter.convert(ExtendedToken(token, tokenMetaService.get(collectionId)))
+        return ExtendedCollectionDtoConverter.convert(ExtendedToken(token, tokenMetaService.get(collectionId)))
     }
 
     suspend fun get(ids: List<Address>): List<NftCollectionDto> {
         val tokens = tokenRepository.findByIds(ids).toList()
         val enriched = enrichWithMeta(tokens)
-        return enriched.map { collectionDtoConverter.convert(it) }
+        return enriched.map { ExtendedCollectionDtoConverter.convert(it) }
     }
 
     suspend fun resetMeta(collectionId: Address) {

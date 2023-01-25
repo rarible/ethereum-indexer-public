@@ -1,15 +1,16 @@
 package com.rarible.protocol.nft.core.converters.dto
 
 import com.rarible.protocol.dto.ItemTransferDto
-import com.rarible.protocol.nft.core.model.*
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
+import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.OwnershipEvent
+import com.rarible.protocol.nft.core.model.OwnershipId
 import scalether.domain.Address
 
-@Component
-object ItemTransferDtoConverter : Converter<ItemTransfer, ItemTransferDto> {
+object ItemTransferDtoConverter {
 
-    override fun convert(source: ItemTransfer): ItemTransferDto {
+    fun convert(source: ItemTransfer): ItemTransferDto {
         return ItemTransferDto(
             owner = source.owner,
             contract = source.token,

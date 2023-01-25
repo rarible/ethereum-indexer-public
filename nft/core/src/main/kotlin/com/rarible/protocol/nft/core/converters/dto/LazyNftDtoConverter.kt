@@ -5,12 +5,10 @@ import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.TokenStandard
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
 
-@Component
-object LazyNftDtoConverter : Converter<ItemLazyMint, LazyNftDto> {
-    override fun convert(source: ItemLazyMint): LazyNftDto {
+object LazyNftDtoConverter {
+
+    fun convert(source: ItemLazyMint): LazyNftDto {
         return when (source.standard) {
             TokenStandard.ERC721 -> LazyErc721Dto(
                 contract = source.token,
@@ -20,6 +18,7 @@ object LazyNftDtoConverter : Converter<ItemLazyMint, LazyNftDto> {
                 royalties = source.royalties.map { PartDtoConverter.convert(it) },
                 signatures = source.signatures
             )
+
             TokenStandard.ERC1155 -> LazyErc1155Dto(
                 contract = source.token,
                 tokenId = source.tokenId.value,

@@ -2,13 +2,10 @@ package com.rarible.protocol.nft.core.converters.dto
 
 import com.rarible.protocol.dto.ItemRoyaltyDto
 import com.rarible.protocol.nft.core.model.ItemRoyalty
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
 
-@Component
-object ItemRoyaltyDtoConverter : Converter<ItemRoyalty, ItemRoyaltyDto> {
+object ItemRoyaltyDtoConverter {
 
-    override fun convert(source: ItemRoyalty): ItemRoyaltyDto {
+    fun convert(source: ItemRoyalty): ItemRoyaltyDto {
         return ItemRoyaltyDto(
             contract = source.token,
             tokenId = source.tokenId.value,
