@@ -24,8 +24,9 @@ class RaribleBidsCanceledAfterExpiredJob(
 
     override suspend fun handle() {
         orderRepository.findAllLiveBidsHashesLastUpdatedBefore(fixedExpireDate).collect {
+            logger.info("Found expire bid $it after $fixedExpireDate, bid is cancelled.")
             orderUpdateService.update(it)
-            logger.info("Expire bid $it after $fixedExpireDate, bid is cancelled.")
+            logger.info("Bid $it updated")
         }
         delay(delayPeriod)
     }

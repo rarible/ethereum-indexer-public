@@ -120,6 +120,16 @@ fun createSellOrder(
     data: OrderData = createOrderRaribleV2DataV1()
 ) = createOrder().copy(make = randomErc721(), take = randomErc20(), data = data)
 
+fun createBidOrder(
+    data: OrderData = createOrderRaribleV2DataV1(),
+    platform: Platform = Platform.RARIBLE,
+) = createOrder().copy(
+    make = randomErc20(),
+    take = randomErc721(),
+    data = data,
+    platform = platform
+)
+
 fun createOrderVersion(): OrderVersion {
     return OrderVersion(
         maker = randomAddress(),

@@ -1,14 +1,17 @@
 package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.ext.MongoCleanup
 import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.TestPropertiesConfiguration
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
+import com.rarible.protocol.order.core.data.createBidOrder
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderRaribleV2DataV1
+import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.model.Order
@@ -29,8 +32,11 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import scalether.domain.Address
+import java.time.Duration
+import java.time.Instant
 
 @MongoTest
+@MongoCleanup
 @DataMongoTest
 @EnableAutoConfiguration
 @ContextConfiguration(classes = [RepositoryConfiguration::class, TestPropertiesConfiguration::class])
@@ -283,6 +289,18 @@ internal class OrderRepositoryIt {
         }
         val foundCurrencies = orderRepository.findActiveSellCurrenciesByCollection(token)
         assertThat(foundCurrencies).containsExactlyInAnyOrderElementsOf(currencies)
+    }
+
+    @Test
+    fun `find - before target last update`() = runBlocking<Unit> {
+        val before = Instant.now() - Duration.ofMinutes(1)
+        val order1 = createBidOrder().copy(lastUpdateAt = before - Duration.ofMinutes(1))
+        val order2 = createBidOrder().copy(lastUpdateAt = before - Duration.ofMinutes(2))
+        val order3 = createBidOrder().copy(lastUpdateAt = before + Duration.ofMinutes(1))
+        val order4 = createBidOrder().copy(lastUpdateAt = before + Duration.ofMinutes(2))
+        listOf(order1, order2, order3, order4).forEach { orderRepository.save(it) }
+        val bids = orderRepository.findAllLiveBidsHashesLastUpdatedBefore(before).toList()
+        assertThat(bids).containsExactlyInAnyOrder(order1.hash, order2.hash)
     }
 }
 
