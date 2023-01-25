@@ -4,13 +4,9 @@ import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.model.Ownership
-import org.springframework.stereotype.Component
 import java.util.*
 
-@Component
-class OwnershipEventDtoFromOwnershipConverter(
-    private val ownershipDtoConverter: OwnershipDtoConverter
-) {
+object OwnershipEventDtoFromOwnershipConverter {
 
     fun convert(source: Ownership): NftOwnershipEventDto {
         return if (source.deleted) {
@@ -25,7 +21,7 @@ class OwnershipEventDtoFromOwnershipConverter(
             eventId = UUID.randomUUID().toString(),
             ownershipId = source.id.decimalStringValue,
             ownership = DeletedOwnershipDtoConverter.convert(source.id),
-            deletedOwnership = ownershipDtoConverter.convert(source)
+            deletedOwnership = OwnershipDtoConverter.convert(source)
         )
     }
 
@@ -33,7 +29,7 @@ class OwnershipEventDtoFromOwnershipConverter(
         return NftOwnershipUpdateEventDto(
             eventId = UUID.randomUUID().toString(),
             ownershipId = source.id.decimalStringValue,
-            ownership = ownershipDtoConverter.convert(source)
+            ownership = OwnershipDtoConverter.convert(source)
         )
     }
 

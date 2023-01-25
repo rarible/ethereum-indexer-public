@@ -11,14 +11,13 @@ import java.util.*
 
 @Component
 class TokenEventListener(
-    private val eventPublisher: ProtocolNftEventPublisher,
-    private val collectionDtoConverter: ExtendedCollectionDtoConverter
+    private val eventPublisher: ProtocolNftEventPublisher
 ) {
     suspend fun onTokenChanged(token: Token) {
         val updateEvent = NftCollectionUpdateEventDto(
             eventId = token.lastEventId ?: UUID.randomUUID().toString(),
             id = token.id,
-            collection = collectionDtoConverter.convert(ExtendedToken(token, TokenMeta.EMPTY))
+            collection = ExtendedCollectionDtoConverter.convert(ExtendedToken(token, TokenMeta.EMPTY))
         )
         eventPublisher.publishInternalCollection(updateEvent)
     }

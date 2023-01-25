@@ -2,12 +2,10 @@ package com.rarible.protocol.nft.core.converters.dto
 
 import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.nft.core.model.TokenMeta
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
 
-@Component
-object NftCollectionMetaDtoConverter : Converter<TokenMeta, NftCollectionMetaDto> {
-    override fun convert(source: TokenMeta): NftCollectionMetaDto {
+object NftCollectionMetaDtoConverter {
+
+    fun convert(source: TokenMeta): NftCollectionMetaDto {
         return NftCollectionMetaDto(
             name = source.properties.name,
             description = source.properties.description,

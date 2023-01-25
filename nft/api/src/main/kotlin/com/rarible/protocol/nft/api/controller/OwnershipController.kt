@@ -1,12 +1,13 @@
 package com.rarible.protocol.nft.api.controller
 
-import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipIdsDto
 import com.rarible.protocol.dto.NftOwnershipsDto
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.dto.parser.parse
+import com.rarible.protocol.nft.api.converter.OwnershipIdConverter
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
+import com.rarible.protocol.nft.core.converters.dto.OwnershipDtoConverter
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterAll
@@ -14,16 +15,13 @@ import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
 import com.rarible.protocol.nft.core.model.OwnershipFilterByOwner
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.page.PageSize
-import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
-import scalether.domain.Address
 import java.math.BigInteger
 
 @RestController
 class OwnershipController(
-    private val ownershipApiService: OwnershipApiService,
-    private val conversionService: ConversionService
+    private val ownershipApiService: OwnershipApiService
 ) : NftOwnershipControllerApi {
 
     private val defaultSorting = OwnershipFilter.Sort.LAST_UPDATE
@@ -43,7 +41,7 @@ class OwnershipController(
         showDeleted: Boolean?
     ): ResponseEntity<NftOwnershipDto> {
         val safeShowDeleted = showDeleted ?: false
-        val result = ownershipApiService.get(conversionService.convert(ownershipId), safeShowDeleted)
+        val result = ownershipApiService.get(OwnershipIdConverter.convert(ownershipId), safeShowDeleted)
         return ResponseEntity.ok(result)
     }
 
@@ -88,7 +86,7 @@ class OwnershipController(
         return NftOwnershipsDto(
             ownerships.size.toLong(),
             cont,
-            ownerships.map { conversionService.convert(it) }
+            ownerships.map { OwnershipDtoConverter.convert(it) }
         )
     }
 }

@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.api.controller
 
-import com.rarible.core.common.convert
 import com.rarible.core.logging.RaribleMDCContext
 import com.rarible.core.logging.withMdc
 import com.rarible.protocol.dto.BurnLazyNftFormDto
@@ -12,10 +11,13 @@ import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
+import com.rarible.protocol.nft.api.converter.ItemIdConverter
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
+import com.rarible.protocol.nft.core.converters.dto.ItemDtoConverter
+import com.rarible.protocol.nft.core.converters.dto.LazyNftDtoConverter
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemContinuation
@@ -33,7 +35,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.slf4j.LoggerFactory
-import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -48,7 +49,6 @@ class ItemController(
     private val itemService: ItemService,
     private val itemMetaService: ItemMetaService,
     private val mintService: MintService,
-    private val conversionService: ConversionService,
     private val burnLazyNftValidator: BurnLazyNftValidator,
     private val nftIndexerApiProperties: NftIndexerApiProperties,
     private val nftItemMetaDtoConverter: NftItemMetaDtoConverter
@@ -56,21 +56,21 @@ class ItemController(
 
     override suspend fun getNftItemById(itemId: String): ResponseEntity<NftItemDto> {
         val result = itemService
-            .getById(conversionService.convert(itemId))
-            .let { conversionService.convert<NftItemDto>(it) }
+            .getById(ItemIdConverter.convert(itemId))
+            .let { ItemDtoConverter.convert(it) }
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftLazyItemById(itemId: String): ResponseEntity<LazyNftDto> {
         val result = itemService
-            .getLazyById(conversionService.convert(itemId))
-            .let { conversionService.convert<LazyNftDto>(it) }
+            .getLazyById(ItemIdConverter.convert(itemId))
+            .let { LazyNftDtoConverter.convert(it) }
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftItemMetaById(itemId: String): ResponseEntity<NftItemMetaDto> {
         val availableMeta = itemMetaService.getMetaWithTimeout(
-            itemId = conversionService.convert(itemId),
+            itemId = ItemIdConverter.convert(itemId),
             timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
             demander = "get meta by ID"
         ) ?: throw EntityNotFoundApiException("Item meta", itemId)
@@ -79,7 +79,7 @@ class ItemController(
 
     override suspend fun getNftItemRoyaltyById(itemId: String): ResponseEntity<NftItemRoyaltyListDto> {
         logger.debug("Got request to get nft item royalty by id, parameter: $itemId")
-        val convertedItemId: ItemId = conversionService.convert(itemId)
+        val convertedItemId: ItemId = ItemIdConverter.convert(itemId)
         logger.debug("ItemId: $itemId was converted to: $convertedItemId")
         val result = itemService.getRoyalty(convertedItemId)
         return ResponseEntity.ok(result)
@@ -115,7 +115,7 @@ class ItemController(
         itemId: String,
         burnLazyNftFormDto: BurnLazyNftFormDto
     ): ResponseEntity<Unit> {
-        val item: ItemId = conversionService.convert(itemId)
+        val item: ItemId = ItemIdConverter.convert(itemId)
         burnLazyNftValidator.validate(item, BURN_MSG.format(item.tokenId.value), burnLazyNftFormDto)
         mintService.burnLazyMint(item)
         return ResponseEntity.noContent().build()
@@ -181,7 +181,7 @@ class ItemController(
         val ids = nftItemIdsDto.ids.map { ItemId.parseId(it) }.toSet()
         val items = flow<NftItemDto> {
             itemService.getAll(ids = ids)
-                .forEach { emit(conversionService.convert(it)) }
+                .forEach { emit(ItemDtoConverter.convert(it)) }
         }.flowOn(RaribleMDCContext())
         return ResponseEntity.ok(items)
     }
@@ -218,7 +218,7 @@ class ItemController(
     private fun result2Dto(result: List<Item>, requestSize: Int): NftItemsDto {
         val last = if (result.isEmpty() || result.size < requestSize) null else result.last()
         val cont = last?.let { ItemContinuation(it.date, it.id) }?.toString()
-        val itemsDto = result.map { conversionService.convert<NftItemDto>(it) }
+        val itemsDto = result.map { ItemDtoConverter.convert(it) }
         return NftItemsDto(itemsDto.size.toLong(), cont, itemsDto)
     }
 
