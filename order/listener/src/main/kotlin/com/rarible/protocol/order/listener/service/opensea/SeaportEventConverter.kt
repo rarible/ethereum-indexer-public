@@ -14,17 +14,20 @@ import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.SeaportOrderComponents
+import com.rarible.protocol.order.core.model.SeaportOrderParameters
 import com.rarible.protocol.order.core.model.SeaportReceivedItem
 import com.rarible.protocol.order.core.model.SeaportSpentItem
 import com.rarible.protocol.order.core.parser.SeaportOrderParser
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
@@ -76,7 +79,7 @@ class SeaportEventConverter(
                 counterAdhoc = true,
                 origin = null,
                 originFees = null,
-                externalOrderExecutedOnRarible = null
+                externalOrderExecutedOnRarible = null,
             ),
             OrderSideMatch(
                 hash = counterHash,
@@ -103,6 +106,38 @@ class SeaportEventConverter(
             )
         )
         return OrderSideMatch.addMarketplaceMarker(events, input, wrapperSeaportMatchEventMetric)
+    }
+
+    suspend fun isAdhocOrderEvent(
+        event: OrderFulfilledEvent,
+        index: Int,
+        totalLogs: Int,
+        transaction: Transaction
+    ): Boolean {
+        val advancedOrders = getMethodInput(
+            event.log(),
+            transaction,
+            MATCH_ADVANCED_ORDERS_SIGNATURE_ID
+        ).map { SeaportOrderParser.parseAdvancedOrders(it) }.flatten()
+
+        if (advancedOrders.isEmpty()) return false
+
+        require(advancedOrders.size == totalLogs) {
+            "Can't determine advanced orders amount in tx ${transaction.hash()}, expected $totalLogs, found ${advancedOrders.size}"
+        }
+        val advancedOrderEvent = advancedOrders[index]
+        require(canFindAdvancedOrderCounter(advancedOrderEvent.parameters, Word.apply(event.orderHash())))
+        return advancedOrderEvent.signature == Binary.empty()
+    }
+
+    private suspend fun canFindAdvancedOrderCounter(
+        parameters: SeaportOrderParameters,
+        expectedHash: Word
+    ): Boolean {
+        for (counter in 0L..100) {
+            if (Order.seaportV1Hash(parameters, counter) == expectedHash) return true
+        }
+        return false
     }
 
     suspend fun convert(
@@ -193,6 +228,23 @@ class SeaportEventConverter(
         return offererItem.withAmount(totalValue).toAsset()
     }
 
+    private suspend fun getMethodInput(log: Log, transaction: Transaction, methodId: Binary): List<Binary> {
+        return if (methodId == transaction.input().methodSignatureId()) {
+            listOf(transaction.input())
+        } else {
+            if (featureFlags.skipGetTrace) {
+                emptyList()
+            } else {
+                traceCallService.findAllRequiredCallInputs(
+                    txHash = transaction.hash(),
+                    txInput = transaction.input(),
+                    to = log.address(),
+                    ids = arrayOf(methodId)
+                )
+            }
+        }
+    }
+
     private data class OrderAssets(val make: Asset, val take: Asset)
 
     private companion object {
@@ -200,5 +252,11 @@ class SeaportEventConverter(
         val CANCEL_SIGNATURE = SeaportV1.cancelSignature()
         @Suppress("HasPlatformType")
         val CANCEL_SIGNATURE_ID = CANCEL_SIGNATURE.id()
+
+        @Suppress("HasPlatformType")
+        val MATCH_ADVANCED_ORDERS_SIGNATURE = SeaportV1.matchAdvancedOrdersSignature()
+        @Suppress("HasPlatformType")
+        val MATCH_ADVANCED_ORDERS_SIGNATURE_ID = MATCH_ADVANCED_ORDERS_SIGNATURE.id()
     }
+
 }
