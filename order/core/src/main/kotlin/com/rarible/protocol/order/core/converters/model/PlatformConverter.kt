@@ -13,6 +13,7 @@ object PlatformConverter : Converter<PlatformDto, Platform> {
             PlatformDto.X2Y2 -> Platform.X2Y2
             PlatformDto.LOOKSRARE -> Platform.LOOKSRARE
             PlatformDto.SUDOSWAP -> Platform.SUDOSWAP
+            PlatformDto.BLUR -> Platform.BLUR
             null -> null
         }
     }

@@ -6,7 +6,6 @@ import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.seaport.v1.SeaportV1
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.HistorySource
@@ -23,26 +22,27 @@ import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
+import com.rarible.protocol.order.listener.service.converter.AbstractEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 
 @Component
 class SeaportEventConverter(
+    traceCallService: TraceCallService,
+    featureFlags: OrderIndexerProperties.FeatureFlags,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
-    private val traceCallService: TraceCallService,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags,
     private val wrapperSeaportMatchEventMetric: RegisteredCounter,
     private val nonceHistoryRepository: NonceHistoryRepository,
-) {
+) : AbstractEventConverter(traceCallService, featureFlags) {
+
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun convert(
@@ -160,23 +160,8 @@ class SeaportEventConverter(
         totalLogs: Int,
         date: Instant
     ): List<OrderCancel> {
-        val inputs = if (CANCEL_SIGNATURE_ID == transaction.input().methodSignatureId()) {
-            listOf(transaction.input())
-        } else {
-            if (featureFlags.skipGetTrace) {
-               emptyList()
-            } else {
-                traceCallService.findAllRequiredCallInputs(
-                    txHash = transaction.hash(),
-                    txInput = transaction.input(),
-                    to = event.log().address(),
-                    ids = arrayOf(CANCEL_SIGNATURE_ID)
-                )
-            }
-        }
-        val orderHash = Word.apply(
-            event.orderHash()
-        )
+        val inputs = getMethodInput(event.log(), transaction, CANCEL_SIGNATURE_ID)
+        val orderHash = Word.apply(event.orderHash())
         val assets = if (inputs.isNotEmpty()) {
             val components = inputs.map { CANCEL_SIGNATURE.`in`().decode(it, 4).value().toList() }.flatten()
             require(components.size == totalLogs) {
@@ -239,23 +224,6 @@ class SeaportEventConverter(
         }
         val totalValue = items.fold(BigInteger.ZERO) { acc, next -> acc + next.amount }
         return offererItem.withAmount(totalValue).toAsset()
-    }
-
-    private suspend fun getMethodInput(log: Log, transaction: Transaction, methodId: Binary): List<Binary> {
-        return if (methodId == transaction.input().methodSignatureId()) {
-            listOf(transaction.input())
-        } else {
-            if (featureFlags.skipGetTrace) {
-                emptyList()
-            } else {
-                traceCallService.findAllRequiredCallInputs(
-                    txHash = transaction.hash(),
-                    txInput = transaction.input(),
-                    to = log.address(),
-                    ids = arrayOf(methodId)
-                )
-            }
-        }
     }
 
     private data class OrderAssets(val make: Asset, val take: Asset)

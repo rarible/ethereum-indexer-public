@@ -52,10 +52,10 @@ internal class SeaportEventConverterTest {
     private val nonceHistoryRepository = mockk<NonceHistoryRepository>()
 
     private val converter = SeaportEventConverter(
-        priceUpdateService,
-        prizeNormalizer,
         traceCallService,
         featureFlags,
+        priceUpdateService,
+        prizeNormalizer,
         wrapperLooksrareMetric,
         nonceHistoryRepository
     )
