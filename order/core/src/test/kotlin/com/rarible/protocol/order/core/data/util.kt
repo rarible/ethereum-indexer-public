@@ -4,7 +4,6 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
-import com.rarible.blockchain.scanner.ethereum.model.EventData as ScannerEventData
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
@@ -35,6 +34,7 @@ import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.dto.SeaportOrderTypeDto
 import com.rarible.protocol.dto.SeaportV1OrderDto
 import com.rarible.protocol.dto.X2Y2OrderDto
+import com.rarible.protocol.dto.indexerEventMark
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.Asset
@@ -104,6 +104,7 @@ import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
+import com.rarible.blockchain.scanner.ethereum.model.EventData as ScannerEventData
 
 fun createOrder() =
     Order(
@@ -652,7 +653,8 @@ fun randomOrderEventDto(order: OrderDto = createOrderDto()): OrderUpdateEventDto
     return OrderUpdateEventDto(
         eventId = randomString(),
         order = order,
-        orderId = randomWord()
+        orderId = randomWord(),
+        eventTimeMarks = indexerEventMark()
     )
 }
 

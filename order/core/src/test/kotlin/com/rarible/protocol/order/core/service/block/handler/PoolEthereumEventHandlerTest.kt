@@ -48,8 +48,8 @@ internal class PoolEthereumEventHandlerTest {
             poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord())
             poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord())
             poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord())
-            orderUpdateService.update(hash1)
-            orderUpdateService.update(hash2)
+            orderUpdateService.update(eq(hash1), any())
+            orderUpdateService.update(eq(hash2), any())
         } returns Unit
 
         every { properties.parallel } returns false
@@ -63,16 +63,16 @@ internal class PoolEthereumEventHandlerTest {
             poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord())
         }
         coVerify(exactly = 1) {
-            orderUpdateService.update(hash1)
-            orderUpdateService.update(hash2)
+            orderUpdateService.update(eq(hash1), any())
+            orderUpdateService.update(eq(hash2), any())
         }
         coVerifyOrder {
-            orderUpdateService.update(hash1)
+            orderUpdateService.update(eq(hash1), any())
             poolOrderEventListener.onPoolEvent(event1.record.asEthereumLogRecord())
             poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord())
         }
         coVerifyOrder {
-            orderUpdateService.update(hash2)
+            orderUpdateService.update(eq(hash2), any())
             poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord())
             poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord())
         }

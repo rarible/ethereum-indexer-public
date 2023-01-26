@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import java.time.Duration
 
 internal class ApprovalAllLogListenerTest {
     private val orderRepository = mockk<OrderRepository>()
@@ -48,12 +47,12 @@ internal class ApprovalAllLogListenerTest {
             platform
         ) } returns flow { listOf(foundOrder1, foundOrder2).forEach { emit(it) } }
         coEvery {
-            orderUpdateService.updateApproval(foundOrder1, approval.approved)
-            orderUpdateService.updateApproval(foundOrder2, approval.approved)
+            orderUpdateService.updateApproval(eq(foundOrder1), eq(approval.approved), any())
+            orderUpdateService.updateApproval(eq(foundOrder2), eq(approval.approved), any())
         } returns Unit
 
         logListener.onLogEvent(logEvent).awaitFirstOrNull()
-        coVerify(exactly = 2) { orderUpdateService.updateApproval(any(), approval.approved) }
+        coVerify(exactly = 2) { orderUpdateService.updateApproval(any(), eq(approval.approved), any()) }
     }
 
     @Test
@@ -63,6 +62,6 @@ internal class ApprovalAllLogListenerTest {
 
         every { properties.handleApprovalAfterBlock } returns 15
         logListener.onLogEvent(logEvent).awaitFirstOrNull()
-        coVerify(exactly = 0) { orderUpdateService.updateApproval(any(), any()) }
+        coVerify(exactly = 0) { orderUpdateService.updateApproval(any(), any(), any()) }
     }
 }

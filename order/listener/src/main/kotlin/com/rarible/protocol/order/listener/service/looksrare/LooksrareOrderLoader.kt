@@ -4,6 +4,7 @@ import com.rarible.core.logging.Logger
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.looksrare.client.model.v1.LooksrareOrder
+import com.rarible.protocol.dto.integrationEventMark
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
@@ -43,8 +44,10 @@ class LooksrareOrderLoader(
                             }
                             val order = looksrareOrderConverter.convert(it)
                             if (order != null && properties.saveEnabled) {
-                                orderUpdateService.save(order).also {
-                                    orderUpdateService.updateMakeStock(it)
+                                val sourceEventTimeMark = integrationEventMark(order.createdAt).source
+                                // TODO 2 events will be emitted here - is it fine?
+                                orderUpdateService.save(order, sourceEventTimeMark).also {
+                                    orderUpdateService.updateMakeStock(it, null, sourceEventTimeMark)
                                 }
                                 looksrareSaveCounter.increment()
                                 logger.looksrareInfo("Saved new order ${it.hash}")

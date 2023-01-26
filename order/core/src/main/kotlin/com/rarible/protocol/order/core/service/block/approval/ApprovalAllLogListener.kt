@@ -5,6 +5,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.OnLogEventListener
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.protocol.dto.blockchainEventMark
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.order.logger
@@ -54,7 +55,11 @@ class ApprovalAllLogListener(
         orderRepository
             .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
             .collect {
-                orderUpdateService.updateApproval(it, history.approved)
+                orderUpdateService.updateApproval(
+                    it,
+                    history.approved,
+                    blockchainEventMark(logEvent.blockNumber).source
+                )
             }
     }
 }

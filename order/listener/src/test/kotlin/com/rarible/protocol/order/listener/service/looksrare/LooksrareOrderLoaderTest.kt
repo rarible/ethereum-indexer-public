@@ -50,21 +50,24 @@ internal class LooksrareOrderLoaderTest {
         val listedAfter = Instant.now()
         val listedBefore = Instant.now() + Duration.ofDays(1)
 
-        coEvery { looksrareOrderService.getNextSellOrders(listedAfter, listedBefore) } returns listOf(looksrareOrder1, looksrareOrder2)
+        coEvery { looksrareOrderService.getNextSellOrders(listedAfter, listedBefore) } returns listOf(
+            looksrareOrder1,
+            looksrareOrder2
+        )
         coEvery { orderRepository.findById(looksrareOrder1.hash) } returns null
         coEvery { orderRepository.findById(looksrareOrder2.hash) } returns null
         coEvery { looksrareOrderConverter.convert(looksrareOrder1) } returns orderVersion1
         coEvery { looksrareOrderConverter.convert(looksrareOrder2) } returns orderVersion2
-        coEvery { orderUpdateService.save(orderVersion1) } returns order1
-        coEvery { orderUpdateService.updateMakeStock(order1) } returns (order1 to true)
-        coEvery { orderUpdateService.save(orderVersion2) } returns order2
-        coEvery { orderUpdateService.updateMakeStock(order2) } returns (order2 to true)
+        coEvery { orderUpdateService.save(eq(orderVersion1), any()) } returns order1
+        coEvery { orderUpdateService.updateMakeStock(eq(order1), any(), any()) } returns (order1 to true)
+        coEvery { orderUpdateService.save(eq(orderVersion2), any()) } returns order2
+        coEvery { orderUpdateService.updateMakeStock(order2, any(), any()) } returns (order2 to true)
 
         val orders = loader.load(listedAfter, listedBefore)
         assertThat(orders).containsExactlyInAnyOrder(looksrareOrder1.hash, looksrareOrder2.hash)
 
-        coVerify(exactly = 1) { orderUpdateService.save(orderVersion1) }
-        coVerify(exactly = 1) { orderUpdateService.save(orderVersion2) }
+        coVerify(exactly = 1) { orderUpdateService.save(eq(orderVersion1), any()) }
+        coVerify(exactly = 1) { orderUpdateService.save(eq(orderVersion2), any()) }
         coVerify(exactly = 1) { looksrareOrderConverter.convert(looksrareOrder1) }
         coVerify(exactly = 1) { looksrareOrderConverter.convert(looksrareOrder2) }
     }

@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.opensea.client.model.v2.SeaportOrders
+import com.rarible.protocol.dto.integrationEventMark
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
@@ -63,8 +64,10 @@ class SeaportOrderLoader(
                                     openSeaOrderValidator.validate(order) &&
                                     orderRepository.findById(order.hash) == null
                                 ) {
-                                    val saved = orderUpdateService.save(order).run {
-                                        orderUpdateService.updateMakeStock(this).first
+                                    val sourceEventTimeMark = integrationEventMark(order.createdAt).source
+                                    // TODO 2 events will be emitted here - is it fine?
+                                    val saved = orderUpdateService.save(order, sourceEventTimeMark).run {
+                                        orderUpdateService.updateMakeStock(this, null, sourceEventTimeMark).first
                                     }
                                     seaportSaveCounter.increment()
                                     logger.seaportInfo("Saved new order ${saved.id}: ${saved.status}")

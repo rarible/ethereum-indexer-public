@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.service.block.approval
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.protocol.dto.blockchainEventMark
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.ApprovalHistory
@@ -49,7 +50,11 @@ class ApprovalEventSubscriber(
         orderRepository
             .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
             .collect {
-                orderUpdateService.updateApproval(it, history.approved)
+                orderUpdateService.updateApproval(
+                    it,
+                    history.approved,
+                    blockchainEventMark(logEvent.blockNumber).source
+                )
             }
     }
 }

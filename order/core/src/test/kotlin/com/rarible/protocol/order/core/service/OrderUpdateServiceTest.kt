@@ -44,10 +44,10 @@ internal class OrderUpdateServiceTest {
 
         coEvery { orderRepository.findById(eq(hash)) } returns order
         coEvery { orderReduceService.updateOrder(eq(hash)) } returns updatedOrder
-        coEvery { orderListener.onOrder(eq(updatedOrder)) } returns Unit
+        coEvery { orderListener.onOrder(eq(updatedOrder), any()) } returns Unit
 
         orderUpdateService.update(hash)
 
-        coVerify { orderListener.onOrder(eq(updatedOrder)) }
+        coVerify { orderListener.onOrder(eq(updatedOrder), any()) }
     }
 }

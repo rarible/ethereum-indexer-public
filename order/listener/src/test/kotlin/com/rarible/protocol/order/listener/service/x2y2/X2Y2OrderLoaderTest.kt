@@ -62,9 +62,9 @@ internal class X2Y2OrderLoaderTest {
         coEvery { orderRepository.findById(validOrderVersion3.hash) } returns createOrder()
 
         coEvery { orderUpdateService.save(validOrderVersion1) } returns validOrder1
-        coEvery { orderUpdateService.updateMakeStock(validOrder1) } returns (validOrder1 to true)
+        coEvery { orderUpdateService.updateMakeStock(eq(validOrder1), any(), any()) } returns (validOrder1 to true)
         coEvery { orderUpdateService.save(validOrderVersion2) } returns validOrder2
-        coEvery { orderUpdateService.updateMakeStock(validOrder2) } returns (validOrder2 to true)
+        coEvery { orderUpdateService.updateMakeStock(eq(validOrder2), any(), any()) } returns (validOrder2 to true)
         every { x2y2SaveCounter.increment() } returns Unit
 
         handler.load(null)

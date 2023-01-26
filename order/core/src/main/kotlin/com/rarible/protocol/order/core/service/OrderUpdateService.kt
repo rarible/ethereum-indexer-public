@@ -4,6 +4,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.SourceEventTimeMarkDto
 import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.model.MakeBalanceState
@@ -49,43 +50,55 @@ class OrderUpdateService(
      * **Validation is not part of this function**. So make sure the source of order version updates is trustworthy.
      * On API level validation is performed in `OrderValidator.validate(existing: Order, update: OrderVersion)`.
      */
-    suspend fun save(orderVersion: OrderVersion): Order {
+    suspend fun save(
+        orderVersion: OrderVersion,
+        sourceEventTimeMark: SourceEventTimeMarkDto? = null
+    ): Order {
         orderVersionRepository.save(orderVersion).awaitFirst()
         val order = optimisticLock {
             orderReduceService.updateOrder(orderVersion.hash)
         }
         checkNotNull(order) { "Order ${orderVersion.hash} has not been updated" }
-        orderListener.onOrder(order)
+        orderListener.onOrder(order, sourceEventTimeMark)
         orderVersionListener.onOrderVersion(orderVersion)
         return order
     }
 
-    suspend fun update(hash: Word) {
+    suspend fun update(
+        hash: Word,
+        sourceEventTimeMark: SourceEventTimeMarkDto? = null
+    ) {
         val updatedOrder = optimisticLock {
             orderReduceService.updateOrder(hash)
         }
         if (updatedOrder != null && updatedOrder.isNotEmptyOrder) {
-            orderListener.onOrder(updatedOrder)
+            orderListener.onOrder(updatedOrder, sourceEventTimeMark)
         }
     }
 
-    suspend fun updateApproval(order: Order, approved: Boolean) {
+    suspend fun updateApproval(
+        order: Order,
+        approved: Boolean,
+        sourceEventTimeMark: SourceEventTimeMarkDto?
+    ) {
         val updated = order.withApproved(approved)
         val result = customUpdaters.fold(updated) { update, updater -> updater.update(update) }
-        update(result.hash)
+        update(result.hash, sourceEventTimeMark)
     }
 
     suspend fun updateMakeStock(
         hash: Word,
-        makeBalanceState: MakeBalanceState? = null
-    ): Order? = updateMakeStockFull(hash, makeBalanceState).first
+        makeBalanceState: MakeBalanceState?,
+        sourceEventTimeMark: SourceEventTimeMarkDto?
+    ): Order? = updateMakeStockFull(hash, makeBalanceState, sourceEventTimeMark).first
 
     suspend fun updateMakeStockFull(
         hash: Word,
-        makeBalanceState: MakeBalanceState? = null
+        makeBalanceState: MakeBalanceState?,
+        sourceEventTimeMark: SourceEventTimeMarkDto?
     ): Pair<Order?, Boolean> {
         val order = orderRepository.findById(hash) ?: return null to false
-        return updateMakeStock(order, makeBalanceState)
+        return updateMakeStock(order, makeBalanceState, sourceEventTimeMark)
     }
 
     /**
@@ -93,7 +106,8 @@ class OrderUpdateService(
      */
     suspend fun updateMakeStock(
         order: Order,
-        makeBalanceState: MakeBalanceState? = null
+        makeBalanceState: MakeBalanceState?,
+        sourceEventTimeMark: SourceEventTimeMarkDto?
     ): Pair<Order, Boolean> = optimisticLock {
         val makeBalance = makeBalanceState ?: assetMakeBalanceProvider.getMakeBalance(order)
         val knownMakeBalance = makeBalance.value
@@ -117,7 +131,7 @@ class OrderUpdateService(
         // We need to allow updates even if only lastUpdatedAt has been changed
         // otherwise we won't be able to update some of existing orders by background reduce job
         if (order.makeStock != updated.makeStock || order.lastUpdateAt != updated.lastUpdateAt) {
-            val savedOrder = updateOrder(updated)
+            val savedOrder = updateOrder(updated, sourceEventTimeMark)
             logger.info(
                 "Make stock of order updated ${savedOrder.id}: makeStock=${savedOrder.makeStock}," +
                     " old makeStock=${order.makeStock}, makeBalance=$makeBalance," +
@@ -134,10 +148,10 @@ class OrderUpdateService(
         }
     }
 
-    private suspend fun updateOrder(updated: Order): Order {
+    private suspend fun updateOrder(updated: Order, sourceEventTimeMark: SourceEventTimeMarkDto?): Order {
         val result = customUpdaters.fold(updated) { order, updater -> updater.update(order) }
         val savedOrder = orderRepository.save(result)
-        orderListener.onOrder(savedOrder)
+        orderListener.onOrder(savedOrder, sourceEventTimeMark)
         return savedOrder
     }
 

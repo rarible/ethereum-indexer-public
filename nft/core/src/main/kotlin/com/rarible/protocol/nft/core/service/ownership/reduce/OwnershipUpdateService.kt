@@ -5,6 +5,7 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
+import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
 import com.rarible.protocol.nft.core.model.OwnershipId
@@ -19,7 +20,7 @@ class OwnershipUpdateService(
     private val ownershipService: OwnershipService,
     private val eventListenerListener: ReduceEventListenerListener,
     properties: NftIndexerProperties,
-) : EntityService<OwnershipId, Ownership> {
+) : EntityService<OwnershipId, Ownership, OwnershipEvent> {
 
     private val fetchSize = properties.ownershipFetchBatchSize
 
@@ -27,7 +28,7 @@ class OwnershipUpdateService(
         return ownershipService.get(id).awaitFirstOrNull()
     }
 
-    override suspend fun update(entity: Ownership): Ownership {
+    override suspend fun update(entity: Ownership, event: OwnershipEvent?): Ownership {
         val savedOwnership = ownershipService.save(entity)
         eventListenerListener.onOwnershipChanged(savedOwnership).awaitFirstOrNull()
         logUpdatedOwnership(savedOwnership)
