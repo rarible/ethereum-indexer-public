@@ -601,9 +601,14 @@ data class Order(
         }
 
         fun seaportV1Hash(
-            components: SeaportOrderComponents
+            components: SeaportOrderComponents,
+        ): Word = seaportV1Hash(components, components.counter)
+
+        fun seaportV1Hash(
+            data: SeaportOrderData,
+            counter: Long
         ): Word {
-            val offerHash = components.offer.map { offer ->
+            val offerHash = data.offer.map { offer ->
                 keccak256(
                     OFFER_ITEM_TYPE_HASH
                         .add(Uint256Type.encode(offer.itemType.value.toBigInteger()))
@@ -614,7 +619,7 @@ data class Order(
                 )
             }.fold(Binary.empty()) { acc, next -> acc.add(next) }.let { keccak256(it) }
 
-            val considerationHash = components.consideration.map { consideration ->
+            val considerationHash = data.consideration.map { consideration ->
                 keccak256(
                     CONSIDERATION_ITEM_TYPE_HASH
                         .add(Uint256Type.encode(consideration.itemType.value.toBigInteger()))
@@ -628,17 +633,17 @@ data class Order(
 
             return keccak256(
                 ORDER_TYPE_HASH
-                    .add(AddressType.encode(components.offerer))
-                    .add(AddressType.encode(components.zone))
+                    .add(AddressType.encode(data.offerer))
+                    .add(AddressType.encode(data.zone))
                     .add(offerHash)
                     .add(considerationHash)
-                    .add(Uint256Type.encode(components.orderType.value.toBigInteger()))
-                    .add(Uint256Type.encode((components.startTime)))
-                    .add(Uint256Type.encode((components.endTime)))
-                    .add(components.zoneHash)
-                    .add(Uint256Type.encode(components.salt))
-                    .add(components.conduitKey)
-                    .add(Uint256Type.encode(components.counter.toBigInteger()))
+                    .add(Uint256Type.encode(data.orderType.value.toBigInteger()))
+                    .add(Uint256Type.encode((data.startTime)))
+                    .add(Uint256Type.encode((data.endTime)))
+                    .add(data.zoneHash)
+                    .add(Uint256Type.encode(data.salt))
+                    .add(data.conduitKey)
+                    .add(Uint256Type.encode(counter.toBigInteger()))
             )
         }
 

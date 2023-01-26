@@ -30,7 +30,18 @@ class SeaportV1ExchangeDescriptor(
         val event = OrderFulfilledEvent.apply(log)
         val orderSideMatches = seaportEventConverter.convert(event, timestamp, transaction.input())
         recordMetric(orderSideMatches, log)
-        return orderSideMatches
+        return markEvent(orderSideMatches, event, index, totalLogs, transaction)
+    }
+
+    private suspend fun markEvent(
+        sideMatched: List<OrderSideMatch>,
+        event: OrderFulfilledEvent,
+        index: Int,
+        totalLogs: Int,
+        transaction: Transaction
+    ): List<OrderSideMatch> {
+        val adhoc = seaportEventConverter.isAdhocOrderEvent(event, index, totalLogs, transaction)
+        return if (adhoc) sideMatched.map { it.copy(ignoredEvent = true) } else sideMatched
     }
 
     private fun recordMetric(sideMatches: List<OrderSideMatch>, log: Log) {
