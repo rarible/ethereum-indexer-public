@@ -8,6 +8,7 @@ import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
@@ -18,6 +19,7 @@ import com.rarible.protocol.order.core.model.SeaportOrderParameters
 import com.rarible.protocol.order.core.model.SeaportReceivedItem
 import com.rarible.protocol.order.core.model.SeaportSpentItem
 import com.rarible.protocol.order.core.parser.SeaportOrderParser
+import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
@@ -39,6 +41,7 @@ class SeaportEventConverter(
     private val traceCallService: TraceCallService,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
     private val wrapperSeaportMatchEventMetric: RegisteredCounter,
+    private val nonceHistoryRepository: NonceHistoryRepository,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -114,6 +117,7 @@ class SeaportEventConverter(
         totalLogs: Int,
         transaction: Transaction
     ): Boolean {
+        val txHash = transaction.hash()
         val advancedOrders = getMethodInput(
             event.log(),
             transaction,
@@ -123,21 +127,30 @@ class SeaportEventConverter(
         if (advancedOrders.isEmpty()) return false
 
         require(advancedOrders.size == totalLogs) {
-            "Can't determine advanced orders amount in tx ${transaction.hash()}, expected $totalLogs, found ${advancedOrders.size}"
+            "Can't determine advanced orders amount in tx $txHash, expected $totalLogs, found ${advancedOrders.size}"
         }
         val advancedOrderEvent = advancedOrders[index]
-        require(canFindAdvancedOrderCounter(advancedOrderEvent.parameters, Word.apply(event.orderHash())))
+        val maxCounter = getMaxCounter(advancedOrderEvent.parameters.offerer, event.log().address())
+        require(canFindAdvancedOrderCounter(advancedOrderEvent.parameters, maxCounter, Word.apply(event.orderHash()))) {
+            "Can't find counter to match hash, tx=$txHash, logIndex=${event.log().logIndex()}"
+        }
         return advancedOrderEvent.signature == Binary.empty()
     }
 
     private suspend fun canFindAdvancedOrderCounter(
         parameters: SeaportOrderParameters,
-        expectedHash: Word
+        maxCounter: Long,
+        expectedHash: Word,
     ): Boolean {
-        for (counter in 0L..100) {
+        for (counter in maxCounter downTo 0L) {
             if (Order.seaportV1Hash(parameters, counter) == expectedHash) return true
         }
         return false
+    }
+
+    private suspend fun getMaxCounter(maker: Address, contract: Address): Long {
+        val log = nonceHistoryRepository.findLatestNonceHistoryByMaker(maker, contract)
+        return (log?.data as? ChangeNonceHistory)?.newNonce?.value?.toLong() ?: 0
     }
 
     suspend fun convert(

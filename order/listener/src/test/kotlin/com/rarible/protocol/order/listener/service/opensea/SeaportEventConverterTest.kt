@@ -3,14 +3,18 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.core.contract.model.Erc20Token
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.data.createChangeNonceHistory
+import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.randomBidOrderUsdValue
 import com.rarible.protocol.order.core.data.randomSellOrderUsdValue
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
@@ -18,6 +22,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
@@ -44,13 +49,15 @@ internal class SeaportEventConverterTest {
     private val traceCallService = mockk<TraceCallService>()
     private val featureFlags = OrderIndexerProperties.FeatureFlags()
     private val wrapperLooksrareMetric = mockk<RegisteredCounter> { every { increment() } returns Unit }
+    private val nonceHistoryRepository = mockk<NonceHistoryRepository>()
 
     private val converter = SeaportEventConverter(
         priceUpdateService,
         prizeNormalizer,
         traceCallService,
         featureFlags,
-        wrapperLooksrareMetric
+        wrapperLooksrareMetric,
+        nonceHistoryRepository
     )
 
     @Test
@@ -438,7 +445,14 @@ internal class SeaportEventConverterTest {
             data = firstAdvancedOrderLogData.prefixed()
         ).let { OrderFulfilledEvent.apply(it) }
 
-        val transaction = mockk<Transaction> { every { input() } returns matchAdvancedOrdersTransaction }
+        coEvery {
+            nonceHistoryRepository.findLatestNonceHistoryByMaker(event.offerer(), event.log().address())
+        } returns createLogEvent(createChangeNonceHistory(10))
+
+        val transaction = mockk<Transaction> {
+            every { input() } returns matchAdvancedOrdersTransaction
+            every { hash() } returns Word.apply(randomWord())
+        }
         val adhoc = converter.isAdhocOrderEvent(event, 0, 2, transaction)
         assertThat(adhoc).isFalse()
     }
@@ -454,7 +468,14 @@ internal class SeaportEventConverterTest {
             data = secondAdvancedOrderLogData.prefixed()
         ).let { OrderFulfilledEvent.apply(it) }
 
-        val transaction = mockk<Transaction> { every { input() } returns matchAdvancedOrdersTransaction }
+        coEvery {
+            nonceHistoryRepository.findLatestNonceHistoryByMaker(event.offerer(), event.log().address())
+        } returns createLogEvent(createChangeNonceHistory(10))
+
+        val transaction = mockk<Transaction> {
+            every { input() } returns matchAdvancedOrdersTransaction
+            every { hash() } returns Word.apply(randomWord())
+        }
         val adhoc = converter.isAdhocOrderEvent(event, 1, 2, transaction)
         assertThat(adhoc).isTrue()
     }
