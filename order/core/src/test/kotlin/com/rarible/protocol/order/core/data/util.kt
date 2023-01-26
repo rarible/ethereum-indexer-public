@@ -38,6 +38,7 @@ import com.rarible.protocol.dto.X2Y2OrderDto
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
 import com.rarible.protocol.order.core.model.Erc1155AssetType
@@ -837,5 +838,14 @@ fun createLogRecordEvent(data: ScannerEventData): LogRecordEvent {
     return LogRecordEvent(
         record = record,
         reverted = record.status == EthereumLogStatus.REVERTED
+    )
+}
+
+fun createChangeNonceHistory(nonce: Long): ChangeNonceHistory {
+    return ChangeNonceHistory(
+        maker = randomAddress(),
+        newNonce = EthUInt256.of(nonce),
+        date = Instant.now(),
+        source = HistorySource.values().random()
     )
 }
