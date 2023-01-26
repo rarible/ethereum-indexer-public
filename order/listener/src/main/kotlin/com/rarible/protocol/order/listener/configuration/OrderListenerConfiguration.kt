@@ -17,6 +17,7 @@ import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
@@ -174,6 +175,7 @@ class OrderListenerConfiguration(
     )
     fun raribleBidsCanceledAfterExpiredJob(
         orderRepository: OrderRepository,
+        orderVersionRepository: OrderVersionRepository,
         orderUpdateService: OrderUpdateService,
         raribleOrderExpiration: OrderIndexerProperties.RaribleOrderExpirationProperties,
         properties: OrderListenerProperties,
@@ -181,6 +183,7 @@ class OrderListenerConfiguration(
     ): RaribleBidsCanceledAfterExpiredJob {
         return RaribleBidsCanceledAfterExpiredJob(
             orderRepository,
+            orderVersionRepository,
             orderUpdateService,
             raribleOrderExpiration,
             properties,
