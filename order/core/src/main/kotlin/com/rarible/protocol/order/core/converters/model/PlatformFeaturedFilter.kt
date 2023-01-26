@@ -11,9 +11,7 @@ class PlatformFeaturedFilter(
 
     fun filter(platform: PlatformDto?): List<PlatformDto> {
         // Until specific FF is on, we are showing only RARIBLE orders
-        val defaultPlatform = platform
-            ?: if (featureFlags.showAllOrdersByDefault) null else PlatformDto.RARIBLE
-
+        val defaultPlatform = platform ?: if (featureFlags.showAllOrdersByDefault) null else PlatformDto.RARIBLE
         // Until specific FF is on, we are excluding OPEN_SEA platform from results
         if (defaultPlatform == null) {
             val all = ArrayList(allPlatforms)
@@ -29,10 +27,14 @@ class PlatformFeaturedFilter(
             if (!featureFlags.showSudoSwapOrdersWithOtherPlatforms) {
                 all.remove(PlatformDto.SUDOSWAP)
             }
+            if (!featureFlags.showBlurOrdersWithOtherPlatforms) {
+                all.remove(PlatformDto.BLUR)
+            }
             if (featureFlags.showOpenSeaOrdersWithOtherPlatforms &&
                 featureFlags.showX2Y2OrdersWithOtherPlatforms &&
                 featureFlags.showLooksrareOrdersWithOtherPlatforms &&
-                featureFlags.showSudoSwapOrdersWithOtherPlatforms
+                featureFlags.showSudoSwapOrdersWithOtherPlatforms &&
+                featureFlags.showBlurOrdersWithOtherPlatforms
             ) {
                 return emptyList() // means there is no filter by platform
             }

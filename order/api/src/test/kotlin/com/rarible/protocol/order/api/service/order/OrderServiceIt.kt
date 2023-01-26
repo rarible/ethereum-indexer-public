@@ -376,6 +376,10 @@ class OrderServiceIt : AbstractOrderIt() {
         saveRandomSudoSwapOrderWithMakeBalance()
         saveRandomSudoSwapOrderWithMakeBalance()
 
+        saveRandomBlurOrderWithMakeBalance()
+        saveRandomBlurOrderWithMakeBalance()
+        saveRandomBlurOrderWithMakeBalance()
+
         val page1 = orderClient.getOrdersAll(null, platformDto, null, 2).awaitFirst()
 
         assertThat(page1.continuation).isNotNull()
@@ -1059,6 +1063,12 @@ class OrderServiceIt : AbstractOrderIt() {
         val order =
             orderSudoSwapAmmData(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
         return orderRepository.save(order)
+    }
+
+    private suspend fun saveRandomBlurOrderWithMakeBalance(): Order {
+        val (_, _, signer) = generateNewKeys()
+        val order = createOrder(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
+        return orderRepository.save(order.copy(platform = Platform.BLUR))
     }
 
     private suspend fun saveRandomOrder(): Order{

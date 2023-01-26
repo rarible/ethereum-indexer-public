@@ -112,6 +112,7 @@ data class OrderIndexerProperties(
         val showX2Y2OrdersWithOtherPlatforms: Boolean = false,
         val showLooksrareOrdersWithOtherPlatforms: Boolean = false,
         val showSudoSwapOrdersWithOtherPlatforms: Boolean = false,
+        val showBlurOrdersWithOtherPlatforms: Boolean = false,
         val hideOpenSeaSignatures: Boolean = false,
         val maxOpenSeaNonceCalculation: Int = 10,
         val skipGetTrace: Boolean = false,
