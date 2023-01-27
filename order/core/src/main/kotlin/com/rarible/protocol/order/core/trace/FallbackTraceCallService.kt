@@ -38,6 +38,17 @@ class FallbackTraceCallService(
         }
     }
 
+    override suspend fun safeFindAllRequiredCallInputs(
+        txHash: Word,
+        txInput: Binary,
+        to: Address,
+        vararg ids: Binary
+    ): List<Binary> {
+        return findTrace(txHash, traceCallServices, featureFlags.skipGetTrace, exceptionIfNotFound = false) { delegate ->
+            delegate.findAllRequiredCallInputs(txHash, txInput, to, *ids)
+        }
+    }
+
     private fun createTraceCallServices(): List<TraceCallService> {
         val create: (TraceMethod) -> TraceCallService = {
             TraceCallServiceImpl(
@@ -55,16 +66,18 @@ class FallbackTraceCallService(
             tx: Word,
             delegates: List<TraceCallService>,
             skipGetTrace: Boolean,
+            exceptionIfNotFound: Boolean = true,
             call: (TraceCallService) -> List<T>,
         ): List<T> {
+            if (skipGetTrace) return emptyList()
+
             delegates.forEach { delegate ->
                 try {
                     val result = call(delegate)
                     if (result.isNotEmpty()) return result
                 } catch (_: TraceNotFoundException) { }
             }
-            return if (skipGetTrace) emptyList()
-            else throw TraceNotFoundException("tx trace not found for hash: $tx")
+            return if (exceptionIfNotFound) throw TraceNotFoundException("tx trace not found for hash: $tx") else emptyList()
         }
     }
 }

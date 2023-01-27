@@ -245,16 +245,12 @@ class SeaportEventConverter(
         return if (methodId == transaction.input().methodSignatureId()) {
             listOf(transaction.input())
         } else {
-            if (featureFlags.skipGetTrace) {
-                emptyList()
-            } else {
-                traceCallService.findAllRequiredCallInputs(
-                    txHash = transaction.hash(),
-                    txInput = transaction.input(),
-                    to = log.address(),
-                    ids = arrayOf(methodId)
-                )
-            }
+            traceCallService.safeFindAllRequiredCallInputs(
+                txHash = transaction.hash(),
+                txInput = transaction.input(),
+                to = log.address(),
+                ids = arrayOf(methodId)
+            )
         }
     }
 

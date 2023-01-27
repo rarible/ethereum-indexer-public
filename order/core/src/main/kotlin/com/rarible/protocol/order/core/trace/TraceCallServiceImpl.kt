@@ -20,6 +20,57 @@ class TraceCallServiceImpl(
         headTransaction: HeadTransaction,
         to: Address,
         vararg ids: Binary
+    ): List<SimpleTraceResult> = findAllRequiredCalls(
+        exceptionIfNotFound = true,
+        headTransaction = headTransaction,
+        to = to,
+        ids = ids
+    )
+
+    override suspend fun findAllRequiredCallInputs(
+        txHash: Word,
+        txInput: Binary,
+        to: Address,
+        vararg ids: Binary
+    ): List<Binary> {
+        return findAllRequiredCalls(
+            headTransaction = HeadTransaction(
+                hash = txHash,
+                input = txInput,
+                to = Address.ZERO(),
+                from = Address.ZERO(),
+                value = BigInteger.ZERO
+            ),
+            to = to,
+            ids = ids
+        ).map { it.input }
+    }
+
+    override suspend fun safeFindAllRequiredCallInputs(
+        txHash: Word,
+        txInput: Binary,
+        to: Address,
+        vararg ids: Binary
+    ): List<Binary> {
+        return findAllRequiredCalls(
+            exceptionIfNotFound = false,
+            headTransaction = HeadTransaction(
+                hash = txHash,
+                input = txInput,
+                to = Address.ZERO(),
+                from = Address.ZERO(),
+                value = BigInteger.ZERO
+            ),
+            to = to,
+            ids = ids
+        ).map { it.input }
+    }
+
+    private suspend fun findAllRequiredCalls(
+        headTransaction: HeadTransaction,
+        to: Address,
+        exceptionIfNotFound: Boolean,
+        vararg ids: Binary
     ): List<SimpleTraceResult> {
         val set = ids.toSet()
         val txHash = headTransaction.hash
@@ -54,25 +105,7 @@ class TraceCallServiceImpl(
                 delay(200)
             } while (attempts++ < 5)
         }
-        throw TraceNotFoundException("tx trace not found for hash: $txHash")
-    }
-
-    override suspend fun findAllRequiredCallInputs(
-        txHash: Word,
-        txInput: Binary,
-        to: Address,
-        vararg ids: Binary
-    ): List<Binary> {
-        return findAllRequiredCalls(
-            headTransaction = HeadTransaction(
-                hash = txHash,
-                input = txInput,
-                to = Address.ZERO(),
-                from = Address.ZERO(),
-                value = BigInteger.ZERO
-            ),
-            to = to,
-            ids = ids
-        ).map { it.input }
+        return if (exceptionIfNotFound)
+            throw TraceNotFoundException("tx trace not found for hash: $txHash") else emptyList()
     }
 }
