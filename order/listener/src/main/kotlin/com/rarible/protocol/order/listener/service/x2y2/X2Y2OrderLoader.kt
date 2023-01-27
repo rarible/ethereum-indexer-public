@@ -1,9 +1,9 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.protocol.dto.integrationEventMark
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.listener.configuration.X2Y2LoadProperties
 import com.rarible.protocol.order.listener.configuration.X2Y2OrderLoadProperties
 import com.rarible.protocol.order.listener.misc.seaportInfo
 import com.rarible.protocol.order.listener.misc.x2y2Error
@@ -54,8 +54,10 @@ class X2Y2OrderLoader(
                         chunk.map {
                             async {
                                 if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
-                                    orderUpdateService.save(it).also {
-                                        orderUpdateService.updateMakeStock(it)
+                                    val eventTimeMarks = integrationEventMark("indexer-in_order", it.createdAt)
+                                    // TODO 2 events will be emitted here - is it fine?
+                                    orderUpdateService.save(it, eventTimeMarks).also {
+                                        orderUpdateService.updateMakeStock(it, null, eventTimeMarks)
                                     }
                                     x2y2SaveCounter.increment()
                                     logger.x2y2Info("Saved new order ${it.hash}")

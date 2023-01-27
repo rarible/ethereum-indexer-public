@@ -34,7 +34,8 @@ class NonceEventSubscriber(
             changeNonceListener.onNewMakerNonce(
                 history.source.toPlatform(),
                 history.maker,
-                history.newNonce.value.toLong()
+                history.newNonce.value.toLong(),
+                history.date
             )
         }
     }

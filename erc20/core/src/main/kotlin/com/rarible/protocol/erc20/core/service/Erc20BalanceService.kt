@@ -4,6 +4,7 @@ import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.protocol.erc20.core.listener.Erc20BalanceEventListener
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Balance
+import com.rarible.protocol.erc20.core.model.Erc20Event
 import com.rarible.protocol.erc20.core.model.Erc20UpdateEvent
 import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
 import org.springframework.stereotype.Component
@@ -13,12 +14,12 @@ import scalether.domain.Address
 class Erc20BalanceService(
     private val erc20BalanceRepository: Erc20BalanceRepository,
     private val erc20BalanceEventListeners: List<Erc20BalanceEventListener>
-) : EntityService<BalanceId, Erc20Balance> {
+) : EntityService<BalanceId, Erc20Balance, Erc20Event> {
 
-    override suspend fun update(entity: Erc20Balance): Erc20Balance {
+    override suspend fun update(entity: Erc20Balance, event: Erc20Event?): Erc20Balance {
         val result = erc20BalanceRepository.save(entity)
         erc20BalanceEventListeners.forEach {
-            it.onUpdate(Erc20UpdateEvent(entity))
+            it.onUpdate(Erc20UpdateEvent(event, entity))
         }
         return result
     }

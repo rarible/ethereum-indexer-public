@@ -11,10 +11,10 @@ import com.rarible.protocol.nft.core.model.OwnershipEvent
 import org.slf4j.LoggerFactory
 
 class ConsistencyCorrectorEntityService(
-    private val delegate: EntityService<ItemId, CompositeEntity>,
+    private val delegate: EntityService<ItemId, CompositeEntity, CompositeEvent>,
     private val reducer: CompositeReducer,
     private val itemEventConverter: ItemEventConverter,
-) : EntityService<ItemId, CompositeEntity> {
+) : EntityService<ItemId, CompositeEntity, CompositeEvent> {
 
     private val logger = LoggerFactory.getLogger(ConsistencyCorrectorEntityService::class.java)
 
@@ -22,7 +22,7 @@ class ConsistencyCorrectorEntityService(
         return null
     }
 
-    override suspend fun update(entity: CompositeEntity): CompositeEntity {
+    override suspend fun update(entity: CompositeEntity, event: CompositeEvent?): CompositeEntity {
         val itemId = entity.id
         val itemSupply = entity.item?.supply?.value
         val ownershipsSupply = entity.ownerships.values.sumOf { it.value.value }

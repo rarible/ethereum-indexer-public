@@ -37,16 +37,16 @@ internal class OrderEthereumEventHandlerTest {
         val event4 = createLogRecordEvent(createOrderCancel().copy(hash = hash2))
         val others = listOf(createLogRecordEvent(randomAuctionCreated()), createLogRecordEvent(randomApproveHistory()))
 
-        coEvery { orderUpdateService.update(hash1) } returns Unit
-        coEvery { orderUpdateService.update(hash2) } returns Unit
+        coEvery { orderUpdateService.update(eq(hash1), any()) } returns Unit
+        coEvery { orderUpdateService.update(eq(hash2), any()) } returns Unit
         every { eventFilter.filter(any()) } returns true
         every { properties.parallel } returns false
 
         handler.handle(listOf(event1, event2, event3, event4) + others)
 
         coVerify(exactly = 1) {
-            orderUpdateService.update(hash1)
-            orderUpdateService.update(hash2)
+            orderUpdateService.update(eq(hash1), any())
+            orderUpdateService.update(eq(hash2), any())
         }
     }
 
@@ -58,7 +58,7 @@ internal class OrderEthereumEventHandlerTest {
         val event1 = createLogRecordEvent(createOrderSideMatch().copy(hash = hash1))
         val event2 = createLogRecordEvent(createOrderSideMatch().copy(hash = hash2))
 
-        coEvery { orderUpdateService.update(any()) } returns Unit
+        coEvery { orderUpdateService.update(any(), any()) } returns Unit
         every { eventFilter.filter(event1.record.asEthereumLogRecord()) } returns true
         every { eventFilter.filter(event2.record.asEthereumLogRecord()) } returns false
         every { properties.parallel } returns true
@@ -66,7 +66,7 @@ internal class OrderEthereumEventHandlerTest {
 
         handler.handle(listOf(event1, event2))
 
-        coVerify(exactly = 1) { orderUpdateService.update(hash1) }
+        coVerify(exactly = 1) { orderUpdateService.update(eq(hash1), any()) }
         verify { properties.chunkSize }
         verify { properties.parallel }
     }

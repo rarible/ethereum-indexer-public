@@ -1,10 +1,10 @@
 package com.rarible.protocol.erc20.core.service.reduce
 
-import com.rarible.protocol.erc20.core.createRandomDepositEvent
-import com.rarible.protocol.erc20.core.createRandomIncomeTransferEvent
-import com.rarible.protocol.erc20.core.createRandomOutcomeTransferEvent
-import com.rarible.protocol.erc20.core.createRandomTokenApprovalEvent
-import com.rarible.protocol.erc20.core.createRandomWithdrawalEvent
+import com.rarible.protocol.erc20.core.randomDepositEvent
+import com.rarible.protocol.erc20.core.randomIncomeTransferEvent
+import com.rarible.protocol.erc20.core.randomOutcomeTransferEvent
+import com.rarible.protocol.erc20.core.randomTokenApprovalEvent
+import com.rarible.protocol.erc20.core.randomWithdrawalEvent
 import com.rarible.protocol.erc20.core.repository.data.randomBalance
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -24,11 +24,11 @@ internal class Erc20BalanceReducerTest {
 
     @TestFactory
     fun `should reduce blockchain events`() = listOf(
-        createRandomIncomeTransferEvent(),
-        createRandomOutcomeTransferEvent(),
-        createRandomWithdrawalEvent(),
-        createRandomDepositEvent(),
-        createRandomTokenApprovalEvent()
+        randomIncomeTransferEvent(),
+        randomOutcomeTransferEvent(),
+        randomWithdrawalEvent(),
+        randomDepositEvent(),
+        randomTokenApprovalEvent()
     ).map { event ->
         dynamicTest("should reduce blockchain events $event") {
             runBlocking {

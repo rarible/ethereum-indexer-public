@@ -4,6 +4,7 @@ import com.rarible.core.apm.withTransaction
 import com.rarible.core.daemon.job.JobHandler
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.dto.OrderUpdateEventDto
+import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.Order
@@ -16,7 +17,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Component
 @ExperimentalCoroutinesApi
@@ -50,7 +51,8 @@ class OrderStartEndCheckerHandler(
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
                     orderId = saved.id.toString(),
-                    order = orderDtoConverter.convert(saved)
+                    order = orderDtoConverter.convert(saved),
+                    eventTimeMarks = offchainEventMark("indexer-out_order")
                 )
                 publisher.publish(updateEvent)
             }

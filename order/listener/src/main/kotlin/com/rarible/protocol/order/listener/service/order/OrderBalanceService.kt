@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.service.order
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
+import com.rarible.protocol.dto.EventTimeMarksDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
@@ -38,7 +39,8 @@ class OrderBalanceService(
                     .collect {
                         orderUpdateService.updateMakeStock(
                             hash = it.hash,
-                            makeBalanceState = MakeBalanceState(stock, event.lastUpdatedAt)
+                            makeBalanceState = MakeBalanceState(stock, event.lastUpdatedAt),
+                            eventTimeMarks = event.eventTimeMarks
                         )
                     }
             }
@@ -47,10 +49,19 @@ class OrderBalanceService(
 
     suspend fun handle(event: NftOwnershipEventDto) {
         when (event) {
-            is NftOwnershipUpdateEventDto -> onOwnershipUpdated(event.ownership)
+            is NftOwnershipUpdateEventDto -> {
+                onOwnershipUpdated(
+                    event.ownership,
+                    event.eventTimeMarks
+                )
+            }
+
             is NftOwnershipDeleteEventDto -> {
                 if (event.deletedOwnership != null) {
-                    onOwnershipUpdated(event.deletedOwnership!!)
+                    onOwnershipUpdated(
+                        event.deletedOwnership!!,
+                        event.eventTimeMarks
+                    )
                 } else {
                     // TODO this branch should be removed later
                     val legacyOwnership = event.ownership!!
@@ -59,20 +70,21 @@ class OrderBalanceService(
                         legacyOwnership.tokenId,
                         legacyOwnership.owner,
                         BigInteger.ZERO,
-                        null // Should not be updated for legacy events
+                        null, // Should not be updated for legacy events
+                        event.eventTimeMarks
                     )
                 }
             }
         }
     }
 
-    private suspend fun onOwnershipUpdated(ownership: NftOwnershipDto) {
+    private suspend fun onOwnershipUpdated(ownership: NftOwnershipDto, eventTimeMarks: EventTimeMarksDto?) {
         val token = Address.apply(ownership.contract)
         val tokenId = ownership.tokenId
         val maker = ownership.owner
         val stock = ownership.value
 
-        onOwnershipUpdated(token, tokenId, maker, stock, ownership.date)
+        onOwnershipUpdated(token, tokenId, maker, stock, ownership.date, eventTimeMarks)
     }
 
     private suspend fun onOwnershipUpdated(
@@ -80,7 +92,8 @@ class OrderBalanceService(
         tokenId: BigInteger,
         maker: Address,
         stock: BigInteger,
-        updateDate: Instant?
+        updateDate: Instant?,
+        eventTimeMarks: EventTimeMarksDto?
     ) {
         orderRepository
             .findByTargetNftAndNotCanceled(maker, token, EthUInt256(tokenId))
@@ -88,7 +101,8 @@ class OrderBalanceService(
             .collect {
                 orderUpdateService.updateMakeStock(
                     hash = it.hash,
-                    makeBalanceState = MakeBalanceState(EthUInt256.of(stock), updateDate)
+                    makeBalanceState = MakeBalanceState(EthUInt256.of(stock), updateDate),
+                    eventTimeMarks = eventTimeMarks
                 )
             }
     }

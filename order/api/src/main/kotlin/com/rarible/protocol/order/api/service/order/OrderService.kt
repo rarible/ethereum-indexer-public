@@ -21,16 +21,16 @@ import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
-import com.rarible.protocol.order.core.model.PoolNftItemIds
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderAmmData
 import com.rarible.protocol.order.core.model.OrderType
-import com.rarible.protocol.order.core.model.order.OrderFilter
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.PoolNftItemIds
 import com.rarible.protocol.order.core.model.PoolTradePrice
 import com.rarible.protocol.order.core.model.currency
+import com.rarible.protocol.order.core.model.order.OrderFilter
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.CommonSigner
@@ -119,7 +119,8 @@ class OrderService(
     }
 
     suspend fun updateMakeStock(hash: Word): Order =
-        orderUpdateService.updateMakeStock(hash) ?: throw EntityNotFoundApiException("Order", hash)
+        orderUpdateService.updateMakeStock(hash, null, null)
+            ?: throw EntityNotFoundApiException("Order", hash)
 
     suspend fun findOrders(legacyFilter: OrderFilter, size: Int, continuation: String?): List<Order> {
         return orderRepository.search(legacyFilter.toQuery(continuation, size))

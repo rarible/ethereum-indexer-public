@@ -2,12 +2,12 @@ package com.rarible.protocol.order.core.service.block.handler
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.protocol.dto.blockchainEventMark
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.block.filter.EthereumEventFilter
-import io.daonomic.rpc.domain.Word
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
@@ -16,21 +16,21 @@ class OrderEthereumEventHandler(
     private val orderUpdateService: OrderUpdateService,
     @Qualifier("order-event-handler") private val eventFilters: List<EthereumEventFilter>,
     properties: OrderIndexerProperties.OrderEventHandleProperties
-) : AbstractEthereumEventHandler<LogRecordEvent, Word>(properties) {
+) : AbstractEthereumEventHandler<LogRecordEvent, OrderExchangeHistory>(properties) {
 
-    override suspend fun handleSingle(event: Word) {
-        orderUpdateService.update(event)
+    override suspend fun handleSingle(event: OrderExchangeHistory) {
+        val sourceEventTimeMark = blockchainEventMark("indexer-in_order", event.date)
+        orderUpdateService.update(event.hash, sourceEventTimeMark)
     }
 
-    override fun map(events: List<LogRecordEvent>): List<Word> {
+    override fun map(events: List<LogRecordEvent>): List<OrderExchangeHistory> {
         return events
             .asSequence()
             .map { record -> record.record.asEthereumLogRecord() }
-            .filter { filter(it)}
+            .filter { filter(it) }
             .map { log -> log.data }
             .filterIsInstance<OrderExchangeHistory>()
-            .map { orderHistory -> orderHistory.hash }
-            .distinct()
+            .distinctBy { it.hash }
             .toList()
     }
 

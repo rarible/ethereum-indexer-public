@@ -2,22 +2,26 @@ package com.rarible.protocol.erc20.core.converters
 
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
+import com.rarible.protocol.dto.blockchainEventMark
+import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.erc20.core.model.Erc20BalanceEvent
 import com.rarible.protocol.erc20.core.model.Erc20UpdateEvent
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
 
-@Component
-object Erc20EventDtoConverter : Converter<Erc20BalanceEvent, Erc20BalanceEventDto> {
+object Erc20EventDtoConverter {
 
-    override fun convert(event: Erc20BalanceEvent): Erc20BalanceEventDto {
-        return when (event) {
+    fun convert(source: Erc20BalanceEvent): Erc20BalanceEventDto {
+        val markName = "indexer-out_erc20"
+        val eventEpochSeconds = source.event?.log?.blockTimestamp
+        val marks = eventEpochSeconds?.let { blockchainEventMark(markName, it) } ?: offchainEventMark(markName)
+
+        return when (source) {
             is Erc20UpdateEvent -> Erc20BalanceUpdateEventDto(
-                eventId = event.id,
-                balanceId = event.balance.id.stringValue,
-                balance = Erc20BalanceDtoConverter.convert(event.balance),
-                createdAt = event.balance.createdAt,
-                lastUpdatedAt = event.balance.lastUpdatedAt
+                eventId = source.id,
+                balanceId = source.balance.id.stringValue, // TODO do we need it?
+                balance = Erc20BalanceDtoConverter.convert(source.balance),
+                createdAt = source.balance.createdAt, // TODO do we need it?
+                lastUpdatedAt = source.balance.lastUpdatedAt, //TODO do we need it?
+                eventTimeMarks = marks
             )
         }
     }

@@ -3,14 +3,14 @@ package com.rarible.protocol.erc20.core.service.reduce
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.erc20.core.createRandomDepositEvent
-import com.rarible.protocol.erc20.core.createRandomIncomeTransferEvent
-import com.rarible.protocol.erc20.core.createRandomOutcomeTransferEvent
-import com.rarible.protocol.erc20.core.createRandomWithdrawalEvent
 import com.rarible.protocol.erc20.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.erc20.core.integration.IntegrationTest
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20Event
+import com.rarible.protocol.erc20.core.randomDepositEvent
+import com.rarible.protocol.erc20.core.randomIncomeTransferEvent
+import com.rarible.protocol.erc20.core.randomOutcomeTransferEvent
+import com.rarible.protocol.erc20.core.randomWithdrawalEvent
 import com.rarible.protocol.erc20.core.repository.data.randomBalance
 import com.rarible.protocol.erc20.core.withNewValues
 import kotlinx.coroutines.runBlocking
@@ -34,7 +34,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             owner = owner,
             balance = EthUInt256.Companion.of(7)
         )
-        val erc20IncomeTransferEvent = createRandomIncomeTransferEvent()
+        val erc20IncomeTransferEvent = randomIncomeTransferEvent()
             .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1)
             .copy(
                 value = EthUInt256.TEN,
@@ -56,7 +56,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             owner = owner,
             balance = EthUInt256.Companion.of(7)
         )
-        val event = createRandomIncomeTransferEvent()
+        val event = randomIncomeTransferEvent()
             .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
             .copy(
                 value = EthUInt256.TEN,
@@ -81,7 +81,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             owner = owner,
             balance = EthUInt256.Companion.of(7)
         )
-        val incomeTransferEvent = createRandomIncomeTransferEvent()
+        val incomeTransferEvent = randomIncomeTransferEvent()
             .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
             .copy(
                 value = EthUInt256.TEN,
@@ -89,7 +89,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
                 owner = owner
             )
 
-        val outcomeTransferEvent = createRandomOutcomeTransferEvent()
+        val outcomeTransferEvent = randomOutcomeTransferEvent()
             .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2, logIndex = 2, minorLogIndex = 2)
             .copy(
                 value = EthUInt256.ONE,
@@ -97,7 +97,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
                 owner = owner
             )
 
-        val incomeTransferSecondEvent = createRandomIncomeTransferEvent()
+        val incomeTransferSecondEvent = randomIncomeTransferEvent()
             .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 3, logIndex = 3, minorLogIndex = 3)
             .copy(
                 value = EthUInt256.TEN,
@@ -108,7 +108,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
         val revertedEvent = incomeTransferSecondEvent
             .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 3, logIndex = 3, minorLogIndex = 3)
 
-        val withdrawalEvent = createRandomWithdrawalEvent()
+        val withdrawalEvent = randomWithdrawalEvent()
             .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 4, logIndex = 4, minorLogIndex = 4)
             .copy(
                 value = EthUInt256.of(6),
@@ -116,7 +116,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
                 owner = owner
             )
 
-        val depositEvent = createRandomDepositEvent()
+        val depositEvent = randomDepositEvent()
             .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 5, logIndex = 5, minorLogIndex = 5)
             .copy(
                 value = EthUInt256.of(4),

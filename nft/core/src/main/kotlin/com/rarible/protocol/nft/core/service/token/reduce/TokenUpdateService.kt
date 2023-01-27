@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.token.reduce
 
 import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenEvent
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenEventListener
 import kotlinx.coroutines.reactive.awaitFirst
@@ -14,15 +15,15 @@ import scalether.domain.Address
 class TokenUpdateService(
     private val tokenRepository: TokenRepository,
     private val tokenListener: TokenEventListener
-) : EntityService<Address, Token> {
+) : EntityService<Address, Token, TokenEvent> {
 
     override suspend fun get(id: Address): Token? {
         return tokenRepository.findById(id).awaitFirstOrNull()
     }
 
-    override suspend fun update(entity: Token): Token {
+    override suspend fun update(entity: Token, event: TokenEvent?): Token {
         val savedToken = tokenRepository.save(entity).awaitFirst()
-        tokenListener.onTokenChanged(savedToken)
+        tokenListener.onTokenChanged(savedToken, event)
         logUpdatedToken(savedToken)
         return savedToken
     }

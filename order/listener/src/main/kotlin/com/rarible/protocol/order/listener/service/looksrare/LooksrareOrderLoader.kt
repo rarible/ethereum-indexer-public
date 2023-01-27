@@ -4,6 +4,7 @@ import com.rarible.core.logging.Logger
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.looksrare.client.model.v1.LooksrareOrder
+import com.rarible.protocol.dto.integrationEventMark
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
@@ -26,6 +27,7 @@ class LooksrareOrderLoader(
     private val looksrareSaveCounter: RegisteredCounter,
     private val looksrareOrderDelayGauge: RegisteredGauge<Long>
 ) {
+
     suspend fun load(
         listedAfter: Instant,
         listedBefore: Instant
@@ -43,8 +45,10 @@ class LooksrareOrderLoader(
                             }
                             val order = looksrareOrderConverter.convert(it)
                             if (order != null && properties.saveEnabled) {
-                                orderUpdateService.save(order).also {
-                                    orderUpdateService.updateMakeStock(it)
+                                val eventTimeMarks = integrationEventMark("indexer-in_order", order.createdAt)
+                                // TODO 2 events will be emitted here - is it fine?
+                                orderUpdateService.save(order, eventTimeMarks).also {
+                                    orderUpdateService.updateMakeStock(it, null, eventTimeMarks)
                                 }
                                 looksrareSaveCounter.increment()
                                 logger.looksrareInfo("Saved new order ${it.hash}")
@@ -67,7 +71,10 @@ class LooksrareOrderLoader(
                 }
             }
         } catch (ex: Throwable) {
-            logger.looksrareError("Can't get next orders with listedAfter=${listedAfter.epochSecond}, listedBefore=${listedBefore.epochSecond}", ex)
+            logger.looksrareError(
+                "Can't get next orders with listedAfter=${listedAfter.epochSecond}, listedBefore=${listedBefore.epochSecond}",
+                ex
+            )
             throw ex
         }
     }
@@ -87,6 +94,7 @@ class LooksrareOrderLoader(
     }
 
     private companion object {
+
         val logger by Logger()
     }
 }
