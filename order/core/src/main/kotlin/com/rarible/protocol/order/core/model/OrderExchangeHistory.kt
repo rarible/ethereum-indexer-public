@@ -64,7 +64,8 @@ data class OrderSideMatch(
     // Fees which were got above price
     val originFees: List<Part>? = emptyList(),
     val marketplaceMarker: Word? = null,
-    val counterMarketplaceMarker: Word? = null
+    val counterMarketplaceMarker: Word? = null,
+    val ignoredEvent: Boolean? = null,
 ) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH) {
     companion object {
         val MARKER = listOf<Byte>(9, 97, 108, 108, 100, 97, 116, 97)
