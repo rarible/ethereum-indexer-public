@@ -17,7 +17,9 @@ class NonceEventSubscriber(
 ) : EntityEventsSubscriber {
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
-        val protocols = contractProvider.seaportV1() + contractProvider.looksrareV1()
+        val protocols = contractProvider.seaportV1() +
+                contractProvider.looksrareV1() +
+                contractProvider.blurV1()
 
         val nonceEvents = events
             .map { event -> event.record.asEthereumLogRecord() }
