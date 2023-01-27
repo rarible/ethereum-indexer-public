@@ -26,7 +26,6 @@ object BlurOrderParser {
         }
     }
 
-
     fun convert(value: Tuple13<Address, BigInteger, Address, Address, BigInteger, BigInteger, Address, BigInteger, BigInteger, BigInteger, Array<Tuple2<BigInteger, Address>>, BigInteger, ByteArray>): BlurOrder {
         return BlurOrder(
             trader = value._1(),
