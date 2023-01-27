@@ -66,7 +66,14 @@ class PlatformFeaturedFilterTest {
         )
 
         val allByDefaultExceptOpenSea = filter.filter(null)
-        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.CRYPTO_PUNKS, PlatformDto.X2Y2, PlatformDto.LOOKSRARE, PlatformDto.SUDOSWAP))
+        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(
+            PlatformDto.RARIBLE,
+            PlatformDto.CRYPTO_PUNKS,
+            PlatformDto.X2Y2,
+            PlatformDto.LOOKSRARE,
+            PlatformDto.SUDOSWAP,
+            PlatformDto.BLUR)
+        )
     }
 
     @Test
@@ -82,7 +89,14 @@ class PlatformFeaturedFilterTest {
         )
 
         val allByDefaultExceptOpenSea = filter.filter(null)
-        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.OPEN_SEA, PlatformDto.CRYPTO_PUNKS, PlatformDto.X2Y2, PlatformDto.LOOKSRARE))
+        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(
+            PlatformDto.RARIBLE,
+            PlatformDto.OPEN_SEA,
+            PlatformDto.CRYPTO_PUNKS,
+            PlatformDto.X2Y2,
+            PlatformDto.LOOKSRARE,
+            PlatformDto.BLUR)
+        )
     }
 
     @Test
@@ -98,7 +112,14 @@ class PlatformFeaturedFilterTest {
         )
 
         val allByDefaultExceptOpenSea = filter.filter(null)
-        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.OPEN_SEA, PlatformDto.CRYPTO_PUNKS, PlatformDto.LOOKSRARE, PlatformDto.SUDOSWAP))
+        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(
+            PlatformDto.RARIBLE,
+            PlatformDto.OPEN_SEA,
+            PlatformDto.CRYPTO_PUNKS,
+            PlatformDto.LOOKSRARE,
+            PlatformDto.SUDOSWAP,
+            PlatformDto.BLUR)
+        )
     }
 
     @Test
@@ -114,7 +135,14 @@ class PlatformFeaturedFilterTest {
         )
 
         val allByDefaultExceptOpenSea = filter.filter(null)
-        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.OPEN_SEA, PlatformDto.CRYPTO_PUNKS, PlatformDto.X2Y2, PlatformDto.SUDOSWAP))
+        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(
+            PlatformDto.RARIBLE,
+            PlatformDto.OPEN_SEA,
+            PlatformDto.CRYPTO_PUNKS,
+            PlatformDto.X2Y2,
+            PlatformDto.SUDOSWAP,
+            PlatformDto.BLUR)
+        )
     }
 
     @Test
@@ -147,7 +175,11 @@ class PlatformFeaturedFilterTest {
             )
         )
         val allWithRarible = filter.filter(null)
-        assertThat(allWithRarible).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.CRYPTO_PUNKS))
+        assertThat(allWithRarible).isEqualTo(listOf(
+            PlatformDto.RARIBLE,
+            PlatformDto.CRYPTO_PUNKS,
+            PlatformDto.BLUR)
+        )
     }
 
     @Test
@@ -162,6 +194,11 @@ class PlatformFeaturedFilterTest {
             )
         )
         val allWithRarible = filter.filter(null)
-        assertThat(allWithRarible).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.OPEN_SEA, PlatformDto.CRYPTO_PUNKS))
+        assertThat(allWithRarible).isEqualTo(listOf(
+            PlatformDto.RARIBLE,
+            PlatformDto.OPEN_SEA,
+            PlatformDto.CRYPTO_PUNKS,
+            PlatformDto.BLUR)
+        )
     }
 }

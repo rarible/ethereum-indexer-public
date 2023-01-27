@@ -103,7 +103,8 @@ class ApproveService(
             Platform.OPEN_SEA,
             Platform.CRYPTO_PUNKS,
             Platform.LOOKSRARE,
-            Platform.X2Y2 -> {
+            Platform.X2Y2,
+            Platform.BLUR -> {
                 val operators = operatorsByPlatformMap[platform]
                     ?: throw IllegalArgumentException("Can't find operators for platform $platform")
                 coroutineScope {

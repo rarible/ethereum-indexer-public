@@ -309,6 +309,7 @@ class OrderActivityConverter(
             X2Y2 -> OrderActivityDto.Source.X2Y2
             LOOKSRARE -> OrderActivityDto.Source.LOOKSRARE
             SUDOSWAP -> OrderActivityDto.Source.SUDOSWAP
+            BLUR -> OrderActivityDto.Source.BLUR
         }
     }
 
@@ -320,6 +321,7 @@ class OrderActivityConverter(
             HistorySource.X2Y2 -> OrderActivityDto.Source.X2Y2
             HistorySource.LOOKSRARE -> OrderActivityDto.Source.LOOKSRARE
             HistorySource.SUDOSWAP -> OrderActivityDto.Source.SUDOSWAP
+            HistorySource.BLUR -> OrderActivityDto.Source.BLUR
         }
     }
 

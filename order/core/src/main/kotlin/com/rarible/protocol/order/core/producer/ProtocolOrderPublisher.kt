@@ -103,6 +103,7 @@ class ProtocolOrderPublisher(
             PlatformDto.LOOKSRARE -> publishProperties.publishLooksrareOrders
             PlatformDto.CRYPTO_PUNKS -> publishProperties.publishCryptoPunksOrders
             PlatformDto.SUDOSWAP -> publishProperties.publishAmmOrders
+            PlatformDto.BLUR -> publishProperties.publishBlurOrders
         }
 
     private val AssetTypeDto.itemId: String?

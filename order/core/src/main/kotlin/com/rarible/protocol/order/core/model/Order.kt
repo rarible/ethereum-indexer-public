@@ -173,7 +173,8 @@ data class Order(
             Platform.OPEN_SEA,
             Platform.CRYPTO_PUNKS,
             Platform.LOOKSRARE,
-            Platform.X2Y2 -> false
+            Platform.X2Y2,
+            Platform.BLUR -> false
         }
     }
 
