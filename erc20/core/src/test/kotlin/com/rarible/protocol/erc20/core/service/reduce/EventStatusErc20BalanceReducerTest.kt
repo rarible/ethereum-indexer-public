@@ -1,7 +1,7 @@
 package com.rarible.protocol.erc20.core.service.reduce
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
-import com.rarible.protocol.erc20.core.createRandomIncomeTransferEvent
+import com.rarible.protocol.erc20.core.randomIncomeTransferEvent
 import com.rarible.protocol.erc20.core.repository.data.randomBalance
 import com.rarible.protocol.erc20.core.service.reduce.forward.ForwardChainErc20BalanceReducer
 import com.rarible.protocol.erc20.core.service.reduce.reversed.ReversedChainErc20BalanceReducer
@@ -24,7 +24,7 @@ internal class EventStatusErc20BalanceReducerTest{
 
     @Test
     fun `should handle confirm event`() = runBlocking<Unit> {
-        val event = createRandomIncomeTransferEvent()
+        val event = randomIncomeTransferEvent()
             .let { it.copy(log = it.log.copy(status = EthereumLogStatus.CONFIRMED)) }
         val entity = randomBalance()
 
@@ -38,7 +38,7 @@ internal class EventStatusErc20BalanceReducerTest{
 
     @Test
     fun `should handle revert event`() = runBlocking<Unit> {
-        val event = createRandomIncomeTransferEvent()
+        val event = randomIncomeTransferEvent()
             .let { it.copy(log = it.log.copy(status = EthereumLogStatus.REVERTED)) }
         val entity = randomBalance()
 
@@ -52,7 +52,7 @@ internal class EventStatusErc20BalanceReducerTest{
 
     @Test
     fun `should handle pending event`() = runBlocking<Unit> {
-        val event = createRandomIncomeTransferEvent().let { it.copy(log = it.log.copy(status = EthereumLogStatus.PENDING)) }
+        val event = randomIncomeTransferEvent().let { it.copy(log = it.log.copy(status = EthereumLogStatus.PENDING)) }
         val entity = randomBalance()
 
         val reducedItem = eventStatusErc20BalanceReducer.reduce(entity, event)
@@ -64,7 +64,7 @@ internal class EventStatusErc20BalanceReducerTest{
 
     @Test
     fun `should handle inactive event`() = runBlocking<Unit> {
-        val event = createRandomIncomeTransferEvent()
+        val event = randomIncomeTransferEvent()
             .let { it.copy(log = it.log.copy(status = EthereumLogStatus.INACTIVE)) }
         val entity = randomBalance()
 
@@ -77,7 +77,7 @@ internal class EventStatusErc20BalanceReducerTest{
 
     @Test
     fun `should handle drop event`() = runBlocking<Unit> {
-        val event = createRandomIncomeTransferEvent()
+        val event = randomIncomeTransferEvent()
             .let { it.copy(log = it.log.copy(status = EthereumLogStatus.DROPPED)) }
         val entity = randomBalance()
 

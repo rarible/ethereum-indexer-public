@@ -3,13 +3,14 @@ package com.rarible.protocol.order.migration.mongock.mongo
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.protocol.dto.OrderUpdateEventDto
+import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import java.util.UUID
+import java.util.*
 
 @ChangeLog(order = "00006")
 class ChangeLog00006ExportOrderEvents {
@@ -29,7 +30,8 @@ class ChangeLog00006ExportOrderEvents {
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
                     orderId = order.id.toString(),
-                    order = orderDtoConverter.convert(order)
+                    order = orderDtoConverter.convert(order),
+                    eventTimeMarks = offchainEventMark("indexer-out_order")
                 )
                 publisher.publish(updateEvent)
 

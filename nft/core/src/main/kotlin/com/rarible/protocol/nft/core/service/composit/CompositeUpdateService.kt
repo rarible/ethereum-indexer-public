@@ -4,6 +4,7 @@ import com.rarible.core.apm.withTransaction
 import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CompositeEntity
+import com.rarible.protocol.nft.core.model.CompositeEvent
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Ownership
@@ -23,7 +24,7 @@ sealed class CompositeUpdateService(
     private val itemExStateRepository: ItemExStateRepository,
     private val properties: NftIndexerProperties,
     private val updateNotChanged: Boolean
-) : EntityService<ItemId, CompositeEntity> {
+) : EntityService<ItemId, CompositeEntity, CompositeEvent> {
 
     private val logger = LoggerFactory.getLogger(CompositeUpdateService::class.java)
 
@@ -31,7 +32,7 @@ sealed class CompositeUpdateService(
         return null
     }
 
-    override suspend fun update(entity: CompositeEntity): CompositeEntity {
+    override suspend fun update(entity: CompositeEntity, event: CompositeEvent?): CompositeEntity {
         logger.info("Update composite, item=${entity.item?.id}, ownerships=${entity.ownerships.size}")
 
         return withTransaction(

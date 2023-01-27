@@ -8,7 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import org.springframework.stereotype.Component
 
 sealed class CompositeFullReduceService(
-    entityService: EntityService<ItemId, CompositeEntity>,
+    entityService: EntityService<ItemId, CompositeEntity, CompositeEvent>,
     entityIdService: CompositeEntityIdService,
     templateProvider: CompositeTemplateProvider,
     reducer: CompositeReducer

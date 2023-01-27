@@ -57,7 +57,7 @@ class OrderUpdateApprovalTaskHandler(
             return
         }
         orderVersionRepository.save(latestVersion.copy(approved = approve)).awaitFirst()
-        orderUpdateService.updateApproval(order, approve)
+        orderUpdateService.updateApproval(order, approve, null)
         val updated = orderRepository.findById(hash)
         logger.info("Order approved was updated: hash={}, status={}", updated?.hash, updated?.status)
     }

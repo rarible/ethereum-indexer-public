@@ -38,7 +38,12 @@ class NonceBlockProcessor(
         return LoggingUtils.withMarker { marker ->
             mono {
                 events.forEach { event ->
-                    changeNonceListener.onNewMakerNonce(event.source.toPlatform(), event.maker, event.newNonce.value.toLong())
+                    changeNonceListener.onNewMakerNonce(
+                        event.source.toPlatform(),
+                        event.maker,
+                        event.newNonce.value.toLong(),
+                        event.date
+                    )
                 }
             }.toOptional()
                 .elapsed()

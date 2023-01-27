@@ -22,7 +22,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class ConsistencyCorrectorEntityServiceTest {
-    private val delegate = mockk<EntityService<ItemId, CompositeEntity>>()
+    private val delegate = mockk<EntityService<ItemId, CompositeEntity, CompositeEvent>>()
     private val reducer = mockk<CompositeReducer>()
     private val itemEventConverter = mockk<ItemEventConverter>()
 

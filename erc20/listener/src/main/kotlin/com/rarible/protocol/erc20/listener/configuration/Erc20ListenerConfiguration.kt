@@ -20,7 +20,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
-import org.springframework.core.convert.ConversionService
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
@@ -78,9 +77,8 @@ class Erc20ListenerConfiguration {
 
     @Bean
     fun kafkaErc20BalanceEventListener(
-        conversionService: ConversionService,
         protocolEventPublisher: ProtocolEventPublisher
     ): KafkaErc20BalanceEventListener {
-        return KafkaErc20BalanceEventListener(conversionService, protocolEventPublisher)
+        return KafkaErc20BalanceEventListener(protocolEventPublisher)
     }
 }

@@ -16,9 +16,9 @@ import com.rarible.protocol.erc20.core.model.Erc20Event
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.time.Instant
-import java.util.Date
+import java.util.*
 
-fun createRandomEthereumLog(
+fun randomEthereumLog(
     transactionSender: Address = randomAddress()
 ): EthereumLog =
     EthereumLog(
@@ -39,12 +39,12 @@ fun createRandomEthereumLog(
 fun randomReversedEthereumLogRecord(data: EventData): ReversedEthereumLogRecord {
     return ReversedEthereumLogRecord(
         id = randomString(),
-        log = createRandomEthereumLog(),
-        data = data)
+        log = randomEthereumLog(),
+        data = data
+    )
 }
 
-
-fun createRandomIncomeTransferEvent(): Erc20Event.Erc20IncomeTransferEvent {
+fun randomIncomeTransferEvent(): Erc20Event.Erc20IncomeTransferEvent {
     val token = randomAddress()
     val owner = randomAddress()
 
@@ -54,11 +54,11 @@ fun createRandomIncomeTransferEvent(): Erc20Event.Erc20IncomeTransferEvent {
         entityId = BalanceId(token, owner).stringValue,
         date = Date(randomLong()),
         value = EthUInt256.Companion.of(randomInt()),
-        log = createRandomEthereumLog()
+        log = randomEthereumLog()
     )
 }
 
-fun createRandomDepositEvent(): Erc20Event.Erc20DepositEvent {
+fun randomDepositEvent(): Erc20Event.Erc20DepositEvent {
     val token = randomAddress()
     val owner = randomAddress()
 
@@ -68,11 +68,11 @@ fun createRandomDepositEvent(): Erc20Event.Erc20DepositEvent {
         entityId = BalanceId(token, owner).stringValue,
         date = Date(randomLong()),
         value = EthUInt256.Companion.of(randomInt()),
-        log = createRandomEthereumLog()
+        log = randomEthereumLog()
     )
 }
 
-fun createRandomOutcomeTransferEvent(): Erc20Event.Erc20OutcomeTransferEvent {
+fun randomOutcomeTransferEvent(): Erc20Event.Erc20OutcomeTransferEvent {
     val token = randomAddress()
     val owner = randomAddress()
 
@@ -82,11 +82,11 @@ fun createRandomOutcomeTransferEvent(): Erc20Event.Erc20OutcomeTransferEvent {
         entityId = BalanceId(token, owner).stringValue,
         date = Date(randomLong()),
         value = EthUInt256.Companion.of(randomInt()),
-        log = createRandomEthereumLog()
+        log = randomEthereumLog()
     )
 }
 
-fun createRandomWithdrawalEvent(): Erc20Event.Erc20WithdrawalEvent {
+fun randomWithdrawalEvent(): Erc20Event.Erc20WithdrawalEvent {
     val token = randomAddress()
     val owner = randomAddress()
 
@@ -96,11 +96,11 @@ fun createRandomWithdrawalEvent(): Erc20Event.Erc20WithdrawalEvent {
         entityId = BalanceId(token, owner).stringValue,
         date = Date(randomLong()),
         value = EthUInt256.Companion.of(randomInt()),
-        log = createRandomEthereumLog()
+        log = randomEthereumLog()
     )
 }
 
-fun createRandomTokenApprovalEvent(): Erc20Event.Erc20TokenApprovalEvent {
+fun randomTokenApprovalEvent(): Erc20Event.Erc20TokenApprovalEvent {
     val token = randomAddress()
     val owner = randomAddress()
 
@@ -110,7 +110,7 @@ fun createRandomTokenApprovalEvent(): Erc20Event.Erc20TokenApprovalEvent {
         entityId = BalanceId(token, owner).stringValue,
         date = Date(randomLong()),
         value = EthUInt256.Companion.of(randomInt()),
-        log = createRandomEthereumLog(),
+        log = randomEthereumLog(),
 
         spender = randomAddress()
     )

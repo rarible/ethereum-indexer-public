@@ -34,7 +34,7 @@ class ChangeLog00014RecalculateMakeStock {
 
         template.query<Order>().matching(query).all().asFlow().collect { order ->
             try {
-                val updated = orderUpdateService.updateMakeStock(order.hash)
+                val updated = orderUpdateService.updateMakeStock(order.hash, null, null)
                 if (updated?.makeStock != EthUInt256.ZERO) {
                     nonZeroStock++
                 } else {

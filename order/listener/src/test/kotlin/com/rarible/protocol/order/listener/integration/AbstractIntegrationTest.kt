@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.integration
 
 import com.rarible.blockchain.scanner.block.Block
+import com.rarible.blockchain.scanner.block.BlockRepository
 import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
@@ -15,8 +16,6 @@ import com.rarible.ethereum.listener.log.domain.BlockHead
 import com.rarible.ethereum.listener.log.domain.BlockStatus
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.ethereum.listener.log.persist.BlockRepository as LegacyBlockRepository
-import com.rarible.blockchain.scanner.block.BlockRepository
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
@@ -87,6 +86,7 @@ import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
 import javax.annotation.PostConstruct
+import com.rarible.ethereum.listener.log.persist.BlockRepository as LegacyBlockRepository
 
 abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
@@ -379,7 +379,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     }
 
     protected suspend fun updateOrderMakeStock(orderHash: Word, makeBalance: EthUInt256) {
-        orderUpdateService.updateMakeStock(orderHash, MakeBalanceState(makeBalance))
+        orderUpdateService.updateMakeStock(orderHash, MakeBalanceState(makeBalance), null)
     }
 
     protected suspend fun checkActivityWasPublished(asserter: ActivityDto.() -> Unit) = coroutineScope {

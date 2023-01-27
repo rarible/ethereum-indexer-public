@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.service.block.order
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.blockchainEventMark
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
 import com.rarible.protocol.order.core.model.MakeBalanceState
@@ -38,7 +39,9 @@ class CryptoPunkOnChainOrderEventSubscriber(
                         if (it.type == OrderType.RARIBLE_V2) {
                             orderUpdateService.updateMakeStock(
                                 hash = it.hash,
-                                makeBalanceState = MakeBalanceState(EthUInt256.ZERO, it.lastUpdateAt)
+                                makeBalanceState = MakeBalanceState(EthUInt256.ZERO, it.lastUpdateAt),
+                                // TODO ideally it's better to take date from related EthereumLog
+                                eventTimeMarks = blockchainEventMark("indexer-in_order", it.lastUpdateAt)
                             )
                         } else {
                             logger.warn("Unexpected Order type in CryptoPunks order, RARIBLE_V2 expected: {}", it)
