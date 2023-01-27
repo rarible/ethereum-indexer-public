@@ -14,6 +14,7 @@ import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
+@EnableBlur
 class BlurV1ExchangeDescriptor(
     contractsProvider: ContractsProvider,
     private val blurEventConverter: BlurEventConverter,
