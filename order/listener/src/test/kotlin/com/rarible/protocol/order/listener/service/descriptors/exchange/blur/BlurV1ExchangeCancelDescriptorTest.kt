@@ -16,9 +16,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import scalether.domain.response.Log
 import scalether.domain.response.Transaction
-import scalether.java.Lists
 import java.time.Instant
 
 class BlurV1ExchangeCancelDescriptorTest {
@@ -57,5 +55,10 @@ class BlurV1ExchangeCancelDescriptorTest {
         assertThat(cancels).hasSize(2)
         assertThat((cancels[0] as ReversedEthereumLogRecord).data).isEqualTo(cancel1)
         assertThat((cancels[1] as ReversedEthereumLogRecord).data).isEqualTo(cancel2)
+    }
+
+    @Test
+    fun `convert match`() = runBlocking<Unit> {
+
     }
 }

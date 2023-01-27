@@ -26,11 +26,8 @@ object BlurOrderParser {
         }
     }
 
-    private fun <T> getDecodedValue(signature: scalether.abi.Signature<T,*>, input: Binary): T {
-        return signature.`in`().decode(input, 4).value()
-    }
 
-    private fun convert(value: Tuple13<Address, BigInteger, Address, Address, BigInteger, BigInteger, Address, BigInteger, BigInteger, BigInteger, Array<Tuple2<BigInteger, Address>>, BigInteger, ByteArray>): BlurOrder {
+    fun convert(value: Tuple13<Address, BigInteger, Address, Address, BigInteger, BigInteger, Address, BigInteger, BigInteger, BigInteger, Array<Tuple2<BigInteger, Address>>, BigInteger, ByteArray>): BlurOrder {
         return BlurOrder(
             trader = value._1(),
             side = BlurOrderSide.fromValue(value._2()),
@@ -53,5 +50,9 @@ object BlurOrderParser {
             rate = value._1(),
             recipient = value._2(),
         )
+    }
+
+    private fun <T> getDecodedValue(signature: scalether.abi.Signature<T,*>, input: Binary): T {
+        return signature.`in`().decode(input, 4).value()
     }
 }
