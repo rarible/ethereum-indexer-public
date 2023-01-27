@@ -4,10 +4,12 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.blur.v1.evemts.OrdersMatchedEvent
 import com.rarible.protocol.contracts.exchange.blur.v1.BlurV1
 import com.rarible.protocol.contracts.exchange.blur.v1.OrderCancelledEvent
+import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.BlurOrder
 import com.rarible.protocol.order.core.model.BlurOrderSide
+import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
@@ -58,8 +60,7 @@ class BlurEventConverter(
         val sellAssets = getOrderAssets(sellOrder)
         val buyAssets = getOrderAssets(buyOrder)
 
-        val sellUsdValue =
-            priceUpdateService.getAssetsUsdValue(make = sellAssets.make, take = sellAssets.take, at = date)
+        val sellUsdValue = priceUpdateService.getAssetsUsdValue(make = sellAssets.make, take = sellAssets.take, at = date)
         val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = buyAssets.make, take = buyAssets.take, at = date)
 
         val events = listOf(
@@ -140,6 +141,21 @@ class BlurEventConverter(
                 source = HistorySource.BLUR
             )
         }
+    }
+
+    suspend fun convert(
+        log: Log,
+        date: Instant
+    ): List<ChangeNonceHistory> {
+        val event = NonceIncrementedEvent.apply(log)
+        return listOf(
+            ChangeNonceHistory(
+                maker = event.maker(),
+                newNonce = EthUInt256.of(event.newNonce()),
+                date = date,
+                source = HistorySource.BLUR
+            )
+        )
     }
 
     private suspend fun getOrderAssets(order: BlurOrder): OrderAssets {

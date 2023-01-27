@@ -78,6 +78,25 @@ class BlurEventConverterTest {
     }
 
     @Test
+    fun `convert nonce change`() = runBlocking<Unit> {
+        //https://etherscan.io/tx/0xcc232528b5bc28774de6a082dbe2f629689fd8e1c51b790d3a6fafc6eafd3020#eventlog
+        val log = log(
+            topics = listOf(
+                Word.apply("0xa82a649bbd060c9099cd7b7326e2b0dc9e9af0836480e0f849dc9eaa79710b3b"),
+                Word.apply("0x000000000000000000000000ed2ab4948ba6a909a7751dec4f34f303eb8c7236"),
+            ),
+            data = "0x0000000000000000000000000000000000000000000000000000000000000045"
+        )
+        val expectedDate = Instant.now()
+        val nonceChanges = converter.convert(log, expectedDate)
+        assertThat(nonceChanges).hasSize(1)
+        assertThat(nonceChanges.single().maker).isEqualTo(Address.apply("0xed2ab4948bA6A909a7751DEc4F34f303eB8c7236"))
+        assertThat(nonceChanges.single().newNonce).isEqualTo(EthUInt256.of(69))
+        assertThat(nonceChanges.single().date).isEqualTo(expectedDate)
+        assertThat(nonceChanges.single().source).isEqualTo(HistorySource.BLUR)
+    }
+
+    @Test
     fun `convert match`() = runBlocking<Unit> {
         val date = Instant.now()
         val bidOrderUsd = randomBidOrderUsdValue()
