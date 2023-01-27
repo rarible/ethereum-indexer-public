@@ -34,7 +34,7 @@ import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.dto.SeaportOrderTypeDto
 import com.rarible.protocol.dto.SeaportV1OrderDto
 import com.rarible.protocol.dto.X2Y2OrderDto
-import com.rarible.protocol.dto.indexerEventMark
+import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.Asset
@@ -342,6 +342,7 @@ fun OrderData.withMakeFill(isMakeFill: Boolean = true): OrderData = when (this) 
         originFees = originFees,
         isMakeFill = isMakeFill
     )
+
     is OrderRaribleV2DataV2 -> this.copy(isMakeFill = isMakeFill)
     else -> this
 }
@@ -532,7 +533,6 @@ fun createOnChainOrder(): OnChainOrder {
     )
 }
 
-
 fun createLogEvent(
     data: EventData,
     status: LogEventStatus = LogEventStatus.CONFIRMED,
@@ -665,7 +665,7 @@ fun randomOrderEventDto(order: OrderDto = createOrderDto()): OrderUpdateEventDto
         eventId = randomString(),
         order = order,
         orderId = randomWord(),
-        eventTimeMarks = indexerEventMark()
+        eventTimeMarks = offchainEventMark("indexer-out_order")
     )
 }
 

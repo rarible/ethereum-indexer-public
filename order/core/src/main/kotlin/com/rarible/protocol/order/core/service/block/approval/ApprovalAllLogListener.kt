@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.service.block.approval
 import com.rarible.contracts.erc721.ApprovalForAllEvent
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.listener.log.OnLogEventListener
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.dto.blockchainEventMark
@@ -35,6 +36,11 @@ class ApprovalAllLogListener(
     override fun onRevertedLogEvent(logEvent: LogEvent): Mono<Void> = mono { reduceOrders(logEvent) }.then()
 
     private suspend fun reduceOrders(logEvent: LogEvent) {
+        val mark = blockchainEventMark(
+            "indexer-in_order",
+            logEvent.blockTimestamp ?: nowMillis().epochSecond
+        )
+
         val history = logEvent.data as ApprovalHistory
         val blockNumber = logEvent.blockNumber ?: error("blockTimestamp can't be null")
         if (properties.handleApprovalAfterBlock > blockNumber) {
@@ -55,11 +61,7 @@ class ApprovalAllLogListener(
         orderRepository
             .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
             .collect {
-                orderUpdateService.updateApproval(
-                    it,
-                    history.approved,
-                    blockchainEventMark(logEvent.blockNumber).source
-                )
+                orderUpdateService.updateApproval(it, history.approved, mark)
             }
     }
 }

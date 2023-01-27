@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.service.block.approval
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.dto.blockchainEventMark
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
@@ -30,6 +31,10 @@ class ApprovalEventSubscriber(
     }
 
     private suspend fun reduceOrders(logEvent: ReversedEthereumLogRecord) {
+        val mark = blockchainEventMark(
+            "indexer-in_order",
+            logEvent.blockTimestamp ?: nowMillis().epochSecond
+        )
         val history = logEvent.data as ApprovalHistory
         val blockNumber = logEvent.blockNumber ?: error("blockTimestamp can't be null")
         if (properties.handleApprovalAfterBlock > blockNumber) {
@@ -50,11 +55,7 @@ class ApprovalEventSubscriber(
         orderRepository
             .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
             .collect {
-                orderUpdateService.updateApproval(
-                    it,
-                    history.approved,
-                    blockchainEventMark(logEvent.blockNumber).source
-                )
+                orderUpdateService.updateApproval(it, history.approved, mark)
             }
     }
 }

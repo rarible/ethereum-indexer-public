@@ -26,6 +26,7 @@ class SeaportOrderLoader(
     private val properties: SeaportLoadProperties,
     private val seaportSaveCounter: RegisteredCounter
 ) {
+
     suspend fun load(
         cursor: String?,
         loadAhead: Boolean,
@@ -64,10 +65,10 @@ class SeaportOrderLoader(
                                     openSeaOrderValidator.validate(order) &&
                                     orderRepository.findById(order.hash) == null
                                 ) {
-                                    val sourceEventTimeMark = integrationEventMark(order.createdAt).source
+                                    val eventTimeMarks = integrationEventMark("indexer-in_order", order.createdAt)
                                     // TODO 2 events will be emitted here - is it fine?
-                                    val saved = orderUpdateService.save(order, sourceEventTimeMark).run {
-                                        orderUpdateService.updateMakeStock(this, null, sourceEventTimeMark).first
+                                    val saved = orderUpdateService.save(order, eventTimeMarks).run {
+                                        orderUpdateService.updateMakeStock(this, null, eventTimeMarks).first
                                     }
                                     seaportSaveCounter.increment()
                                     logger.seaportInfo("Saved new order ${saved.id}: ${saved.status}")
@@ -107,6 +108,7 @@ class SeaportOrderLoader(
     }
 
     private companion object {
+
         val logger: Logger = LoggerFactory.getLogger(SeaportOrderLoadHandler::class.java)
     }
 }

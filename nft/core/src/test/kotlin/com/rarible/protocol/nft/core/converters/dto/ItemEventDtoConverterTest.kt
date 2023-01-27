@@ -11,6 +11,8 @@ import java.time.temporal.ChronoUnit
 
 class ItemEventDtoConverterTest {
 
+    private val timeDelta = TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS)
+
     @Test
     fun `convert - ok, with event`() {
         val item = createRandomItem()
@@ -20,8 +22,13 @@ class ItemEventDtoConverterTest {
         val timeMarks = dto.eventTimeMarks!!
 
         assertThat(dto.item).isEqualTo(ItemDtoConverter.convert(item))
-        assertThat(timeMarks.indexer).isCloseTo(nowMillis(), TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS))
-        assertThat(timeMarks.source!!.date.epochSecond).isEqualTo(mint.log.blockTimestamp)
+
+        assertThat(timeMarks.source).isEqualTo("blockchain")
+        assertThat(timeMarks.marks[0].name).isEqualTo("source")
+        assertThat(timeMarks.marks[0].date.epochSecond).isEqualTo(mint.log.blockTimestamp)
+
+        assertThat(timeMarks.marks[1].name).isEqualTo("indexer-out_nft")
+        assertThat(timeMarks.marks[1].date).isCloseTo(nowMillis(), timeDelta)
     }
 
     @Test
@@ -32,8 +39,10 @@ class ItemEventDtoConverterTest {
         val timeMarks = dto.eventTimeMarks!!
 
         assertThat(dto.item).isEqualTo(ItemDtoConverter.convert(item))
-        assertThat(timeMarks.indexer).isCloseTo(nowMillis(), TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS))
-        assertThat(timeMarks.source).isNull()
+
+        assertThat(timeMarks.source).isEqualTo("offchain")
+        assertThat(timeMarks.marks[0].name).isEqualTo("indexer-out_nft")
+        assertThat(timeMarks.marks[0].date).isCloseTo(nowMillis(), timeDelta)
     }
 
 }

@@ -30,7 +30,7 @@ class OwnershipUpdateService(
 
     override suspend fun update(entity: Ownership, event: OwnershipEvent?): Ownership {
         val savedOwnership = ownershipService.save(entity)
-        eventListenerListener.onOwnershipChanged(savedOwnership).awaitFirstOrNull()
+        eventListenerListener.onOwnershipChanged(savedOwnership, event).awaitFirstOrNull()
         logUpdatedOwnership(savedOwnership)
         return savedOwnership
     }

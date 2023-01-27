@@ -3,7 +3,7 @@ package com.rarible.protocol.order.migration.mongock.mongo
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.dto.indexerEventMark
+import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -31,7 +31,7 @@ class ChangeLog00006ExportOrderEvents {
                     eventId = UUID.randomUUID().toString(),
                     orderId = order.id.toString(),
                     order = orderDtoConverter.convert(order),
-                    eventTimeMarks = indexerEventMark()
+                    eventTimeMarks = offchainEventMark("indexer-out_order")
                 )
                 publisher.publish(updateEvent)
 

@@ -2,7 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.dto.indexerEventMark
+import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -36,7 +36,7 @@ class OrderPublishTaskHandler(
                     eventId = UUID.randomUUID().toString(),
                     orderId = order.id.toString(),
                     order = orderDtoConverter.convert(order),
-                    eventTimeMarks = indexerEventMark()
+                    eventTimeMarks = offchainEventMark("indexer-out_order")
                 )
                 publisher.publish(updateEvent)
                 delay(Duration.ofMillis(properties.publishTaskDelayMs))

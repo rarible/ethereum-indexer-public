@@ -5,7 +5,7 @@ import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.dto.indexerEventMark
+import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.OrderUsdValue
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -79,7 +79,7 @@ class ChangeLog00006FixOrderUsdValues {
                     eventId = UUID.randomUUID().toString(),
                     orderId = order.id.toString(),
                     order = orderDtoConverter.convert(order),
-                    eventTimeMarks = indexerEventMark()
+                    eventTimeMarks = offchainEventMark("indexer-out_order")
                 )
                 publisher.publish(updateEvent)
 

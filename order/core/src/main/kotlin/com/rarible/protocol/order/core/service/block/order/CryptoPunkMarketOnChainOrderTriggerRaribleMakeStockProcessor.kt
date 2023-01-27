@@ -48,7 +48,7 @@ class CryptoPunkMarketOnChainOrderTriggerRaribleMakeStockProcessor(
                                     hash = it.hash,
                                     makeBalanceState = MakeBalanceState(EthUInt256.ZERO, it.lastUpdateAt),
                                     // TODO ideally it's better to take date from related EthereumLog
-                                    sourceEventTimeMark = blockchainEventMark(it.lastUpdateAt).source
+                                    eventTimeMarks = blockchainEventMark("indexer-in_order", it.lastUpdateAt)
                                 )
                             } else {
                                 logger.warn("Unexpected Order type in CryptoPunks order, RARIBLE_V2 expected: {}", it)

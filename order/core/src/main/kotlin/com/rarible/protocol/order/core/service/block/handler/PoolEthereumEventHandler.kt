@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.service.block.handler
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.dto.blockchainEventMark
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
@@ -19,8 +20,11 @@ class PoolEthereumEventHandler(
 ) : AbstractEthereumEventHandler<LogRecordEvent, PoolEthereumEventHandler.PoolEvent>(properties) {
 
     override suspend fun handleSingle(event: PoolEvent) {
-        val sourceEventTimeMark = event.events.lastOrNull()?.blockTimestamp?.let { blockchainEventMark(it).source }
-        orderUpdateService.update(event.hash, sourceEventTimeMark)
+        val markName = "indexer-in_order"
+        val eventEpochSeconds = event.events.lastOrNull()?.blockTimestamp ?: nowMillis().epochSecond
+        val marks = blockchainEventMark(markName, eventEpochSeconds)
+
+        orderUpdateService.update(event.hash, marks)
         event.events.forEach {
             poolOrderEventListener.onPoolEvent(it)
         }

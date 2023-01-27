@@ -27,6 +27,7 @@ class LooksrareOrderLoader(
     private val looksrareSaveCounter: RegisteredCounter,
     private val looksrareOrderDelayGauge: RegisteredGauge<Long>
 ) {
+
     suspend fun load(
         listedAfter: Instant,
         listedBefore: Instant
@@ -44,10 +45,10 @@ class LooksrareOrderLoader(
                             }
                             val order = looksrareOrderConverter.convert(it)
                             if (order != null && properties.saveEnabled) {
-                                val sourceEventTimeMark = integrationEventMark(order.createdAt).source
+                                val eventTimeMarks = integrationEventMark("indexer-in_order", order.createdAt)
                                 // TODO 2 events will be emitted here - is it fine?
-                                orderUpdateService.save(order, sourceEventTimeMark).also {
-                                    orderUpdateService.updateMakeStock(it, null, sourceEventTimeMark)
+                                orderUpdateService.save(order, eventTimeMarks).also {
+                                    orderUpdateService.updateMakeStock(it, null, eventTimeMarks)
                                 }
                                 looksrareSaveCounter.increment()
                                 logger.looksrareInfo("Saved new order ${it.hash}")
@@ -70,7 +71,10 @@ class LooksrareOrderLoader(
                 }
             }
         } catch (ex: Throwable) {
-            logger.looksrareError("Can't get next orders with listedAfter=${listedAfter.epochSecond}, listedBefore=${listedBefore.epochSecond}", ex)
+            logger.looksrareError(
+                "Can't get next orders with listedAfter=${listedAfter.epochSecond}, listedBefore=${listedBefore.epochSecond}",
+                ex
+            )
             throw ex
         }
     }
@@ -90,6 +94,7 @@ class LooksrareOrderLoader(
     }
 
     private companion object {
+
         val logger by Logger()
     }
 }

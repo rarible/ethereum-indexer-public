@@ -54,10 +54,10 @@ class X2Y2OrderLoader(
                         chunk.map {
                             async {
                                 if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
-                                    val sourceEventTimeMark = integrationEventMark(it.createdAt).source
+                                    val eventTimeMarks = integrationEventMark("indexer-in_order", it.createdAt)
                                     // TODO 2 events will be emitted here - is it fine?
-                                    orderUpdateService.save(it).also {
-                                        orderUpdateService.updateMakeStock(it, null, sourceEventTimeMark)
+                                    orderUpdateService.save(it, eventTimeMarks).also {
+                                        orderUpdateService.updateMakeStock(it, null, eventTimeMarks)
                                     }
                                     x2y2SaveCounter.increment()
                                     logger.x2y2Info("Saved new order ${it.hash}")

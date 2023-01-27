@@ -19,7 +19,7 @@ class OrderEthereumEventHandler(
 ) : AbstractEthereumEventHandler<LogRecordEvent, OrderExchangeHistory>(properties) {
 
     override suspend fun handleSingle(event: OrderExchangeHistory) {
-        val sourceEventTimeMark = blockchainEventMark(event.date).source
+        val sourceEventTimeMark = blockchainEventMark("indexer-in_order", event.date)
         orderUpdateService.update(event.hash, sourceEventTimeMark)
     }
 

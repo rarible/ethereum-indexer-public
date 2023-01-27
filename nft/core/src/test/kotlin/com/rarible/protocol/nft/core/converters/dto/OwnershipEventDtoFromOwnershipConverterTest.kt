@@ -11,6 +11,8 @@ import java.time.temporal.ChronoUnit
 
 class OwnershipEventDtoFromOwnershipConverterTest {
 
+    private val timeDelta = TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS)
+
     @Test
     fun `convert - ok, with event`() {
         val ownership = createRandomOwnership()
@@ -20,8 +22,12 @@ class OwnershipEventDtoFromOwnershipConverterTest {
         val timeMarks = dto.eventTimeMarks!!
 
         assertThat(dto.ownership).isEqualTo(OwnershipDtoConverter.convert(ownership))
-        assertThat(timeMarks.indexer).isCloseTo(nowMillis(), TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS))
-        assertThat(timeMarks.source!!.date.epochSecond).isEqualTo(transfer.log.blockTimestamp)
+        assertThat(timeMarks.source).isEqualTo("blockchain")
+        assertThat(timeMarks.marks[0].name).isEqualTo("source")
+        assertThat(timeMarks.marks[0].date.epochSecond).isEqualTo(transfer.log.blockTimestamp)
+
+        assertThat(timeMarks.marks[1].name).isEqualTo("indexer-out_nft")
+        assertThat(timeMarks.marks[1].date).isCloseTo(nowMillis(), timeDelta)
     }
 
     @Test
@@ -32,7 +38,9 @@ class OwnershipEventDtoFromOwnershipConverterTest {
         val timeMarks = dto.eventTimeMarks!!
 
         assertThat(dto.ownership).isEqualTo(OwnershipDtoConverter.convert(ownership))
-        assertThat(timeMarks.indexer).isCloseTo(nowMillis(), TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS))
-        assertThat(timeMarks.source).isNull()
+
+        assertThat(timeMarks.source).isEqualTo("offchain")
+        assertThat(timeMarks.marks[0].name).isEqualTo("indexer-out_nft")
+        assertThat(timeMarks.marks[0].date).isCloseTo(nowMillis(), timeDelta)
     }
 }

@@ -34,7 +34,7 @@ internal class X2Y2OrderLoaderTest {
     )
 
     @Test
-    fun `should get filter save new seaport orders`() = runBlocking<Unit> {
+    fun `should get filter save new x2y2 orders`() = runBlocking<Unit> {
         val validClientOrder1 = randomX2Y2Order()
         val validOrderVersion1 = createOrderVersion()
         val validOrder1 = createOrder()
@@ -61,9 +61,9 @@ internal class X2Y2OrderLoaderTest {
         coEvery { orderRepository.findById(validOrderVersion2.hash) } returns null
         coEvery { orderRepository.findById(validOrderVersion3.hash) } returns createOrder()
 
-        coEvery { orderUpdateService.save(validOrderVersion1) } returns validOrder1
+        coEvery { orderUpdateService.save(eq(validOrderVersion1), any()) } returns validOrder1
         coEvery { orderUpdateService.updateMakeStock(eq(validOrder1), any(), any()) } returns (validOrder1 to true)
-        coEvery { orderUpdateService.save(validOrderVersion2) } returns validOrder2
+        coEvery { orderUpdateService.save(eq(validOrderVersion2), any()) } returns validOrder2
         coEvery { orderUpdateService.updateMakeStock(eq(validOrder2), any(), any()) } returns (validOrder2 to true)
         every { x2y2SaveCounter.increment() } returns Unit
 
@@ -77,9 +77,9 @@ internal class X2Y2OrderLoaderTest {
         coVerify(exactly = 1) { orderRepository.findById(validOrderVersion2.hash) }
         coVerify(exactly = 1) { orderRepository.findById(validOrderVersion3.hash) }
 
-        coVerify(exactly = 2) { orderUpdateService.save(any()) }
-        coVerify(exactly = 1) { orderUpdateService.save(validOrderVersion1) }
-        coVerify(exactly = 1) { orderUpdateService.save(validOrderVersion2) }
+        coVerify(exactly = 2) { orderUpdateService.save(any(), any()) }
+        coVerify(exactly = 1) { orderUpdateService.save(eq(validOrderVersion1), any()) }
+        coVerify(exactly = 1) { orderUpdateService.save(eq(validOrderVersion2), any()) }
         verify(exactly = 2) { x2y2SaveCounter.increment() }
     }
 }

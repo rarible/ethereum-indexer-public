@@ -22,7 +22,7 @@ class ReduceEventListenerListener(
     }.then()
 
     fun onOwnershipChanged(ownership: Ownership, event: OwnershipEvent? = null): Mono<Void> = mono {
-        val eventDto = OwnershipEventDtoFromOwnershipConverter.convert(ownership)
+        val eventDto = OwnershipEventDtoFromOwnershipConverter.convert(ownership, event)
         publisher.publish(eventDto)
     }.then()
 

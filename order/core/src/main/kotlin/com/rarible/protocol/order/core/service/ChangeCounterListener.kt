@@ -23,11 +23,12 @@ class ChangeCounterListener(
         orderRepository
             .findNotCanceledByMakerAndCounterLtThen(platform, maker, newNonce)
             .collect { hash ->
-                orderUpdateService.update(hash, blockchainEventMark(ts).source)
+                orderUpdateService.update(hash, blockchainEventMark("indexer-in_order", ts))
             }
     }
 
     private companion object {
+
         val logger: Logger = LoggerFactory.getLogger(ChangeCounterListener::class.java)
     }
 }

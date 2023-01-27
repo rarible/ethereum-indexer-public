@@ -61,7 +61,8 @@ class PlatformFeaturedFilterTest {
                 showOpenSeaOrdersWithOtherPlatforms = false,
                 showX2Y2OrdersWithOtherPlatforms = true,
                 showLooksrareOrdersWithOtherPlatforms = true,
-                showSudoSwapOrdersWithOtherPlatforms = true
+                showSudoSwapOrdersWithOtherPlatforms = true,
+                showBlurOrdersWithOtherPlatforms = true
             )
         )
 
@@ -77,7 +78,7 @@ class PlatformFeaturedFilterTest {
     }
 
     @Test
-    fun `show all, sudoswap disabled`() {
+    fun `show all, sudoswap and blur disabled`() {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
                 showAllOrdersByDefault = true,
@@ -94,31 +95,8 @@ class PlatformFeaturedFilterTest {
             PlatformDto.OPEN_SEA,
             PlatformDto.CRYPTO_PUNKS,
             PlatformDto.X2Y2,
-            PlatformDto.LOOKSRARE,
-            PlatformDto.BLUR)
+            PlatformDto.LOOKSRARE
         )
-    }
-
-    @Test
-    fun `show all, x2y2 disabled`() {
-        val filter = PlatformFeaturedFilter(
-            OrderIndexerProperties.FeatureFlags(
-                showAllOrdersByDefault = true,
-                showOpenSeaOrdersWithOtherPlatforms = true,
-                showLooksrareOrdersWithOtherPlatforms = true,
-                showSudoSwapOrdersWithOtherPlatforms = true,
-                showX2Y2OrdersWithOtherPlatforms = false
-            )
-        )
-
-        val allByDefaultExceptOpenSea = filter.filter(null)
-        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(
-            PlatformDto.RARIBLE,
-            PlatformDto.OPEN_SEA,
-            PlatformDto.CRYPTO_PUNKS,
-            PlatformDto.LOOKSRARE,
-            PlatformDto.SUDOSWAP,
-            PlatformDto.BLUR)
         )
     }
 
@@ -130,7 +108,8 @@ class PlatformFeaturedFilterTest {
                 showOpenSeaOrdersWithOtherPlatforms = true,
                 showX2Y2OrdersWithOtherPlatforms = true,
                 showSudoSwapOrdersWithOtherPlatforms = true,
-                showLooksrareOrdersWithOtherPlatforms = false
+                showLooksrareOrdersWithOtherPlatforms = false,
+                showBlurOrdersWithOtherPlatforms = true
             )
         )
 
@@ -153,7 +132,8 @@ class PlatformFeaturedFilterTest {
                 showOpenSeaOrdersWithOtherPlatforms = true,
                 showX2Y2OrdersWithOtherPlatforms = true,
                 showLooksrareOrdersWithOtherPlatforms = true,
-                showSudoSwapOrdersWithOtherPlatforms = true
+                showSudoSwapOrdersWithOtherPlatforms = true,
+                showBlurOrdersWithOtherPlatforms = true
             )
         )
 
@@ -171,7 +151,8 @@ class PlatformFeaturedFilterTest {
                 showOpenSeaOrdersWithOtherPlatforms = false,
                 showX2Y2OrdersWithOtherPlatforms = false,
                 showLooksrareOrdersWithOtherPlatforms = false,
-                showSudoSwapOrdersWithOtherPlatforms = false
+                showSudoSwapOrdersWithOtherPlatforms = false,
+                showBlurOrdersWithOtherPlatforms = true
             )
         )
         val allWithRarible = filter.filter(null)
@@ -190,7 +171,8 @@ class PlatformFeaturedFilterTest {
                 showOpenSeaOrdersWithOtherPlatforms = true,
                 showX2Y2OrdersWithOtherPlatforms = false,
                 showLooksrareOrdersWithOtherPlatforms = false,
-                showSudoSwapOrdersWithOtherPlatforms = false
+                showSudoSwapOrdersWithOtherPlatforms = false,
+                showBlurOrdersWithOtherPlatforms = true
             )
         )
         val allWithRarible = filter.filter(null)

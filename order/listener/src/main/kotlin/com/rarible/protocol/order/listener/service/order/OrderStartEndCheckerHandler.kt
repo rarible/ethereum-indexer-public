@@ -4,7 +4,7 @@ import com.rarible.core.apm.withTransaction
 import com.rarible.core.daemon.job.JobHandler
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.dto.indexerEventMark
+import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.Order
@@ -52,7 +52,7 @@ class OrderStartEndCheckerHandler(
                     eventId = UUID.randomUUID().toString(),
                     orderId = saved.id.toString(),
                     order = orderDtoConverter.convert(saved),
-                    eventTimeMarks = indexerEventMark()
+                    eventTimeMarks = offchainEventMark("indexer-out_order")
                 )
                 publisher.publish(updateEvent)
             }
