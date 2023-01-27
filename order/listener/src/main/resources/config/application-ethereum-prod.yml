@@ -2,6 +2,7 @@ common:
   exchange-contract-addresses:
     looksrare-v1: "0x59728544b08ab483533076417fbbb2fd0b17ce3a"
     x2y2-v1: "0x74312363e45dcaba76c59ec49a7aa8a65a67eed3"
+    blurV1: "0x000000000000ad05ccc4f10045630fb830b95127"
   transfer-proxy-addresses:
     seaport-transfer-proxy: "0x1e0049783f008a0085193e00003d00cd54003c71"
     x2y2-transfer-proxy-erc721: "0xf849de01b080adc3a814fabe1e2087475cf2e354"

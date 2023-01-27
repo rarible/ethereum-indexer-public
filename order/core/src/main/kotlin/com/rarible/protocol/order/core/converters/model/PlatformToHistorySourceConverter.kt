@@ -13,6 +13,7 @@ object PlatformToHistorySourceConverter : Converter<Platform, HistorySource> {
             Platform.X2Y2 -> HistorySource.X2Y2
             Platform.LOOKSRARE -> HistorySource.LOOKSRARE
             Platform.SUDOSWAP -> HistorySource.SUDOSWAP
+            Platform.BLUR -> HistorySource.BLUR
         }
     }
 }

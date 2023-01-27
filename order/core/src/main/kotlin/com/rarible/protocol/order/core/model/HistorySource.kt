@@ -7,6 +7,7 @@ enum class HistorySource {
     X2Y2,
     LOOKSRARE,
     SUDOSWAP,
+    BLUR,
     ;
 
     fun toPlatform(): Platform {
@@ -17,6 +18,7 @@ enum class HistorySource {
             X2Y2 -> Platform.X2Y2
             LOOKSRARE -> Platform.LOOKSRARE
             SUDOSWAP -> Platform.SUDOSWAP
+            BLUR -> Platform.BLUR
         }
     }
 }

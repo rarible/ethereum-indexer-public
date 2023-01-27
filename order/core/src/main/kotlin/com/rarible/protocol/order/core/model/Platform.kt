@@ -9,6 +9,7 @@ enum class Platform(val id: Binary) {
     LOOKSRARE(id32("LOOKSRARE")),
     X2Y2(id32("X2Y2")),
     SUDOSWAP(id32("SUDOSWAP")),
+    BLUR(id32("BLUR")),
     ;
 
     fun toHistorySource(): HistorySource {
@@ -19,6 +20,7 @@ enum class Platform(val id: Binary) {
             X2Y2 -> HistorySource.X2Y2
             LOOKSRARE -> HistorySource.LOOKSRARE
             SUDOSWAP -> HistorySource.SUDOSWAP
+            BLUR -> HistorySource.BLUR
         }
     }
 }
