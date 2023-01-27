@@ -58,7 +58,8 @@ class BlurEventConverter(
         val sellAssets = getOrderAssets(sellOrder)
         val buyAssets = getOrderAssets(buyOrder)
 
-        val sellUsdValue = priceUpdateService.getAssetsUsdValue(make = sellAssets.make, take = sellAssets.take, at = date)
+        val sellUsdValue =
+            priceUpdateService.getAssetsUsdValue(make = sellAssets.make, take = sellAssets.take, at = date)
         val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = buyAssets.make, take = buyAssets.take, at = date)
 
         val events = listOf(
