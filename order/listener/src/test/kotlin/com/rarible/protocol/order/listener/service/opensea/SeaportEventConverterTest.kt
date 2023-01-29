@@ -36,11 +36,14 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
+import java.util.stream.Stream
 
 internal class SeaportEventConverterTest {
     private val priceUpdateService = mockk<PriceUpdateService>()
@@ -59,6 +62,11 @@ internal class SeaportEventConverterTest {
         wrapperLooksrareMetric,
         nonceHistoryRepository
     )
+
+    private companion object {
+        @JvmStatic
+        fun totalFulfilledEvent(): Stream<Int> = Stream.of(2, 3)
+    }
 
     @Test
     fun `should convert basic erc721 sell OrderFulfilledEvent`() = runBlocking<Unit> {
@@ -434,8 +442,9 @@ internal class SeaportEventConverterTest {
         assertThat(cancel.hash).isEqualTo(Word.apply("0xd05d08e9f1e440f0d77f1b3a69f3716cd181357028b9e5999ea3c3eaf8e0b216"))
     }
 
-    @Test
-    fun `is adhoc advanced order - false`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @MethodSource("totalFulfilledEvent")
+    fun `is adhoc advanced order - false`(totalLogs: Int) = runBlocking<Unit> {
         val event = log(
             topics = listOf(
                 Word.apply("0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31"),
@@ -448,17 +457,21 @@ internal class SeaportEventConverterTest {
         coEvery {
             nonceHistoryRepository.findLatestNonceHistoryByMaker(event.offerer(), event.log().address())
         } returns createLogEvent(createChangeNonceHistory(10))
+        coEvery {
+            nonceHistoryRepository.findLatestNonceHistoryByMaker(Address.apply("0xdddd34f88b475dae9fef76af218b00cca0d7a06a"), event.log().address())
+        } returns createLogEvent(createChangeNonceHistory(10))
 
         val transaction = mockk<Transaction> {
             every { input() } returns matchAdvancedOrdersTransaction
             every { hash() } returns Word.apply(randomWord())
         }
-        val adhoc = converter.isAdhocOrderEvent(event, 0, 2, transaction)
+        val adhoc = converter.isAdhocOrderEvent(event, 0, totalLogs, transaction)
         assertThat(adhoc).isFalse()
     }
 
-    @Test
-    fun `is adhoc advanced order - true`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @MethodSource("totalFulfilledEvent")
+    fun `is adhoc advanced order - true`(totalLogs: Int) = runBlocking<Unit> {
         val event = log(
             topics = listOf(
                 Word.apply("0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31"),
@@ -471,12 +484,15 @@ internal class SeaportEventConverterTest {
         coEvery {
             nonceHistoryRepository.findLatestNonceHistoryByMaker(event.offerer(), event.log().address())
         } returns createLogEvent(createChangeNonceHistory(10))
+        coEvery {
+            nonceHistoryRepository.findLatestNonceHistoryByMaker(Address.apply("0x0228aca40362f58092c3dc6c3b5e23690f91e37f"), event.log().address())
+        } returns createLogEvent(createChangeNonceHistory(10))
 
         val transaction = mockk<Transaction> {
             every { input() } returns matchAdvancedOrdersTransaction
             every { hash() } returns Word.apply(randomWord())
         }
-        val adhoc = converter.isAdhocOrderEvent(event, 1, 2, transaction)
+        val adhoc = converter.isAdhocOrderEvent(event, 1, totalLogs, transaction)
         assertThat(adhoc).isTrue()
     }
 
