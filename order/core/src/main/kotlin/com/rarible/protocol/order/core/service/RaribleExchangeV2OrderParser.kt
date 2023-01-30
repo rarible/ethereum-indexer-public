@@ -66,9 +66,10 @@ class RaribleExchangeV2OrderParser(
 
     private suspend fun parse(txHash: Word, txInput: Binary, event: Any): List<RaribleMatchedOrders> {
         val inputs = getInputs(txHash, txInput)
+        logger.info("[{}] inputs={}", txHash, inputs.size)
         val parsed = inputs.map { ExchangeV2OrderParser.parseMatchedOrders(it) }
         val forLog = { parsed.map { Triple(it, it.left.hash, it.right.hash) } }
-        logger.info("Hash: $txHash; Event: $event; Parsed Matched Orders: $forLog")
+        logger.info("Hash: $txHash; Event: $event; Parsed Matched Orders: ${forLog()}")
         return parsed
     }
 
