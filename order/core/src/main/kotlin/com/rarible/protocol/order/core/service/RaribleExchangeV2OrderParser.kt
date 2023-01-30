@@ -33,8 +33,10 @@ class RaribleExchangeV2OrderParser(
         event: MatchEventRev3
     ): RaribleMatchedOrders? {
         val parsed = parse(txHash, txInput, event)
+        logger.info("[{}]: parsed={}", txHash, parsed.map { "left=${it.left.hash},right=${it.right.hash}" })
         val leftHash = Word.apply(event.leftHash())
         val rightHash = Word.apply(event.rightHash())
+        logger.info("[{}]: event: left={}, right={}", txHash, leftHash, rightHash)
         return parsed.firstOrNull { leftHash == it.left.hash && rightHash == it.right.hash }
     }
 
