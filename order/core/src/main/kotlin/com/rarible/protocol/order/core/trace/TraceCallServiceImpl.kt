@@ -8,8 +8,6 @@ import com.rarible.protocol.order.core.model.SimpleTraceResult
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.delay
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import scalether.domain.Address
 import java.math.BigInteger
 
@@ -77,19 +75,15 @@ class TraceCallServiceImpl(
         val set = ids.toSet()
         val txHash = headTransaction.hash
         val txInput = headTransaction.input
-        logger.info("[{}] try get for {}", txHash, ids)
 
         val metaTxSignature = EIP712MetaTransaction.executeMetaTransactionSignature()
         val realInput = if (txInput.methodSignatureId() == metaTxSignature.id()) {
             val decoded = metaTxSignature.`in`().decode(txInput, 4)
-            logger.info("[{}] Found meta transaction", txHash)
             Binary.apply(decoded.value()._2())
         } else {
             txInput
         }
-        logger.info("[{}] realInputId {}", txHash, realInput.methodSignatureId())
         if (realInput.methodSignatureId() in set) {
-            logger.info("[{}] found", txHash)
             return listOf(
                 SimpleTraceResult(
                     from = headTransaction.from,
@@ -113,9 +107,5 @@ class TraceCallServiceImpl(
         }
         return if (exceptionIfNotFound)
             throw TraceNotFoundException("tx trace not found for hash: $txHash") else emptyList()
-    }
-
-    private companion object {
-        val logger: Logger = LoggerFactory.getLogger(TraceCallServiceImpl::class.java)
     }
 }

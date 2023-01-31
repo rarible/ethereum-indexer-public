@@ -69,15 +69,17 @@ class FallbackTraceCallService(
             exceptionIfNotFound: Boolean = true,
             call: (TraceCallService) -> List<T>,
         ): List<T> {
-            if (skipGetTrace) return emptyList()
-
             delegates.forEach { delegate ->
                 try {
                     val result = call(delegate)
                     if (result.isNotEmpty()) return result
                 } catch (_: TraceNotFoundException) { }
             }
-            return if (exceptionIfNotFound) throw TraceNotFoundException("tx trace not found for hash: $tx") else emptyList()
+            return if (skipGetTrace) {
+                emptyList()
+            } else {
+                if (exceptionIfNotFound) throw TraceNotFoundException("tx trace not found for hash: $tx") else emptyList()
+            }
         }
     }
 }

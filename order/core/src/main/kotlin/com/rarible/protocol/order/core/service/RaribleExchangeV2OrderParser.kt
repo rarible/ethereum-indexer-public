@@ -33,10 +33,8 @@ class RaribleExchangeV2OrderParser(
         event: MatchEventRev3
     ): RaribleMatchedOrders? {
         val parsed = parse(txHash, txInput, event)
-        logger.info("[{}]: parsed={}", txHash, parsed.map { "left=${it.left.hash},right=${it.right.hash}" })
         val leftHash = Word.apply(event.leftHash())
         val rightHash = Word.apply(event.rightHash())
-        logger.info("[{}]: event: left={}, right={}", txHash, leftHash, rightHash)
         return parsed.firstOrNull { leftHash == it.left.hash && rightHash == it.right.hash }
     }
 
@@ -66,7 +64,6 @@ class RaribleExchangeV2OrderParser(
 
     private suspend fun parse(txHash: Word, txInput: Binary, event: Any): List<RaribleMatchedOrders> {
         val inputs = getInputs(txHash, txInput)
-        logger.info("[{}] inputs={}", txHash, inputs.size)
         val parsed = inputs.map { ExchangeV2OrderParser.parseMatchedOrders(it) }
         val forLog = { parsed.map { Triple(it, it.left.hash, it.right.hash) } }
         logger.info("Hash: $txHash; Event: $event; Parsed Matched Orders: ${forLog()}")
