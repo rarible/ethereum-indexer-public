@@ -26,7 +26,6 @@ import scalether.domain.request.Transaction
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
-import java.time.Duration
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -85,7 +84,7 @@ class MintsLogDescriptorIt : AbstractIntegrationTest() {
             .execute()
             .verifySuccess()
 
-        waitAssert(Duration.ofMinutes(30)) {
+        waitAssert {
             val transfers = nftItemHistoryRepository
                 .findItemsHistory(token = token.address())
                 .collectList().awaitFirst()
