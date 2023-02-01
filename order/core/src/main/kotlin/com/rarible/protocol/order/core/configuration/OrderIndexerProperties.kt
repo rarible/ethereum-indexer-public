@@ -123,6 +123,7 @@ data class OrderIndexerProperties(
         val skipEventsIfNoTraceFound: Boolean = false,
         val getPoolInfoFromChain: Boolean = true,
         val sudoswapEnabled: Boolean = true,
+        val markIgnoredEvent: Boolean = true
     )
 
     data class RaribleOrderExpirationProperties(

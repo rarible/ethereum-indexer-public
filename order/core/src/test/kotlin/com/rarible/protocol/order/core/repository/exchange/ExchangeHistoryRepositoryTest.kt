@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
@@ -37,6 +38,22 @@ internal class ExchangeHistoryRepositoryTest : AbstractIntegrationTest() {
 
         Assertions.assertThat(targetOrderVersions).hasSize(2)
         Assertions.assertThat(targetOrderVersions.map { (it.data as OrderExchangeHistory).hash }).containsExactlyInAnyOrder(history1.hash, history2.hash)
+    }
+
+    @Test
+    fun `get all - ignored events`() = runBlocking<Unit> {
+        val history1 = createOrderSideMatch().copy(source = HistorySource.OPEN_SEA, ignoredEvent = true)
+        val history2 = createOrderSideMatch().copy(source = HistorySource.OPEN_SEA, ignoredEvent = true)
+        val history3 = createOrderSideMatch().copy(source = HistorySource.OPEN_SEA)
+        val history4 = createOrderSideMatch().copy(source = HistorySource.RARIBLE, ignoredEvent = true)
+        save(history1, history2, history3, history4)
+
+        val targetHistory = exchangeHistoryRepository
+            .findIgnoredEvents(null, HistorySource.OPEN_SEA)
+            .toList()
+
+        Assertions.assertThat(targetHistory).hasSize(2)
+        Assertions.assertThat(targetHistory.map { (it.data as OrderExchangeHistory).hash }).containsExactlyInAnyOrder(history1.hash, history2.hash)
     }
 
     private suspend fun save(vararg history: OrderExchangeHistory) {
