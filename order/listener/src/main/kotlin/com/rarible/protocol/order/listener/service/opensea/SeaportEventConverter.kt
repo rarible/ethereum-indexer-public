@@ -6,6 +6,7 @@ import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.seaport.v1.SeaportV1
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.HistorySource
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.domain.response.Transaction
+import scalether.domain.response.Log
 import java.math.BigInteger
 import java.time.Instant
 
@@ -118,30 +120,39 @@ class SeaportEventConverter(
         transaction: Transaction
     ): Boolean {
         val txHash = transaction.hash()
+        val logIndex = event.log().logIndex()
+        val protocol = event.log().address()
+        val hash = Word.apply(event.orderHash())
+
         val advancedOrders = getMethodInput(
             event.log(),
             transaction,
             MATCH_ADVANCED_ORDERS_SIGNATURE_ID
         ).map { SeaportOrderParser.parseAdvancedOrders(it) }.flatten()
 
-        if (advancedOrders.isEmpty()) return false
-
-        require(advancedOrders.size == totalLogs) {
-            "Can't determine advanced orders amount in tx $txHash, expected $totalLogs, found ${advancedOrders.size}"
+        return if (advancedOrders.size == totalLogs) {
+            val advancedOrder = advancedOrders[index]
+            require(canFindAdvancedOrderCounter(advancedOrder.parameters, hash, protocol)) {
+                "Can't find counter to match hash, tx=$txHash, logIndex=${logIndex}"
+            }
+            advancedOrder.signature == Binary.empty()
+        } else {
+            var found = false
+            for (advancedOrder in advancedOrders) {
+                val isTargetOrder = canFindAdvancedOrderCounter(advancedOrder.parameters, hash, protocol)
+                found = isTargetOrder && advancedOrder.signature == Binary.empty()
+                if (found) break
+            }
+            found
         }
-        val advancedOrderEvent = advancedOrders[index]
-        val maxCounter = getMaxCounter(advancedOrderEvent.parameters.offerer, event.log().address())
-        require(canFindAdvancedOrderCounter(advancedOrderEvent.parameters, maxCounter, Word.apply(event.orderHash()))) {
-            "Can't find counter to match hash, tx=$txHash, logIndex=${event.log().logIndex()}"
-        }
-        return advancedOrderEvent.signature == Binary.empty()
     }
 
     private suspend fun canFindAdvancedOrderCounter(
         parameters: SeaportOrderParameters,
-        maxCounter: Long,
         expectedHash: Word,
+        protocol: Address
     ): Boolean {
+        val maxCounter = getMaxCounter(parameters.offerer, protocol)
         for (counter in maxCounter downTo 0L) {
             if (Order.seaportV1Hash(parameters, counter) == expectedHash) return true
         }
@@ -224,6 +235,19 @@ class SeaportEventConverter(
         }
         val totalValue = items.fold(BigInteger.ZERO) { acc, next -> acc + next.amount }
         return offererItem.withAmount(totalValue).toAsset()
+    }
+
+    private suspend fun getMethodInput(log: Log, transaction: Transaction, methodId: Binary): List<Binary> {
+        return if (methodId == transaction.input().methodSignatureId()) {
+            listOf(transaction.input())
+        } else {
+            traceCallService.safeFindAllRequiredCallInputs(
+                txHash = transaction.hash(),
+                txInput = transaction.input(),
+                to = log.address(),
+                ids = arrayOf(methodId)
+            )
+        }
     }
 
     private data class OrderAssets(val make: Asset, val take: Asset)

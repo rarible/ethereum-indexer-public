@@ -4,6 +4,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
@@ -20,7 +21,8 @@ class SeaportV1ExchangeDescriptor(
     contractsProvider: ContractsProvider,
     private val seaportEventConverter: SeaportEventConverter,
     private val seaportEventErrorCounter: RegisteredCounter,
-    private val seaportFulfilledEventCounter: RegisteredCounter
+    private val seaportFulfilledEventCounter: RegisteredCounter,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) : ExchangeSubscriber<OrderSideMatch>(
     name = "os_fulfilled",
     topic = OrderFulfilledEvent.id(),
@@ -41,7 +43,9 @@ class SeaportV1ExchangeDescriptor(
         transaction: Transaction
     ): List<OrderSideMatch> {
         val adhoc = seaportEventConverter.isAdhocOrderEvent(event, index, totalLogs, transaction)
-        return if (adhoc) sideMatched.map { it.copy(ignoredEvent = true) } else sideMatched
+        return if (adhoc) {
+            if (featureFlags.markIgnoredEvent) sideMatched.map { it.copy(ignoredEvent = true) } else emptyList()
+        } else sideMatched
     }
 
     private fun recordMetric(sideMatches: List<OrderSideMatch>, log: Log) {

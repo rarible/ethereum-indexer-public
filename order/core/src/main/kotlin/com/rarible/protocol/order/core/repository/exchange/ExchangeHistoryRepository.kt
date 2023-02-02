@@ -153,6 +153,19 @@ class ExchangeHistoryRepository(
         return template.find(query, COLLECTION)
     }
 
+    fun findIgnoredEvents(from: String?, historySource: HistorySource): Flow<LogEvent> {
+        val criteria = when {
+            from != null -> Criteria.where("_id").gt(ObjectId(from))
+            else -> Criteria()
+        }
+        criteria
+            .and(LogEvent::data / OrderExchangeHistory::source).isEqualTo(historySource)
+            .and(LogEvent::data / OrderSideMatch::ignoredEvent).isEqualTo(true)
+
+        val query = Query(criteria).with(LOG_ID_SORT_ASC)
+        return template.find<LogEvent>(query, COLLECTION).asFlow()
+    }
+
     fun findAll(): Flux<LogEvent> {
         return template.findAll(COLLECTION)
     }
@@ -280,6 +293,8 @@ class ExchangeHistoryRepository(
                 LogEvent::logIndex.name,
                 LogEvent::minorLogIndex.name
             )
+
+        val LOG_ID_SORT_ASC: Sort = Sort.by("_id")
 
         val logger: Logger = LoggerFactory.getLogger(ExchangeHistoryRepository::class.java)
     }
