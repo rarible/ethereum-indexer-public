@@ -64,6 +64,6 @@ data class InconsistentItemsRepairProperties(
 data class UpdateSuspiciousItemsHandlerProperties(
     val enabled: Boolean = false,
     val chunkSize: Int = 100,
-    val handlePeriod: Duration = Duration.ofDays(14),
+    val handlePeriod: Duration = Duration.ofDays(3),
     val awakePeriod: Duration = Duration.ofHours(1)
 )
