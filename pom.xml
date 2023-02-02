@@ -22,7 +22,7 @@
     </repositories>
 
     <properties>
-        <revision>1.42</revision>
+        <revision>1.43</revision>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud-gateway.version>3.0.4</spring-cloud-gateway.version>
@@ -34,7 +34,7 @@
         <rarible.core.version>2.5.12</rarible.core.version>
         <rarible.blockchain.scanner.version>2.4.32</rarible.blockchain.scanner.version>
 
-        <rarible.protocol.ethereum.version>1.42.7</rarible.protocol.ethereum.version>
+        <rarible.protocol.ethereum.version>1.43.0</rarible.protocol.ethereum.version>
         <rarible.protocol.currency.version>1.38.3</rarible.protocol.currency.version>
         <opensea-client-starter.version>2.1.6</opensea-client-starter.version>
         <looksrare-client-starter.version>1.1.0</looksrare-client-starter.version>
