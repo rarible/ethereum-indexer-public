@@ -386,7 +386,7 @@ class OrderReduceService(
 
         if (this.isBid().not()) return this
         if (this.platform != Platform.RARIBLE) return this
-        if (this.status !in listOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE)) return this
+        if (this.status !in EXPIRED_BID_STATUSES) return this
         if (this.end != null) return this
         if (this.lastUpdateAt > expiredDate) return this
 
