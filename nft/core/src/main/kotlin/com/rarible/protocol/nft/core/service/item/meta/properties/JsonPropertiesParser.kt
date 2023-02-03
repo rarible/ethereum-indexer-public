@@ -14,17 +14,23 @@ object JsonPropertiesParser {
     private const val BASE_64_JSON_PREFIX = "data:application/json;base64,"
     private const val JSON_PREFIX = "data:application/json;utf8,"
 
+    private val emptyChars = "\uFEFF".toCharArray()
+
     private val mapper = ObjectMapper().registerKotlinModule()
         .enable(JsonReadFeature.ALLOW_TRAILING_COMMA.mappedFeature())
 
     fun parse(itemId: ItemId, data: String): ObjectNode = parse(itemId.decimalStringValue, data)
 
     fun parse(id: String, data: String): ObjectNode {
+        val trimmed = trim(data)
         return when {
-            data.startsWith(BASE_64_JSON_PREFIX) -> parseBase64(id, data.removePrefix(BASE_64_JSON_PREFIX))
-            data.startsWith(JSON_PREFIX) -> parseJson(id, data.removePrefix(JSON_PREFIX))
-            isRawJson(data.trim()) -> parseJson(id, data)
-            else -> throw MetaException("failed to parse properties from json: $data", status = MetaException.Status.UnparseableJson)
+            trimmed.startsWith(BASE_64_JSON_PREFIX) -> parseBase64(id, trimmed.removePrefix(BASE_64_JSON_PREFIX))
+            trimmed.startsWith(JSON_PREFIX) -> parseJson(id, trimmed.removePrefix(JSON_PREFIX))
+            isRawJson(trimmed) -> parseJson(id, trimmed)
+            else -> throw MetaException(
+                "failed to parse properties from json: $data",
+                status = MetaException.Status.UnparseableJson
+            )
         }
     }
 
@@ -54,6 +60,10 @@ object JsonPropertiesParser {
 
             throw MetaException(errorMessage, status = MetaException.Status.UnparseableJson)
         }
+    }
+
+    private fun trim(data: String): String {
+        return data.trim { it.isWhitespace() || it in emptyChars }
     }
 
 }
