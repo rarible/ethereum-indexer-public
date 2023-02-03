@@ -49,7 +49,6 @@ import com.rarible.protocol.order.core.model.order.OrderFilterSellByCollection
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByMaker
 import com.rarible.protocol.order.core.model.order.OrderFilterSort
-import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.BidsOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -548,22 +547,15 @@ class OrderController(
             EthUInt256(filter.tokenId),
             null,
             1
-        ).firstOrNull()
-
-        if (ammOrder == null) {
-            logger.info("Amm order for filter $filter not found, falling back to regular search")
-            return searchOrders(filter, continuation, size) // Nothing found, using regular search
-        }
+        ).firstOrNull() ?: return searchOrders(filter, continuation, size) // Nothing found, using regular search
 
         val matchesFilter = (filter.maker == null || ammOrder.maker == filter.maker)
             && (filter.currency == null || filter.currency == ammOrder.currency.token)
 
         // if AMM order found, this page should be the last anyway
         return if (matchesFilter) {
-            logger.info("Amm order for filter $filter found and matched, return it : $ammOrder")
             OrdersPaginationDto(listOf(orderDtoConverter.convert(ammOrder)), null)
         } else {
-            logger.info("Amm order for filter $filter found but not matched, return empty page")
             OrdersPaginationDto(emptyList(), null)
         }
     }
