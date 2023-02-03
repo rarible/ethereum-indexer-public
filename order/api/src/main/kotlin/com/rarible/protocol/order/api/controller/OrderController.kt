@@ -552,11 +552,11 @@ class OrderController(
         val matchesFilter = (filter.maker == null || ammOrder.maker == filter.maker)
             && (filter.currency == null || filter.currency == ammOrder.currency.token)
 
-        // if AMM order found, this page should be the last anyway
+        // TODO ideally, it should be inserted into search result here, if it satisfies
         return if (matchesFilter) {
             OrdersPaginationDto(listOf(orderDtoConverter.convert(ammOrder)), null)
         } else {
-            OrdersPaginationDto(emptyList(), null)
+            return searchOrders(filter, continuation, size)
         }
     }
 
