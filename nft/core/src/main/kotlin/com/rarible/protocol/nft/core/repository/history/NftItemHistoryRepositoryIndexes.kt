@@ -64,10 +64,10 @@ internal object NftItemHistoryRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    val BY_TYPE_STATUS_DATE_DEFINITION: Index = Index()
+    val BY_TYPE_STATUS_UPDATED_AT_DEFINITION: Index = Index()
         .on("${LogEvent::data.name}.${ItemHistory::type.name}", Sort.Direction.ASC)
         .on(LogEvent::status.name, Sort.Direction.ASC)
-        .on("${LogEvent::data.name}.${ItemTransfer::date.name}", Sort.Direction.ASC)
+        .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
@@ -88,6 +88,7 @@ internal object NftItemHistoryRepositoryIndexes {
         .on("_id", Sort.Direction.DESC)
         .background()
 
+    //TODO: Maybe this index should be removed
     val BY_UPDATED_AT_FIELD: Index = Index()
         .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
@@ -96,7 +97,7 @@ internal object NftItemHistoryRepositoryIndexes {
     val ALL_INDEXES = listOf(
         TRANSFER_FROM_DEFINITION,
         TRANSFER_TO_DEFINITION,
-        BY_TYPE_STATUS_DATE_DEFINITION,
+        BY_TYPE_STATUS_UPDATED_AT_DEFINITION,
         BY_COLLECTION_DEFINITION,
         BY_COLLECTION_TRANSFERS_DEFINITION,
         BY_COLLECTION_OWNER_DEFINITION,
