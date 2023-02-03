@@ -326,6 +326,7 @@ class OrderController(
             status = convertStatus(status),
             currency = currencyId?.let { Address.apply(currencyId) }
         )
+        logger
         val result = searchSellByItemIdOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
@@ -531,6 +532,7 @@ class OrderController(
         continuation: String?,
         size: Int?
     ): OrdersPaginationDto {
+        logger.info("Get sell orders by item: $filter")
         val statuses = filter.status ?: emptyList()
 
         // Works only for ACTIVE and SUDOSWAP orders without origin filter, otherwise AMM orders can't get into result
