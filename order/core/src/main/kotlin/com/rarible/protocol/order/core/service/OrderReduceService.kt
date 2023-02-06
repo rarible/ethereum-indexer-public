@@ -392,7 +392,7 @@ class OrderReduceService(
 
         if (
             //Bids witch were expired by 'end' time must be canceled also
-            (end != null && end < now) ||
+            (end != null && end > now) ||
             this.lastUpdateAt > expiredDate
        ) return this
 
