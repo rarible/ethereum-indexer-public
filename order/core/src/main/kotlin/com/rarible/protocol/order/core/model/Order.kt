@@ -875,3 +875,5 @@ internal val CONSIDERATION_ITEM_TYPE_HASH = keccak256(
     CONSIDERATION_ITEM_TYPE_STRING.toByteArray(StandardCharsets.UTF_8)
 )
 internal val ORDER_TYPE_HASH = keccak256(ORDER_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))
+
+val EXPIRED_BID_STATUSES = setOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE, OrderStatus.ENDED)

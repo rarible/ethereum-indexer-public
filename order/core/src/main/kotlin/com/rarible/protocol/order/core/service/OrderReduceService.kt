@@ -382,13 +382,19 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withBidExpire(): Order {
-        val expiredDate = Instant.now() - raribleOrderExpiration.bidExpirePeriod
-
         if (this.isBid().not()) return this
         if (this.platform != Platform.RARIBLE) return this
-        if (this.status !in listOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE)) return this
-        if (this.end != null) return this
-        if (this.lastUpdateAt > expiredDate) return this
+        if (this.status !in EXPIRED_BID_STATUSES) return this
+
+        val now = Instant.now()
+        val expiredDate = now - raribleOrderExpiration.bidExpirePeriod
+        val end = this.end?.let { Instant.ofEpochSecond(it) }
+
+        if (
+            //Bids witch were expired by 'end' time must be canceled also
+            (end != null && end < now) ||
+            this.lastUpdateAt > expiredDate
+       ) return this
 
         logger.info("Cancel rarible BID $id cause it expired after $expiredDate")
         return this.copy(

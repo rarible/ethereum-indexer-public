@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.test.ext.KafkaTest
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes
 import com.rarible.protocol.order.core.service.OrderReduceService
@@ -36,6 +37,7 @@ class MakeBidCanceledAfterExpiredJobTest {
         createOrderBid().copy(lastUpdateAt = Instant.now() - Duration.ofDays(31)), // not expired
         createOrderBid().copy(lastUpdateAt = Instant.now() - Duration.ofDays(60)), // expired
         createOrderBid().copy(lastUpdateAt = Instant.now() - Duration.ofDays(64)), // expired
+        createOrderBid().copy(lastUpdateAt = Instant.now(), end = (Instant.now() - Duration.ofDays(48)).epochSecond, status = OrderStatus.ENDED), // expired
         createOrderBid().copy(lastUpdateAt = Instant.now() - Duration.ofDays(59)), // not expired
     )
 
@@ -67,7 +69,7 @@ class MakeBidCanceledAfterExpiredJobTest {
 
             val notExpired = bids.map { it.hash }.filter { it !in expiredHashes }
 
-            assertThat(notExpired).hasSize(3)
+            assertThat(notExpired).hasSize(4)
 
             orderRepository.findAll(notExpired).collect {order ->
                 assertThat(order.cancelled).isFalse
