@@ -44,7 +44,11 @@ class OrderStartEndCheckerHandler(
         )
             .filter { order -> order.isNoLegacyOpenSea() }
             .collect { order ->
-                val saved = orderRepository.save(order.withUpdatedStatus(now))
+                val saved = orderRepository.save(
+                    order
+                        .cancelEndedBid()
+                        .withUpdatedStatus(now)
+                )
                 if (order.isEnded()) orderExpiredMetric.increment() else orderStartedMetric.increment()
                 logger.info("Change order ${saved.id} status to ${saved.status}")
                 val updateEvent = OrderUpdateEventDto(
