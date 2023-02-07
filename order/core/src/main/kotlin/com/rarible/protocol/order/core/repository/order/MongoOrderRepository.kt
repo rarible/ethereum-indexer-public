@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.EXPIRED_BID_STATUSES
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
@@ -278,7 +279,7 @@ class MongoOrderRepository(
         val idFiled = "_id"
         val criteria = (Order::take / Asset::type / AssetType::nft isEqualTo true)
             .and(Order::platform).isEqualTo(Platform.RARIBLE)
-            .and(Order::status).`in`(OrderStatus.ACTIVE, OrderStatus.INACTIVE)
+            .and(Order::status).`in`(EXPIRED_BID_STATUSES)
             .and(Order::lastUpdateAt).lte(before)
 
         val query = Query.query(criteria)

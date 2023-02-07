@@ -51,8 +51,6 @@ sealed class ActivityItemHistoryFilter {
         private val reverted: Boolean
     ) : ActivityItemHistoryFilter() {
 
-        override val hint: Document = NftItemHistoryRepositoryIndexes.BY_TYPE_STATUS_DATE_DEFINITION.indexKeys
-
         override fun getCriteria(): Criteria {
             val status = if (reverted) LogEventStatus.REVERTED else LogEventStatus.CONFIRMED
             return (typeKey isEqualTo ItemType.TRANSFER)

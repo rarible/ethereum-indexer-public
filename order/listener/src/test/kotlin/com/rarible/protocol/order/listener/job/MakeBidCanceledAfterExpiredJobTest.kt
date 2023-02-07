@@ -1,20 +1,19 @@
 package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.test.ext.KafkaTest
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
-import com.rarible.protocol.order.listener.data.createOrderBid
+import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
+import com.rarible.protocol.order.listener.data.createBidOrderVersion
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
+import io.mockk.coEvery
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import java.time.Duration
 import java.time.Instant
 
@@ -23,55 +22,56 @@ import java.time.Instant
 class MakeBidCanceledAfterExpiredJobTest {
 
     @Autowired
-    private lateinit var orderRepository: OrderRepository
-
-    @Autowired
-    private lateinit var mongoTemplate: ReactiveMongoOperations
+    private lateinit var orderVersionRepository: OrderVersionRepository
 
     @Autowired
     private lateinit var reduceService: OrderReduceService
 
-    private val bids = listOf(
-        createOrderBid().copy(lastUpdateAt = Instant.now() - Duration.ofDays(58)), // not expired
-        createOrderBid().copy(lastUpdateAt = Instant.now() - Duration.ofDays(31)), // not expired
-        createOrderBid().copy(lastUpdateAt = Instant.now() - Duration.ofDays(60)), // expired
-        createOrderBid().copy(lastUpdateAt = Instant.now() - Duration.ofDays(64)), // expired
-        createOrderBid().copy(lastUpdateAt = Instant.now() - Duration.ofDays(59)), // not expired
-    )
+    @Autowired
+    private lateinit var properties: OrderIndexerProperties
 
-    @BeforeEach
-    internal fun setUp() {
-        mongoTemplate.dropCollection("order").block()
-        mongoTemplate.dropCollection("order_version").block()
-        bids.forEach {
-            runBlocking {
-                orderRepository.save(it)
-            }
+    @Autowired
+    private lateinit var assetBalanceProvider: AssetBalanceProvider
+
+    @Test
+    internal fun `cancel expired`() = runBlocking<Unit> {
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns null
+
+        val now = Instant.now()
+        val bidExpirePeriod = properties.raribleOrderExpiration.bidExpirePeriod
+        val expiredBids = run {
+            listOf(
+                createBidOrderVersion().copy(createdAt = now - bidExpirePeriod),
+                createBidOrderVersion().copy(createdAt = now - bidExpirePeriod - Duration.ofHours(1)),
+                createBidOrderVersion().copy(createdAt = now, end = (now - Duration.ofHours(1)).epochSecond),
+            )
         }
-        mongoTemplate.indexOps(Order::class.java)
-            .ensureIndex(OrderRepositoryIndexes.BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT).block()
+        expiredBids.forEach {
+            val hash = orderVersionRepository.save(it).awaitFirst().hash
+            val updatedOrder = reduceService.update(hash).collectList().awaitFirst().single()
+            assertThat(updatedOrder.cancelled).isTrue
+            assertThat(updatedOrder.status).isEqualTo(OrderStatus.CANCELLED)
+        }
     }
 
     @Test
-    internal fun `should cancel expired bids`() {
-        runBlocking {
-            val expiredHashes = orderRepository.findAllLiveBidsHashesLastUpdatedBefore(Instant.now() - Duration.ofDays(60)).toList()
+    internal fun `not cancel`() = runBlocking<Unit> {
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns null
 
-            assertThat(expiredHashes).hasSize(2)
-
-            expiredHashes.forEach {
-                reduceService.update(it).asFlow().collect {order ->
-                    assertThat(order.cancelled).isTrue
-                }
-            }
-
-            val notExpired = bids.map { it.hash }.filter { it !in expiredHashes }
-
-            assertThat(notExpired).hasSize(3)
-
-            orderRepository.findAll(notExpired).collect {order ->
-                assertThat(order.cancelled).isFalse
-            }
+        val now = Instant.now()
+        val bidExpirePeriod = properties.raribleOrderExpiration.bidExpirePeriod
+        val notExpiredBids = run {
+            listOf(
+                createBidOrderVersion().copy(createdAt = now),
+                createBidOrderVersion().copy(createdAt = now - bidExpirePeriod + Duration.ofHours(1)),
+                createBidOrderVersion().copy(createdAt = now, end = (now + Duration.ofHours(1)).epochSecond),
+            )
+        }
+        notExpiredBids.forEach {
+            val hash = orderVersionRepository.save(it).awaitFirst().hash
+            val updatedOrder = reduceService.update(hash).collectList().awaitFirst().single()
+            assertThat(updatedOrder.cancelled).isFalse
+            assertThat(updatedOrder.status).isNotEqualTo(OrderStatus.CANCELLED)
         }
     }
 }
