@@ -388,22 +388,21 @@ class OrderReduceService(
 
         val now = Instant.now()
         val expiredDate = now - raribleOrderExpiration.bidExpirePeriod
-        val end = this.end?.let { Instant.ofEpochSecond(it) }
 
-        if (
+        return if (
             //Bids witch were expired by 'end' time must be canceled also
-            (end != null && end < now) ||
-            this.lastUpdateAt > expiredDate
-       ) return this
-
-        logger.info("Cancel rarible BID $id cause it expired after $expiredDate")
-        return this.copy(
-            status = OrderStatus.CANCELLED,
-            lastUpdateAt = Instant.now(),
-            dbUpdatedAt = Instant.now(),
-            cancelled = true,
-            lastEventId = accumulateEventId(this.lastEventId, "$expiredDate")
-        )
+            this.isEnded() ||
+            this.lastUpdateAt <= expiredDate
+        ) {
+            logger.info("Cancel rarible BID $id cause it expired after $expiredDate")
+            this.copy(
+                status = OrderStatus.CANCELLED,
+                lastUpdateAt = Instant.now(),
+                dbUpdatedAt = Instant.now(),
+                cancelled = true,
+                lastEventId = accumulateEventId(this.lastEventId, "$expiredDate")
+            )
+        } else this
     }
 
     private suspend fun Order.withFinalState(): Order {

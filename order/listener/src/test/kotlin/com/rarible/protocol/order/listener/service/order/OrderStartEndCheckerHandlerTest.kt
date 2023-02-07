@@ -49,11 +49,11 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should make order expired`() = runBlocking<Unit> {
+    fun `make expired - sell order`() = runBlocking<Unit> {
         val targetMaker = AddressFactory.create()
         val targetToken = AddressFactory.create()
-        val make = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
-        val take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val make = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val take = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
         val orderVersion = createOrderVersion().copy(
             maker = targetMaker,
             make = make,
@@ -74,11 +74,36 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should make order expired if it is already inactive`() = runBlocking<Unit> {
+    fun `make expired - bid order`() = runBlocking<Unit> {
         val targetMaker = AddressFactory.create()
         val targetToken = AddressFactory.create()
         val make = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
         val take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val orderVersion = createOrderVersion().copy(
+            maker = targetMaker,
+            make = make,
+            take = take,
+            start = nowMillis().minus(Duration.ofHours(1)).epochSecond,
+            end = nowMillis().plus(Duration.ofHours(1)).epochSecond
+        )
+        val order = orderUpdateService.save(orderVersion)
+        assertThat(order.status).isEqualTo(OrderStatus.ACTIVE)
+
+        // rewind end for matching expired query
+        mongo.updateMulti(Query(), Update().set("end", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
+        check(orderVersion.hash, OrderStatus.ACTIVE)
+
+        val updateTime = nowMillis()
+        handler.update(updateTime)
+        assertThat(check(orderVersion.hash, OrderStatus.CANCELLED)).isEqualTo(updateTime)
+    }
+
+    @Test
+    fun `should make order expired if it is already inactive`() = runBlocking<Unit> {
+        val targetMaker = AddressFactory.create()
+        val targetToken = AddressFactory.create()
+        val make = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val take = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
         val orderVersion = createOrderVersion().copy(
             maker = targetMaker,
             make = make,
@@ -243,8 +268,8 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
     fun `should change order status if order is alive with only end`() = runBlocking<Unit> {
         val targetMaker = AddressFactory.create()
         val targetToken = AddressFactory.create()
-        val make = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
-        val take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val make = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val take = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
         val orderVersion = createOrderVersion().copy(
             maker = targetMaker,
             make = make,
@@ -264,10 +289,12 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
     }
 
     suspend fun check(hash: Word, status: OrderStatus): Instant {
-        val v = mongo.findById<OrderShort>(hash, MongoOrderRepository.COLLECTION).awaitFirst()
-        assertThat(v.status).isEqualTo(status)
-        return v.lastUpdateAt
+        val savedOrder = mongo.findById<OrderShort>(hash, MongoOrderRepository.COLLECTION).awaitFirst()
+
+        assertThat(savedOrder.status).isEqualTo(status)
+        assertThat(savedOrder.cancelled).isEqualTo(savedOrder.status == OrderStatus.CANCELLED)
+        return savedOrder.lastUpdateAt
     }
 
-    data class OrderShort(val status: OrderStatus, val lastUpdateAt: Instant)
+    data class OrderShort(val status: OrderStatus, val lastUpdateAt: Instant, val cancelled: Boolean)
 }
