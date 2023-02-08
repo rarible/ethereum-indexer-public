@@ -13,6 +13,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.time.delay
+import java.time.Instant
 
 class RaribleBidsCanceledAfterExpiredJob(
     private val orderRepository: OrderRepository,
@@ -26,13 +27,14 @@ class RaribleBidsCanceledAfterExpiredJob(
     DaemonWorkerProperties(pollingPeriod = properties.raribleExpiredBidWorker.pollingPeriod)
 ) {
     private val delayPeriod = raribleOrderExpiration.delayPeriod
-    private val fixedExpireDate = raribleOrderExpiration.fixedExpireDate
+    private val bidExpirePeriod = raribleOrderExpiration.bidExpirePeriod
 
     override suspend fun handle() {
-        orderRepository.findAllLiveBidsHashesLastUpdatedBefore(fixedExpireDate).collect {
+        val before = Instant.now() - bidExpirePeriod
+        orderRepository.findAllLiveBidsHashesLastUpdatedBefore(before).collect {
             fixOrder(it)
             orderUpdateService.update(it)
-            logger.info("Found expire bid $it after $fixedExpireDate, bid is cancelled.")
+            logger.info("Found expire bid $it after $before, bid is cancelled.")
         }
         delay(delayPeriod)
     }

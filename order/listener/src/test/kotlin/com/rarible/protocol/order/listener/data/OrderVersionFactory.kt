@@ -2,6 +2,8 @@ package com.rarible.protocol.order.listener.data
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.data.randomErc20
+import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.model.*
 import scalether.domain.AddressFactory
 import java.math.BigInteger
@@ -30,4 +32,8 @@ fun createOrderVersion(): OrderVersion {
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
         signature = null
     )
+}
+
+fun createBidOrderVersion(): OrderVersion {
+    return createOrderVersion().copy(make = randomErc20(), take = randomErc721())
 }

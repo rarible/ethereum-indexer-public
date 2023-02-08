@@ -8,6 +8,9 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
+import org.springframework.data.mongodb.core.index.PartialIndexFilter
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.isEqualTo
 
 object ExchangeHistoryRepositoryIndexes {
 
@@ -98,6 +101,16 @@ object ExchangeHistoryRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    private val BY_SOURCE_IGNORED_EVENT_FIELD: Index = Index()
+        .on("${LogEvent::data.name}.${OrderSideMatch::source.name}", Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .partial(
+            PartialIndexFilter.of(
+                Criteria.where("${LogEvent::data.name}.${OrderSideMatch::ignoredEvent.name}").isEqualTo(true)
+            )
+        )
+        .background()
+
     val ALL_INDEXES = listOf(
         ALL_SELL_DEFINITION,
         RIGHT_SELL_DEFINITION,
@@ -112,5 +125,6 @@ object ExchangeHistoryRepositoryIndexes {
         AGGREGATION_DEFINITION,
         HASH_DEFINITION,
         BY_UPDATED_AT_FIELD,
+        BY_SOURCE_IGNORED_EVENT_FIELD,
     )
 }

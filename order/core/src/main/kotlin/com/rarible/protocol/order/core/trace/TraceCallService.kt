@@ -19,5 +19,12 @@ interface TraceCallService {
         to: Address,
         vararg ids: Binary
     ): List<Binary>
+
+    suspend fun safeFindAllRequiredCallInputs(
+        txHash: Word,
+        txInput: Binary,
+        to: Address,
+        vararg ids: Binary
+    ): List<Binary>
 }
 

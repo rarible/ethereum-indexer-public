@@ -166,6 +166,10 @@ data class Order(
 
     fun isEnded() = Companion.isEnded(end)
 
+    fun isEndedBid(): Boolean {
+        return isBid() && isEnded()
+    }
+
     fun isOptionalRoyalties(): Boolean {
         return when (platform) {
             Platform.SUDOSWAP -> true
@@ -208,6 +212,14 @@ data class Order(
             lastUpdateAt = maxOf(lastUpdateAt, state.lastUpdateAt),
             lastEventId = accumulateEventId(lastEventId, state.id.prefixed())
         )
+    }
+
+    fun cancelEndedBid(): Order {
+        return if (isEndedBid()) withCancel(true) else this
+    }
+
+    fun withCancel(cancel: Boolean): Order {
+        return copy(cancelled = cancel)
     }
 
     companion object {
@@ -875,3 +887,5 @@ internal val CONSIDERATION_ITEM_TYPE_HASH = keccak256(
     CONSIDERATION_ITEM_TYPE_STRING.toByteArray(StandardCharsets.UTF_8)
 )
 internal val ORDER_TYPE_HASH = keccak256(ORDER_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))
+
+val EXPIRED_BID_STATUSES = setOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE, OrderStatus.ENDED)

@@ -66,7 +66,7 @@ class RaribleExchangeV2OrderParser(
         val inputs = getInputs(txHash, txInput)
         val parsed = inputs.map { ExchangeV2OrderParser.parseMatchedOrders(it) }
         val forLog = { parsed.map { Triple(it, it.left.hash, it.right.hash) } }
-        logger.info("Hash: $txHash; Event: $event; Parsed Matched Orders: $forLog")
+        logger.info("Hash: $txHash; Event: $event; Parsed Matched Orders: ${forLog()}")
         return parsed
     }
 
