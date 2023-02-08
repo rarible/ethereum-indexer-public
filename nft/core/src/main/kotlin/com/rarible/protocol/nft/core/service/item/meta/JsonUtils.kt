@@ -5,6 +5,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import java.time.Instant
 
+fun JsonNode.getText(vararg paths: List<String>): String? {
+    for (path in paths) {
+        val current = path.fold(this) { node, subPath -> node.path(subPath) }
+        if (current.isTextual || current.isNumber) {
+            return current.asText()
+        }
+    }
+    return null
+}
+
 fun JsonNode.getText(vararg paths: String): String? {
     for (path in paths) {
         val current = this.path(path)

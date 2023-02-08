@@ -15,12 +15,14 @@ object ContentBuilder {
         imageOriginal: String? = null,
         imageBig: String? = null,
         imagePreview: String? = null,
+        imagePortrait: String? = null,
         videoOriginal: String? = null
     ): ItemMetaContent {
         return ItemMetaContent(
             imageOriginal = imageOriginal?.cleanUrl()?.let { toImage(it, Representation.ORIGINAL) },
             imageBig = imageBig?.cleanUrl()?.let { toImage(it, Representation.BIG) },
             imagePreview = imagePreview?.cleanUrl()?.let { toImage(it, Representation.PREVIEW) },
+            imagePortrait = imagePortrait?.cleanUrl()?.let { toImage(it, Representation.PORTRAIT) },
             videoOriginal = videoOriginal?.cleanUrl()?.let { toVideo(it, Representation.ORIGINAL) }
         )
     }
