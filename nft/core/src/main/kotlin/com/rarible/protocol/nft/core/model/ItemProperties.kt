@@ -41,6 +41,7 @@ data class ItemMetaContent(
     val imageOriginal: EthMetaContent? = null,
     val imageBig: EthMetaContent? = null,
     val imagePreview: EthMetaContent? = null,
+    val imagePortrait: EthMetaContent? = null,
     val videoOriginal: EthMetaContent? = null,
 ) {
 

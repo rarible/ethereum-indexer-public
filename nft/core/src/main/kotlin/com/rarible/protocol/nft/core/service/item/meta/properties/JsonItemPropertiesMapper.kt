@@ -34,16 +34,28 @@ object JsonItemPropertiesMapper {
         "image_preview",
         "image_preview_url"
     ).toTypedArray()
+
     private val FIELD_IMAGE_BIG = listOf(
         "imageBig",
         "image_big",
         "image_big_url"
     ).toTypedArray()
 
+    private val FIELD_IMAGE_PORTRAIT = listOf(
+        listOf("ledger_metadata", "ledger_stax_image"),
+    ).toTypedArray()
+
     private val FIELD_VIDEO_ORIGINAL = listOf(
         "animation",
         "animation_url",
         "animationUrl"
+    ).toTypedArray()
+
+    private val EXTERNAL_URI = listOf(
+        "external_url",
+        "external_uri",
+        "externalUrl",
+        "externalUri"
     ).toTypedArray()
 
     fun map(itemId: ItemId, node: ObjectNode): ItemProperties {
@@ -54,10 +66,12 @@ object JsonItemPropertiesMapper {
             rawJsonContent = node.toString(),
             content = ContentBuilder.getItemMetaContent(
                 imageOriginal = node.getText(*FIELD_IMAGE_ORIGINAL),
-                imageBig = node.getText(*FIELD_IMAGE_PREVIEW),
-                imagePreview = node.getText(*FIELD_IMAGE_BIG),
+                imageBig = node.getText(*FIELD_IMAGE_BIG),
+                imagePreview = node.getText(*FIELD_IMAGE_PREVIEW),
+                imagePortrait = node.getText(*FIELD_IMAGE_PORTRAIT),
                 videoOriginal = node.getText(*FIELD_VIDEO_ORIGINAL)
-            )
+            ),
+            externalUri = node.getText(*EXTERNAL_URI)
         )
     }
 }
