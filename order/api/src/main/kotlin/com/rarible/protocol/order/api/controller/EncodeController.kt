@@ -105,7 +105,7 @@ class EncodeController(
 
     private fun AssetType.toJson(): ObjectNode =
         factory.objectNode()
-            .put("assetClass", type.toString())
+            .put("assetClass", type.id.toString())
             .put("data", data.toString())
 
     companion object {
