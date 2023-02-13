@@ -34,7 +34,11 @@ class TransferLogsPostProcessor {
             .entries.associate { (hash, counts) ->
                 val value = valueByHash[hash]
                 val count = counts.reduce { acc, bigInteger -> acc + bigInteger }
-                hash to value?.divide(count)
+                if (count > BigInteger.ZERO) {
+                    hash to value?.divide(count)
+                } else {
+                    hash to null // this could be happened only in testnet
+                }
             }
 
         return ethereumLogs
