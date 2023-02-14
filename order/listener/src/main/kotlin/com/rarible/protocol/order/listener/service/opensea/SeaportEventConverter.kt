@@ -133,7 +133,7 @@ class SeaportEventConverter(
         return if (advancedOrders.size == totalLogs) {
             val advancedOrder = advancedOrders[index]
             require(canFindAdvancedOrderCounter(advancedOrder.parameters, hash, protocol)) {
-                "Can't find counter to match hash, tx=$txHash, logIndex=${logIndex}"
+                "Can't find counter to match hash, tx=$txHash, logIndex=${logIndex}, protocol=${protocol}, parameters=${advancedOrder.parameters}"
             }
             advancedOrder.signature == Binary.empty()
         } else {
