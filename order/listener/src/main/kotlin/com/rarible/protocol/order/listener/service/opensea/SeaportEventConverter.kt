@@ -154,7 +154,7 @@ class SeaportEventConverter(
     ): Boolean {
         val maxCounter = getMaxCounter(parameters.offerer, protocol)
         for (counter in maxCounter downTo 0L) {
-            if (Order.seaportV1Hash(parameters, counter) == expectedHash) return true
+            if (Order.seaportV1Hash(parameters.normalize(), counter) == expectedHash) return true
         }
         return false
     }
