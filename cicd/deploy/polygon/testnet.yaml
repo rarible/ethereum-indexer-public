@@ -5,7 +5,7 @@ polygon-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 1024
-      max_direct_memory_megabytes: 512
+      max_direct_memory_megabytes: 1024
 
 polygon-nft-listener:
   livenessProbe:

@@ -43,4 +43,8 @@ data class SeaportOrderParameters(
     override val salt: BigInteger,
     override val conduitKey: Word,
     val totalOriginalConsiderationItems: Long
-) : SeaportOrderData()
+) : SeaportOrderData() {
+    fun normalize(): SeaportOrderParameters {
+        return copy(consideration = consideration.take(totalOriginalConsiderationItems.toInt()))
+    }
+}
