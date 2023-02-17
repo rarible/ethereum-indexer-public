@@ -24,6 +24,6 @@ class BlurV1ExchangeDescriptor(
     contracts = contractsProvider.blurV1()
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
-        return blurEventConverter.convert(log, timestamp, transaction.input())
+        return blurEventConverter.convertToSideMatch(log, transaction, index, totalLogs, timestamp)
     }
 }

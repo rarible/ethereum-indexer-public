@@ -14,7 +14,7 @@ class BlurV1ExchangeCancelDescriptorTest : AbstractBlurDescriptorTest() {
         val cancels = listOf<OrderCancel>(mockk(), mockk())
 
         checkConversion(subscriber, cancels) { log, transaction, index, totalLogs, date ->
-            coEvery { blurEventConverter.convert(log, transaction, index, totalLogs, date) } returns cancels
+            coEvery { blurEventConverter.convertToCancel(log, transaction, index, totalLogs, date) } returns cancels
         }
     }
 }
