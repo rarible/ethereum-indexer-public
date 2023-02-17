@@ -136,24 +136,26 @@ class BlurEventConverter(
     ): List<OrderCancel> {
         val txHash = transaction.hash()
         val event = OrderCancelledEvent.apply(log)
-        val inputs = getMethodInput(
+        val blurOrders = getMethodInput(
             event.log(),
             transaction,
             BlurV1.cancelOrderSignature().id(),
             BlurV1.cancelOrdersSignature().id()
-        )
-        require(inputs.size == totalLogs) {
-            "Canceled orders in tx $txHash didn't match total events, inputs=${inputs.size}, totalLogs=$totalLogs"
+        ).map { BlurOrderParser.parserOrder(it, txHash) }.flatten()
+        require(blurOrders.size == totalLogs) {
+            "Canceled orders in tx $txHash didn't match total events, orders=${blurOrders.size}, totalLogs=$totalLogs"
         }
-        return BlurOrderParser.parserOrder(inputs[index], txHash).map {
+        return blurOrders[index].let {
             val assets = getOrderAssets(it)
-            OrderCancel(
-                hash = Word.apply(event.hash()),
-                maker = it.trader,
-                make = assets.make,
-                take = assets.take,
-                date = date,
-                source = HistorySource.BLUR
+            listOf(
+                OrderCancel(
+                    hash = Word.apply(event.hash()),
+                    maker = it.trader,
+                    make = assets.make,
+                    take = assets.take,
+                    date = date,
+                    source = HistorySource.BLUR
+                )
             )
         }
     }
