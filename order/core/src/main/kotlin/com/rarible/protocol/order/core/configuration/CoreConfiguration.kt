@@ -77,11 +77,11 @@ class CoreConfiguration {
         AuctionHistoryType.values().flatMap { it.topic }.associateWith { AuctionHistoryRepository.COLLECTION } +
         PoolHistoryType.values().flatMap { it.topic }.associateWith { PoolHistoryRepository.COLLECTION } +
         mapOf(
-            BlurNonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
-            NonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
+            //NonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION, //TODO: Activate after move to a new scanner
             CounterIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
             CancelAllOrdersEvent.id() to NonceHistoryRepository.COLLECTION,
-            ApprovalForAllEvent.id() to ApprovalHistoryRepository.COLLECTION
+            ApprovalForAllEvent.id() to ApprovalHistoryRepository.COLLECTION,
+            BlurNonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
         ),
         mongo
     )

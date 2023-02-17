@@ -44,7 +44,7 @@ enum class ItemType(
             MatchEvent.id(),
             MatchEventLegacy.id(),
             MatchEventDeprecated.id(),
-            OrdersMatchedEvent.id(),
+            // OrdersMatchedEvent.id(), //TODO: Activate after move to a new scanner
             FillEvent.id(),
             OrderFulfilledEvent.id(),
             PunkBoughtEvent.id(),
@@ -59,7 +59,7 @@ enum class ItemType(
             com.rarible.protocol.contracts.exchange.v1.CancelEvent.id(),
             com.rarible.protocol.contracts.exchange.v2.events.CancelEvent.id(),
             com.rarible.protocol.contracts.exchange.v2.events.CancelEventDeprecated.id(),
-            OrderCancelledEvent.id(),
+            //OrderCancelledEvent.id(), //TODO: Activate after move to a new scanner
             PunkNoLongerForSaleEvent.id(),
             PunkBidWithdrawnEvent.id(),
             PunkTransferEvent.id(),

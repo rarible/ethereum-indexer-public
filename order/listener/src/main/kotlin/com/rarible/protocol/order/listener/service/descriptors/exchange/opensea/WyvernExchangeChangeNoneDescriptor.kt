@@ -15,7 +15,7 @@ import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 
-@Service
+//@Service //TODO: Activate after move to a new scanner
 @CaptureSpan(type = SpanType.EVENT)
 class WyvernExchangeChangeNoneDescriptor(
     contractsProvider: ContractsProvider,
