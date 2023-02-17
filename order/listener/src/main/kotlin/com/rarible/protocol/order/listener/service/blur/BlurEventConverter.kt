@@ -139,7 +139,8 @@ class BlurEventConverter(
         val inputs = getMethodInput(
             event.log(),
             transaction,
-            BlurV1.cancelOrderSignature().id(), BlurV1.cancelOrderSignature().id()
+            BlurV1.cancelOrderSignature().id(),
+            BlurV1.cancelOrdersSignature().id()
         )
         require(inputs.size == totalLogs) {
             "Canceled orders in tx $txHash didn't match total events, inputs=${inputs.size}, totalLogs=$totalLogs"
