@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.core.parser
 
+import com.rarible.core.test.data.randomWord
 import com.rarible.protocol.order.core.model.BlurOrderSide
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
@@ -10,7 +12,7 @@ import java.math.BigInteger
 class BlurOrderParserTest {
     @Test
     fun `parse cancel order tx`() {
-        val blurOrders = BlurOrderParser.parserOrder(cancelOrderTx)
+        val blurOrders = BlurOrderParser.parserOrder(cancelOrderTx, Word.apply(randomWord()))
         assertThat(blurOrders).hasSize(1)
 
         val order = blurOrders.single()

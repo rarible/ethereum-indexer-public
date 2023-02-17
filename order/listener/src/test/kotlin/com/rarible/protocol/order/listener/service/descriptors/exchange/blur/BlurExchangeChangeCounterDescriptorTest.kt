@@ -14,7 +14,7 @@ class BlurExchangeChangeCounterDescriptorTest : AbstractBlurDescriptorTest() {
         val changes = listOf<ChangeNonceHistory>(mockk(), mockk())
 
         checkConversion(subscriber, changes) { log, _, _, _, date ->
-            coEvery { blurEventConverter.convert(log, date) } returns changes
+            coEvery { blurEventConverter.convertChangeNonce(log, date) } returns changes
         }
     }
 }

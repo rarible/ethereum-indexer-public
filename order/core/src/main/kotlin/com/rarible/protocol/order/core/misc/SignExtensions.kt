@@ -18,6 +18,11 @@ fun Sign.SignatureData.fixV(): Sign.SignatureData {
     }
 }
 
+fun buildSignature(v: Byte, r: Binary, s: Binary): Binary {
+    return Binary.apply(byteArrayOf(v)).add(s).add(r)
+}
+
 fun Sign.SignatureData.toTuple() =
     Tuple3(v.toInt().toBigInteger(), r, s)
 
+val EMPTY_SIGNATURE = Sign.SignatureData(0, ByteArray(32), ByteArray(32))

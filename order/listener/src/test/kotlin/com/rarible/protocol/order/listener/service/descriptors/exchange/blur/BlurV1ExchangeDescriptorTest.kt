@@ -13,8 +13,8 @@ class BlurV1ExchangeDescriptorTest : AbstractBlurDescriptorTest() {
     fun `convert cancel`() = runBlocking<Unit> {
         val matches = listOf<OrderSideMatch>(mockk(), mockk())
 
-        checkConversion(subscriber, matches) { log, transaction, _, _, date ->
-            coEvery { blurEventConverter.convert(log, date, transaction.input()) } returns matches
+        checkConversion(subscriber, matches) { log, transaction, index, totalLogs, date ->
+            coEvery { blurEventConverter.convertToSideMatch(log, transaction, index, totalLogs, date, ) } returns matches
         }
     }
 }

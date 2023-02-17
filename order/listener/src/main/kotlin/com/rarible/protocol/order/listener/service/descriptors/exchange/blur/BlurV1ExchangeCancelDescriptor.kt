@@ -24,6 +24,6 @@ class BlurV1ExchangeCancelDescriptor(
     contracts = contractsProvider.blurV1()
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderCancel> {
-        return blurEventConverter.convert(log, transaction, index, totalLogs, timestamp)
+        return blurEventConverter.convertToCancel(log, transaction, index, totalLogs, timestamp)
     }
 }

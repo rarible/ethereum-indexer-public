@@ -13,6 +13,7 @@ import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PartConverter
+import com.rarible.protocol.order.core.misc.EMPTY_SIGNATURE
 import com.rarible.protocol.order.core.misc.fixV
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.toSignatureData
@@ -434,7 +435,6 @@ class PrepareTxService(
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(PrepareTxService::class.java)
-        val EMPTY_SIGNATURE = Sign.SignatureData(0, ByteArray(32), ByteArray(32))
         val RARIBLE_PLATFORM_METADATA: ByteArray = Platform.RARIBLE.id.bytes()
     }
 }
