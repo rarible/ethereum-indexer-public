@@ -16,6 +16,8 @@ import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent as SeaportOrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
+import com.rarible.protocol.contracts.blur.v1.evemts.OrdersMatchedEvent as BlurOrdersMatchedEvent
+import com.rarible.protocol.contracts.exchange.blur.v1.OrderCancelledEvent as BlurOrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.x2y2.v1.EvCancelEvent
 import com.rarible.protocol.contracts.exchange.zero.ex.FillEvent
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
@@ -48,7 +50,8 @@ enum class ItemType(
             PunkBoughtEvent.id(),
             TakerAskEvent.id(),
             TakerBidEvent.id(),
-            EvInventoryEvent.id()
+            EvInventoryEvent.id(),
+            BlurOrdersMatchedEvent.id()
         )
     ),
     CANCEL(
@@ -62,7 +65,8 @@ enum class ItemType(
             PunkTransferEvent.id(),
             SeaportOrderCancelledEvent.id(),
             CancelMultipleOrdersEvent.id(),
-            EvCancelEvent.id()
+            EvCancelEvent.id(),
+            BlurOrderCancelledEvent.id()
         )
     ),
 }

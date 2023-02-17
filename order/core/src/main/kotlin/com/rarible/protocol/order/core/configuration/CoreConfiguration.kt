@@ -12,6 +12,7 @@ import com.rarible.protocol.contracts.exchange.looksrare.v1.CancelAllOrdersEvent
 import com.rarible.protocol.contracts.exchange.seaport.v1.CounterIncrementedEvent
 import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.converters.ConvertersPackage
+import com.rarible.protocol.contracts.exchange.blur.v1.NonceIncrementedEvent as BlurNonceIncrementedEvent
 import com.rarible.protocol.order.core.event.EventPackage
 import com.rarible.protocol.order.core.metric.MetricsPackage
 import com.rarible.protocol.order.core.model.AuctionHistoryType
@@ -76,6 +77,7 @@ class CoreConfiguration {
         AuctionHistoryType.values().flatMap { it.topic }.associateWith { AuctionHistoryRepository.COLLECTION } +
         PoolHistoryType.values().flatMap { it.topic }.associateWith { PoolHistoryRepository.COLLECTION } +
         mapOf(
+            BlurNonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
             NonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
             CounterIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
             CancelAllOrdersEvent.id() to NonceHistoryRepository.COLLECTION,

@@ -46,6 +46,7 @@ common:
     enable-auction: true
     sudoswapEnabled: true
     scanner-version: V2
+    blur-enabled: true
 
 listener:
   load-open-sea-orders: false
