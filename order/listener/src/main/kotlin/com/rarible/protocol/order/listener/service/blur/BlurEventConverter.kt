@@ -56,6 +56,10 @@ class BlurEventConverter(
             BlurV1.bulkExecuteSignature().id(),
         ).map { BlurOrderParser.parseExecutions(it, txHash) }.flatten()
 
+        //TODO: Remove this on PT-2288
+        if (executions.size != totalLogs) {
+            return emptyList()
+        }
         require(executions.size == totalLogs) {
             "Executions in tx $txHash didn't match total events, inputs=${executions.size}, totalLogs=$totalLogs"
         }
