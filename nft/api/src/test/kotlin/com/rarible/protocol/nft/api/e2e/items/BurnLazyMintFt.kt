@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.api.e2e.items
 
+import com.rarible.core.meta.resource.parser.UrlParser
 import com.rarible.ethereum.common.toBinary
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -78,6 +79,9 @@ class BurnLazyMintFt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var itemReduceService: ItemReduceService
+
+    @Autowired
+    private lateinit var urlParser: UrlParser
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
@@ -275,7 +279,9 @@ class BurnLazyMintFt : AbstractIntegrationTest() {
 
         val lazyItemPropertiesResolver = LazyItemPropertiesResolver(
             rariblePropertiesResolver,
-            lazyNftItemHistoryRepository
+            lazyNftItemHistoryRepository,
+            urlParser,
+            ipfsProperties
         )
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } coAnswers {
             val itemProperties = lazyItemPropertiesResolver.resolve(itemId) ?: return@coAnswers null

@@ -63,6 +63,7 @@ common:
   ipfs:
     ipfsGateway: "https://ipfs.io,https://nftstorage.link"
     ipfsPublicGateway: "https://rarible.mypinata.cloud"
+    ipfsLazyGateway: "https://nftstorage.link"
   feature-flags:
     scanner-version: V2
     reduce-version: V2
