@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
@@ -28,8 +29,21 @@ class LazyItemPropertiesResolver(
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
         val lazyTokenUri = getUriForLazyMintedItem(itemId) ?: return null
         val tokenUri = customiseIpfsGateway(lazyTokenUri)
-        logMetaLoading(itemId, "found the lazy item's URI: $tokenUri")
-        return rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri)
+        val replaced = lazyTokenUri != tokenUri
+        if (replaced) {
+            logMetaLoading(itemId, "found the lazy item's URI: $tokenUri (original: $lazyTokenUri)")
+        } else {
+            logMetaLoading(itemId, "found the lazy item's URI: $tokenUri")
+        }
+
+        rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri)?.let { return it }
+
+        // Try to get meta using original URL
+        if (replaced) {
+            return rariblePropertiesResolver.resolveByTokenUri(itemId, lazyTokenUri)
+                ?: throw ItemResolutionAbortedException()
+        }
+        throw ItemResolutionAbortedException()
     }
 
     private fun customiseIpfsGateway(uri: String): String {

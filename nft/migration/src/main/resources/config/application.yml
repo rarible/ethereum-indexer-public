@@ -44,8 +44,8 @@ common:
     maxNameLength: 1000
     maxDescriptionLength: 10000
   ipfs:
-    ipfsGateway: "https://ipfs.io,https://nftstorage.link"
-    ipfsPublicGateway: "https://rarible.mypinata.cloud"
+    ipfsGateway: "https://ipfs.io"
+    ipfsPublicGateway: "https://ipfs.io"
 
 api:
   opensea:

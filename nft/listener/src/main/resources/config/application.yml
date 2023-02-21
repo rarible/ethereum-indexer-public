@@ -61,8 +61,8 @@ common:
   contractAddresses:
     market:
   ipfs:
-    ipfsGateway: "https://ipfs.io,https://nftstorage.link"
-    ipfsPublicGateway: "https://rarible.mypinata.cloud"
+    ipfsGateway: "https://ipfs.io"
+    ipfsPublicGateway: "https://ipfs.io"
   scam-byte-codes:
     markers:
       - payloads:
