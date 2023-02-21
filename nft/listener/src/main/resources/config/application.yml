@@ -80,7 +80,7 @@ api:
   properties:
     api-url: https://api.rarible.com/images
     cache-timeout: 315360000000 # 10 years (effectively, forever)
-    request-timeout: 30000
+    request-timeout: 60000
     media-meta-timeout: 10000
   royalty:
     cache-timeout: 600000 # 10 min
