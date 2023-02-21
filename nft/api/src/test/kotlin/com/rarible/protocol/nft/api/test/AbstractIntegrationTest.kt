@@ -12,6 +12,7 @@ import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nft.api.client.NftTransactionControllerApi
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.HistoryTopics
@@ -108,6 +109,9 @@ abstract class AbstractIntegrationTest {
     @Autowired
     @Qualifier("mockMediaMetaService")
     protected lateinit var mockMediaMetaService: MediaMetaService
+
+    @Autowired
+    protected lateinit var ipfsProperties: NftIndexerProperties.IpfsProperties
 
     @LocalServerPort
     private var port: Int = 0
