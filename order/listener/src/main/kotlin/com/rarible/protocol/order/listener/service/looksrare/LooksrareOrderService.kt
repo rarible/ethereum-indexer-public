@@ -35,7 +35,7 @@ class LooksrareOrderService(
                 isOrderAsk = true,
                 startTime = listedBefore,
                 endTime = null,
-                status = listOf(Status.VALID),
+                status = null,
                 sort = Sort.NEWEST,
                 pagination = Pagination(first = properties.loadMaxSize, cursor = nextHash?.prefixed())
             )
@@ -52,7 +52,7 @@ class LooksrareOrderService(
             nextHash = lastLoadOrder?.hash
         } while (lastLoadOrder != null && lastLoadOrder.startTime > listedAfter)
 
-        return loadOrders.toList()
+        return loadOrders.toList().filter { it.status == Status.VALID }
     }
 
     private suspend fun getOrders(request: OrdersRequest): LooksrareOrders {
