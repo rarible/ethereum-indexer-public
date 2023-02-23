@@ -49,8 +49,8 @@ internal class LooksrareOrderServiceTest {
             looksrareClient.getOrders(
                 withArg {
                     assertThat(it.isOrderAsk).isTrue
-                    assertThat(it.startTime).isEqualTo(listedBefore)
-                    assertThat(it.endTime).isNull()
+                    assertThat(it.startTime).isNull()
+                    assertThat(it.endTime).isEqualTo(listedBefore)
                     assertThat(it.status).isEqualTo(listOf(Status.VALID))
                     assertThat(it.sort).isEqualTo(Sort.NEWEST)
                     assertThat(it.pagination?.first).isEqualTo(properties.loadMaxSize)

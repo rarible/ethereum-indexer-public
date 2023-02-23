@@ -33,8 +33,8 @@ class LooksrareOrderService(
         do {
             val request = OrdersRequest(
                 isOrderAsk = true,
-                startTime = listedBefore,
-                endTime = null,
+                startTime = null,
+                endTime = listedBefore,
                 status = listOf(Status.VALID),
                 sort = Sort.NEWEST,
                 pagination = Pagination(first = properties.loadMaxSize, cursor = nextHash?.prefixed())
