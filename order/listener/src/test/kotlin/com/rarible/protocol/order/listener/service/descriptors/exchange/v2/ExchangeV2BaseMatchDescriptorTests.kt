@@ -309,6 +309,115 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         }
     }
 
+    fun `test directAcceptBid`() = runBlocking {
+        val data = OrderRaribleV2DataV3Buy(
+            originFeeFirst = Part(randomAddress(), EthUInt256.of(150)),
+            originFeeSecond = null,
+            marketplaceMarker = Word.apply(randomWord()),
+            payout = null,
+        )
+        val bidOrder = OrderVersion(
+            maker = userSender1.from(),
+            taker = null,
+            make = Asset(Erc20AssetType(token1.address()), EthUInt256.TEN),
+            take = Asset(Erc721AssetType(token721.address(), EthUInt256.ONE), EthUInt256.ONE),
+            type = OrderType.RARIBLE_V2,
+            salt = EthUInt256.TEN,
+            start = null,
+            end = null,
+            data = data,
+            signature = null,
+            createdAt = nowMillis(),
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
+            makeUsd = null,
+            takeUsd = null
+        )
+        val rightOrderData = OrderRaribleV2DataV3Sell(
+            payout = null,
+            originFeeFirst = null,
+            originFeeSecond = null,
+            maxFeesBasePoint = EthUInt256.of(1000),
+            marketplaceMarker = data.marketplaceMarker
+        )
+
+        orderUpdateService.save(bidOrder)
+
+        token1.mint(userSender1.from(), BigInteger.TEN).execute().verifySuccess()
+        token721.mint(userSender2.from(), BigInteger.ONE, "test").execute().verifySuccess()
+
+        val signature = hashToSign(Order.hash(bidOrder)).sign(privateKey1)
+
+        exchange.directAcceptBid(Tuple15(
+            bidOrder.maker,
+            bidOrder.take.value.value, // bidNftAmount
+            bidOrder.take.type.type.id.bytes(),
+            bidOrder.take.type.data.bytes(),
+            bidOrder.make.value.value, // bidPaymentAmount
+            token1.address(),
+            bidOrder.salt.value,
+            bidOrder.start?.toBigInteger() ?: BigInteger.ZERO,
+            bidOrder.end?.toBigInteger() ?: BigInteger.ZERO,
+            bidOrder.data.toDataVersion(),
+            bidOrder.data.toEthereum().bytes(), // buy order data
+            signature.bytes(),
+            bidOrder.make.value.value, // sellOrderPaymentAmount
+            bidOrder.take.value.value, // sellOrderNftAmount
+            rightOrderData.toEthereum().bytes()
+        )).withSender(userSender2).execute().verifySuccess()
+
+        assertThat(fills(bidOrder.hash.bytes()).awaitFirst()).isEqualTo(BigInteger.ONE)
+
+
+        Wait.waitAssert {
+            val items = exchangeHistoryRepository.findByItemType(ItemType.ORDER_SIDE_MATCH).collectList().awaitFirst()
+            assertThat(items).hasSize(2)
+
+            val (left, right) = items.map { it.data as OrderSideMatch }.associateBy { it.side }
+                .let { it[OrderSide.LEFT] to it[OrderSide.RIGHT] }
+            assertThat(left).isNotNull; left!!
+            assertThat(right).isNotNull; right!!
+
+            assertThat(left.maker).isEqualTo(userSender2.from())
+            assertThat(left.fill).isEqualTo(EthUInt256.ONE)
+            assertThat(left.take).isEqualTo(bidOrder.make.copy(value = EthUInt256.TEN))
+            assertThat(left.make).isEqualTo(bidOrder.take.copy(value = EthUInt256.ONE))
+            assertThat(left.takeValue).isEqualTo(BigDecimal("0.000000000000000010"))
+            assertThat(left.makeValue).isEqualTo(BigDecimal(1))
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), left.date.toEpochMilli())
+            }
+
+            assertThat(right.maker).isEqualTo(bidOrder.maker)
+            assertThat(right.fill).isEqualTo(EthUInt256.ONE)
+            assertThat(right.take).isEqualTo(bidOrder.take.copy(value = EthUInt256.ONE))
+            assertThat(right.make).isEqualTo(bidOrder.make.copy(value = EthUInt256.TEN))
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), right.date.toEpochMilli())
+            }
+
+            assertThat(right.takeValue).isEqualTo(left.makeValue)
+            assertThat(right.makeValue).isEqualTo(left.takeValue)
+
+            assertThat(left.adhoc!!).isTrue
+            assertThat(right.counterAdhoc!!).isTrue
+
+            assertThat(right.adhoc!!).isFalse
+            assertThat(left.counterAdhoc!!).isFalse
+        }
+        Wait.waitAssert {
+            val filledOrder = orderRepository.findById(bidOrder.hash)
+            assertThat(filledOrder).isNotNull; filledOrder!!
+            assertThat(filledOrder.fill).isEqualTo(EthUInt256.ONE)
+            assertThat(filledOrder.makeStock).isEqualTo(EthUInt256.ZERO)
+            assertThat(filledOrder.status).isEqualTo(OrderStatus.FILLED)
+        }
+    }
+
     fun `test fully match order sell order - data V3`() = runBlocking {
         val data = OrderRaribleV2DataV3Sell(
             originFeeFirst = null,

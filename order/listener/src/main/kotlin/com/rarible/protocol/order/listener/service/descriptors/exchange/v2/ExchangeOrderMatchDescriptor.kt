@@ -60,6 +60,7 @@ class ExchangeOrderMatchDescriptor(
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(rightMake, rightTake, timestamp)
 
         val leftMaker = getOriginMaker(transactionOrders.left.maker, transactionOrders.left.data)
+            .takeUnless { it == Address.ZERO() } ?: transaction.from()
         val rightMaker = getOriginMaker(transactionOrders.right.maker, transactionOrders.right.data)
             .takeUnless { it == Address.ZERO() } ?: transaction.from()
         val leftAdhoc = transactionOrders.left.salt == EthUInt256.ZERO
