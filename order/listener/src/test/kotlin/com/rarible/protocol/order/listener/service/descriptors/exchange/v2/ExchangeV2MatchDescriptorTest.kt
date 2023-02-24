@@ -37,6 +37,11 @@ class ExchangeV2MatchDescriptorTest : ExchangeV2BaseMatchDescriptorTests() {
     }
 
     @Test
+    fun directAcceptBid() = runBlocking {
+        `test directAcceptBid`()
+    }
+
+    @Test
     fun `match order sell with zero right maker`() {
         `test match order sell with zero right maker`()
     }
