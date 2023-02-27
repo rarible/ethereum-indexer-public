@@ -36,8 +36,8 @@ internal class LooksrareOrderServiceTest {
         val listedBefore = Instant.now()
         val listedAfter = listedBefore - Duration.ofSeconds(10)
 
-        val order1 = randomLooksrareOrder()
-        val order2 = randomLooksrareOrder().copy(startTime = listedAfter - Duration.ofSeconds(1))
+        val order1 = randomLooksrareOrder().copy(status = Status.VALID)
+        val order2 = randomLooksrareOrder().copy(startTime = listedAfter - Duration.ofSeconds(1), status = Status.VALID)
 
         val result = LooksrareOrders(success = true, message = "", data = listOf(order1, order2))
         coEvery { looksrareClient.getOrders(any()) } returns LooksrareResult.success(result)
@@ -51,7 +51,7 @@ internal class LooksrareOrderServiceTest {
                     assertThat(it.isOrderAsk).isTrue
                     assertThat(it.startTime).isEqualTo(listedBefore)
                     assertThat(it.endTime).isNull()
-                    assertThat(it.status).isEqualTo(listOf(Status.VALID))
+                    assertThat(it.status).isNull()
                     assertThat(it.sort).isEqualTo(Sort.NEWEST)
                     assertThat(it.pagination?.first).isEqualTo(properties.loadMaxSize)
                     assertThat(it.pagination?.cursor).isNull()
@@ -65,10 +65,10 @@ internal class LooksrareOrderServiceTest {
         val listedBefore = Instant.now()
         val listedAfter = listedBefore - Duration.ofSeconds(10)
 
-        val order1 = randomLooksrareOrder()
-        val order2 = randomLooksrareOrder().copy(startTime = listedAfter + Duration.ofSeconds(1))
-        val order3 = randomLooksrareOrder()
-        val order4 = randomLooksrareOrder().copy(startTime = listedAfter - Duration.ofSeconds(1))
+        val order1 = randomLooksrareOrder().copy(status = Status.VALID)
+        val order2 = randomLooksrareOrder().copy(startTime = listedAfter + Duration.ofSeconds(1), status = Status.VALID)
+        val order3 = randomLooksrareOrder().copy(status = Status.VALID)
+        val order4 = randomLooksrareOrder().copy(startTime = listedAfter - Duration.ofSeconds(1), status = Status.VALID)
 
         val result1 = LooksrareOrders(success = true, message = "", data = listOf(order1, order2))
         val result2 = LooksrareOrders(success = true, message = "", data = listOf(order3, order4))
