@@ -28,7 +28,6 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
 @EnableMongock
 @Configuration
 @EnableContractService
-@EnableRaribleTask
 @EnableScaletherMongoConversions
 @EnableConfigurationProperties(Erc20ListenerProperties::class)
 @Import(ProducerConfiguration::class)
