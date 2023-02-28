@@ -64,7 +64,8 @@ data class NftIndexerProperties(
 
     data class IpfsProperties(
         val ipfsGateway: String,
-        val ipfsPublicGateway: String
+        val ipfsPublicGateway: String,
+        val ipfsLazyGateway: String? = null
     )
 
     data class CollectionProperties(

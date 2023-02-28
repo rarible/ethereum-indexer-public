@@ -44,8 +44,8 @@ common:
     maxNameLength: 1000
     maxDescriptionLength: 10000
   ipfs:
-    ipfsGateway: "https://ipfs.io,https://nftstorage.link"
-    ipfsPublicGateway: "https://rarible.mypinata.cloud"
+    ipfsGateway: "https://ipfs.io"
+    ipfsPublicGateway: "https://ipfs.io"
 
 api:
   opensea:
@@ -56,7 +56,7 @@ api:
   properties:
     api-url: https://api.rarible.com/images
     cache-timeout: 315360000000 # 10 years (effectively, forever)
-    request-timeout: 20000
+    request-timeout: 60000
     media-meta-timeout: 10000
   royalty:
     cache-timeout: 600000 # 10 min

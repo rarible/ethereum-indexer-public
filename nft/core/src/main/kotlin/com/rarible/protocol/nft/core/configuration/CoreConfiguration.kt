@@ -11,7 +11,6 @@ import com.rarible.core.meta.resource.parser.UrlParser
 import com.rarible.core.meta.resource.resolver.ConstantGatewayProvider
 import com.rarible.core.meta.resource.resolver.GatewayProvider
 import com.rarible.core.meta.resource.resolver.IpfsGatewayResolver
-import com.rarible.core.meta.resource.resolver.LegacyIpfsGatewaySubstitutor
 import com.rarible.core.meta.resource.resolver.RandomGatewayProvider
 import com.rarible.core.meta.resource.resolver.UrlResolver
 import com.rarible.ethereum.log.service.LogEventService
@@ -24,6 +23,9 @@ import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.Package
+import com.rarible.protocol.nft.core.service.item.meta.ipfs.EthereumCustomIpfsGatewayResolver
+import com.rarible.protocol.nft.core.service.item.meta.ipfs.LazyItemIpfsGatewayResolver
+import net.logstash.logback.util.StringUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -105,13 +107,17 @@ class CoreConfiguration(
 
     @Bean
     fun urlResolver(
-        internalGatewayProvider: GatewayProvider
+        internalGatewayProvider: GatewayProvider,
+        ipfs: NftIndexerProperties.IpfsProperties
     ): UrlResolver {
         val publicGatewayProvider = ConstantGatewayProvider(
-            properties.ipfs.ipfsPublicGateway.trimEnd('/')
+            ipfs.ipfsPublicGateway.trimEnd('/')
         )
 
-        val customGatewaysResolver = LegacyIpfsGatewaySubstitutor(emptyList()) // For handle Legacy gateways
+        val lazyGateway = StringUtils.trimToNull(ipfs.ipfsLazyGateway)
+        val customGatewaysResolver = EthereumCustomIpfsGatewayResolver(listOfNotNull(
+            lazyGateway?.let { LazyItemIpfsGatewayResolver(it) }
+        ))
 
         return UrlResolver(
             ipfsGatewayResolver = IpfsGatewayResolver(

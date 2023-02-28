@@ -328,6 +328,10 @@ class OpenSeaOrderConverter(
                     logger.info("Unsupported OpenSea order: $openSeaOrder")
                     return null
                 }
+                else -> {
+                    logger.info("Can't detect asset type: $openSeaOrder")
+                    return null
+                }
             },
             value = EthUInt256.of(openSeaOrder.quantity)
         )

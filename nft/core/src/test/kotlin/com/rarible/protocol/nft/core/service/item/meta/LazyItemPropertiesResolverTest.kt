@@ -4,6 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.data.randomItemProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
@@ -19,6 +20,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import reactor.kotlin.core.publisher.toFlux
+import scalether.domain.Address
 
 class LazyItemPropertiesResolverTest : BasePropertiesResolverTest() {
 
@@ -26,14 +28,50 @@ class LazyItemPropertiesResolverTest : BasePropertiesResolverTest() {
     private val rariblePropertiesResolverMock = mockk<RariblePropertiesResolver>()
     private val lazyItemPropertiesResolver = LazyItemPropertiesResolver(
         rariblePropertiesResolver = rariblePropertiesResolverMock,
-        lazyNftItemHistoryRepository = lazyNftItemHistoryRepository
+        lazyNftItemHistoryRepository = lazyNftItemHistoryRepository,
+        urlParser = urlParser,
+        ipfsProperties = NftIndexerProperties.IpfsProperties(
+            ipfsGateway = "http://privateipfs.com",
+            ipfsPublicGateway = "http://privateipfs.com",
+            ipfsLazyGateway = "http://lazygatewway.com"
+        )
     )
+    private val ipfsPath = "QmbpJhWFiwzNu7MebvKG3hrYiyWmSiz5dTUYMQLXsjT9vw"
 
     @Test
-    fun `lazy item properties resolver`() = runBlocking<Unit> {
+    fun `resolved - ok, regular url`() = runBlocking<Unit> {
         val token = randomAddress()
         val tokenId = EthUInt256(randomBigInt())
-        val tokenUri = "lazyTokenUri"
+        val itemId = ItemId(token, tokenId)
+        val tokenUri = "http://something.com/123"
+
+        mockLazyMint(token, tokenId, tokenUri)
+
+        val itemProperties = randomItemProperties()
+        coEvery { rariblePropertiesResolverMock.resolveByTokenUri(itemId, tokenUri) } returns itemProperties
+
+        val properties = lazyItemPropertiesResolver.resolve(itemId)
+        assertThat(properties).isEqualTo(itemProperties)
+    }
+
+    @Test
+    fun `resolved - ok, lazy ipfs url`() = runBlocking<Unit> {
+        val token = randomAddress()
+        val tokenId = EthUInt256(randomBigInt())
+        val itemId = ItemId(token, tokenId)
+        val tokenUri = "/ipfs/$ipfsPath"
+
+        mockLazyMint(token, tokenId, tokenUri)
+
+        val itemProperties = randomItemProperties()
+        val lazyTokenUri = "http://lazygatewway.com/ipfs/$ipfsPath"
+        coEvery { rariblePropertiesResolverMock.resolveByTokenUri(itemId, lazyTokenUri) } returns itemProperties
+
+        val properties = lazyItemPropertiesResolver.resolve(itemId)
+        assertThat(properties).isEqualTo(itemProperties)
+    }
+
+    private fun mockLazyMint(token: Address, tokenId: EthUInt256, tokenUri: String) {
         every {
             lazyNftItemHistoryRepository.find(any(), any(), any())
         } returns listOf(
@@ -49,11 +87,5 @@ class LazyItemPropertiesResolverTest : BasePropertiesResolverTest() {
                 signatures = emptyList()
             )
         ).toFlux()
-
-        val itemProperties = randomItemProperties()
-        val itemId = ItemId(token, tokenId)
-        coEvery { rariblePropertiesResolverMock.resolveByTokenUri(itemId, tokenUri) } returns itemProperties
-        val properties = lazyItemPropertiesResolver.resolve(itemId)
-        assertThat(properties).isEqualTo(itemProperties)
     }
 }

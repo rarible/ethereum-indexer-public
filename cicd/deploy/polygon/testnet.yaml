@@ -1,11 +1,22 @@
 global:
   network: rinkeby
 
+polygon-nft-api:
+  resources:
+    jvm:
+      max_direct_memory_megabytes: 128
+
 polygon-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 1024
+
+polygon-order-api:
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
 
 polygon-nft-listener:
   livenessProbe:

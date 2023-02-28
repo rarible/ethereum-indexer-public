@@ -13,7 +13,7 @@ import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.time.Instant
 
-@Service
+//@Service //TODO: Activate after move to a new scanner
 @CaptureSpan(type = SpanType.EVENT)
 class WyvernExchangeOrderMatchDescriptor(
     private val contractsProvider: ContractsProvider,

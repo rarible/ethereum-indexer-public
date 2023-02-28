@@ -45,7 +45,8 @@ common:
     check-on-chain-approve: true
     enable-auction: true
     sudoswapEnabled: true
-    scanner-version: V2
+    blur-enabled: true
+    scanner-version: V1
 
 listener:
   load-open-sea-orders: false

@@ -25,7 +25,6 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.service.converter.AbstractEventConverter
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
-import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -42,20 +41,38 @@ class BlurEventConverter(
     private val prizeNormalizer: PriceNormalizer,
 ) : AbstractEventConverter(traceCallService, featureFlags) {
 
-    suspend fun convert(
+    suspend fun convertToSideMatch(
         log: Log,
+        transaction: Transaction,
+        index: Int,
+        totalLogs: Int,
         date: Instant,
-        input: Bytes,
     ): List<OrderSideMatch> {
+        val txHash = transaction.hash()
+        val executions = getMethodInput(
+            log,
+            transaction,
+            BlurV1.executeSignature().id(),
+            BlurV1.bulkExecuteSignature().id(),
+        ).map { BlurOrderParser.parseExecutions(it, txHash) }.flatten()
+
+        //TODO: Remove this on PT-2288
+        if (executions.size != totalLogs) {
+            return emptyList()
+        }
+        require(executions.size == totalLogs) {
+            "Executions in tx $txHash didn't match total events, inputs=${executions.size}, totalLogs=$totalLogs"
+        }
+        val execution = executions[index]
         val event = OrdersMatchedEvent.apply(log)
 
         val sellOrder = BlurOrderParser.convert(event.sell())
         val sellHash = Word.apply(event.sellHash())
-        val isSellAdhoc = event.maker() != sellOrder.trader
+        val isSellAdhoc = execution.sell.isEmptySignature()
 
         val buyOrder = BlurOrderParser.convert(event.buy())
         val buyHash = Word.apply(event.buyHash())
-        val isBuyAdhoc = isSellAdhoc.not()
+        val isBuyAdhoc = execution.buy.isEmptySignature()
 
         val sellAssets = getOrderAssets(sellOrder)
         val buyAssets = getOrderAssets(buyOrder)
@@ -111,39 +128,43 @@ class BlurEventConverter(
                 externalOrderExecutedOnRarible = null,
             )
         )
-        return OrderSideMatch.addMarketplaceMarker(events, input)
+        return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
     }
 
-    suspend fun convert(
+    suspend fun convertToCancel(
         log: Log,
         transaction: Transaction,
         index: Int,
         totalLogs: Int,
         date: Instant
     ): List<OrderCancel> {
+        val txHash = transaction.hash()
         val event = OrderCancelledEvent.apply(log)
-        val inputs = getMethodInput(
+        val blurOrders = getMethodInput(
             event.log(),
             transaction,
-            BlurV1.cancelOrderSignature().id(), BlurV1.cancelOrderSignature().id()
-        )
-        require(inputs.size == totalLogs) {
-            "Canceled orders in tx ${transaction.hash()} didn't match total events, inputs=${inputs.size}, totalLogs=$totalLogs"
+            BlurV1.cancelOrderSignature().id(),
+            BlurV1.cancelOrdersSignature().id()
+        ).map { BlurOrderParser.parserOrder(it, txHash) }.flatten()
+        require(blurOrders.size == totalLogs) {
+            "Canceled orders in tx $txHash didn't match total events, orders=${blurOrders.size}, totalLogs=$totalLogs"
         }
-        return BlurOrderParser.parserOrder(inputs[index]).map {
+        return blurOrders[index].let {
             val assets = getOrderAssets(it)
-            OrderCancel(
-                hash = Word.apply(event.hash()),
-                maker = it.trader,
-                make = assets.make,
-                take = assets.take,
-                date = date,
-                source = HistorySource.BLUR
+            listOf(
+                OrderCancel(
+                    hash = Word.apply(event.hash()),
+                    maker = it.trader,
+                    make = assets.make,
+                    take = assets.take,
+                    date = date,
+                    source = HistorySource.BLUR
+                )
             )
         }
     }
 
-    suspend fun convert(
+    suspend fun convertChangeNonce(
         log: Log,
         date: Instant
     ): List<ChangeNonceHistory> {
@@ -190,4 +211,5 @@ class BlurEventConverter(
         val make: Asset,
         val take: Asset
     )
+
 }

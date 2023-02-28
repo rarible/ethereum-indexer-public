@@ -24,6 +24,6 @@ class BlurExchangeChangeCounterDescriptor(
     contracts = contractsProvider.blurV1()
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<ChangeNonceHistory> {
-        return blurEventConverter.convert(log, timestamp)
+        return blurEventConverter.convertChangeNonce(log, timestamp)
     }
 }

@@ -26,6 +26,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
@@ -44,6 +45,7 @@ internal class CancelOrdersOnNoneChangeIt : AbstractOpenSeaV1Test() {
     private lateinit var nonceBlockProcessor: NonceBlockProcessor
 
     @Test
+    @Disabled //TODO: Activate after move to a new scanner
     fun `should cancel Seaport maker orders`() = runBlocking {
         val userSender = prepareSender()
         orderIndexerProperties.exchangeContractAddresses.seaportV1 = exchangeV2.address()

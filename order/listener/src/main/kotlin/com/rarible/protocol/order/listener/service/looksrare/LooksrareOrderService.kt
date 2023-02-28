@@ -35,22 +35,24 @@ class LooksrareOrderService(
                 isOrderAsk = true,
                 startTime = listedBefore,
                 endTime = null,
-                status = listOf(Status.VALID),
+                status = null,
                 sort = Sort.NEWEST,
                 pagination = Pagination(first = properties.loadMaxSize, cursor = nextHash?.prefixed())
             )
-            logger.looksrareInfo("Load next: startTime=${request.startTime?.epochSecond}, cursor=${request.pagination?.cursor}")
-
+            logger.looksrareInfo(
+                "Load next: startTime=${request.startTime?.epochSecond}, listedAfter=${listedAfter.epochSecond}, listedBefore=${listedBefore.epochSecond}, cursor=${request.pagination?.cursor}"
+            )
             val result = getOrders(request)
             if (result.success.not()) throw IllegalStateException("$LOOKSRARE_LOG Can't load orders: ${result.message}")
             looksrareLoadCounter.increment(result.data.size)
             loadOrders.addAll(result.data)
 
             val lastLoadOrder = result.data.lastOrNull()
+            logger.looksrareInfo("Last load order startTime ${lastLoadOrder?.startTime?.epochSecond}")
             nextHash = lastLoadOrder?.hash
         } while (lastLoadOrder != null && lastLoadOrder.startTime > listedAfter)
 
-        return loadOrders.toList()
+        return loadOrders.toList().filter { it.status == Status.VALID }
     }
 
     private suspend fun getOrders(request: OrdersRequest): LooksrareOrders {

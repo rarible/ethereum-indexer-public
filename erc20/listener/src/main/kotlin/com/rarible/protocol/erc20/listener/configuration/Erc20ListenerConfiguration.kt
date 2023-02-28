@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.listener.configuration
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.reduce.blockchain.BlockchainSnapshotStrategy
 import com.rarible.core.reduce.service.ReduceService
+import com.rarible.core.task.EnableRaribleTask
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.erc20.core.configuration.ProducerConfiguration
