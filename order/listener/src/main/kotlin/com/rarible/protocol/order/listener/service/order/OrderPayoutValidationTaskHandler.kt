@@ -60,7 +60,7 @@ class OrderPayoutValidationTaskHandler(
 
         val query = Query(criteria)
             //.withHint(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys)
-            .with(Sort.by(Order::lastUpdateAt.name, "_id"))
+            .with(Sort.by(Sort.Direction.DESC, Order::lastUpdateAt.name, "_id"))
             .limit(1000)
 
         val orders = orderRepository.search(query)
