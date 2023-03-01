@@ -59,7 +59,7 @@ class TestEthereumBlockchainClient(
         return delegate.getFirstAvailableBlock()
     }
 
-    override suspend fun getLatestBlockNumber(): Long {
-        return delegate.getLatestBlockNumber()
+    override suspend fun getLastBlockNumber(): Long {
+        return delegate.getLastBlockNumber()
     }
 }
