@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.task.RunTask
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.dto.offchainEventMark
@@ -31,13 +32,14 @@ class OrderPayoutValidationTaskHandler(
     private val orderRepository: OrderRepository,
     private val orderStateRepository: OrderStateRepository,
     private val orderDtoConverter: OrderDtoConverter,
-    private val publisher: ProtocolOrderPublisher,
-
-    ) : TaskHandler<Long> {
+    private val publisher: ProtocolOrderPublisher
+) : TaskHandler<Long> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override val type = "ORDER_PAYOUT_VALIDATION_TASK"
+
+    override fun getAutorunParams(): List<RunTask> = listOf(RunTask(""))
 
     override fun runLongTask(from: Long?, param: String): Flow<Long> = flow {
         var updatedAt = from?.let { Instant.ofEpochMilli(it) } ?: nowMillis()
