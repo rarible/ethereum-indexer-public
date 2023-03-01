@@ -26,6 +26,7 @@ import java.time.Instant
 import java.util.UUID
 
 @Component
+@Deprecated("Delete after execution")
 class OrderPayoutValidationTaskHandler(
     private val orderRepository: OrderRepository,
     private val orderStateRepository: OrderStateRepository,
