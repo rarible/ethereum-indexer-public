@@ -6,10 +6,12 @@ import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.validator.PayoutValidator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -26,9 +28,11 @@ import java.util.UUID
 @Component
 class OrderPayoutValidationTaskHandler(
     private val orderRepository: OrderRepository,
+    private val orderStateRepository: OrderStateRepository,
     private val orderDtoConverter: OrderDtoConverter,
     private val publisher: ProtocolOrderPublisher,
-) : TaskHandler<Long> {
+
+    ) : TaskHandler<Long> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -69,6 +73,7 @@ class OrderPayoutValidationTaskHandler(
             .withCancel(true)
             .withUpdatedStatus()
 
+        orderStateRepository.save(OrderState(order.hash, true))
         val saved = orderRepository.save(cancelled)
         logger.info("Order ${saved.id} cancelled due to incorrect payouts")
 
