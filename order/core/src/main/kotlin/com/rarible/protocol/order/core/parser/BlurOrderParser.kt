@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.BlurFee
 import com.rarible.protocol.order.core.model.BlurInput
 import com.rarible.protocol.order.core.model.BlurOrder
 import com.rarible.protocol.order.core.model.BlurOrderSide
+import com.rarible.protocol.order.core.model.order.logger
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import scala.Tuple13
@@ -31,16 +32,21 @@ object BlurOrderParser {
     }
 
     fun parseExecutions(input: Binary, tx: Word): List<BlurExecution> {
-        return when (input.methodSignatureId()) {
-            BlurV1.executeSignature().id() -> {
-                val value = getDecodedValue(BlurV1.executeSignature(), input)
-                listOf(convert(value))
+        return try {
+            when (input.methodSignatureId()) {
+                BlurV1.executeSignature().id() -> {
+                    val value = getDecodedValue(BlurV1.executeSignature(), input)
+                    listOf(convert(value))
+                }
+                BlurV1.bulkExecuteSignature().id() -> {
+                    val values = getDecodedValue(BlurV1.bulkExecuteSignature(), input)
+                    values.map { convert(it) }
+                }
+                else -> throw IllegalArgumentException("Unsupported method in tx $tx")
             }
-            BlurV1.bulkExecuteSignature().id() -> {
-                val values = getDecodedValue(BlurV1.bulkExecuteSignature(), input)
-                values.map { convert(it) }
-            }
-            else -> throw IllegalArgumentException("Unsupported method in tx $tx")
+        } catch (ex: Throwable) {
+            logger.error("Can't parser Blur input for tx=$tx", ex)
+            emptyList()
         }
     }
 
