@@ -35,7 +35,17 @@ class OrderPayoutValidationTaskHandler(
     override val type = "ORDER_PAYOUT_VALIDATION_TASK"
 
     override fun runLongTask(from: Long?, param: String): Flow<Long> = flow {
-        val updatedAt = from?.let { Instant.ofEpochMilli(it) } ?: nowMillis()
+        var updatedAt = from?.let { Instant.ofEpochMilli(it) } ?: nowMillis()
+        do {
+            val nextUpdatedAt = next(updatedAt)
+            nextUpdatedAt?.let {
+                emit(updatedAt.toEpochMilli())
+                updatedAt = nextUpdatedAt
+            }
+        } while (nextUpdatedAt != null)
+    }
+
+    private suspend fun next(updatedAt: Instant): Instant? {
         val criteria = Criteria()
             .and(Order::platform.name).isEqualTo(Platform.RARIBLE)
             .and(Order::status.name).inValues(OrderStatus.ACTIVE, OrderStatus.INACTIVE, OrderStatus.NOT_STARTED)
@@ -51,7 +61,7 @@ class OrderPayoutValidationTaskHandler(
         orders.filter { !PayoutValidator.arePayoutsValid(it.data) }
             .forEach { cancelOrder(it) }
 
-        emit(orders.lastOrNull()?.lastUpdateAt?.toEpochMilli() ?: 0L) // Should not be null
+        return orders.lastOrNull()?.lastUpdateAt
     }
 
     private suspend fun cancelOrder(order: Order) {
