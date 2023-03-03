@@ -1,10 +1,13 @@
 package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.task.RunTask
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.OrderStatus
@@ -31,13 +34,14 @@ class OrderPayoutValidationTaskHandler(
     private val orderRepository: OrderRepository,
     private val orderStateRepository: OrderStateRepository,
     private val orderDtoConverter: OrderDtoConverter,
-    private val publisher: ProtocolOrderPublisher,
-
-    ) : TaskHandler<Long> {
+    private val publisher: ProtocolOrderPublisher
+) : TaskHandler<Long> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override val type = "ORDER_PAYOUT_VALIDATION_TASK"
+
+    override fun getAutorunParams(): List<RunTask> = listOf(RunTask(""))
 
     override fun runLongTask(from: Long?, param: String): Flow<Long> = flow {
         var updatedAt = from?.let { Instant.ofEpochMilli(it) } ?: nowMillis()
@@ -52,13 +56,14 @@ class OrderPayoutValidationTaskHandler(
 
     private suspend fun next(updatedAt: Instant): Instant? {
         val criteria = Criteria()
+            .and("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
             .and(Order::platform.name).isEqualTo(Platform.RARIBLE)
             .and(Order::status.name).inValues(OrderStatus.ACTIVE, OrderStatus.INACTIVE, OrderStatus.NOT_STARTED)
             .and(Order::lastUpdateAt.name).lt(updatedAt)
 
         val query = Query(criteria)
             //.withHint(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys)
-            .with(Sort.by(Order::lastUpdateAt.name, "_id"))
+            .with(Sort.by(Sort.Direction.DESC, Order::lastUpdateAt.name, "_id"))
             .limit(1000)
 
         val orders = orderRepository.search(query)
