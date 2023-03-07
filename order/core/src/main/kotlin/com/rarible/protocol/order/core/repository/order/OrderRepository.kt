@@ -1,24 +1,17 @@
 package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
-import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.reactive.awaitFirst
-import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
+import java.math.BigInteger
 import java.time.Instant
-import java.util.*
+import java.util.Date
 
 interface OrderRepository {
     /**
@@ -57,8 +50,6 @@ interface OrderRepository {
 
     suspend fun findOpenSeaHashesByMakerAndByNonce(maker: Address, fromIncluding: Long, toExcluding: Long): Flow<Word>
 
-    suspend fun findNotCanceledByMakerAndByCounter(maker: Address, counter: Long): Flow<Word>
-
     suspend fun findByTake(token: Address, tokenId: EthUInt256): Order?
 
     fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType>
@@ -71,9 +62,9 @@ interface OrderRepository {
 
     fun findActiveSaleOrdersHashesByMakerAndToken(maker: Address, token: Address, platform: Platform): Flow<Order>
 
-    fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<Long>): Flow<Order>
+    fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<BigInteger>): Flow<Order>
 
-    fun findNotCanceledByMakerAndCounterLtThen(platform: Platform, maker: Address, counter: Long): Flow<Word>
+    fun findNotCanceledByMakerAndCounterLtThen(platform: Platform, maker: Address, counter: BigInteger): Flow<Word>
 
     fun findExpiredOrders(now: Instant): Flow<Order>
 

@@ -5,7 +5,6 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderCounterableData
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import org.springframework.data.domain.Sort
@@ -13,7 +12,6 @@ import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.index.PartialIndexFilter
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.and
-import org.springframework.data.mongodb.core.query.exists
 import org.springframework.data.mongodb.core.query.isEqualTo
 
 object OrderRepositoryIndexes {
@@ -189,12 +187,22 @@ object OrderRepositoryIndexes {
 
     // --------------------- for updating status by start/end ---------------------//
 
+    // TODO TODO PT-2386 delete
+    @Deprecated("Replace with BY_PLATFORM_MAKER_COUNTER_HEX_STATUS")
     val BY_PLATFORM_MAKER_COUNTER_STATUS: Index = Index()
         .on(Order::platform.name, Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
-        .on("${Order::data.name}.${OrderCounterableData::counter.name}", Sort.Direction.ASC)
+        .on(MongoOrderRepository.COUNTER_KEY, Sort.Direction.ASC)
         .on(Order::status.name, Sort.Direction.ASC)
-        .partial(PartialIndexFilter.of(Order::data / OrderCounterableData::counter exists true))
+        .partial(PartialIndexFilter.of(Criteria(MongoOrderRepository.COUNTER_KEY).exists(true)))
+        .background()
+
+    val BY_PLATFORM_MAKER_COUNTER_HEX_STATUS: Index = Index()
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::maker.name, Sort.Direction.ASC)
+        .on(MongoOrderRepository.COUNTER_HEX_KEY, Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(Criteria(MongoOrderRepository.COUNTER_HEX_KEY).exists(true)))
         .background()
 
     // --------------------- Other ---------------------//
@@ -271,6 +279,7 @@ object OrderRepositoryIndexes {
 
         BY_STATUS_AND_END_START,
         BY_PLATFORM_MAKER_COUNTER_STATUS,
+        BY_PLATFORM_MAKER_COUNTER_HEX_STATUS,
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,

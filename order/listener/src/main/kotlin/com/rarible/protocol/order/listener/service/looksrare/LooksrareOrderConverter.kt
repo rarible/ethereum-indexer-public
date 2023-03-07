@@ -56,7 +56,8 @@ class LooksrareOrderConverter(
         val data = OrderLooksrareDataV1(
             minPercentageToAsk = looksrareOrder.minPercentageToAsk,
             params = if (looksrareOrder.params?.length() == 0) null else looksrareOrder.params,
-            counter = looksrareOrder.nonce.toLong(),
+            counter = looksrareOrder.nonce.toLong(), //
+            counterHex = EthUInt256(looksrareOrder.nonce),
             strategy = looksrareOrder.strategy
         )
         val (make, take) = kotlin.run {

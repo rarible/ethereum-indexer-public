@@ -103,7 +103,8 @@ class OrderTest {
                 zone = Address.apply("0x00000000e88fe2628ebc5da81d2b3cead633e89e"),
                 zoneHash = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000"),
                 conduitKey = Word.apply("0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000"),
-                counter = 0
+                counter = 0L,
+                counterHex = EthUInt256.ZERO
             )
         )
         assertThat(hash).isEqualTo(Binary.apply("0x52fc97e8de246fc3fbbc14082aac00d9b80561c5e2cce2914c71ec2fa873341a"))

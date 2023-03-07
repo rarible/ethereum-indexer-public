@@ -20,10 +20,10 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.TokenStandard
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.log
-import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -40,6 +40,7 @@ import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -325,7 +326,7 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
 
         coEvery { tokenStandardProvider.getTokenStandard(nftAssetType.token) } returns TokenStandard.ERC721
         coEvery {
-            orderRepository.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(1L))
+            orderRepository.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(BigInteger.ONE))
         } returns flowOf(previousOrder, currentOrder)
 
         val events = descriptorAsk.convert(log, transaction, date.epochSecond, 0, 0).toFlux().collectList()

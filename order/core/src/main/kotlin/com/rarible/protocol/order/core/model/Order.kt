@@ -619,7 +619,7 @@ data class Order(
 
         fun seaportV1Hash(
             data: SeaportOrderData,
-            counter: Long
+            counter: BigInteger
         ): Word {
             val offerHash = data.offer.map { offer ->
                 keccak256(
@@ -656,7 +656,7 @@ data class Order(
                     .add(data.zoneHash)
                     .add(Uint256Type.encode(data.salt))
                     .add(data.conduitKey)
-                    .add(Uint256Type.encode(counter.toBigInteger()))
+                    .add(Uint256Type.encode(counter))
             )
         }
 
@@ -679,7 +679,7 @@ data class Order(
                     zoneHash = data.zoneHash,
                     salt = salt,
                     conduitKey = data.conduitKey,
-                    counter = data.counter
+                    counter = data.getCounterValue().value
                 )
             )
         }

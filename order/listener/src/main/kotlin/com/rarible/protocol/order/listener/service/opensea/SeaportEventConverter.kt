@@ -30,8 +30,8 @@ import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import scalether.domain.response.Transaction
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 
@@ -153,15 +153,20 @@ class SeaportEventConverter(
         protocol: Address
     ): Boolean {
         val maxCounter = getMaxCounter(parameters.offerer, protocol)
-        for (counter in maxCounter downTo 0L) {
-            if (Order.seaportV1Hash(parameters.normalize(), counter) == expectedHash) return true
+        val max = if (maxCounter < BigInteger.valueOf(Long.MAX_VALUE)) {
+            maxCounter.toLong()
+        } else {
+            0L // TODO Deal with super big counter!
+        }
+        for (counter in max downTo 0L) { // TODO ???
+            if (Order.seaportV1Hash(parameters.normalize(), counter.toBigInteger()) == expectedHash) return true
         }
         return false
     }
 
-    private suspend fun getMaxCounter(maker: Address, contract: Address): Long {
+    private suspend fun getMaxCounter(maker: Address, contract: Address): BigInteger {
         val log = nonceHistoryRepository.findLatestNonceHistoryByMaker(maker, contract)
-        return (log?.data as? ChangeNonceHistory)?.newNonce?.value?.toLong() ?: 0
+        return (log?.data as? ChangeNonceHistory)?.newNonce?.value ?: BigInteger.ZERO
     }
 
     suspend fun convert(
@@ -207,10 +212,12 @@ class SeaportEventConverter(
         if (consideration.isEmpty()) return null
 
         val offererConsideration = consideration.first()
-        val totalConsiderationAmount = consideration.filter { it.itemType == offererConsideration.itemType }.sumOf { it.startAmount }
+        val totalConsiderationAmount =
+            consideration.filter { it.itemType == offererConsideration.itemType }.sumOf { it.startAmount }
 
         val make = offer.single().takeIf { it.isSupportedItem() } ?: return null
-        val take = offererConsideration.withStartAmount(totalConsiderationAmount).takeIf { it.isSupportedItem() } ?: return null
+        val take = offererConsideration.withStartAmount(totalConsiderationAmount).takeIf { it.isSupportedItem() }
+            ?: return null
         return OrderAssets(make.toAssetWithStartAmount(), take.toAssetWithStartAmount())
     }
 
@@ -253,13 +260,16 @@ class SeaportEventConverter(
     private data class OrderAssets(val make: Asset, val take: Asset)
 
     private companion object {
+
         @Suppress("HasPlatformType")
         val CANCEL_SIGNATURE = SeaportV1.cancelSignature()
+
         @Suppress("HasPlatformType")
         val CANCEL_SIGNATURE_ID = CANCEL_SIGNATURE.id()
 
         @Suppress("HasPlatformType")
         val MATCH_ADVANCED_ORDERS_SIGNATURE = SeaportV1.matchAdvancedOrdersSignature()
+
         @Suppress("HasPlatformType")
         val MATCH_ADVANCED_ORDERS_SIGNATURE_ID = MATCH_ADVANCED_ORDERS_SIGNATURE.id()
     }

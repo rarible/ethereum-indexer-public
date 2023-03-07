@@ -185,7 +185,9 @@ fun createOrderOpenSeaV1DataV1(): OrderOpenSeaV1DataV1 {
     )
 }
 
-fun createOrderBasicSeaportDataV1(): OrderBasicSeaportDataV1 {
+fun createOrderBasicSeaportDataV1(
+    counter: Long = randomLong()
+): OrderBasicSeaportDataV1 {
     return OrderBasicSeaportDataV1(
         protocol = randomAddress(),
         orderType = SeaportOrderType.values().random(),
@@ -194,7 +196,8 @@ fun createOrderBasicSeaportDataV1(): OrderBasicSeaportDataV1 {
         zone = randomAddress(),
         zoneHash = Word.apply(randomWord()),
         conduitKey = Word.apply(randomWord()),
-        counter = randomLong()
+        counter = counter,
+        counterHex = EthUInt256.of(counter)
     )
 }
 
@@ -311,12 +314,17 @@ fun createSudoSwapSellInfo(): SudoSwapSellInfo {
     )
 }
 
-fun createOrderLooksrareDataV1() = OrderLooksrareDataV1(
-    minPercentageToAsk = randomInt(),
-    strategy = randomAddress(),
-    counter = randomLong(),
-    params = randomBinary()
-)
+fun createOrderLooksrareDataV1(
+    counter: Long = randomLong()
+): OrderLooksrareDataV1 {
+    return OrderLooksrareDataV1(
+        minPercentageToAsk = randomInt(),
+        strategy = randomAddress(),
+        counter = counter,
+        counterHex = EthUInt256.of(counter),
+        params = randomBinary()
+    )
+}
 
 fun Order.withMakeFill(isMakeFill: Boolean = true): Order {
     val newData = data.withMakeFill(isMakeFill)
@@ -634,6 +642,7 @@ fun randomSeaportConsideration(): SeaportConsideration {
 }
 
 fun randomOrderBasicSeaportDataV1(): OrderBasicSeaportDataV1 {
+    val counter = randomLong()
     return OrderBasicSeaportDataV1(
         protocol = randomAddress(),
         orderType = SeaportOrderType.values().random(),
@@ -642,7 +651,8 @@ fun randomOrderBasicSeaportDataV1(): OrderBasicSeaportDataV1 {
         zone = randomAddress(),
         zoneHash = Word.apply(randomWord()),
         conduitKey = Word.apply(randomWord()),
-        counter = randomLong()
+        counter = counter,
+        counterHex = EthUInt256.of(counter),
     )
 }
 

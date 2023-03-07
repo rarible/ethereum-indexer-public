@@ -28,7 +28,7 @@ data class SeaportOrderComponents(
     override val zoneHash: Word,
     override val salt: BigInteger,
     override val conduitKey: Word,
-    val counter: Long
+    val counter: BigInteger
 ) : SeaportOrderData()
 
 data class SeaportOrderParameters(

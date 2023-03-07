@@ -38,6 +38,7 @@ import java.math.BigInteger
 
 @IntegrationTest
 internal class CancelOrdersOnNoneChangeIt : AbstractOpenSeaV1Test() {
+
     @Autowired
     private lateinit var nonceHistoryRepository: NonceHistoryRepository
 
@@ -61,35 +62,35 @@ internal class CancelOrdersOnNoneChangeIt : AbstractOpenSeaV1Test() {
             maker = userSender.from(),
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counter = 0, protocol = exchangeV2.address()),
+            data = createOrderBasicSeaportDataV1(counter = 0L).copy(protocol = exchangeV2.address()),
             createdAt = before
         )
         val orderVersion2 = createOrderVersion().copy(
             maker = userSender.from(),
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counter = 0, protocol = exchangeV2.address()),
+            data = createOrderBasicSeaportDataV1(counter = 0L).copy(protocol = exchangeV2.address()),
             createdAt = before
         )
         val orderVersion3 = createOrderVersion().copy(
             maker = userSender.from(),
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counter = 0, protocol = exchangeV2.address()),
+            data = createOrderBasicSeaportDataV1(counter = 0L).copy(protocol = exchangeV2.address()),
             createdAt = before
         )
         val orderVersion4 = createOrderVersion().copy(
             maker = userSender.from(),
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counter = 0, protocol = exchangeV2.address()),
+            data = createOrderBasicSeaportDataV1(counter = 0L).copy(protocol = exchangeV2.address()),
             createdAt = before
         )
         val orderVersion5 = createOrderVersion().copy(
             maker = userSender.from(),
             type = OrderType.LOOKSRARE,
             platform = Platform.LOOKSRARE,
-            data = createOrderLooksrareDataV1().copy(counter = 0),
+            data = createOrderLooksrareDataV1(counter = 0L),
             createdAt = before
         )
 
@@ -135,21 +136,21 @@ internal class CancelOrdersOnNoneChangeIt : AbstractOpenSeaV1Test() {
             maker = maker,
             type = OrderType.LOOKSRARE,
             platform = Platform.LOOKSRARE,
-            data = createOrderLooksrareDataV1().copy(counter = 0),
+            data = createOrderLooksrareDataV1(counter = 0L),
             createdAt = before
         )
         val orderVersion2 = createOrderVersion().copy(
             maker = maker,
             type = OrderType.LOOKSRARE,
             platform = Platform.LOOKSRARE,
-            data = createOrderLooksrareDataV1().copy(counter = 0),
+            data = createOrderLooksrareDataV1(counter = 0L),
             createdAt = before
         )
         val orderVersion3 = createOrderVersion().copy(
             maker = maker,
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counter = 0),
+            data = createOrderBasicSeaportDataV1(counter = 0L),
             createdAt = before
         )
         listOf(orderVersion1, orderVersion2, orderVersion3).forEach {

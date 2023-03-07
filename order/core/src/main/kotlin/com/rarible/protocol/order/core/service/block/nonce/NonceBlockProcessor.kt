@@ -41,7 +41,7 @@ class NonceBlockProcessor(
                     changeNonceListener.onNewMakerNonce(
                         event.source.toPlatform(),
                         event.maker,
-                        event.newNonce.value.toLong(),
+                        event.newNonce.value,
                         event.date
                     )
                 }
