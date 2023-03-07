@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.rarible.ethereum.domain.EthUInt256
@@ -30,6 +31,7 @@ import java.math.BigInteger
     JsonSubTypes.Type(value = OrderSudoSwapAmmDataV1::class, name = "SUDOSWAP_V1"),
 )
 sealed class OrderData {
+
     abstract val version: OrderDataVersion
 
     fun toDataVersion(): ByteArray? = version.ethDataType?.bytes()
@@ -50,9 +52,11 @@ data class OrderDataLegacy(
 
 sealed class OrderRaribleV2Data : OrderData()
 
-interface OrderCounterableData {
-    val counter: Long
-    fun isValidCounter(blockchainCounter: Long): Boolean
+interface OrderCountableData {
+
+    @JsonIgnore
+    fun getCounterValue(): EthUInt256
+    fun isValidCounter(blockchainCounter: BigInteger): Boolean
 }
 
 data class OrderRaribleV2DataV1(
@@ -102,6 +106,7 @@ data class OrderRaribleV2DataV2(
 }
 
 sealed class OrderRaribleV2DataV3 : OrderRaribleV2Data() {
+
     abstract val payout: Part?
     abstract val originFeeFirst: Part?
     abstract val originFeeSecond: Part?
@@ -172,21 +177,22 @@ data class OrderOpenSeaV1DataV1(
     val extra: BigInteger,
     val target: Address?,
     val nonce: Long?
-) : OrderCounterableData, OrderData() {
+) : OrderCountableData, OrderData() {
+
     @get:Transient
     override val version = OrderDataVersion.OPEN_SEA_V1_DATA_V1
 
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 
-    @get:Transient
-    override val counter: Long = nonce ?: 0
+    override fun getCounterValue() = EthUInt256.of(nonce ?: 0)
 
-    override fun isValidCounter(blockchainCounter: Long): Boolean {
-        return if (nonce == null) true else nonce == blockchainCounter
+    override fun isValidCounter(blockchainCounter: BigInteger): Boolean {
+        return if (nonce == null) true else nonce == blockchainCounter.toLong()
     }
 }
 
-sealed class OrderSeaportDataV1 : OrderCounterableData, OrderData() {
+sealed class OrderSeaportDataV1 : OrderCountableData, OrderData() {
+
     abstract val protocol: Address
     abstract val orderType: SeaportOrderType
     abstract val offer: List<SeaportOffer>
@@ -204,7 +210,9 @@ data class OrderBasicSeaportDataV1(
     override val zone: Address,
     override val zoneHash: Word,
     override val conduitKey: Word,
-    override val counter: Long
+    @Deprecated("should be replaced by counterHex") // TODO PT-2386
+    val counter: Long?,
+    val counterHex: EthUInt256?
 ) : OrderSeaportDataV1() {
 
     @get:Transient
@@ -212,8 +220,11 @@ data class OrderBasicSeaportDataV1(
 
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 
-    override fun isValidCounter(blockchainCounter: Long): Boolean {
-        return counter == blockchainCounter
+    override fun getCounterValue() = counterHex ?: counter?.let { EthUInt256.of(it) }
+    ?: throw UnsupportedOperationException("should never happen")
+
+    override fun isValidCounter(blockchainCounter: BigInteger): Boolean {
+        return getCounterValue().value == blockchainCounter
     }
 }
 
@@ -223,7 +234,7 @@ data class OrderX2Y2DataV1(
     val isBundle: Boolean,
     val side: Int,
     val orderId: BigInteger
-): OrderData() {
+) : OrderData() {
 
     @get:Transient
     override val version: OrderDataVersion
@@ -233,6 +244,7 @@ data class OrderX2Y2DataV1(
 }
 
 object OrderCryptoPunksData : OrderData() {
+
     @get:Transient
     override val version get() = OrderDataVersion.CRYPTO_PUNKS
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
@@ -246,19 +258,26 @@ data class OrderLooksrareDataV1(
     val minPercentageToAsk: Int,
     val strategy: Address,
     val params: Binary?,
-    override val counter: Long
-): OrderCounterableData, OrderData() {
+    @Deprecated("should be replaced by counterHex") // TODO PT-2386
+    val counter: Long?,
+    val counterHex: EthUInt256?
+) : OrderCountableData, OrderData() {
+
     @get:Transient
     override val version get() = OrderDataVersion.LOOKSRARE_V1
 
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 
-    override fun isValidCounter(blockchainCounter: Long): Boolean {
-        return counter >= blockchainCounter
+    override fun getCounterValue() = counterHex ?: counter?.let { EthUInt256.of(it) }
+    ?: throw UnsupportedOperationException("should never happen")
+
+    override fun isValidCounter(blockchainCounter: BigInteger): Boolean {
+        return getCounterValue().value >= blockchainCounter
     }
 }
 
-sealed class OrderAmmData: OrderData() {
+sealed class OrderAmmData : OrderData() {
+
     abstract val poolAddress: Address
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 }
@@ -273,7 +292,8 @@ data class OrderSudoSwapAmmDataV1(
     val spotPrice: BigInteger,
     val delta: BigInteger,
     val fee: BigInteger
-): OrderAmmData() {
+) : OrderAmmData() {
+
     @get:Transient
     override val version get() = OrderDataVersion.SUDOSWAP_V1
 }

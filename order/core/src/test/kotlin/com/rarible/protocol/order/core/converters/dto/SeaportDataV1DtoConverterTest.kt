@@ -17,7 +17,8 @@ internal class SeaportDataV1DtoConverterTest {
         assertThat(dto.zone).isEqualTo(source.zone)
         assertThat(dto.zoneHash).isEqualTo(source.zoneHash)
         assertThat(dto.conduitKey).isEqualTo(source.conduitKey)
-        assertThat(dto.counter).isEqualTo(source.counter)
+        assertThat(dto.counter).isEqualTo(source.getCounterValue().value.toLong())
+        assertThat(dto.nonce).isEqualTo(source.getCounterValue().value)
         assertThat(dto.offer).isEqualTo(source.offer.map { SeaportOfferDtoConverter.convert(it) })
         assertThat(dto.consideration).isEqualTo(source.consideration.map { SeaportConsiderationDtoConverter.convert(it) })
     }

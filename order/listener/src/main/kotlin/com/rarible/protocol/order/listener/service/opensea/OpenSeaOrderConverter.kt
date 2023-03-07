@@ -100,7 +100,8 @@ class OpenSeaOrderConverter(
                     zone = zone,
                     zoneHash = zoneHash,
                     conduitKey = conduitKey,
-                    counter = counter.toLong()
+                    counter = counter.toLong(),
+                    counterHex = EthUInt256(counter)
                 )
                 Triple(make, take, data)
             }

@@ -13,6 +13,7 @@ import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import scalether.domain.Address
+import java.math.BigInteger
 import java.time.Instant
 
 abstract class AbstractLooksrareExchangeDescriptor<T : EventData>(
@@ -26,7 +27,8 @@ abstract class AbstractLooksrareExchangeDescriptor<T : EventData>(
     topic = topic,
     contracts = contractsProvider.looksrareV1()
 ) {
-    protected suspend fun cancelUserOrders(date: Instant, maker: Address, nonces: List<Long>): List<OrderCancel> {
+
+    protected suspend fun cancelUserOrders(date: Instant, maker: Address, nonces: List<BigInteger>): List<OrderCancel> {
         val result = orderRepository.findByMakeAndByCounters(Platform.LOOKSRARE, maker, nonces).map {
             OrderCancel(
                 hash = it.hash,

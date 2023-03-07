@@ -7,6 +7,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.math.BigInteger
 import java.time.Instant
 
 @Component
@@ -15,8 +16,8 @@ class ChangeCounterListener(
     private val orderUpdateService: OrderUpdateService
 ) {
 
-    suspend fun onNewMakerNonce(platform: Platform, maker: Address, newNonce: Long, ts: Instant) {
-        require(newNonce > 0) {
+    suspend fun onNewMakerNonce(platform: Platform, maker: Address, newNonce: BigInteger, ts: Instant) {
+        require(newNonce > BigInteger.ZERO) {
             "Maker $maker nonce is less then zero $newNonce"
         }
         logger.info("New $platform counter $newNonce detected for maker $maker")

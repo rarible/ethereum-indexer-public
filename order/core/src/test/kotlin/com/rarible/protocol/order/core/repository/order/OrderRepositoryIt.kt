@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
+import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
 
@@ -163,7 +164,11 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         listOf(order0, order1, order2, order3, order4, order5, order6).forEach {
             delegate.save(it)
         }
-        val hashes = delegate.findNotCanceledByMakerAndByCounter(maker, counter).toList()
+        val hashes = delegate.findNotCanceledByMakerAndCounterLtThen(
+            Platform.OPEN_SEA,
+            maker,
+            BigInteger.valueOf(1L)
+        ).toList()
         assertThat(hashes).containsExactlyInAnyOrder(order1.hash, order2.hash)
     }
 
@@ -213,7 +218,13 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         listOf(order0, order1, order2, order3, order4, order5, order6).forEach {
             delegate.save(it)
         }
-        val hashes = delegate.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(counter1, counter2)).map { it.id }.toList()
+
+        val hashes = delegate.findByMakeAndByCounters(
+            Platform.LOOKSRARE,
+            maker,
+            listOf(BigInteger.valueOf(counter1), BigInteger.valueOf(counter2))
+        ).map { it.id }.toList()
+
         assertThat(hashes).containsExactlyInAnyOrder(order0.id, order1.id)
     }
 
@@ -242,7 +253,13 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         listOf(order0, order1, order2).forEach {
             delegate.save(it)
         }
-        val hashes = delegate.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(counter)).map { it.id }.toList()
+        val a = delegate.findById(order0.hash)
+        println(a)
+        val hashes = delegate.findByMakeAndByCounters(
+            Platform.LOOKSRARE,
+            maker,
+            listOf(BigInteger.valueOf(counter))
+        ).map { it.id }.toList()
         assertThat(hashes).containsExactlyInAnyOrder(order0.id)
     }
 

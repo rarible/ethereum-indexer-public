@@ -5,9 +5,9 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.log
-import com.rarible.protocol.order.core.service.ContractsProvider
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Transaction
+import java.math.BigInteger
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -49,7 +50,7 @@ internal class LooksrareV1ExchangeCancelDescriptorTest {
         )
         coEvery {
             orderRepository.findByMakeAndByCounters(
-                Platform.LOOKSRARE, order.maker, listOf(2)
+                Platform.LOOKSRARE, order.maker, listOf(BigInteger.valueOf(2))
             )
         } returns flow { emit(order) }
         val cancels = descriptor.convert(log, transaction, data.epochSecond, 0, 0).toFlux().collectList().awaitFirst()

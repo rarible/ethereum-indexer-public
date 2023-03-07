@@ -27,7 +27,7 @@ class LooksrareV1ExchangeCancelDescriptor(
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderCancel> {
         val event = CancelMultipleOrdersEvent.apply(log)
-        val nonces = event.orderNonces().map { it.toLong() }
+        val nonces = event.orderNonces().toList()
         val maker = event.user()
         return cancelUserOrders(timestamp, maker, nonces)
     }
