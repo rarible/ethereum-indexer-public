@@ -7,6 +7,7 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.math.BigInteger
 
 class SeaportOrderParserTest {
     @Test
@@ -39,7 +40,7 @@ class SeaportOrderParserTest {
             advanced[0].parameters.offer.single().token
         ).isEqualTo(SeaportOrderParser.convert(firstOrderMatch.offer()).single().token)
         assertThat(
-            Order.Companion.seaportV1Hash(advanced[0].parameters, 0)
+            Order.Companion.seaportV1Hash(advanced[0].parameters, BigInteger.ZERO)
         ).isEqualTo(Word.apply(firstOrderMatch.orderHash()))
 
         assertThat(
@@ -49,7 +50,7 @@ class SeaportOrderParserTest {
             advanced[1].parameters.consideration.single().token
         ).isEqualTo(SeaportOrderParser.convert(secondOrderMatch.consideration()).single().token)
         assertThat(
-            Order.seaportV1Hash(advanced[1].parameters, 0)
+            Order.seaportV1Hash(advanced[1].parameters, BigInteger.ZERO)
         ).isEqualTo(Word.apply(secondOrderMatch.orderHash()))
     }
 

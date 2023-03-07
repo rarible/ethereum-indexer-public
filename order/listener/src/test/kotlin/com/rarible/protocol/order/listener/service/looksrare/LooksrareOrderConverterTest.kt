@@ -70,6 +70,7 @@ internal class LooksrareOrderConverterTest {
             assertThat(minPercentageToAsk).isEqualTo(looksrareOrder.minPercentageToAsk)
             assertThat(params).isEqualTo(looksrareOrder.params)
             assertThat(counter).isEqualTo(looksrareOrder.nonce.toLong())
+            assertThat(counterHex!!.value).isEqualTo(looksrareOrder.nonce)
             assertThat(strategy).isEqualTo(looksrareOrder.strategy)
         }
     }

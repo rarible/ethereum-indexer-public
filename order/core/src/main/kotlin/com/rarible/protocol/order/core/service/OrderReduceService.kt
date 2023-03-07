@@ -335,9 +335,9 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withUpdatedCounter(): Order {
-        val data = this.data as? OrderCounterableData ?: return this
+        val data = this.data as? OrderCountableData ?: return this
         val makerCounter = nonceService.getLatestMakerNonce(this.maker, this.protocol)
-        return if (data.isValidCounter(makerCounter.nonce.value.toLong()).not()) {
+        return if (data.isValidCounter(makerCounter.nonce.value).not()) {
             logger.info("Cancel order $id as order counter is not match current maker counter ${makerCounter.nonce}")
             this.copy(
                 cancelled = true,

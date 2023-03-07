@@ -211,6 +211,7 @@ internal class OpenSeaOrderConverterTest {
             assertThat(this.zoneHash).isEqualTo(parameters.zoneHash)
             assertThat(this.conduitKey).isEqualTo(parameters.conduitKey)
             assertThat(this.counter).isEqualTo(parameters.counter.toLong())
+            assertThat(this.counterHex!!.value).isEqualTo(parameters.counter)
             assertThat(this.offer.single().token).isEqualTo(offer.token)
             assertThat(this.consideration[0].token).isEqualTo(consideration1.token)
             assertThat(this.consideration[1].token).isEqualTo(consideration1.token)

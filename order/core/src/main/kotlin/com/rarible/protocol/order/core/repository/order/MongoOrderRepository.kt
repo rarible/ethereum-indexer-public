@@ -12,9 +12,7 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
-import com.rarible.protocol.order.core.model.OrderCounterableData
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
-import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes.SELL_ORDERS_BY_CURRENCY_COLLECTION_DEFINITION
@@ -45,6 +43,7 @@ import org.springframework.data.mongodb.core.query.ne
 import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.math.BigInteger
 import java.time.Instant
 import java.util.Date
 
@@ -209,33 +208,22 @@ class MongoOrderRepository(
             .asFlow()
     }
 
-    @Deprecated("should use 'findNotCanceledByMakerAndCounterLtThen'")
-    override suspend fun findNotCanceledByMakerAndByCounter(maker: Address, counter: Long): Flow<Word> {
+    override fun findNotCanceledByMakerAndCounterLtThen(
+        platform: Platform,
+        maker: Address,
+        counter: BigInteger
+    ): Flow<Word> {
         val idFiled = "_id"
-        val query = Query(
-            Criteria().andOperator(
-                Order::status ne OrderStatus.CANCELLED,
-                Order::maker isEqualTo maker,
-                Order::data / OrderSeaportDataV1::counter isEqualTo counter,
-            )
-        )
-        query.fields().include(idFiled)
-        return template
-            .find(query, Document::class.java, COLLECTION)
-            .map { it.getString(idFiled).toOrderId().hash }
-            .asFlow()
-    }
 
-    override fun findNotCanceledByMakerAndCounterLtThen(platform: Platform, maker: Address, counter: Long): Flow<Word> {
-        val idFiled = "_id"
+        val counterValue = counter.toLong()
+        // TODO PT-2386 replace after the migration
+        //val counterValue = EthUInt256.of(counter)
+
         val query = Query(
-            Criteria().andOperator(
-                Order::platform isEqualTo platform,
-                Order::maker isEqualTo maker,
-                Order::status ne OrderStatus.CANCELLED,
-                Order::data / OrderCounterableData::counter lt counter,
-                Order::data / OrderCounterableData::counter exists true
-            )
+            Criteria().and(Order::platform.name).isEqualTo(platform)
+                .and(Order::maker.name).isEqualTo(maker)
+                .and(Order::status.name).ne(OrderStatus.CANCELLED)
+                .and(COUNTER_KEY).exists(true).lt(counterValue)
         )
         query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
         query.fields().include(idFiled)
@@ -262,7 +250,11 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    override fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?, status: OrderStatus?, platform: Platform?): Flow<Order> {
+    override fun findAllBeforeLastUpdateAt(
+        lastUpdatedAt: Date?,
+        status: OrderStatus?,
+        platform: Platform?
+    ): Flow<Order> {
         val criteria = Criteria()
             .run { lastUpdatedAt?.let { and(Order::lastUpdateAt).lte(it) } ?: this }
             .run { status?.let { and(Order::status).isEqualTo(it) } ?: this }
@@ -359,12 +351,19 @@ class MongoOrderRepository(
         return template.find(query, Order::class.java, COLLECTION).asFlow()
     }
 
-    override fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<Long>): Flow<Order> {
+    override fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<BigInteger>): Flow<Order> {
+        // TODO PT-2386 replace after the migration
+        val counterValues = counters.map { it.toLong() }
+        //val counterValues = counters.map { EthUInt256.of(it) }
+
         val criteria = where(Order::platform).isEqualTo(platform)
             .and(Order::maker).isEqualTo(maker)
             .run {
-                if (counters.isSingleton) and(Order::data / OrderCounterableData::counter).isEqualTo(counters.single())
-                else and(Order::data / OrderCounterableData::counter).inValues(counters)
+                if (counterValues.isSingleton) {
+                    and(COUNTER_KEY).isEqualTo(counterValues.single())
+                } else {
+                    and(COUNTER_KEY).inValues(counterValues)
+                }
             }
 
         val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
@@ -384,6 +383,12 @@ class MongoOrderRepository(
     }
 
     companion object {
+
         const val COLLECTION = "order"
+
+        // TODO PT-2386 update to data.counterHex
+        const val COUNTER_KEY = "data.counter"
+
+        const val COUNTER_HEX_KEY = "data.counterHex"
     }
 }

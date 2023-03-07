@@ -7,7 +7,7 @@ object LooksrareDataDtoConverter {
     fun convert(source: OrderLooksrareDataV1): OrderLooksRareDataV1Dto {
         return OrderLooksRareDataV1Dto(
             minPercentageToAsk = source.minPercentageToAsk,
-            nonce = source.counter,
+            nonce = source.getCounterValue().value.toLong(), // TODO works now, but better to make it BigInteger
             params = source.params,
             strategy = source.strategy
         )

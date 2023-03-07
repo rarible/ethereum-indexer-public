@@ -183,29 +183,33 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         platform = Platform.X2Y2
     )
 
-    fun orderLooksrareData(maker: Address, make: Asset) = Order(
-        maker = maker,
-        taker = null,
-        make = make,
-        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
-        makeStock = make.value,
-        type = OrderType.LOOKSRARE,
-        fill = EthUInt256.ZERO,
-        cancelled = false,
-        salt = EthUInt256.TEN,
-        start = null,
-        end = null,
-        data = OrderLooksrareDataV1(
-            minPercentageToAsk = randomInt(),
-            strategy = randomAddress(),
-            counter = randomLong(),
-            params = randomBinary()
-        ),
-        signature = null,
-        createdAt = nowMillis(),
-        lastUpdateAt = nowMillis(),
-        platform = Platform.LOOKSRARE
-    )
+    fun orderLooksrareData(maker: Address, make: Asset): Order {
+        val counter = randomLong()
+        return Order(
+            maker = maker,
+            taker = null,
+            make = make,
+            take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+            makeStock = make.value,
+            type = OrderType.LOOKSRARE,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            salt = EthUInt256.TEN,
+            start = null,
+            end = null,
+            data = OrderLooksrareDataV1(
+                minPercentageToAsk = randomInt(),
+                strategy = randomAddress(),
+                counter = counter,
+                counterHex = EthUInt256.of(counter),
+                params = randomBinary()
+            ),
+            signature = null,
+            createdAt = nowMillis(),
+            lastUpdateAt = nowMillis(),
+            platform = Platform.LOOKSRARE
+        )
+    }
 
     fun ammOrderSudoSwapData(maker: Address, make: Asset) = Order(
         maker = maker,

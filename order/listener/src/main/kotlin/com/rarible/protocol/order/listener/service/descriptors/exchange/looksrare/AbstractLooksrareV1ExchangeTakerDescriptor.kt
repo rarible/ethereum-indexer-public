@@ -14,10 +14,10 @@ import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.TokenStandard
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.misc.looksrareError
-import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
@@ -124,7 +124,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
             wrapperLooksrareMatchEventMetric
         )
 
-        val cancelEvents = cancelUserOrders(timestamp, event.maker, listOf(event.orderNonce))
+        val cancelEvents = cancelUserOrders(timestamp, event.maker, listOf(event.orderNonce.toBigInteger()))
             // All orders with same nonce should be cancelled, except executed one
             .filter { it.hash != event.orderHash }
 

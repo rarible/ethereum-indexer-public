@@ -16,7 +16,8 @@ object SeaportDataV1DtoConverter {
                 zone = source.zone,
                 zoneHash = source.zoneHash,
                 conduitKey = source.conduitKey,
-                counter = source.counter
+                counter = source.getCounterValue().value.toLong(), // TODO any ideas?
+                nonce = source.getCounterValue().value
             )
         }
     }

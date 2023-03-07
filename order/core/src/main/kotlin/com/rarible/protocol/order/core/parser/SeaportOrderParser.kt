@@ -3,7 +3,6 @@ package com.rarible.protocol.order.core.parser
 import com.rarible.protocol.contracts.exchange.seaport.v1.SeaportV1
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.SeaportAdvancedOrder
-import io.daonomic.rpc.domain.Binary
 import com.rarible.protocol.order.core.model.SeaportConsideration
 import com.rarible.protocol.order.core.model.SeaportItemType
 import com.rarible.protocol.order.core.model.SeaportOffer
@@ -12,6 +11,7 @@ import com.rarible.protocol.order.core.model.SeaportOrderParameters
 import com.rarible.protocol.order.core.model.SeaportOrderType
 import com.rarible.protocol.order.core.model.SeaportReceivedItem
 import com.rarible.protocol.order.core.model.SeaportSpentItem
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import scala.Tuple11
 import scala.Tuple4
@@ -75,7 +75,7 @@ object SeaportOrderParser {
             zoneHash = Word.apply(component._8()),
             salt = component._9(),
             conduitKey = Word.apply(component._10()),
-            counter = component._11().toLong()
+            counter = component._11()
         )
     }
 
