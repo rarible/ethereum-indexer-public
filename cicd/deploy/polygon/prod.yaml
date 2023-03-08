@@ -14,13 +14,6 @@ polygon-erc20-listener:
       xmx_megabytes: 2048
       max_direct_memory_megabytes: 1024
 
-polygon-gateway:
-  service:
-    nodePort: 30117
-  resources:
-    jvm:
-      xmx_megabytes: 1024
-
 polygon-order-api:
   replicas: 2
   resources:

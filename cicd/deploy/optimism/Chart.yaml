@@ -3,10 +3,6 @@ name: protocol
 version: 0.1.0
 dependencies:
 - name: rarible-helm-chart
-  alias: optimism-gateway
-  repository: file://../../resources/helm/rarible
-  version: 0.1.0
-- name: rarible-helm-chart
   alias: optimism-nft-api
   repository: file://../../resources/helm/rarible
   version: 0.1.0

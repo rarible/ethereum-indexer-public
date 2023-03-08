@@ -14,13 +14,6 @@ ethereum-erc20-listener:
       xmx_megabytes: 2048
       max_direct_memory_megabytes: 2024
 
-ethereum-gateway:
-  service:
-    nodePort: 30116
-  resources:
-    jvm:
-      xmx_megabytes: 1024
-
 ethereum-order-api:
   replicas: 2
   resources:

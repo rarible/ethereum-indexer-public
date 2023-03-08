@@ -11,10 +11,6 @@ dependencies:
   repository: file://../../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: polygon-gateway
-  repository: file://../../resources/helm/rarible
-  version: 0.1.0
-- name: rarible-helm-chart
   alias: polygon-order-api
   repository: file://../../resources/helm/rarible
   version: 0.1.0
@@ -24,10 +20,6 @@ dependencies:
   version: 0.1.0
 - name: rarible-helm-chart
   alias: polygon-order-migration
-  repository: file://../../resources/helm/rarible
-  version: 0.1.0
-- name: rarible-helm-chart
-  alias: polygon-unlockable-api
   repository: file://../../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart

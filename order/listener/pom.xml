@@ -148,7 +148,7 @@
         </dependency>
         <dependency>
             <groupId>com.rarible.protocol.ethereum</groupId>
-            <artifactId>gateway-client</artifactId>
+            <artifactId>protocol-client-order</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
