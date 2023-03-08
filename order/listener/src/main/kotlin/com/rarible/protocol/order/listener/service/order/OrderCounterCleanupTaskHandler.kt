@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.task.RunTask
 import com.rarible.core.task.TaskHandler
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
@@ -20,13 +19,13 @@ import org.springframework.stereotype.Component
 
 @Component
 @Deprecated("Delete after execution")
-class OrderCounterMigrationTaskHandler(
+class OrderCounterCleanupTaskHandler(
     private val orderRepository: OrderRepository
 ) : TaskHandler<String> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override val type = "ORDER_COUNTER_MIGRATION_TASK_HANDLER"
+    override val type = "ORDER_COUNTER_CLEANUP_TASK_HANDLER"
 
     private val batch = 1000
     private val updateBatch = 32
@@ -72,22 +71,16 @@ class OrderCounterMigrationTaskHandler(
     }
 
     private fun updateRequired(order: Order): Boolean {
-        return when (val data = order.data) {
-            is OrderBasicSeaportDataV1 -> data.counterHex == null
-            is OrderLooksrareDataV1 -> data.counterHex == null
+        return when (order.data) {
+            is OrderBasicSeaportDataV1 -> true
+            is OrderLooksrareDataV1 -> true
             else -> false
         }
     }
 
+    // Just save it to overwrite 'counter' field in DB
     private suspend fun updateCounter(order: Order) {
-        val data = when (val data = order.data) {
-            is OrderBasicSeaportDataV1 -> data.copy(counterHex = EthUInt256.of(data.counter!!))
-            is OrderLooksrareDataV1 -> data.copy(counterHex = EthUInt256.of(data.counter!!))
-            else -> return
-        }
-
-        val updated = order.copy(data = data)
-        orderRepository.save(updated)
+        orderRepository.save(order)
     }
 
 }

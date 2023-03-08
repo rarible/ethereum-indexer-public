@@ -200,7 +200,6 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
             data = OrderLooksrareDataV1(
                 minPercentageToAsk = randomInt(),
                 strategy = randomAddress(),
-                counter = counter,
                 counterHex = EthUInt256.of(counter),
                 params = randomBinary()
             ),

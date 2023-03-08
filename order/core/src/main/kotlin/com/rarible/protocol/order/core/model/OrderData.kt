@@ -210,9 +210,7 @@ data class OrderBasicSeaportDataV1(
     override val zone: Address,
     override val zoneHash: Word,
     override val conduitKey: Word,
-    @Deprecated("should be replaced by counterHex") // TODO PT-2386
-    val counter: Long?,
-    val counterHex: EthUInt256?
+    val counterHex: EthUInt256
 ) : OrderSeaportDataV1() {
 
     @get:Transient
@@ -220,8 +218,7 @@ data class OrderBasicSeaportDataV1(
 
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 
-    override fun getCounterValue() = counterHex ?: counter?.let { EthUInt256.of(it) }
-    ?: throw UnsupportedOperationException("should never happen")
+    override fun getCounterValue() = counterHex
 
     override fun isValidCounter(blockchainCounter: BigInteger): Boolean {
         return getCounterValue().value == blockchainCounter
@@ -258,9 +255,7 @@ data class OrderLooksrareDataV1(
     val minPercentageToAsk: Int,
     val strategy: Address,
     val params: Binary?,
-    @Deprecated("should be replaced by counterHex") // TODO PT-2386
-    val counter: Long?,
-    val counterHex: EthUInt256?
+    val counterHex: EthUInt256
 ) : OrderCountableData, OrderData() {
 
     @get:Transient
@@ -268,8 +263,7 @@ data class OrderLooksrareDataV1(
 
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 
-    override fun getCounterValue() = counterHex ?: counter?.let { EthUInt256.of(it) }
-    ?: throw UnsupportedOperationException("should never happen")
+    override fun getCounterValue() = counterHex
 
     override fun isValidCounter(blockchainCounter: BigInteger): Boolean {
         return getCounterValue().value >= blockchainCounter
