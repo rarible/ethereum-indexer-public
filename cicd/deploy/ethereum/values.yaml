@@ -32,24 +32,7 @@ ethereum-erc20-listener:
       xmx_megabytes: 356
       max_direct_memory_megabytes: 32
 
-ethereum-gateway:
-  image:
-    repository: ethereum-indexer-gateway
-  replicas: 2
-  service:
-    enabled: true
-  environments:
-    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},consul'
-  resources:
-    jvm:
-      xmx_megabytes: 356
-      max_direct_memory_megabytes: 32
-  updateConfig:
-    order: start-first
-
-ethereum-order-api: 
+ethereum-order-api:
   image:
     repository: ethereum-indexer-order-api
   replicas: 2
@@ -100,24 +83,7 @@ ethereum-order-migration:
   restartPolicy:
     condition: on-failure
 
-ethereum-unlockable-api:
-  image:
-    repository: ethereum-indexer-unlockable-api
-  replicas: 2
-  service:
-    enabled: true
-  environments:
-    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
-  resources:
-    jvm:
-      xmx_megabytes: 356
-      max_direct_memory_megabytes: 32
-  updateConfig:
-    order: start-first
-
-ethereum-nft-api: 
+ethereum-nft-api:
   image:
     repository: ethereum-indexer-nft-api
   replicas: 2

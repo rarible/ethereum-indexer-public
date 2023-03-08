@@ -8,8 +8,8 @@ import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.LSSVMPairFact
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NewPairEvent
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.LSSVMPairV1
 import com.rarible.protocol.dto.AmmOrderDto
-import com.rarible.protocol.gateway.api.ApiClient
-import com.rarible.protocol.gateway.api.client.OrderControllerApi
+import com.rarible.protocol.order.api.ApiClient
+import com.rarible.protocol.order.api.client.OrderControllerApi
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.SudoSwapBuyInfo
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
@@ -48,7 +48,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.file.Paths
 import java.time.Duration
-import java.util.*
+import java.util.Properties
 import kotlin.io.path.inputStream
 
 abstract class AbstractSudoSwapTestnetTest {
@@ -65,6 +65,7 @@ abstract class AbstractSudoSwapTestnetTest {
     protected val ethereum = createEthereum(ethereumUri)
     protected val poller = MonoTransactionPoller(ethereum)
 
+    // Use port forwarding to specify the host like http://localhost:47365
     private val ethereumOrderApi = createEthereumOrderApi(properties["ETHEREUM_API_HOST"].toString())
 
     protected val userSender = MonoSigningTransactionSender(

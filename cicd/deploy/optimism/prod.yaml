@@ -1,13 +1,6 @@
 global:
   network: mainnet
 
-optimism-gateway:
-  service:
-    nodePort: 30146
-  resources:
-    jvm:
-      xmx_megabytes: 1024
-
 optimism-nft-api:
   replicas: 2
   resources:

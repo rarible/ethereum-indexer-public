@@ -33,7 +33,3 @@ ethereum-erc20-listener:
     jvm:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 512
-
-ethereum-gateway:
-  service:
-    nodePort: 30416
