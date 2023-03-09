@@ -14,7 +14,6 @@ import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.randomBidOrderUsdValue
 import com.rarible.protocol.order.core.data.randomSellOrderUsdValue
 import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
