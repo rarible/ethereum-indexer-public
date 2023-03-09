@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.parser
 
 import com.rarible.protocol.contracts.exchange.seaport.v1.SeaportV1
+import com.rarible.protocol.contracts.exchange.seaport.v1_4.SeaportV1_4
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.SeaportAdvancedOrder
 import com.rarible.protocol.order.core.model.SeaportConsideration
@@ -23,6 +24,7 @@ import java.math.BigInteger
 object SeaportOrderParser {
     fun parseAdvancedOrders(input: Binary): List<SeaportAdvancedOrder> {
         return when (input.methodSignatureId()) {
+            // Seaport v1.1
             SeaportV1.matchAdvancedOrdersSignature().id() -> {
                 val methodSignature = SeaportV1.matchAdvancedOrdersSignature()
                 methodSignature.`in`().decode(input, 4).value()._1().map { advancedOrder ->
@@ -59,6 +61,45 @@ object SeaportOrderParser {
                     )
                 }
             }
+
+            // Seaport v1.4
+            SeaportV1_4.matchAdvancedOrdersSignature().id() -> {
+                val methodSignature = SeaportV1_4.matchAdvancedOrdersSignature()
+                methodSignature.`in`().decode(input, 4).value()._1().map { advancedOrder ->
+                    val params = advancedOrder._1()
+                    val signature = Binary.apply(advancedOrder._4())
+                    /**
+                     *  address offerer; // 0x00
+                     *  address zone; // 0x20
+                     *  OfferItem[] offer; // 0x40
+                     *  ConsiderationItem[] consideration; // 0x60
+                     *  OrderType orderType; // 0x80
+                     *  uint256 startTime; // 0xa0
+                     *  uint256 endTime; // 0xc0
+                     *  bytes32 zoneHash; // 0xe0
+                     *  uint256 salt; // 0x100
+                     *  bytes32 conduitKey; // 0x120
+                     *  uint256 totalOriginalConsiderationItems; // 0x140
+                     */
+                    SeaportAdvancedOrder(
+                        parameters = SeaportOrderParameters(
+                            offerer = params._1(),
+                            zone = params._2(),
+                            offer = convertOrderOffer(params._3()),
+                            consideration = convertOrderConsideration(params._4()),
+                            orderType = SeaportOrderType.fromValue(params._5().intValueExact()),
+                            startTime = params._6(),
+                            endTime = params._7(),
+                            zoneHash = Word.apply(params._8()),
+                            salt = params._9(),
+                            conduitKey = Word.apply(params._10()),
+                            totalOriginalConsiderationItems = params._11().toLong()
+                        ),
+                        signature = signature
+                    )
+                }
+            }
+
             else -> emptyList()
         }
     }
