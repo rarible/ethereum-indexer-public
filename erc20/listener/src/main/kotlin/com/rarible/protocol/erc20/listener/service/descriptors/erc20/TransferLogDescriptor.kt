@@ -42,7 +42,7 @@ class TransferLogDescriptor(
                     return emptyList()
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             logger.error("Failed to parse log: $log", e)
             throw e
         }
