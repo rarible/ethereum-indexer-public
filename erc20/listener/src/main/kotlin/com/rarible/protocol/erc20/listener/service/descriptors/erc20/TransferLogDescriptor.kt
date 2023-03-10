@@ -9,6 +9,7 @@ import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.descriptors.Erc20LogEventDescriptor
 import com.rarible.protocol.erc20.listener.service.token.Erc20RegistrationService
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -35,7 +36,8 @@ class TransferLogDescriptor(
         val erc20Token = registrationService.tryRegister(log.address()) ?: return emptyList()
         val event = try {
             when {
-                log.topics().size() == 1 -> TransferEventWithFullData.apply(log)
+                // Example of incorrect transfer: https://etherscan.io/tx/0x1447f617cc7d318d506a262e099cfc5cf1a5f12ead82f868acc5da0035801f4d
+                log.topics().size() == 1 && log.data() != Binary.empty() -> TransferEventWithFullData.apply(log)
                 log.topics().size() == 3 -> TransferEvent.apply(log)
                 else -> {
                     logger.warn("Can't parse TransferEvent from $log")
@@ -73,6 +75,7 @@ class TransferLogDescriptor(
     }
 
     companion object {
+
         val logger: Logger = LoggerFactory.getLogger(TransferLogDescriptor::class.java)
     }
 }
