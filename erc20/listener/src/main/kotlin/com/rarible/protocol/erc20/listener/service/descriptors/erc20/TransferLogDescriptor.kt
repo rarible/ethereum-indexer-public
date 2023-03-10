@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Log
-import java.util.*
+import java.util.Date
 
 @Service
 class TransferLogDescriptor(
@@ -32,15 +32,19 @@ class TransferLogDescriptor(
     }
 
     override suspend fun convert(log: Log, date: Date): List<Erc20TokenHistory> {
-        logger.info("{}, {}:{}", log.transactionHash(), log.logIndex(), log.address()) //TODO: For debug, need remove
         val erc20Token = registrationService.tryRegister(log.address()) ?: return emptyList()
-        val event = when {
-            log.topics().size() == 1 -> TransferEventWithFullData.apply(log)
-            log.topics().size() == 3 -> TransferEvent.apply(log)
-            else -> {
-                logger.warn("Can't parse TransferEvent from $log")
-                return emptyList()
+        val event = try {
+            when {
+                log.topics().size() == 1 -> TransferEventWithFullData.apply(log)
+                log.topics().size() == 3 -> TransferEvent.apply(log)
+                else -> {
+                    logger.warn("Can't parse TransferEvent from $log")
+                    return emptyList()
+                }
             }
+        } catch (e: Exception) {
+            logger.error("Failed to parse log: $log", e)
+            throw e
         }
 
         val outcome = if (event.from() != Address.ZERO()) {
