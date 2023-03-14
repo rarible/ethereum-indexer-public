@@ -7,6 +7,7 @@ import com.rarible.protocol.contracts.exchange.blur.v1.OrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.BlurOrder
 import com.rarible.protocol.order.core.model.BlurOrderSide
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
@@ -26,10 +27,12 @@ import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.service.converter.AbstractEventConverter
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Word
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.math.BigInteger
 import java.time.Instant
 
 @Component
@@ -40,6 +43,8 @@ class BlurEventConverter(
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
 ) : AbstractEventConverter(traceCallService, featureFlags) {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun convertToSideMatch(
         log: Log,
@@ -193,11 +198,21 @@ class BlurEventConverter(
         val collection = order.collection
         val tokenId = EthUInt256.of(order.tokenId)
         val value = EthUInt256.of(order.amount)
-        return when (standardProvider.getTokenStandard(collection)) {
+        val standard = standardProvider.getTokenStandard(collection) ?: edgeCase(collection, order.amount)
+        return when (standard) {
             TokenStandard.ERC1155 -> Erc1155AssetType(collection, tokenId)
             TokenStandard.ERC721 -> Erc721AssetType(collection, tokenId)
-            null -> throw IllegalArgumentException("Invalid token standard for $collection")
         }.let { Asset(it, value) }
+    }
+
+    // It should happen very rarely
+    private fun edgeCase(collection: Address, value: BigInteger): TokenStandard {
+        val standard = when (value) {
+            BigInteger.ONE -> TokenStandard.ERC721
+            else -> TokenStandard.ERC1155
+        }
+        logger.warn("Standard is unknown for $collection set to $standard")
+        return standard
     }
 
     private suspend fun getCurrencyAsset(order: BlurOrder): Asset {
