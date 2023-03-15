@@ -58,7 +58,7 @@ class OpenSeaOrderConverter(
         val startTime = clientSeaportOrder.protocolData.parameters.startTime
         val endTime = clientSeaportOrder.protocolData.parameters.endTime
         val createdAt = clientSeaportOrder.createdAt
-        val signature = clientSeaportOrder.protocolData.signature
+        val signature = clientSeaportOrder.protocolData.signature ?: return null
         val zone = clientSeaportOrder.protocolData.parameters.zone
         val zoneHash = clientSeaportOrder.protocolData.parameters.zoneHash
         val conduitKey = clientSeaportOrder.protocolData.parameters.conduitKey
