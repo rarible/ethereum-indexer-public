@@ -7,6 +7,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.NFTWithdrawalEvent
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolNftWithdraw
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import java.time.Instant
@@ -19,13 +20,17 @@ import scalether.domain.response.Transaction
 @EnableSudoSwap
 class SudoSwapWithdrawNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
-    private val sudoSwapWithdrawNftEventCounter: RegisteredCounter
+    private val sudoSwapWithdrawNftEventCounter: RegisteredCounter,
+    private val sudoSwapLoad: SudoSwapLoadProperties,
 ): PoolSubscriber<PoolNftWithdraw>(
     name = "sudo_nft_withdrawal",
     topic = NFTWithdrawalEvent.id(),
     contracts = emptyList()
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolNftWithdraw> {
+        if (log.address() in sudoSwapLoad.ignorePairs) {
+            return emptyList()
+        }
         val details = sudoSwapEventConverter.getNftWithdrawDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
