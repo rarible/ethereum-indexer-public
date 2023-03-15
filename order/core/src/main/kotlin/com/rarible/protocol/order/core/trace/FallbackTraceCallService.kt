@@ -22,7 +22,7 @@ class FallbackTraceCallService(
         to: Address,
         vararg ids: Binary
     ): List<SimpleTraceResult> {
-        return findTrace(headTransaction.hash, traceCallServices, featureFlags.skipGetTrace) { delegate ->
+        return findTrace(headTransaction.hash, ids, traceCallServices, featureFlags.skipGetTrace) { delegate ->
             delegate.findAllRequiredCalls(headTransaction, to, *ids)
         }
     }
@@ -33,7 +33,7 @@ class FallbackTraceCallService(
         to: Address,
         vararg ids: Binary
     ): List<Binary> {
-        return findTrace(txHash, traceCallServices, featureFlags.skipGetTrace) { delegate ->
+        return findTrace(txHash, ids, traceCallServices, featureFlags.skipGetTrace) { delegate ->
             delegate.findAllRequiredCallInputs(txHash, txInput, to, *ids)
         }
     }
@@ -44,7 +44,7 @@ class FallbackTraceCallService(
         to: Address,
         vararg ids: Binary
     ): List<Binary> {
-        return findTrace(txHash, traceCallServices, featureFlags.skipGetTrace, exceptionIfNotFound = false) { delegate ->
+        return findTrace(txHash, ids, traceCallServices, featureFlags.skipGetTrace, exceptionIfNotFound = false) { delegate ->
             delegate.findAllRequiredCallInputs(txHash, txInput, to, *ids)
         }
     }
@@ -64,6 +64,7 @@ class FallbackTraceCallService(
     private companion object {
         inline fun <T> findTrace(
             tx: Word,
+            ids: Array<out Binary>,
             delegates: List<TraceCallService>,
             skipGetTrace: Boolean,
             exceptionIfNotFound: Boolean = true,
@@ -78,7 +79,7 @@ class FallbackTraceCallService(
             return if (skipGetTrace) {
                 emptyList()
             } else {
-                if (exceptionIfNotFound) throw TraceNotFoundException("tx trace not found for hash: $tx") else emptyList()
+                if (exceptionIfNotFound) throw TraceNotFoundException("tx trace not found for hash: $tx, ids=$ids") else emptyList()
             }
         }
     }
