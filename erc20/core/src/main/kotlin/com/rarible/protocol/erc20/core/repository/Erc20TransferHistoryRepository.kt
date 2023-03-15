@@ -119,7 +119,8 @@ class Erc20TransferHistoryRepository(
                 DATA_TOKEN,
                 DATA_OWNER,
                 LogEvent::blockNumber.name,
-                LogEvent::logIndex.name
+                LogEvent::logIndex.name,
+                LogEvent::minorLogIndex.name
             )
     }
 }
