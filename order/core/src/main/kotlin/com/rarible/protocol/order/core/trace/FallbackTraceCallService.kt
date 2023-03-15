@@ -79,7 +79,7 @@ class FallbackTraceCallService(
             return if (skipGetTrace) {
                 emptyList()
             } else {
-                if (exceptionIfNotFound) throw TraceNotFoundException("tx trace not found for hash: $tx, ids=$ids") else emptyList()
+                if (exceptionIfNotFound) throw TraceNotFoundException("tx trace not found for hash: $tx, ids=${ids.joinToString { it.prefixed() }}") else emptyList()
             }
         }
     }
