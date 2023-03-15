@@ -141,6 +141,11 @@ class OrderVersionRepository(
         return template.remove(Query(criteria), COLLECTION).then()
     }
 
+    suspend fun deleteByHash(hash: Word) {
+        val criteria = OrderVersion::hash isEqualTo hash
+        template.remove(Query(criteria), COLLECTION).then().awaitFirstOrNull()
+    }
+
     fun findByIds(ids: List<ObjectId>): Flux<OrderVersion> {
         val query = Query(OrderVersion::id inValues ids)
         return template.find(query, OrderVersion::class.java, COLLECTION)
