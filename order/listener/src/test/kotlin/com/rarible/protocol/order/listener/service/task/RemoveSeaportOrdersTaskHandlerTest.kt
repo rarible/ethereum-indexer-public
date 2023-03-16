@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.event.OrderListener
+import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
@@ -106,6 +107,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
         listOf(orderToRemove1, otherOrder, filledOrder, orderToRemove2, laterOrder).shuffled().forEach {
             orderRepository.save(it)
             orderVersionRepository.save(createOrderVersion().copy(hash = it.hash)).awaitFirst()
+            orderStateRepository.save(OrderState(it.hash, true))
         }
 
         val result = handler.runLongTask(null, param = (now - Duration.ofMinutes(11)).epochSecond.toString()).toList()
@@ -113,9 +115,11 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
 
         assertThat(orderRepository.findById(orderToRemove1.hash)).isNull()
         assertThat(orderVersionRepository.findAllByHash(orderToRemove1.hash).toList()).isEmpty()
+        assertThat(orderStateRepository.getById(orderToRemove1.hash)).isNull()
 
         assertThat(orderRepository.findById(orderToRemove2.hash)).isNull()
         assertThat(orderVersionRepository.findAllByHash(orderToRemove2.hash).toList()).isEmpty()
+        assertThat(orderStateRepository.getById(orderToRemove2.hash)).isNull()
 
         assertThat(orderRepository.findById(otherOrder.hash)).isNotNull
         assertThat(orderVersionRepository.findAllByHash(otherOrder.hash).toList()).isNotEmpty

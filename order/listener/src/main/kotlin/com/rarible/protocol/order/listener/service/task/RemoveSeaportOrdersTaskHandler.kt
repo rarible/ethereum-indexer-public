@@ -76,6 +76,7 @@ class RemoveSeaportOrdersTaskHandler(
                     logger.info("Remove Seaport order ${it.hash} (protocol=${data.protocol}, lastUpdate=${it.lastUpdateAt})")
                     orderRepository.remove(it.hash)
                     orderVersionRepository.deleteByHash(it.hash)
+                    orderStateRepository.remove(it.hash)
                 } else {
                     val state = OrderState(id = it.hash, canceled = true)
                     orderStateRepository.save(state)
