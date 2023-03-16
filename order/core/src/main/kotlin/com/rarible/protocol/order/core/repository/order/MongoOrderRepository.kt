@@ -214,18 +214,15 @@ class MongoOrderRepository(
         counter: BigInteger
     ): Flow<Word> {
         val idFiled = "_id"
-
-        val counterValue = counter.toLong()
-        // TODO PT-2386 replace after the migration
-        //val counterValue = EthUInt256.of(counter)
+        val counterValue = EthUInt256.of(counter)
 
         val query = Query(
             Criteria().and(Order::platform.name).isEqualTo(platform)
                 .and(Order::maker.name).isEqualTo(maker)
                 .and(Order::status.name).ne(OrderStatus.CANCELLED)
-                .and(COUNTER_KEY).exists(true).lt(counterValue)
+                .and(COUNTER_HEX_KEY).exists(true).lt(counterValue)
         )
-        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
+        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_HEX_STATUS.indexKeys)
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
@@ -360,9 +357,9 @@ class MongoOrderRepository(
             .and(Order::maker).isEqualTo(maker)
             .run {
                 if (counterValues.isSingleton) {
-                    and(COUNTER_KEY).isEqualTo(counterValues.single())
+                    and(COUNTER_HEX_KEY).isEqualTo(counterValues.single())
                 } else {
-                    and(COUNTER_KEY).inValues(counterValues)
+                    and(COUNTER_HEX_KEY).inValues(counterValues)
                 }
             }
 
@@ -386,9 +383,10 @@ class MongoOrderRepository(
 
         const val COLLECTION = "order"
 
+        const val COUNTER_HEX_KEY = "data.counterHex"
+
         // TODO PT-2386 update to data.counterHex
         const val COUNTER_KEY = "data.counter"
 
-        const val COUNTER_HEX_KEY = "data.counterHex"
     }
 }
