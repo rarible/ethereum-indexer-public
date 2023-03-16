@@ -128,6 +128,7 @@ data class OrderIndexerProperties(
         val sudoswapEnabled: Boolean = true,
         val blurEnabled: Boolean = false,
         val markIgnoredEvent: Boolean = true,
+        val removeOpenSeaOrdersInTask: Boolean = false
     )
 
     data class RaribleOrderExpirationProperties(

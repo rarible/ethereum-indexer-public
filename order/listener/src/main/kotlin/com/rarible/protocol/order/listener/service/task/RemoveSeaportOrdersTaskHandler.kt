@@ -6,17 +6,17 @@ import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.continuation.page.PageSize
-import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
+import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.OrderStatus
-import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.order.OrderFilterSell
 import com.rarible.protocol.order.core.model.order.OrderFilterSort
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.service.OrderUpdateService
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -27,7 +27,8 @@ class RemoveSeaportOrdersTaskHandler(
     private val orderRepository: OrderRepository,
     private val orderVersionRepository: OrderVersionRepository,
     private val properties: OrderIndexerProperties,
-    private val orderListener: OrderListener,
+    private val orderStateRepository: OrderStateRepository,
+    private val orderUpdateService: OrderUpdateService,
 ) : TaskHandler<String> {
 
     override val type: String
@@ -43,7 +44,7 @@ class RemoveSeaportOrdersTaskHandler(
         do {
             val filter = OrderFilterSell(
                 platforms = listOf(PlatformDto.OPEN_SEA),
-                status = listOf(OrderStatusDto.ACTIVE, OrderStatusDto.INACTIVE),
+                status = listOf(OrderStatusDto.ACTIVE, OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED),
                 sort = OrderFilterSort.LAST_UPDATE_DESC,
             ).toQuery(continuation, PageSize.ORDER.max)
 
@@ -69,12 +70,19 @@ class RemoveSeaportOrdersTaskHandler(
             .filter {
                 (it.data as? OrderSeaportDataV1)?.protocol == properties.exchangeContractAddresses.seaportV1_4
             }.forEach {
-                val updatedOrder = it.copy(cancelled = true, status = OrderStatus.CANCELLED)
                 val data = it.data as OrderSeaportDataV1
-                orderListener.onOrder(updatedOrder, null)
-                logger.info("Removing Seaport order ${it.hash} (protocol=${data.protocol}, lastUpdate=${it.lastUpdateAt})")
-                orderRepository.remove(it.hash)
-                orderVersionRepository.deleteByHash(it.hash)
+
+                if (properties.featureFlags.removeOpenSeaOrdersInTask) {
+                    logger.info("Remove Seaport order ${it.hash} (protocol=${data.protocol}, lastUpdate=${it.lastUpdateAt})")
+                    orderRepository.remove(it.hash)
+                    orderVersionRepository.deleteByHash(it.hash)
+                } else {
+                    val state = OrderState(id = it.hash, canceled = true)
+                    orderStateRepository.save(state)
+                    orderUpdateService.update(it.hash)
+                    val updatedOrder = orderRepository.findById(it.hash)
+                    logger.info("Update Seaport order ${updatedOrder?.hash} (protocol=${data.protocol}, status=${updatedOrder?.status})")
+                }
             }
     }
 
