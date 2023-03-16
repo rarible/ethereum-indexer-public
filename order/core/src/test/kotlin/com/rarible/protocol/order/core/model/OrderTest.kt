@@ -103,6 +103,7 @@ class OrderTest {
                 zone = Address.apply("0x00000000e88fe2628ebc5da81d2b3cead633e89e"),
                 zoneHash = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000"),
                 conduitKey = Word.apply("0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000"),
+                counter = 0L,
                 counterHex = EthUInt256.ZERO
             )
         )

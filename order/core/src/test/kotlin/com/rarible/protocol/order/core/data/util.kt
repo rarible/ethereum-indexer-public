@@ -196,6 +196,7 @@ fun createOrderBasicSeaportDataV1(
         zone = randomAddress(),
         zoneHash = Word.apply(randomWord()),
         conduitKey = Word.apply(randomWord()),
+        counter = counter,
         counterHex = EthUInt256.of(counter)
     )
 }
@@ -319,6 +320,7 @@ fun createOrderLooksrareDataV1(
     return OrderLooksrareDataV1(
         minPercentageToAsk = randomInt(),
         strategy = randomAddress(),
+        counter = counter,
         counterHex = EthUInt256.of(counter),
         params = randomBinary()
     )
@@ -649,6 +651,7 @@ fun randomOrderBasicSeaportDataV1(): OrderBasicSeaportDataV1 {
         zone = randomAddress(),
         zoneHash = Word.apply(randomWord()),
         conduitKey = Word.apply(randomWord()),
+        counter = counter,
         counterHex = EthUInt256.of(counter),
     )
 }

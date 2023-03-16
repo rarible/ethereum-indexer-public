@@ -269,7 +269,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     internal fun `should cancel Seaport order if counters are not matched`() = runBlocking<Unit> {
         val now = nowMillis()
         val data = createOrderBasicSeaportDataV1().copy(
-            counterHex = EthUInt256.ZERO
+            counterHex = EthUInt256.ZERO,
+            counter = 0L
         )
         val orderVersion = createOrderVersion().copy(
             type = OrderType.SEAPORT_V1,
@@ -348,7 +349,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     internal fun `should not cancel Seaport order if counter are matched`() = runBlocking<Unit> {
         val now = nowMillis()
         val data = createOrderBasicSeaportDataV1().copy(
-            counterHex = EthUInt256.ONE
+            counterHex = EthUInt256.ONE,
+            counter = 1L
         )
         val orderVersion = createOrderVersion().copy(
             type = OrderType.SEAPORT_V1,
@@ -388,7 +390,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     internal fun `should  cancel Seaport order if price are so small`() = runBlocking<Unit> {
         val now = nowMillis()
         val data = createOrderBasicSeaportDataV1().copy(
-            counterHex = EthUInt256.ONE
+            counterHex = EthUInt256.ONE,
+            counter = 1L
         )
         val orderVersion = createOrderVersion().copy(
             type = OrderType.SEAPORT_V1,
@@ -446,7 +449,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                     OrderType.RARIBLE_V1 -> createOrderDataLegacy()
                     OrderType.RARIBLE_V2 -> createOrderRaribleV1DataV3Sell()
                     OrderType.SEAPORT_V1 -> createOrderBasicSeaportDataV1().copy(
-                        counterHex = EthUInt256.ZERO
+                        counterHex = EthUInt256.ZERO,
+                        counter = 0L
                     )
 
                     OrderType.CRYPTO_PUNKS -> OrderCryptoPunksData

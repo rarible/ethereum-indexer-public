@@ -123,28 +123,28 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
     @Test
     fun `find all maker Seaport hashes by counter`() = runBlocking<Unit> {
         val maker = randomAddress()
-        val counter = EthUInt256.ZERO
-        val newCounter = EthUInt256.ONE
+        val counter = 0L
+        val newCounter = 1L
         val order0 = createOrder().copy(
             maker = maker,
             cancelled = true,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter)
         )
         val order1 = createOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter)
         )
         val order2 = createOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter)
         )
         val order3 = createOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = newCounter)
+            data = createOrderBasicSeaportDataV1().copy(counter = newCounter)
         )
         val order4 = createOrder().copy(
             maker = maker,
@@ -154,12 +154,12 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         val order5 = createOrder().copy(
             maker = randomAddress(),
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter)
         )
         val order6 = createOrder().copy(
             maker = randomAddress(),
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = newCounter)
+            data = createOrderBasicSeaportDataV1().copy(counter = newCounter)
         )
         listOf(order0, order1, order2, order3, order4, order5, order6).forEach {
             delegate.save(it)
@@ -175,30 +175,30 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
     @Test
     fun `find all maker order by counters`() = runBlocking<Unit> {
         val maker = randomAddress()
-        val counter1 = EthUInt256.ZERO
-        val counter2 = EthUInt256.ONE
-        val otherCounter = EthUInt256.of(2)
+        val counter1 = 0L
+        val counter2 = 1L
+        val otherCounter = 2L
         val order0 = createOrder().copy(
             maker = maker,
             cancelled = true,
             platform = Platform.LOOKSRARE,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter1)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter1)
         )
         val order1 = createOrder().copy(
             maker = maker,
             cancelled = true,
             platform = Platform.LOOKSRARE,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter2)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter2)
         )
         val order2 = createOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter1)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter1)
         )
         val order3 = createOrder().copy(
             maker = maker,
             platform = Platform.LOOKSRARE,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = otherCounter)
+            data = createOrderBasicSeaportDataV1().copy(counter = otherCounter)
         )
         val order4 = createOrder().copy(
             maker = maker,
@@ -208,12 +208,12 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         val order5 = createOrder().copy(
             maker = randomAddress(),
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter1)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter1)
         )
         val order6 = createOrder().copy(
             maker = randomAddress(),
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter1)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter1)
         )
         listOf(order0, order1, order2, order3, order4, order5, order6).forEach {
             delegate.save(it)
@@ -222,7 +222,7 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         val hashes = delegate.findByMakeAndByCounters(
             Platform.LOOKSRARE,
             maker,
-            listOf(counter1.value, counter2.value)
+            listOf(BigInteger.valueOf(counter1), BigInteger.valueOf(counter2))
         ).map { it.id }.toList()
 
         assertThat(hashes).containsExactlyInAnyOrder(order0.id, order1.id)
@@ -231,24 +231,24 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
     @Test
     fun `find maker order by counter`() = runBlocking<Unit> {
         val maker = randomAddress()
-        val counter = EthUInt256.of(100)
-        val otherCounter = EthUInt256.of(2)
+        val counter = 100L
+        val otherCounter = 2L
         val order0 = createOrder().copy(
             maker = maker,
             cancelled = true,
             platform = Platform.LOOKSRARE,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter)
         )
         val order1 = createOrder().copy(
             maker = maker,
             cancelled = true,
             platform = Platform.LOOKSRARE,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = otherCounter)
+            data = createOrderBasicSeaportDataV1().copy(counter = otherCounter)
         )
         val order2 = createOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
-            data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
+            data = createOrderBasicSeaportDataV1().copy(counter = counter)
         )
         listOf(order0, order1, order2).forEach {
             delegate.save(it)
@@ -258,7 +258,7 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         val hashes = delegate.findByMakeAndByCounters(
             Platform.LOOKSRARE,
             maker,
-            listOf(counter.value)
+            listOf(BigInteger.valueOf(counter))
         ).map { it.id }.toList()
         assertThat(hashes).containsExactlyInAnyOrder(order0.id)
     }

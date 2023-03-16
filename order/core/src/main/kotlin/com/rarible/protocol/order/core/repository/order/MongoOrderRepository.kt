@@ -4,6 +4,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
+import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.EXPIRED_BID_STATUSES
@@ -64,7 +65,6 @@ class MongoOrderRepository(
             "makeStock_-1_lastUpdateAt_-1__id_1",
             "makeStock_1_lastUpdateAt_1__id_1",
             "platform_1_lastUpdateAt_1__id_1",
-            "platform_1_maker_1_data.counter_1_status_1", // Legacy counter index, replaced by counterHex
             "platform_1_maker_1_data.val com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1.nonce: kotlin.Long?_1",
         )
     }
@@ -214,15 +214,18 @@ class MongoOrderRepository(
         counter: BigInteger
     ): Flow<Word> {
         val idFiled = "_id"
-        val counterValue = EthUInt256.of(counter)
+
+        val counterValue = counter.toLong()
+        // TODO PT-2386 replace after the migration
+        //val counterValue = EthUInt256.of(counter)
 
         val query = Query(
             Criteria().and(Order::platform.name).isEqualTo(platform)
                 .and(Order::maker.name).isEqualTo(maker)
                 .and(Order::status.name).ne(OrderStatus.CANCELLED)
-                .and(COUNTER_HEX_KEY).exists(true).lt(counterValue)
+                .and(COUNTER_KEY).exists(true).lt(counterValue)
         )
-        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_HEX_STATUS.indexKeys)
+        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
@@ -349,13 +352,21 @@ class MongoOrderRepository(
     }
 
     override fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<BigInteger>): Flow<Order> {
-        val counterValues = counters.map { EthUInt256.of(it) }
+        // TODO PT-2386 replace after the migration
+        val counterValues = counters.map { it.toLong() }
+        //val counterValues = counters.map { EthUInt256.of(it) }
 
         val criteria = where(Order::platform).isEqualTo(platform)
             .and(Order::maker).isEqualTo(maker)
-            .and(COUNTER_HEX_KEY).inValues(counterValues)
+            .run {
+                if (counterValues.isSingleton) {
+                    and(COUNTER_KEY).isEqualTo(counterValues.single())
+                } else {
+                    and(COUNTER_KEY).inValues(counterValues)
+                }
+            }
 
-        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_HEX_STATUS.indexKeys)
+        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
         return template.query<Order>().matching(query).all().asFlow()
     }
 
@@ -374,6 +385,10 @@ class MongoOrderRepository(
     companion object {
 
         const val COLLECTION = "order"
+
+        // TODO PT-2386 update to data.counterHex
+        const val COUNTER_KEY = "data.counter"
+
         const val COUNTER_HEX_KEY = "data.counterHex"
     }
 }

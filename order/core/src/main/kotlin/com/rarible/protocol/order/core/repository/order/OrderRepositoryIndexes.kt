@@ -185,7 +185,17 @@ object OrderRepositoryIndexes {
         .on(Order::start.name, Sort.Direction.ASC)
         .background()
 
-    // --------------------- for updates of LR/SeaPort orders ---------------------//
+    // --------------------- for updating status by start/end ---------------------//
+
+    // TODO TODO PT-2386 delete
+    @Deprecated("Replace with BY_PLATFORM_MAKER_COUNTER_HEX_STATUS")
+    val BY_PLATFORM_MAKER_COUNTER_STATUS: Index = Index()
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::maker.name, Sort.Direction.ASC)
+        .on(MongoOrderRepository.COUNTER_KEY, Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(Criteria(MongoOrderRepository.COUNTER_KEY).exists(true)))
+        .background()
 
     val BY_PLATFORM_MAKER_COUNTER_HEX_STATUS: Index = Index()
         .on(Order::platform.name, Sort.Direction.ASC)
@@ -268,6 +278,7 @@ object OrderRepositoryIndexes {
         BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
 
         BY_STATUS_AND_END_START,
+        BY_PLATFORM_MAKER_COUNTER_STATUS,
         BY_PLATFORM_MAKER_COUNTER_HEX_STATUS,
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
