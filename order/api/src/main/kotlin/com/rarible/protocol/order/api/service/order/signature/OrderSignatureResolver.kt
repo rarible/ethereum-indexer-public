@@ -10,10 +10,12 @@ import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.misc.Retry
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.time.Duration
 
 @Component
 class OrderSignatureResolver(
@@ -35,14 +37,17 @@ class OrderSignatureResolver(
             network = properties.blockchain.toNetwork(environmentInfo.name),
             protocolAddress = data.protocol
         )
-        return seaportClient
-            .getFulfillListingInfo(request)
-            .ensureSuccess()
-            .fulfillmentData
-            .transaction
-            .inputData
-            .parameters
-            .signature
+        return Retry.retry(attempts = 5, delay = Duration.ofMillis(500)) {
+            seaportClient
+                .getFulfillListingInfo(request)
+                .ensureSuccess()
+                .fulfillmentData
+                .transaction
+                .inputData
+                .parameters
+                .signature
+
+        }
     }
 
     private fun Blockchain.toNetwork(env: String): Network {
@@ -58,6 +63,7 @@ class OrderSignatureResolver(
             }
         }
     }
+
 
     private val logger = LoggerFactory.getLogger(OrderSignatureResolver::class.java)
 }
