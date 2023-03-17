@@ -9,7 +9,10 @@ import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.sign.service.ERC1271SignService
+import com.rarible.opensea.client.agent.SimpleUserAgentProviderImpl
+import com.rarible.opensea.client.agent.UserAgentProvider
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -48,4 +51,12 @@ class OrderIndexerApiConfiguration(
         return WebRequestClientTagContributor()
     }
 
+    @Bean
+    fun openSeaDefaultUserAgentProvider(): UserAgentProvider {
+        return object : UserAgentProvider {
+            override fun get(): String {
+                return "PostmanRuntime/7.31.1"
+            }
+        }
+    }
 }
