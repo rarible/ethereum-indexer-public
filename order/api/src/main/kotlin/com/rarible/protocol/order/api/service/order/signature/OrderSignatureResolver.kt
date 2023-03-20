@@ -44,9 +44,10 @@ class OrderSignatureResolver(
                 .fulfillmentData
                 .transaction
                 .inputData
-                .parameters
-                .signature
-
+                .let {
+                    val signature = it.parameters?.signature ?: it.order?.signature
+                    signature ?: throw EntityNotFoundApiException("signature for hash", hash)
+                }
         }
     }
 
