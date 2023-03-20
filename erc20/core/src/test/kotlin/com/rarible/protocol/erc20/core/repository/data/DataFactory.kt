@@ -53,7 +53,8 @@ fun randomBalance(
         balance = balance,
         createdAt = createdAt,
         lastUpdatedAt = lastUpdatedAt,
-        revertableEvents = emptyList()
+        revertableEvents = emptyList(),
+        blockNumber = null
     )
 }
 

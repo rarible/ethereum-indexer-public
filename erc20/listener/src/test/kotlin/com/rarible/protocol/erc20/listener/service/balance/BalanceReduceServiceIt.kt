@@ -103,6 +103,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
         assertThat(balance.balance).isEqualTo(EthUInt256.ONE)
         assertThat(balance.lastUpdatedAt!!.toEpochMilli()).isEqualTo(finalUpdateDate.time)
         assertThat(balance.createdAt!!.toEpochMilli()).isEqualTo(createdDate.time)
+        assertThat(balance.blockNumber).isGreaterThan(0L)
 
         Wait.waitAssert {
             assertThat(events).hasSizeGreaterThanOrEqualTo(1)
@@ -132,7 +133,8 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
             owner = walletOwner,
             balance = EthUInt256.of(1),
             createdAt = nowMillis().minusSeconds(300),
-            lastUpdatedAt = nowMillis().minusSeconds(600)
+            lastUpdatedAt = nowMillis().minusSeconds(600),
+            blockNumber = null
         )
         erc20BalanceRepository.save(currentBalance)
 
@@ -155,6 +157,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
         assertThat(balance.balance).isEqualTo(EthUInt256.of(5))
         assertThat(balance.createdAt).isEqualTo(currentBalance.createdAt)
         assertThat(balance.lastUpdatedAt!!.toEpochMilli()).isEqualTo(outcomeDate.time)
+        assertThat(balance.blockNumber).isGreaterThan(0L)
 
         Wait.waitAssert {
             assertThat(events)
