@@ -349,9 +349,7 @@ class MongoOrderRepository(
     }
 
     override fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<BigInteger>): Flow<Order> {
-        // TODO PT-2386 replace after the migration
-        val counterValues = counters.map { it.toLong() }
-        //val counterValues = counters.map { EthUInt256.of(it) }
+        val counterValues = counters.map { EthUInt256.of(it) }
 
         val criteria = where(Order::platform).isEqualTo(platform)
             .and(Order::maker).isEqualTo(maker)
