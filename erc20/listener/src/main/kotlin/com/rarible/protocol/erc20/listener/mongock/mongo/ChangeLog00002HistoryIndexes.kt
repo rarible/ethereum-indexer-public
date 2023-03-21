@@ -25,6 +25,7 @@ class ChangeLog00002HistoryIndexes {
                     .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
                     .on(LogEvent::logIndex.name, Sort.Direction.ASC)
                     .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
+                    .background()
             )
             indexOps.ensureIndex(
                 Index()
@@ -32,11 +33,13 @@ class ChangeLog00002HistoryIndexes {
                     .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
                     .on(LogEvent::logIndex.name, Sort.Direction.ASC)
                     .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
+                    .background()
             )
             indexOps.ensureIndex(
                 Index()
                     .on("blockNumber", Sort.Direction.ASC)
                     .on("logIndex", Sort.Direction.ASC)
+                    .background()
             )
         }
     }
