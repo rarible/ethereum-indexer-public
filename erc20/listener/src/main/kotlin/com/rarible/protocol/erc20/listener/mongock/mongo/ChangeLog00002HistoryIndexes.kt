@@ -17,30 +17,30 @@ class ChangeLog00002HistoryIndexes {
     @ChangeSet(id = "ChangeLog00002HistoryIndexes.historyIndex001", order = "1", author = "protocol", runAlways = true)
     fun createHistoryIndexes(@NonLockGuarded template: MongoOperations) {
         listOf(Erc20TransferHistoryRepository.COLLECTION, Erc20ApprovalHistoryRepository.COLLECTION).map {
-            val indexOps = template.indexOps(it)
-            indexOps.ensureIndex(
-                Index()
-                    .on("${LogEvent::data.name}.${Erc20TokenHistory::token.name}", Sort.Direction.ASC)
-                    .on("${LogEvent::data.name}.${Erc20TokenHistory::owner.name}", Sort.Direction.ASC)
-                    .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
-                    .on(LogEvent::logIndex.name, Sort.Direction.ASC)
-                    .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
-                    .background()
-            )
-            indexOps.ensureIndex(
-                Index()
-                    .on("${LogEvent::data.name}.${Erc20TokenHistory::token.name}", Sort.Direction.ASC)
-                    .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
-                    .on(LogEvent::logIndex.name, Sort.Direction.ASC)
-                    .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
-                    .background()
-            )
-            indexOps.ensureIndex(
-                Index()
-                    .on("blockNumber", Sort.Direction.ASC)
-                    .on("logIndex", Sort.Direction.ASC)
-                    .background()
-            )
+//            val indexOps = template.indexOps(it)
+//            indexOps.ensureIndex(
+//                Index()
+//                    .on("${LogEvent::data.name}.${Erc20TokenHistory::token.name}", Sort.Direction.ASC)
+//                    .on("${LogEvent::data.name}.${Erc20TokenHistory::owner.name}", Sort.Direction.ASC)
+//                    .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
+//                    .on(LogEvent::logIndex.name, Sort.Direction.ASC)
+//                    .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
+//                    .background()
+//            )
+//            indexOps.ensureIndex(
+//                Index()
+//                    .on("${LogEvent::data.name}.${Erc20TokenHistory::token.name}", Sort.Direction.ASC)
+//                    .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
+//                    .on(LogEvent::logIndex.name, Sort.Direction.ASC)
+//                    .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
+//                    .background()
+//            )
+//            indexOps.ensureIndex(
+//                Index()
+//                    .on("blockNumber", Sort.Direction.ASC)
+//                    .on("logIndex", Sort.Direction.ASC)
+//                    .background()
+//            )
         }
     }
 }
