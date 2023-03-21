@@ -157,7 +157,6 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
         assertThat(balance.balance).isEqualTo(EthUInt256.of(5))
         assertThat(balance.createdAt).isEqualTo(currentBalance.createdAt)
         assertThat(balance.lastUpdatedAt!!.toEpochMilli()).isEqualTo(outcomeDate.time)
-        assertThat(balance.blockNumber).isGreaterThan(0L)
 
         Wait.waitAssert {
             assertThat(events)

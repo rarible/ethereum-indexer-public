@@ -48,6 +48,7 @@ internal class BalanceControllerFt : AbstractFt() {
             balance = EthUInt256.TEN,
             createdAt = nowMillis(),
             lastUpdatedAt = nowMillis(),
+            blockNumber = null
         )
         erc20BalanceRepository.save(erc20Balance)
 
@@ -93,7 +94,8 @@ internal class BalanceControllerFt : AbstractFt() {
             owner = AddressFactory.create(),
             balance = EthUInt256.of(1054),
             createdAt = nowMillis(),
-            lastUpdatedAt = nowMillis()
+            lastUpdatedAt = nowMillis(),
+            blockNumber = null
         )
         erc20BalanceRepository.save(erc20Balance)
 
@@ -122,7 +124,8 @@ internal class BalanceControllerFt : AbstractFt() {
             owner = AddressFactory.create(),
             balance = EthUInt256.of(1054),
             createdAt = nowMillis(),
-            lastUpdatedAt = nowMillis()
+            lastUpdatedAt = nowMillis(),
+            blockNumber = null
         )
         erc20BalanceRepository.save(erc20Balance)
 
