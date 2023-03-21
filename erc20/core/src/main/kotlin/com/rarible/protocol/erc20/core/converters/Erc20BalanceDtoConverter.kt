@@ -11,7 +11,8 @@ object Erc20BalanceDtoConverter {
             owner = source.owner,
             balance = source.balance.value,
             createdAt = source.createdAt,
-            lastUpdatedAt = source.lastUpdatedAt
+            lastUpdatedAt = source.lastUpdatedAt,
+            blockNumber = source.blockNumber
         )
     }
 }
