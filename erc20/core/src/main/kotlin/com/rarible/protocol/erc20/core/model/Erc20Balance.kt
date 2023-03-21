@@ -21,6 +21,9 @@ data class Erc20Balance(
     val createdAt: Instant?,
     val lastUpdatedAt: Instant?,
 
+    // This is the block which causes the balance change
+    val blockNumber: Long?,
+
     @Version
     override val version: Long? = null,
 
@@ -43,5 +46,9 @@ data class Erc20Balance(
 
     fun withBalanceAndLastUpdatedAt(balance: EthUInt256, lastUpdatedAt: Instant?): Erc20Balance {
         return copy(balance = balance, lastUpdatedAt = lastUpdatedAt)
+    }
+
+    fun withBlockNumber(blockNumber: Long?): Erc20Balance {
+        return copy(blockNumber = blockNumber)
     }
 }

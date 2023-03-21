@@ -49,7 +49,7 @@ class BalanceReducer : Reducer<Erc20ReduceEvent, BalanceReduceSnapshot, Long, Er
             current.data.copy(createdAt = eventDate)
         } else {
             current.data
-        }.withBalanceAndLastUpdatedAt(balance, eventDate)
+        }.withBalanceAndLastUpdatedAt(balance, eventDate).withBlockNumber(logEvent.blockNumber)
 
         return BalanceReduceSnapshot(
             id = current.id,
@@ -74,7 +74,8 @@ class BalanceReducer : Reducer<Erc20ReduceEvent, BalanceReduceSnapshot, Long, Er
                 balance = EthUInt256.ZERO,
                 createdAt = Instant.EPOCH,
                 lastUpdatedAt = Instant.EPOCH,
-                revertableEvents = emptyList() //todo
+                revertableEvents = emptyList(), //todo
+                blockNumber = null
             ),
             mark = Long.MIN_VALUE
         )
