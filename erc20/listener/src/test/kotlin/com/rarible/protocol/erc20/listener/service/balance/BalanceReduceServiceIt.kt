@@ -110,7 +110,6 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
             val event = events.firstOrNull { it.value.balanceId == balance.id.stringValue }!!
             assertThat(event.value.createdAt).isEqualTo(balance.createdAt)
             assertThat(event.value.lastUpdatedAt).isEqualTo(balance.lastUpdatedAt)
-            assertThat(event.value.lastUpdatedAt).isEqualTo(balance.lastUpdatedAt)
         }
         job.cancel()
     }

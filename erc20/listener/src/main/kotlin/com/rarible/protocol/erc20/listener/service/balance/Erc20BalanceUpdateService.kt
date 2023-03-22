@@ -13,7 +13,8 @@ class Erc20BalanceUpdateService(
     override suspend fun update(data: Erc20Balance) {
         val currentBalance = balanceRepository.get(data.id)
 
-        val balanceToSave = currentBalance?.withBalanceAndLastUpdatedAt(data.balance, data.lastUpdatedAt) ?: data
+        val balanceToSave = currentBalance?.withBalanceAndLastUpdatedAt(data.balance, data.lastUpdatedAt)
+            ?.withBlockNumber(data.blockNumber) ?: data
         balanceRepository.update(balanceToSave)
     }
 }

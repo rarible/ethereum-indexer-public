@@ -42,6 +42,11 @@
                 <scope>test</scope>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol.contracts</groupId>
+                <artifactId>protocol-ethereum-contracts-nft</artifactId>
+                <version>${rarible.ethereum.contracts.version}</version>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>
