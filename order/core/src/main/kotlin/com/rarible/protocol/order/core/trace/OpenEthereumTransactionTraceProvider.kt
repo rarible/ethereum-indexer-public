@@ -13,6 +13,7 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
+import org.slf4j.LoggerFactory
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.java.Lists
@@ -31,6 +32,7 @@ class OpenEthereumTransactionTraceProvider(
         to: Address,
         ids: Set<Binary>
     ): List<SimpleTraceResult> {
+        logger.info("Get trace for hash: $transactionHash, method: trace_transaction, ids: ${ids.joinToString { it.prefixed() }}")
         return traces(transactionHash)
             .filter { it.action?.to == to && it.action.input?.methodSignatureId() in ids && it.error != "Reverted" }
             .mapNotNull { convert(it) }
@@ -84,4 +86,6 @@ class OpenEthereumTransactionTraceProvider(
             val output: Binary?
         )
     }
+
+    private val logger = LoggerFactory.getLogger(GethTransactionTraceProvider::class.java)
 }
