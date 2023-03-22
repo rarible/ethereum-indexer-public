@@ -361,7 +361,7 @@ class MongoOrderRepository(
                 }
             }
 
-        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
+        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_HEX_STATUS.indexKeys)
         return template.query<Order>().matching(query).all().asFlow()
     }
 
