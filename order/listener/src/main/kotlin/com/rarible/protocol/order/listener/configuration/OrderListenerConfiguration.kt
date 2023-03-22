@@ -111,7 +111,7 @@ class OrderListenerConfiguration(
         return listenerProperties.startEndWorker
     }
 
-    @Bean
+    //@Bean
     fun erc20BalanceChangeWorker(orderBalanceService: OrderBalanceService): ConsumerWorker<Erc20BalanceEventDto> {
         val args = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsConsumer(
             consumerGroup = erc20BalanceConsumerGroup,
@@ -133,7 +133,7 @@ class OrderListenerConfiguration(
         ).apply { start() }
     }
 
-    @Bean
+    //@Bean
     fun ownershipChangeWorker(orderBalanceService: OrderBalanceService): BatchedConsumerWorker<NftOwnershipEventDto> {
         val consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
             ownershipBalanceConsumerGroup,
