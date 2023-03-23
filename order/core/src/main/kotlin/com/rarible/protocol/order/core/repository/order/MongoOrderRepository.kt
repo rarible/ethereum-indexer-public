@@ -61,6 +61,7 @@ class MongoOrderRepository(
             "end_1_start_1_makeStock_1__id_1",
             "make.type.nft_1_createdAt_1__id_1", // Incorrect SELL_ORDERS_DEFINITION
             "make.type.nft_1_platform_1_createdAt_1__id_1", // Incorrect SELL_ORDERS_PLATFORM_DEFINITION
+            "platform_1_maker_1_data.counter_1_status_1",
             "makeStock_-1_lastUpdateAt_-1",
             "makeStock_-1_lastUpdateAt_-1__id_1",
             "makeStock_1_lastUpdateAt_1__id_1",
@@ -378,13 +379,7 @@ class MongoOrderRepository(
     }
 
     companion object {
-
         const val COLLECTION = "order"
-
         const val COUNTER_HEX_KEY = "data.counterHex"
-
-        // TODO PT-2386 update to data.counterHex
-        const val COUNTER_KEY = "data.counter"
-
     }
 }
