@@ -50,6 +50,10 @@ class LooksrareOrderService(
             val lastLoadOrder = result.data.lastOrNull()
             logger.looksrareInfo("Last load order startTime ${lastLoadOrder?.startTime?.epochSecond}")
             nextHash = lastLoadOrder?.hash
+            if (lastLoadOrder != null && lastLoadOrder.startTime > listedBefore) {
+                logger.looksrareInfo("Last load order startTime ${lastLoadOrder.startTime.epochSecond} > listedBefore ${listedBefore.epochSecond}")
+                break
+            }
         } while (lastLoadOrder != null && lastLoadOrder.startTime > listedAfter)
 
         return loadOrders.toList().filter { it.status == Status.VALID }
