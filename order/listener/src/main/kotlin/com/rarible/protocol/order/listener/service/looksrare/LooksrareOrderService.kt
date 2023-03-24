@@ -35,7 +35,7 @@ class LooksrareOrderService(
                 isOrderAsk = true,
                 startTime = listedBefore,
                 endTime = null,
-                status = null,
+                status = listOf(Status.VALID),
                 sort = Sort.NEWEST,
                 pagination = Pagination(first = properties.loadMaxSize, cursor = nextHash?.prefixed())
             )
