@@ -53,6 +53,7 @@ class BalanceCheckerIt : AbstractIntegrationTest() {
         val erc20 = SimpleERC20.deployAndWait(sender, poller).awaitFirst()
         erc20.mint(walletOwner, BigInteger.ONE).withSender(sender).execute().verifySuccess()
 
+        meterRegistry.clear() // metric clean
         waitAssert {
             assertThat(counter(CheckerMetrics.BALANCE_CHECK)).isEqualTo(1.0)
             assertThat(counter(CheckerMetrics.BALANCE_INCOMING)).isEqualTo(1.0)
@@ -67,6 +68,7 @@ class BalanceCheckerIt : AbstractIntegrationTest() {
         val erc20 = SimpleERC20.deployAndWait(sender, poller).awaitFirst()
         val blockNumber = ethereum.ethBlockNumber().awaitFirst().toLong()
 
+        meterRegistry.clear() // metric clean
         erc20BalanceService.update(randomBalance(
             token = erc20.address(),
             owner = walletOwner,

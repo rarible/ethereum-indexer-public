@@ -25,7 +25,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
             "logging.logstash.tcp-socket.enabled = false"
     ]
 )
-@ActiveProfiles("integration", "consul")
+@ActiveProfiles("integration")
 @Import(TestConfiguration::class)
 @MongoTest
 @KafkaTest
