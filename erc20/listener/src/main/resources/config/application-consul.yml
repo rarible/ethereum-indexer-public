@@ -7,10 +7,14 @@ spring:
 parityUrls: ${node.hosts}
 parityWebSocketUrls: ${node.webSocketHosts}
 
-common:
-  kafka-replica-set: ${kafka.hosts}
-
 blockchain:
   scanner:
     kafka:
       broker-replica-set: ${kafka.hosts}
+
+protocol:
+  erc20:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+common:
+  kafka-replica-set: ${kafka.hosts}

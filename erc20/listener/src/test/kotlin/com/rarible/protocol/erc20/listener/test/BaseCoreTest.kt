@@ -21,18 +21,6 @@ abstract class BaseCoreTest {
         System.setProperty(
             "kafka.hosts", kafkaTest.kafkaBoostrapServers()
         )
-        System.setProperty(
-            "protocol.nft.subscriber.broker-replica-set", kafkaTest.kafkaBoostrapServers()
-        )
-        System.setProperty(
-            "protocol.erc20.subscriber.broker-replica-set", kafkaTest.kafkaBoostrapServers()
-        )
-        System.setProperty(
-            "protocol.order.subscriber.broker-replica-set", kafkaTest.kafkaBoostrapServers()
-        )
-        System.setProperty(
-            "common.kafka-replica-set", kafkaTest.kafkaBoostrapServers()
-        )
     }
     companion object {
         val kafkaTest = KafkaTestContainer()
