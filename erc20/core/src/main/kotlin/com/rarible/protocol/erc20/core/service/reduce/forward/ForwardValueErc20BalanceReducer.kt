@@ -17,6 +17,6 @@ class ForwardValueErc20BalanceReducer : Reducer<Erc20Event, Erc20Balance> {
             is Erc20Event.Erc20WithdrawalEvent -> entity.copy(balance = currentBalance - event.value)
             is Erc20Event.Erc20TokenApprovalEvent -> entity
 
-        }
+        }.withBlockNumber(blockNumber = event.log.blockNumber)
     }
 }

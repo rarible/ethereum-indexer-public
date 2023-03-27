@@ -4,6 +4,7 @@ import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.ethereum.domain.Blockchain
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import java.time.Duration
 
 internal const val RARIBLE_PROTOCOL_LISTENER_STORAGE = "listener"
 
@@ -17,4 +18,10 @@ data class Erc20ListenerProperties(
     val logConsumeWorkerCount: Int = 10,
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val skipTransferContracts: List<String> = emptyList(),
+    val balanceCheckerProperties: BalanceCheckerProperties = BalanceCheckerProperties()
+)
+
+data class BalanceCheckerProperties(
+    val skipNumberOfBlocks: Long = 20,
+    val updateLastBlock: Duration = Duration.ofMillis(5000)
 )
