@@ -18,6 +18,12 @@ polygon-order-api:
       xmx_megabytes: 512
       max_direct_memory_megabytes: 128
 
+polygon-order-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 512
+
 polygon-nft-listener:
   livenessProbe:
     initialDelaySeconds: 360

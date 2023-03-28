@@ -7,7 +7,6 @@ import io.daonomic.rpc.domain.Binary
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.NestedConfigurationProperty
-import org.springframework.data.mongodb.core.aggregation.ArrayOperators.In
 import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Duration
@@ -71,6 +70,7 @@ data class OrderIndexerProperties(
         var openSeaV1: Address,
         var openSeaV2: Address,
         var seaportV1: Address,
+        var seaportV1_4: Address,
         var blurV1: Address,
         var cryptoPunks: Address,
         var zeroEx: Address,
@@ -128,6 +128,8 @@ data class OrderIndexerProperties(
         val sudoswapEnabled: Boolean = true,
         val blurEnabled: Boolean = false,
         val markIgnoredEvent: Boolean = true,
+        val findIgnoredEvent: Boolean = false,
+        val removeOpenSeaOrdersInTask: Boolean = false
     )
 
     data class RaribleOrderExpirationProperties(

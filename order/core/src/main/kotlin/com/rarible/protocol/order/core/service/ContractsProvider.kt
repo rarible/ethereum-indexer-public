@@ -34,7 +34,7 @@ class ContractsProvider(
     }
 
     fun seaportV1(): List<Address> {
-        return listOf(exchangeContractAddresses.seaportV1)
+        return listOf(exchangeContractAddresses.seaportV1, exchangeContractAddresses.seaportV1_4)
     }
 
     fun blurV1(): List<Address> {

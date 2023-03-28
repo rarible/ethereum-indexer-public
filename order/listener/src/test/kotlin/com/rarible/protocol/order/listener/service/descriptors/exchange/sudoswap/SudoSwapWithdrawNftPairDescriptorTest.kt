@@ -7,6 +7,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
@@ -32,6 +33,7 @@ internal class SudoSwapWithdrawNftPairDescriptorTest {
     private val descriptor = SudoSwapWithdrawNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapWithdrawNftEventCounter = counter,
+        sudoSwapLoad = SudoSwapLoadProperties()
     )
 
     @Test

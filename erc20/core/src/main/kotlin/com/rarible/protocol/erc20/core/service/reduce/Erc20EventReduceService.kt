@@ -49,7 +49,8 @@ class Erc20EventReduceService(
                     .mapNotNull { erc20EventConverter.convert(it.record.asEthereumLogRecord()) }
                     .let { delegate.reduceAll(it) }
             } catch (ex: Exception) {
-                logger.error("Error on entity events $events", ex)
+                val locations = events.map { it.record.asEthereumLogRecord() }.map { "${it.transactionHash}:${it.logIndex}:${it.minorLogIndex}" }
+                logger.error("Error on entity events: $locations", ex)
                 throw ex
             }
         }

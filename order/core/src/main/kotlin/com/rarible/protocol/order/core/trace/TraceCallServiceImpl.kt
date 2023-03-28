@@ -106,6 +106,6 @@ class TraceCallServiceImpl(
             } while (attempts++ < 5)
         }
         return if (exceptionIfNotFound)
-            throw TraceNotFoundException("tx trace not found for hash: $txHash") else emptyList()
+            throw TraceNotFoundException("tx trace not found for hash: $txHash, ids=${ids.joinToString { it.prefixed() }}") else emptyList()
     }
 }

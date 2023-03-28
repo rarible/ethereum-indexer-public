@@ -14,6 +14,7 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
+import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters
 import scalether.core.MonoEthereum
 import scalether.domain.Address
@@ -34,6 +35,7 @@ class GethTransactionTraceProvider(
         to: Address,
         ids: Set<Binary>,
     ): List<SimpleTraceResult> {
+        logger.info("Get trace for hash: $transactionHash, method: debug_traceTransaction, ids: ${ids.joinToString { it.prefixed() }}")
         return trace(transactionHash).findTraces(to, ids).map { it.toSimpleTraceResult() }
     }
 
@@ -90,4 +92,6 @@ class GethTransactionTraceProvider(
             )
         }
     }
+
+    private val logger = LoggerFactory.getLogger(GethTransactionTraceProvider::class.java)
 }
