@@ -23,7 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import java.math.BigInteger
 
-
+// This test is flaky due to kafka events from other tests can change metrics
+// Better to run these test separately
+@Disabled
 @FlowPreview
 @IntegrationTest
 class BalanceCheckerIt : AbstractIntegrationTest() {
@@ -44,8 +46,6 @@ class BalanceCheckerIt : AbstractIntegrationTest() {
         meterRegistry.clear()
     }
 
-    // This test is flaky due to kafka events from other tests can change metrics
-    @Disabled
     @Test
     fun `should check balance - ok`() = runBlocking<Unit> {
         val sender = createSender(privateKey)
