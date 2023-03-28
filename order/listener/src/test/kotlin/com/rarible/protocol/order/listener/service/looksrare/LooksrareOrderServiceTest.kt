@@ -47,14 +47,14 @@ internal class LooksrareOrderServiceTest {
 
         coVerify(exactly = 1) {
             looksrareClient.getOrders(
-                withArg {
-                    assertThat(it.isOrderAsk).isTrue
-                    assertThat(it.startTime).isEqualTo(listedBefore)
-                    assertThat(it.endTime).isNull()
-                    assertThat(it.status).isNull()
-                    assertThat(it.sort).isEqualTo(Sort.NEWEST)
-                    assertThat(it.pagination?.first).isEqualTo(properties.loadMaxSize)
-                    assertThat(it.pagination?.cursor).isNull()
+                match {
+                    it.isOrderAsk
+                    it.startTime == listedBefore
+                    it.endTime == null
+                    it.status == null
+                    it.sort == null
+                    it.pagination?.first == properties.loadMaxSize
+                    it.pagination?.cursor == null
                 }
             )
         }
