@@ -4,10 +4,12 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.blur.v1.evemts.OrdersMatchedEvent
 import com.rarible.protocol.contracts.exchange.blur.v1.BlurV1
 import com.rarible.protocol.contracts.exchange.blur.v1.OrderCancelledEvent
+import com.rarible.protocol.contracts.exchange.blur.v2.BlurV2
 import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.BlurExecution
 import com.rarible.protocol.order.core.model.BlurOrder
 import com.rarible.protocol.order.core.model.BlurOrderSide
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
@@ -54,13 +56,7 @@ class BlurEventConverter(
         date: Instant,
     ): List<OrderSideMatch> {
         val txHash = transaction.hash()
-        val executions = getMethodInput(
-            log,
-            transaction,
-            BlurV1.executeSignature().id(),
-            BlurV1.bulkExecuteSignature().id(),
-        ).map { BlurOrderParser.parseExecutions(it, txHash) }.flatten()
-
+        val executions = getExecutions(log, transaction)
         //TODO: Remove this on PT-2288
         if (executions.size != totalLogs) {
             return emptyList()
@@ -222,9 +218,30 @@ class BlurEventConverter(
         }.let { Asset(it, EthUInt256.of(order.price)) }
     }
 
+    private suspend fun getExecutions(log: Log, transaction: Transaction): List<BlurExecution> {
+        val txHash = transaction.hash()
+        val txInput = transaction.input()
+        return when (txInput.methodSignatureId()) {
+            BlurV2.batchBuyWithETHSignature(),
+            BlurV2.batchBuyWithERC20sSignature() -> {
+                if (featureFlags.parseBlurMarketPlaceV2) {
+                    val executions = BlurOrderParser.parseTradeDetails(txInput, log.transactionHash())
+                    BlurOrderParser.tryFetchExecutions(executions.map { it.tradeData }, txHash)
+                } else emptyList()
+            }
+            else -> emptyList()
+        }.ifEmpty {
+            getMethodInput(
+                log,
+                transaction,
+                BlurV1.executeSignature().id(),
+                BlurV1.bulkExecuteSignature().id(),
+            ).map { BlurOrderParser.parseExecutions(it, txHash) }.flatten()
+        }
+    }
+
     private data class OrderAssets(
         val make: Asset,
         val take: Asset
     )
-
 }

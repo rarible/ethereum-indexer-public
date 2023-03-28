@@ -129,7 +129,8 @@ data class OrderIndexerProperties(
         val blurEnabled: Boolean = false,
         val markIgnoredEvent: Boolean = true,
         val findIgnoredEvent: Boolean = false,
-        val removeOpenSeaOrdersInTask: Boolean = false
+        val removeOpenSeaOrdersInTask: Boolean = false,
+        val parseBlurMarketPlaceV2: Boolean = false,
     )
 
     data class RaribleOrderExpirationProperties(
