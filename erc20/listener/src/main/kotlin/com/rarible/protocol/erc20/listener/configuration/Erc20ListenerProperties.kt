@@ -23,5 +23,6 @@ data class Erc20ListenerProperties(
 
 data class BalanceCheckerProperties(
     val skipNumberOfBlocks: Long = 20,
-    val updateLastBlock: Duration = Duration.ofMillis(5000)
+    val delay: Duration = Duration.ofSeconds(25),
+    val updateLastBlock: Duration = Duration.ofSeconds(5)
 )

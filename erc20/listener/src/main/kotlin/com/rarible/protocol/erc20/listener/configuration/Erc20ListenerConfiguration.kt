@@ -113,7 +113,6 @@ class Erc20ListenerConfiguration(
 
     @Bean
     fun erc20BalanceCheckerWorker(
-        balanceRepository: Erc20BalanceRepository,
         ethereum: MonoEthereum,
         checkerMetrics: CheckerMetrics
     ): ConsumerBatchWorker<Erc20BalanceEventDto> {
@@ -132,7 +131,7 @@ class Erc20ListenerConfiguration(
         return ConsumerBatchWorker(
             consumer = consumer,
             properties = commonProperties.eventConsumerWorker,
-            eventHandler = BalanceBatchCheckerHandler(balanceRepository, ethereum, checkerMetrics, balanceCheckerProperties),
+            eventHandler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, balanceCheckerProperties),
             meterRegistry = meterRegistry,
             workerName = "erc20-balance-checker"
         ).apply { start() }
