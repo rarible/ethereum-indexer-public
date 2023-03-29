@@ -23,6 +23,7 @@ import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.TokenStandard
 import com.rarible.protocol.order.core.parser.BlurOrderParser
+import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
@@ -44,6 +45,8 @@ class BlurEventConverter(
     private val standardProvider: TokenStandardProvider,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
+    private val nonceHistoryRepository: NonceHistoryRepository,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
 ) : AbstractEventConverter(traceCallService, featureFlags) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -57,16 +60,13 @@ class BlurEventConverter(
     ): List<OrderSideMatch> {
         val txHash = transaction.hash()
         val executions = getExecutions(log, transaction)
-        //TODO: Remove this on PT-2288
-        if (executions.size != totalLogs) {
-            return emptyList()
-        }
-        require(executions.size == totalLogs) {
-            "Executions in tx $txHash didn't match total events, inputs=${executions.size}, totalLogs=$totalLogs"
-        }
-        val execution = executions[index]
         val event = OrdersMatchedEvent.apply(log)
 
+        val execution = if (executions.size == totalLogs) {
+            executions[index]
+        } else {
+            findExecution(executions, event, txHash) ?: return emptyList()
+        }
         val sellOrder = BlurOrderParser.convert(event.sell())
         val sellHash = Word.apply(event.sellHash())
         val isSellAdhoc = execution.sell.isEmptySignature()
@@ -130,6 +130,39 @@ class BlurEventConverter(
             )
         )
         return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
+    }
+
+    private suspend fun findExecution(
+        executions: List<BlurExecution>,
+        event: OrdersMatchedEvent,
+        txHash: Word?
+    ): BlurExecution? {
+        val sellHash = Word.apply(event.sellHash())
+        val buyHash = Word.apply(event.buyHash())
+
+        val foundExecutions = executions.filter { execution ->
+            val sellMatched = foundHashMatch(execution.sell.order, sellHash)
+            val buyMatched = foundHashMatch(execution.buy.order, buyHash)
+            sellMatched && buyMatched
+        }
+        return if (foundExecutions.size != 1) {
+            logger.error("Can't find execution for tx $txHash")
+            null
+        } else foundExecutions.single()
+    }
+
+    private suspend fun foundHashMatch(order: BlurOrder, hash: Word?): Boolean {
+        val trader = order.trader
+        val maxCounter = nonceHistoryRepository
+            .findLatestNonceHistoryByMaker(trader, exchangeContractAddresses.blurV1)
+            ?.let { it.data as? ChangeNonceHistory }?.newNonce?.value?.toLong() ?: 0L
+
+        for (nonce in maxCounter downTo 0L) {
+            if (order.hash(nonce) == hash) {
+                return true
+            }
+        }
+        return false
     }
 
     suspend fun convertToCancel(

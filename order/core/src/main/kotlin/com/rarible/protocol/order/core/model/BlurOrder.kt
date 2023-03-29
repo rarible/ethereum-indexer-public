@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.model
 
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.math.BigInteger
 
@@ -18,4 +19,8 @@ data class BlurOrder(
     val fees: List<BlurFee>,
     val salt: BigInteger,
     val extraParams: Binary,
-)
+) {
+    fun hash(counter: Long): Word {
+        return Order.blurV1Hash(this, counter.toBigInteger())
+    }
+}
