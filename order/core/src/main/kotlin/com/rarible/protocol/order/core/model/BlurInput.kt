@@ -6,6 +6,7 @@ import org.web3j.crypto.Sign
 import java.math.BigInteger
 
 data class BlurInput(
+    val order: BlurOrder,
     val v: BigInteger,
     val r: Binary,
     val s: Binary

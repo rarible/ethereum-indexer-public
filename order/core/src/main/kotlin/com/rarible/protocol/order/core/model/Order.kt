@@ -684,6 +684,70 @@ data class Order(
             )
         }
 
+        /**
+         * function _hashOrder(Order calldata order, uint256 nonce)
+         *         internal
+         *         pure
+         *         returns (bytes32)
+         *     {
+         *         return keccak256(
+         *             bytes.concat(
+         *                 abi.encode(
+         *                       ORDER_TYPEHASH,
+         *                       order.trader,
+         *                       order.side,
+         *                       order.matchingPolicy,
+         *                       order.collection,
+         *                       order.tokenId,
+         *                       order.amount,
+         *                       order.paymentToken,
+         *                       order.price,
+         *                       order.listingTime,
+         *                       order.expirationTime,
+         *                       _packFees(order.fees),
+         *                       order.salt,
+         *                       keccak256(order.extraParams)
+         *                 ),
+         *                 abi.encode(nonce)
+         *             )
+         *         );
+         *     }
+         */
+        fun blurV1Hash(
+            blurOrder: BlurOrder,
+            counter: BigInteger,
+        ): Word {
+            fun feeHash(fee: BlurFee): Word {
+                return keccak256(
+                    BLUR_FEE_TYPE_HASH
+                        .add(AddressType.encode(fee.recipient))
+                        .add(Uint256Type.encode(fee.rate))
+                )
+            }
+            fun packFees(fees: List<BlurFee>): Binary {
+                return fees.fold(Binary.empty()) { acc, next ->
+                    acc.add(feeHash(next))
+                }
+            }
+            return keccak256(
+                BLUR_ORDER_TYPE_HASH
+                    .add(AddressType.encode(blurOrder.trader))
+                    .add(Uint256Type.encode((blurOrder.side.value)))
+                    .add(AddressType.encode((blurOrder.matchingPolicy)))
+                    .add(AddressType.encode((blurOrder.collection)))
+                    .add(Uint256Type.encode((blurOrder.tokenId)))
+                    .add(Uint256Type.encode((blurOrder.amount)))
+                    .add(AddressType.encode((blurOrder.paymentToken)))
+                    .add(Uint256Type.encode((blurOrder.price)))
+                    .add(Uint256Type.encode((blurOrder.listingTime)))
+                    .add(Uint256Type.encode((blurOrder.expirationTime)))
+                    .add(keccak256(packFees(blurOrder.fees)))
+                    .add(Uint256Type.encode((blurOrder.salt)))
+                    .add(keccak256(blurOrder.extraParams))
+                    .add(Uint256Type.encode((counter)))
+            )
+        }
+
         fun hashKey(
             maker: Address,
             makeAssetType: AssetType,
@@ -881,11 +945,18 @@ internal const val ORDER_COMPONENTS_PARTIAL_TYPE_STRING =
     "OrderComponents(address offerer,address zone,OfferItem[] offer,ConsiderationItem[] consideration,uint8 orderType,uint256 startTime,uint256 endTime,bytes32 zoneHash,uint256 salt,bytes32 conduitKey,uint256 counter)";
 internal const val ORDER_TYPE_STRING =
     "${ORDER_COMPONENTS_PARTIAL_TYPE_STRING}${CONSIDERATION_ITEM_TYPE_STRING}${OFFER_ITEM_TYPE_STRING}"
+internal const val BLUR_ORDER_TYPE_HASH_STRING =
+    "Order(address trader,uint8 side,address matchingPolicy,address collection,uint256 tokenId,uint256 amount,address paymentToken,uint256 price,uint256 listingTime,uint256 expirationTime,Fee[] fees,uint256 salt,bytes extraParams,uint256 nonce)Fee(uint16 rate,address recipient)"
+internal const val BLUR_FEE_TYPE_HASH_STRING =
+    "Fee(uint16 rate,address recipient)"
 
 internal val OFFER_ITEM_TYPE_HASH = keccak256(OFFER_ITEM_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))
 internal val CONSIDERATION_ITEM_TYPE_HASH = keccak256(
     CONSIDERATION_ITEM_TYPE_STRING.toByteArray(StandardCharsets.UTF_8)
 )
 internal val ORDER_TYPE_HASH = keccak256(ORDER_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))
+internal val BLUR_ORDER_TYPE_HASH = keccak256(BLUR_ORDER_TYPE_HASH_STRING.toByteArray(StandardCharsets.UTF_8))
+internal val BLUR_FEE_TYPE_HASH = keccak256(BLUR_FEE_TYPE_HASH_STRING.toByteArray(StandardCharsets.UTF_8))
+
 
 val EXPIRED_BID_STATUSES = setOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE, OrderStatus.ENDED)

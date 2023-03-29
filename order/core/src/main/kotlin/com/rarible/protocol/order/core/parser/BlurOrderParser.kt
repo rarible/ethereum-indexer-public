@@ -116,6 +116,7 @@ object BlurOrderParser {
 
     private fun convertInput(value: Tuple7<Tuple13<Address, BigInteger, Address, Address, BigInteger, BigInteger, Address, BigInteger, BigInteger, BigInteger, Array<Tuple2<BigInteger, Address>>, BigInteger, ByteArray>, BigInteger, ByteArray, ByteArray, ByteArray, BigInteger, BigInteger>): BlurInput {
         return BlurInput(
+            order = convert(value._1()),
             v = value._2(),
             r = Binary.apply(value._3()),
             s = Binary.apply(value._4())
