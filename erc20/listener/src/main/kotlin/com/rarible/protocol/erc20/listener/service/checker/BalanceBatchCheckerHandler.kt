@@ -1,7 +1,7 @@
 package com.rarible.protocol.erc20.listener.service.checker
 
 import com.rarible.contracts.erc20.IERC20
-import com.rarible.core.daemon.sequential.ConsumerEventHandler
+import com.rarible.core.daemon.sequential.ConsumerBatchEventHandler
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Erc20BalanceDto
 import com.rarible.protocol.dto.Erc20BalanceEventDto
@@ -19,17 +19,22 @@ import java.time.Duration
 import java.time.Instant
 import kotlin.random.Random.Default.nextLong
 
-class BalanceCheckerHandler(
+class BalanceBatchCheckerHandler(
     private val ethereum: MonoEthereum,
     private val checkerMetrics: CheckerMetrics,
     private val props: BalanceCheckerProperties
-) : ConsumerEventHandler<Erc20BalanceEventDto> {
+) : ConsumerBatchEventHandler<Erc20BalanceEventDto> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
     private var lastUpdated = Instant.MIN
     private var lastBlockNumber: Long = 0
 
-    override suspend fun handle(event: Erc20BalanceEventDto) {
+    override suspend fun handle(event: List<Erc20BalanceEventDto>) {
+        logger.info("Handling ${event.size} Erc20BalanceEventDto events")
+        event.forEach { handle(it) }
+    }
+
+    suspend fun handle(event: Erc20BalanceEventDto) {
         checkerMetrics.onIncoming()
         if (event is Erc20BalanceUpdateEventDto) {
             val balance = event.balance

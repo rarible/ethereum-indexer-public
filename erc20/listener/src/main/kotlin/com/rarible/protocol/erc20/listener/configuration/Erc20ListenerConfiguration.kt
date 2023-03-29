@@ -2,7 +2,7 @@ package com.rarible.protocol.erc20.listener.configuration
 
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.daemon.sequential.ConsumerWorker
+import com.rarible.core.daemon.sequential.ConsumerBatchWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.reduce.blockchain.BlockchainSnapshotStrategy
 import com.rarible.core.reduce.service.ReduceService
@@ -21,7 +21,7 @@ import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceEve
 import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceServiceV1
 import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceUpdateService
 import com.rarible.protocol.erc20.listener.service.balance.Erc20TokenReduceEventRepository
-import com.rarible.protocol.erc20.listener.service.checker.BalanceCheckerHandler
+import com.rarible.protocol.erc20.listener.service.checker.BalanceBatchCheckerHandler
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -114,7 +114,7 @@ class Erc20ListenerConfiguration(
     fun erc20BalanceCheckerWorker(
         ethereum: MonoEthereum,
         checkerMetrics: CheckerMetrics
-    ): ConsumerWorker<Erc20BalanceEventDto> {
+    ): ConsumerBatchWorker<Erc20BalanceEventDto> {
         val args = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsConsumer(
             consumerGroup = erc20BalanceConsumerGroup,
             blockchain = blockchain()
@@ -127,9 +127,10 @@ class Erc20ListenerConfiguration(
             bootstrapServers = args.bootstrapServers,
             offsetResetStrategy = args.offsetResetStrategy
         )
-        return ConsumerWorker(
+        return ConsumerBatchWorker(
             consumer = consumer,
-            eventHandler = BalanceCheckerHandler(ethereum, checkerMetrics, balanceCheckerProperties),
+            properties = commonProperties.eventConsumerWorker,
+            eventHandler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, balanceCheckerProperties),
             meterRegistry = meterRegistry,
             workerName = "erc20-balance-checker"
         ).apply { start() }
