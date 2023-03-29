@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.api.controller
 import com.rarible.core.logging.RaribleMDCContext
 import com.rarible.core.logging.withMdc
 import com.rarible.protocol.dto.BurnLazyNftFormDto
+import com.rarible.protocol.dto.EthMetaStatusDto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemIdsDto
@@ -12,6 +13,7 @@ import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.converter.ItemIdConverter
+import com.rarible.protocol.nft.api.converter.MetaStatusConverter
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
@@ -30,6 +32,7 @@ import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.page.PageSize
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
+import com.rarible.protocol.nft.core.service.item.meta.MetaException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -69,12 +72,21 @@ class ItemController(
     }
 
     override suspend fun getNftItemMetaById(itemId: String): ResponseEntity<NftItemMetaDto> {
-        val availableMeta = itemMetaService.getMetaWithTimeout(
-            itemId = ItemIdConverter.convert(itemId),
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
-            demander = "get meta by ID"
-        ) ?: throw EntityNotFoundApiException("Item meta", itemId)
-        return ResponseEntity.ok(nftItemMetaDtoConverter.convert(availableMeta, itemId))
+        val meta = try {
+            itemMetaService.getMetaWithTimeout(
+                itemId = ItemIdConverter.convert(itemId),
+                timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
+            )?.let {
+                nftItemMetaDtoConverter.convert(it, itemId)
+            }
+        } catch (e: MetaException) {
+            NftItemMetaDto(name = "", status = MetaStatusConverter.convert(e.status))
+        } catch (e: Throwable) {
+            NftItemMetaDto(name = "", status = EthMetaStatusDto.ERROR)
+        }
+
+        meta ?: throw EntityNotFoundApiException("Item meta", itemId)
+        return ResponseEntity.ok(meta)
     }
 
     override suspend fun getNftItemRoyaltyById(itemId: String): ResponseEntity<NftItemRoyaltyListDto> {
@@ -223,6 +235,7 @@ class ItemController(
     }
 
     companion object {
+
         const val BURN_MSG = "I would like to burn my %s item."
         private val logger = LoggerFactory.getLogger(ItemController::class.java)
         private val defaultSorting = ItemFilter.Sort.LAST_UPDATE_DESC

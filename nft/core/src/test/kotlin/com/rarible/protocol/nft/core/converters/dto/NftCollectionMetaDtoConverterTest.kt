@@ -7,7 +7,7 @@ import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class NftCollectionMetaDtoConverterTest {
+class EthCollectionMetaDtoConverterTest {
 
     @Test
     fun `convert token`() {
@@ -15,7 +15,7 @@ class NftCollectionMetaDtoConverterTest {
         val properties = randomTokenProperties().copy(
             content = ContentBuilder.getTokenMetaContent(randomString())
         )
-        val meta = NftCollectionMetaDtoConverter.convert(TokenMeta(properties))
+        val meta = EthCollectionMetaDtoConverter.convert(TokenMeta(properties))
 
         assertThat(meta.name).isEqualTo(properties.name)
         assertThat(meta.description).isEqualTo(properties.description)

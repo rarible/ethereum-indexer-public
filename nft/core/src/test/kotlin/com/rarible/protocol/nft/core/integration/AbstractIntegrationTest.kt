@@ -13,9 +13,9 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.dto.EthCollectionMetaDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
-import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
@@ -308,7 +308,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     }
 
     protected suspend fun checkMetaWasPublished(
-        meta: NftCollectionMetaDto
+        meta: EthCollectionMetaDto
     ) = coroutineScope {
         Wait.waitAssert {
             assertThat(collectionEvents).anySatisfy(Consumer { event ->

@@ -1,19 +1,25 @@
-package com.rarible.protocol.nft.api.e2e.collection
+package com.rarible.protocol.nft.api.controller
 
+import com.rarible.protocol.dto.EthMetaStatusDto
 import com.rarible.protocol.dto.EthereumApiErrorEntityNotFoundDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.api.test.End2EndTest
+import com.rarible.protocol.nft.core.converters.dto.EthCollectionMetaDtoConverter
+import com.rarible.protocol.nft.core.data.randomTokenProperties
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.TokenMeta
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
+import com.rarible.protocol.nft.core.service.item.meta.MetaException
+import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,13 +27,13 @@ import org.springframework.http.HttpStatus
 import scalether.domain.AddressFactory
 
 @End2EndTest
-class GetCollectionFt : AbstractIntegrationTest() {
+class CollectionControllerFt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var tokenRepository: TokenRepository
 
     @Test
-    fun `should get item by id`() = runBlocking<Unit> {
+    fun `get by id - ok`() = runBlocking<Unit> {
         val token = createToken().copy(
             standard = TokenStandard.ERC721,
             features = setOf(TokenFeature.APPROVE_FOR_ALL, TokenFeature.BURN)
@@ -49,7 +55,7 @@ class GetCollectionFt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `shouldn't get error collection by id`() = runBlocking<Unit> {
+    fun `get by id - not found`() = runBlocking<Unit> {
         val token = createToken().copy(
             standard = TokenStandard.ERC721,
             features = setOf(TokenFeature.APPROVE_FOR_ALL, TokenFeature.BURN),
@@ -62,12 +68,12 @@ class GetCollectionFt : AbstractIntegrationTest() {
         }
         val error = ex.on404 as EthereumApiErrorEntityNotFoundDto
 
-        Assertions.assertEquals(HttpStatus.NOT_FOUND.value(), error.status)
-        Assertions.assertEquals(EthereumApiErrorEntityNotFoundDto.Code.NOT_FOUND, error.code)
+        assertThat(error.status).isEqualTo(HttpStatus.NOT_FOUND.value())
+        assertThat(error.code).isEqualTo(EthereumApiErrorEntityNotFoundDto.Code.NOT_FOUND)
     }
 
     @Test
-    fun `should get item by id with set supportsLazyMint flag`() = runBlocking<Unit> {
+    fun `get by id - ok, with supportsLazyMint`() = runBlocking<Unit> {
         val token = createToken().copy(
             standard = TokenStandard.ERC721,
             features = setOf(TokenFeature.MINT_AND_TRANSFER)
@@ -83,7 +89,7 @@ class GetCollectionFt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should generate text token id`() = runBlocking<Unit> {
+    fun `generate next tokenId - ok`() = runBlocking<Unit> {
         val token = createToken().copy(
             standard = TokenStandard.ERC721,
             features = setOf(TokenFeature.MINT_AND_TRANSFER)
@@ -94,4 +100,59 @@ class GetCollectionFt : AbstractIntegrationTest() {
         val tokenId = nftCollectionApiClient.generateNftTokenId(token.id.hex(), minter.hex()).awaitFirst()
         assertThat(tokenId).isNotNull
     }
+
+    @Test
+    fun `get collection meta - ok`() = runBlocking<Unit> {
+        val token = createToken(standard = TokenStandard.ERC721)
+        tokenRepository.save(token).awaitSingle()
+
+        val tokenProperties = randomTokenProperties()
+        val imageUrl = tokenProperties.content.imageOriginal!!.url
+        val expected = TokenMeta(tokenProperties)
+
+        coEvery { mockTokenStandardPropertiesResolver.resolve(eq(token.id)) } returns tokenProperties
+        coEvery { mockMediaMetaService.getMediaMetaFromCache(imageUrl, any()) } returns null
+
+        val result = nftCollectionApiClient.getCollectionMeta(token.id.toString()).awaitSingle()
+
+        assertThat(result.status).isEqualTo(EthMetaStatusDto.OK)
+        assertThat(result.meta).isEqualTo(EthCollectionMetaDtoConverter.convert(expected))
+    }
+
+    @Test
+    fun `get collection meta - failed, meta exception`() = runBlocking<Unit> {
+        val token = createToken(standard = TokenStandard.ERC721)
+        tokenRepository.save(token).awaitSingle()
+
+        val tokenProperties = randomTokenProperties()
+        val imageUrl = tokenProperties.content.imageOriginal!!.url
+
+        coEvery { mockTokenStandardPropertiesResolver.resolve(eq(token.id)) } returns tokenProperties
+        coEvery {
+            mockMediaMetaService.getMediaMetaFromCache(imageUrl, any())
+        } throws MetaException("json", MetaException.Status.UnparseableJson)
+
+        val result = nftCollectionApiClient.getCollectionMeta(token.id.toString()).awaitSingle()
+
+        assertThat(result.status).isEqualTo(EthMetaStatusDto.UNPARSEABLE_JSON)
+        assertThat(result.meta).isNull()
+    }
+
+    @Test
+    fun `get collection meta - failed, unexpected exception`() = runBlocking<Unit> {
+        val token = createToken(standard = TokenStandard.ERC721)
+        tokenRepository.save(token).awaitSingle()
+
+        val tokenProperties = randomTokenProperties()
+        val imageUrl = tokenProperties.content.imageOriginal!!.url
+
+        coEvery { mockTokenStandardPropertiesResolver.resolve(eq(token.id)) } returns tokenProperties
+        coEvery { mockMediaMetaService.getMediaMetaFromCache(imageUrl, any()) } throws RuntimeException("runtime")
+
+        val result = nftCollectionApiClient.getCollectionMeta(token.id.toString()).awaitSingle()
+
+        assertThat(result.status).isEqualTo(EthMetaStatusDto.ERROR)
+        assertThat(result.meta).isNull()
+    }
 }
+

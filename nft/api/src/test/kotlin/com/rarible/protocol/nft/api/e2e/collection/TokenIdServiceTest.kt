@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.api.e2e.collection
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.NftCollectionMetaDto
+import com.rarible.protocol.dto.EthCollectionMetaDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
 import com.rarible.protocol.nft.api.e2e.data.createToken
@@ -148,7 +148,7 @@ class CollectionServiceIt {
 
         assertThat(tokenWithMeta.id).isEqualTo(token.id)
         assertThat(tokenWithMeta.meta).isEqualTo(
-            NftCollectionMetaDto(
+            EthCollectionMetaDto(
                 "Untitled"
             )
         )
