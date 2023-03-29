@@ -29,9 +29,9 @@ class BalanceBatchCheckerHandler(
     private var lastUpdated = Instant.MIN
     private var lastBlockNumber: Long = 0
 
-    override suspend fun handle(event: List<Erc20BalanceEventDto>) {
-        logger.info("Handling ${event.size} Erc20BalanceEventDto events")
-        event.forEach { handle(it) }
+    override suspend fun handle(events: List<Erc20BalanceEventDto>) {
+        logger.info("Handling ${events.size} Erc20BalanceEventDto events")
+        events.sortedByDescending { it.lastUpdatedAt }.distinctBy { it.balanceId }.forEach { handle(it) }
     }
 
     suspend fun handle(event: Erc20BalanceEventDto) {
