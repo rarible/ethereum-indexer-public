@@ -720,8 +720,8 @@ data class Order(
             fun feeHash(fee: BlurFee): Word {
                 return keccak256(
                     BLUR_FEE_TYPE_HASH
-                        .add(AddressType.encode(fee.recipient))
                         .add(Uint256Type.encode(fee.rate))
+                        .add(AddressType.encode(fee.recipient))
                 )
             }
             fun packFees(fees: List<BlurFee>): Binary {

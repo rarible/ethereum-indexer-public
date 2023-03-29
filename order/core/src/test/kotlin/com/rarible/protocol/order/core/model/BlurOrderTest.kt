@@ -15,13 +15,14 @@ class BlurOrderTest {
     fun `calculate test`() {
         val order = BlurOrderParser.parseExecutions(txInput, Word.apply(randomWord())).single()
         val event = OrdersMatchedEvent.apply(log)
+
+        assertThat(
+            Order.blurV1Hash(order.sell.order, BigInteger.ZERO)
+        ).isEqualTo(Word.apply(event.sellHash()))
+
         assertThat(
             Order.blurV1Hash(order.buy.order, BigInteger.ZERO)
         ).isEqualTo(Word.apply(event.buyHash()))
-//
-//        assertThat(
-//            Order.blurV1Hash(order.sell.order, BigInteger.ZERO)
-//        ).isEqualTo(Word.apply(event.sellHash()))
     }
 
 
