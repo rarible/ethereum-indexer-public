@@ -1,26 +1,34 @@
 package com.rarible.protocol.nft.api.controller
 
 import com.rarible.protocol.dto.CollectionsByIdRequestDto
+import com.rarible.protocol.dto.EthCollectionMetaResultDto
+import com.rarible.protocol.dto.EthMetaStatusDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionStatsDto
 import com.rarible.protocol.dto.NftCollectionsDto
 import com.rarible.protocol.dto.NftTokenIdDto
 import com.rarible.protocol.dto.parser.AddressParser
+import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
+import com.rarible.protocol.nft.api.converter.MetaStatusConverter
 import com.rarible.protocol.nft.api.service.colllection.CollectionService
+import com.rarible.protocol.nft.core.converters.dto.EthCollectionMetaDtoConverter
 import com.rarible.protocol.nft.core.converters.dto.ExtendedCollectionDtoConverter
 import com.rarible.protocol.nft.core.converters.dto.TokenIdDtoConverter
 import com.rarible.protocol.nft.core.model.TokenFilter
 import com.rarible.protocol.nft.core.page.PageSize
 import com.rarible.protocol.nft.core.service.CollectionStatService
+import com.rarible.protocol.nft.core.service.item.meta.MetaException
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
+import java.time.Duration
 import java.time.Instant
 
 @RestController
 class CollectionController(
     private val collectionService: CollectionService,
-    private val collectionStatService: CollectionStatService
+    private val collectionStatService: CollectionStatService,
+    private val nftIndexerApiProperties: NftIndexerApiProperties
 ) : NftCollectionControllerApi {
 
     override suspend fun getNftCollectionById(
@@ -66,6 +74,24 @@ class CollectionController(
         // TODO Remove in PT-568
         collectionService.resetMeta(AddressParser.parse(collection))
         return ResponseEntity.noContent().build()
+    }
+
+    override suspend fun getCollectionMeta(collection: String): ResponseEntity<EthCollectionMetaResultDto> {
+        val response = try {
+            val meta = collectionService.getMetaWithTimeout(
+                address = AddressParser.parse(collection),
+                timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
+            )
+            EthCollectionMetaResultDto(
+                meta = EthCollectionMetaDtoConverter.convert(meta),
+                status = EthMetaStatusDto.OK
+            )
+        } catch (e: MetaException) {
+            EthCollectionMetaResultDto(status = MetaStatusConverter.convert(e.status))
+        } catch (e: Throwable) {
+            EthCollectionMetaResultDto(status = EthMetaStatusDto.ERROR)
+        }
+        return ResponseEntity.ok(response)
     }
 
     override suspend fun searchNftAllCollections(

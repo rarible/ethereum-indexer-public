@@ -5,9 +5,9 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.contracts.collection.CreateEvent
+import com.rarible.protocol.dto.EthCollectionMetaDto
 import com.rarible.protocol.dto.ImageContentDto
 import com.rarible.protocol.dto.MetaContentDto
-import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.CreateCollection
@@ -65,7 +65,7 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
         tokenUpdateService.update(id)
 
         checkMetaWasPublished(
-            NftCollectionMetaDto(
+            EthCollectionMetaDto(
                 name = "Feudalz",
                 description = "Feudalz emerged to protect their Peasants.",
                 externalUri = "https://feudalz.io",

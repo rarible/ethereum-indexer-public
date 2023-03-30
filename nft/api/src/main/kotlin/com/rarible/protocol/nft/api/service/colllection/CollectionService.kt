@@ -15,14 +15,18 @@ import com.rarible.protocol.nft.core.model.TokenMeta
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
+import com.rarible.protocol.nft.core.service.item.meta.MetaException
+import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -32,6 +36,7 @@ import scalether.abi.Uint256Type
 import scalether.domain.Address
 import scalether.util.Hex
 import java.math.BigInteger
+import java.time.Duration
 
 @Component
 class CollectionService(
@@ -49,6 +54,7 @@ class CollectionService(
         val token = tokenRepository.findById(collectionId).awaitFirstOrNull()
             ?.takeIf { it.standard != TokenStandard.NONE && it.status != ContractStatus.ERROR }
             ?: throw EntityNotFoundApiException("Collection", collectionId)
+        // TODO remove meta later
         return ExtendedCollectionDtoConverter.convert(ExtendedToken(token, tokenMetaService.get(collectionId)))
     }
 
@@ -58,6 +64,29 @@ class CollectionService(
         return enriched.map { ExtendedCollectionDtoConverter.convert(it) }
     }
 
+    suspend fun getMetaWithTimeout(
+        address: Address,
+        timeout: Duration
+    ): TokenMeta {
+        return try {
+            withTimeout(timeout) {
+                tokenMetaService.get(address)
+            }
+        } catch (e: CancellationException) {
+            val message = "Collection meta load timeout (${timeout.toMillis()}ms) - ${e.message}"
+            logMetaLoading(address, message, warn = true)
+            throw MetaException(message, status = MetaException.Status.Timeout)
+        } catch (e: MetaException) {
+            val message = "Collection meta load failed (${e.status}) - ${e.message}"
+            logMetaLoading(address, message, warn = true)
+            throw e
+        } catch (e: Exception) {
+            val message = "Collection meta load failed with unexpected error - ${e.message}"
+            logMetaLoading(address, message, warn = true)
+            throw MetaException(message, status = MetaException.Status.Unknown)
+        }
+    }
+
     suspend fun resetMeta(collectionId: Address) {
         logger.info("Refreshing collection meta by $collectionId")
         tokenMetaService.reset(collectionId)
@@ -65,7 +94,7 @@ class CollectionService(
 
     suspend fun search(filter: TokenFilter): List<ExtendedToken> {
         val tokens = tokenRepository.search(filter).collectList().awaitFirst()
-        return enrichWithMeta(tokens)
+        return enrichWithMeta(tokens) // TODO PT-2370 remove later
     }
 
     suspend fun generateId(collectionId: Address, minter: Address): SignedTokenId {

@@ -3,10 +3,8 @@ package com.rarible.protocol.nft.api.controller.advice
 import com.rarible.protocol.dto.ArgumentFormatException
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
-import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.nft.api.exceptions.NftIndexerApiException
 import com.rarible.protocol.nft.core.model.IncorrectItemFormat
-import com.rarible.protocol.nft.core.service.item.meta.MetaException
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionFailedException
@@ -19,37 +17,12 @@ import org.springframework.web.server.ServerWebInputException
 
 @RestControllerAdvice(basePackages = ["com.rarible.protocol.nft.api.controller"])
 class ErrorsController {
+
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     @ExceptionHandler(NftIndexerApiException::class)
     fun handleIndexerApiException(ex: NftIndexerApiException) = mono {
         ResponseEntity.status(ex.status).body(ex.data)
-    }
-
-    @ExceptionHandler(MetaException::class)
-    @ResponseStatus(HttpStatus.OK)
-    fun handlerMetaException(ex: MetaException) = mono {
-        when (ex.status) {
-            MetaException.Status.UnparseableJson -> NftItemMetaDto(
-                name = "",
-                status = NftItemMetaDto.Status.UNPARSEABLE_JSON
-            )
-
-            MetaException.Status.Timeout -> NftItemMetaDto(
-                name = "",
-                status = NftItemMetaDto.Status.TIMEOUT
-            )
-
-            MetaException.Status.UnparseableLink -> NftItemMetaDto(
-                name = "",
-                status = NftItemMetaDto.Status.UNPARSEABLE_LINK
-            )
-
-            MetaException.Status.Unknown -> NftItemMetaDto(
-                name = "",
-                status = NftItemMetaDto.Status.ERROR
-            )
-        }
     }
 
     @ExceptionHandler(
@@ -102,6 +75,7 @@ class ErrorsController {
     }
 
     companion object {
+
         const val MISSING_MESSAGE = "Missing message in error"
     }
 }

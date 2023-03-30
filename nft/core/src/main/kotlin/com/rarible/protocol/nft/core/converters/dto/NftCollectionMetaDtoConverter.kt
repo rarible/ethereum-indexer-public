@@ -1,12 +1,12 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-import com.rarible.protocol.dto.NftCollectionMetaDto
+import com.rarible.protocol.dto.EthCollectionMetaDto
 import com.rarible.protocol.nft.core.model.TokenMeta
 
-object NftCollectionMetaDtoConverter {
+object EthCollectionMetaDtoConverter {
 
-    fun convert(source: TokenMeta): NftCollectionMetaDto {
-        return NftCollectionMetaDto(
+    fun convert(source: TokenMeta): EthCollectionMetaDto {
+        return EthCollectionMetaDto(
             name = source.properties.name,
             description = source.properties.description,
             createdAt = source.properties.createdAt,

@@ -15,21 +15,21 @@ class ItemMetaService(
     private val itemMetaResolver: ItemMetaResolver,
     private val pendingItemTokenUriResolver: PendingItemTokenUriResolver
 ) {
+
     suspend fun getMeta(
-        itemId: ItemId,
-        demander: String
+        itemId: ItemId
     ): ItemMeta? {
-        logMetaLoading(itemId, "Loading meta synchronously by '$demander'")
+        logMetaLoading(itemId, "Loading meta synchronously for Item")
 
         val itemMeta = try {
             itemMetaResolver.resolveItemMeta(itemId)
         } catch (e: Exception) {
-            logMetaLoading(itemId, "Synchronous meta loading for '$demander' failed. ${e.message}", warn = true)
+            logMetaLoading(itemId, "Synchronous meta loading for Item failed. ${e.message}", warn = true)
             throw e
         }
 
         if (itemMeta == null) {
-            logMetaLoading(itemId, "Synchronous meta loading for '$demander' failed. Item meta is not found", warn = true)
+            logMetaLoading(itemId, "Synchronous meta loading for Item failed. Item meta is not found", warn = true)
         }
 
         return itemMeta
@@ -37,26 +37,22 @@ class ItemMetaService(
 
     suspend fun getMetaWithTimeout(
         itemId: ItemId,
-        timeout: Duration,
-        demander: String
+        timeout: Duration
     ): ItemMeta? {
         return try {
             withTimeout(timeout) {
-                getMeta(
-                    itemId = itemId,
-                    demander = demander
-                )
+                getMeta(itemId)
             }
         } catch (e: CancellationException) {
-            val message = "Timeout synchronously load meta for '$demander' with timeout ${timeout.toMillis()} ms. ${e.message}"
+            val message = "Item meta load timeout (${timeout.toMillis()}ms) - ${e.message}"
             logMetaLoading(itemId, message, warn = true)
             throw MetaException(message, status = MetaException.Status.Timeout)
         } catch (e: MetaException) {
-            val message = "Cannot synchronously load meta for '$demander' with timeout ${timeout.toMillis()} ms. ${e.message}"
+            val message = "Item meta load failed (${e.status}) - ${e.message}"
             logMetaLoading(itemId, message, warn = true)
             throw e
         } catch (e: Exception) {
-            val message = "Cannot synchronously load meta for '$demander' with timeout ${timeout.toMillis()} ms. ${e.message}"
+            val message = "Item meta load failed with unexpected error - ${e.message}"
             logMetaLoading(itemId, message, warn = true)
             throw MetaException(message, status = MetaException.Status.Unknown)
         }

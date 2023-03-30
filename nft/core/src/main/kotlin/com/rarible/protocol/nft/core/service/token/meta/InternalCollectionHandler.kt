@@ -9,7 +9,7 @@ import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
-import com.rarible.protocol.nft.core.converters.dto.NftCollectionMetaDtoConverter
+import com.rarible.protocol.nft.core.converters.dto.EthCollectionMetaDtoConverter
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
 import org.springframework.stereotype.Component
 import java.util.*
@@ -31,7 +31,7 @@ class InternalCollectionHandler(
     override suspend fun handle(event: NftCollectionEventDto) = when(event) {
         is NftCollectionUpdateEventDto -> {
             val meta = tokenMetaService.get(event.id)
-            val metaDto = NftCollectionMetaDtoConverter.convert(meta)
+            val metaDto = EthCollectionMetaDtoConverter.convert(meta)
             val extendedCollection = event.collection.copy(meta = metaDto)
             protocolNftEventPublisher.publish(event.copy(collection = extendedCollection))
         }

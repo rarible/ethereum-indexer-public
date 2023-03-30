@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.protocol.dto.EthMetaStatusDto
 import com.rarible.protocol.dto.NftItemAttributeDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -34,7 +35,7 @@ class NftItemMetaDtoConverter(
             externalUri = source.properties.externalUri,
             content = source.properties.content.asList().map { EthMetaContentConverter.convert(it) },
             originalMetaUri = source.properties.tokenUri,
-            status = NftItemMetaDto.Status.OK
+            status = EthMetaStatusDto.OK
         )
     }
 

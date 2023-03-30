@@ -28,12 +28,10 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
             delay(300)
             itemMeta
         }
-        assertThat(
-            itemMetaService.getMeta(
-                itemId = itemId,
-                demander = "test"
-            )
-        ).isEqualTo(itemMeta)
+
+        val result = itemMetaService.getMeta(itemId)
+        assertThat(result).isEqualTo(itemMeta)
+
         Wait.waitAssert {
             coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
         }
@@ -47,12 +45,9 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
             delay(1000L)
             itemMeta
         }
-        assertThat(
-            itemMetaService.getMeta(
-                itemId = itemId,
-                demander = "test"
-            )
-        ).isEqualTo(itemMeta)
+
+        val result = itemMetaService.getMeta(itemId)
+        assertThat(result).isEqualTo(itemMeta)
     }
 
     @Test
@@ -62,10 +57,7 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error
 
         assertThrows<RuntimeException> {
-            itemMetaService.getMeta(
-                itemId = itemId,
-                demander = "test"
-            )
+            itemMetaService.getMeta(itemId)
         }
     }
 
@@ -77,7 +69,7 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         val tokenUri = createRandomUrl()
         coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
         itemMetaService.saveTokenUriForPendingItem(itemId, tokenUri)
-        assertThat(itemMetaService.getMeta(itemId,  "test")).isEqualTo(itemMeta)
+        assertThat(itemMetaService.getMeta(itemId)).isEqualTo(itemMeta)
         coVerify(exactly = 1) { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) }
         coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
     }

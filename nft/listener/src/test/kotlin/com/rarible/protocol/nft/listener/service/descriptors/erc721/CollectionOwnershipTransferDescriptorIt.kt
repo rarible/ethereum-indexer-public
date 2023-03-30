@@ -2,9 +2,9 @@ package com.rarible.protocol.nft.listener.service.descriptors.erc721
 
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
+import com.rarible.protocol.dto.EthCollectionMetaDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionEventDto
-import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
@@ -59,7 +59,7 @@ class CollectionOwnershipTransferDescriptorIt : AbstractIntegrationTest() {
                     supportsLazyMint = it.collection.supportsLazyMint,
                     minters = listOf(creatorAddress),
                     isRaribleContract = true,
-                    meta = NftCollectionMetaDto(
+                    meta = EthCollectionMetaDto(
                         name = "Untitled",
                         description = null,
                         content = emptyList(),
@@ -105,7 +105,7 @@ class CollectionOwnershipTransferDescriptorIt : AbstractIntegrationTest() {
                     supportsLazyMint = it.collection.supportsLazyMint,
                     minters = listOf(newOwnerAddress),
                     isRaribleContract = true,
-                    meta = NftCollectionMetaDto(
+                    meta = EthCollectionMetaDto(
                         name = "Untitled",
                         description = null,
                         content = emptyList(),

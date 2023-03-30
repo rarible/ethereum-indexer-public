@@ -23,7 +23,7 @@ object ExtendedCollectionDtoConverter {
                 features = token.features.map { CollectionFeatureDtoConverter.convert(it) },
                 supportsLazyMint = token.features.contains(TokenFeature.MINT_AND_TRANSFER),
                 minters = if (token.isRaribleContract) listOfNotNull(token.owner) else emptyList(),
-                meta = NftCollectionMetaDtoConverter.convert(meta),
+                meta = EthCollectionMetaDtoConverter.convert(meta), // TODO PT-2370 remove later
                 isRaribleContract = token.isRaribleContract
             )
         } catch (e: Throwable) {

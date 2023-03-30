@@ -19,23 +19,24 @@ class TokenMetaService(
     private val mediaMetaService: MediaMetaService
 ) {
 
+    // TODO PT-2370 should throw correct exceptions or null
     suspend fun get(id: Address): TokenMeta {
         val properties = tokenPropertiesService.resolve(id)
 
         val imageOriginal = properties?.content?.imageOriginal
 
-        if (properties == null) return TokenMeta.EMPTY
+        if (properties == null) return TokenMeta.EMPTY // TODO PT-2370 remove later
 
         if (imageOriginal == null || imageOriginal.url.cleanUrl() == null) {
             return TokenMeta(properties)
         }
 
-        mediaMetaService.getMediaMetaFromCache(imageOriginal.url, id.prefixed())
         return TokenMeta(
             properties = properties.copy(
                 content = TokenMetaContent(
                     ContentBuilder.populateContent(
                         ethMetaContent = imageOriginal,
+                        // TODO PT-2370 remove later
                         data = mediaMetaService.getMediaMetaFromCache(imageOriginal.url, id.prefixed())
                     )
                 )
