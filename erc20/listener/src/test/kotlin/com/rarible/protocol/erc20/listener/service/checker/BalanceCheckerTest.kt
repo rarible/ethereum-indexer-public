@@ -1,0 +1,126 @@
+package com.rarible.protocol.erc20.listener.service.checker
+
+import com.fasterxml.jackson.databind.node.TextNode
+import com.ninjasquad.springmockk.clear
+import com.rarible.ethereum.domain.Blockchain
+import com.rarible.protocol.dto.Erc20BalanceDto
+import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
+import com.rarible.protocol.erc20.core.metric.CheckerMetrics
+import com.rarible.protocol.erc20.core.model.BalanceId
+import com.rarible.protocol.erc20.listener.configuration.BalanceCheckerProperties
+import io.daonomic.rpc.domain.Response
+import io.micrometer.core.instrument.ImmutableTag
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.mockk.clearMocks
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import reactor.core.publisher.Mono
+import scalether.core.MonoEthereum
+import scalether.domain.AddressFactory
+import java.time.Instant
+import java.time.Instant.now
+import java.util.*
+
+class BalanceCheckerTest {
+
+    private val registry = SimpleMeterRegistry()
+    private val ethereum: MonoEthereum = mockk()
+    private val checkerMetrics: CheckerMetrics = CheckerMetrics(Blockchain.ETHEREUM, registry)
+    private val props: BalanceCheckerProperties = BalanceCheckerProperties()
+
+    private val balanceBatchCheckerHandler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, props)
+
+    @BeforeEach
+    fun setUp() {
+        every { ethereum.ethBlockNumber() } returns Mono.just(100.toBigInteger())
+    }
+
+    @Test
+    fun `consume first event - ok`() = runBlocking<Unit> {
+        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L,TextNode("5")))
+
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(91, 5)))
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
+
+        checkMetrics(3, 1, 0)
+    }
+
+    @Test
+    fun `deduplicate event - ok`() = runBlocking<Unit> {
+        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L,TextNode("15")))
+
+        val event = erc20Event(91, 5)
+        balanceBatchCheckerHandler.handle(listOf(event))
+        balanceBatchCheckerHandler.handle(listOf(event.copy(balanceId = event.balanceId,
+            balance = event.balance.copy(lastUpdatedAt = now().plusSeconds(100), balance = 15.toBigInteger()))))
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
+
+        checkMetrics(4, 1, 0)
+    }
+
+    @Test
+    fun `check order - ok`() = runBlocking<Unit> {
+        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L,TextNode("3")))
+
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(91, 3)))
+
+        checkMetrics(3, 1, 0)
+    }
+
+    @Test
+    fun `check invalid - ok`() = runBlocking<Unit> {
+        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L,TextNode("3")))
+
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(91, 5)))
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
+        balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
+
+        checkMetrics(3, 1, 1)
+    }
+
+    @Test
+    fun `check skipping checks - ok`() = runBlocking<Unit> {
+        (1..10).forEach { balanceBatchCheckerHandler.handle(listOf(erc20Event(it))) }
+
+        checkMetrics(10, 0, 0)
+    }
+
+    @Test
+    fun `check releasing buffer - ok`() = runBlocking<Unit> {
+        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L,TextNode("1")))
+        val events = (80..90).map { erc20Event(it) }
+        balanceBatchCheckerHandler.handle(events)
+
+        checkMetrics(11, 8, 0)
+    }
+
+    private fun erc20Event(blockNumber: Int, value: Int = 1, updated: Instant = now()) = Erc20BalanceUpdateEventDto(
+        eventId = UUID.randomUUID().toString(),
+        balanceId = BalanceId(AddressFactory.create(), AddressFactory.create()).toString(),
+        balance =  Erc20BalanceDto(
+            contract = AddressFactory.create(),
+            owner = AddressFactory.create(),
+            balance = value.toBigInteger(),
+            lastUpdatedAt = updated,
+            blockNumber = blockNumber.toLong()
+        )
+    )
+
+    private fun checkMetrics(incoming: Int, check: Int, invalid: Int) {
+        assertThat(counter(CheckerMetrics.BALANCE_INCOMING).toInt()).isEqualTo(incoming)
+        assertThat(counter(CheckerMetrics.BALANCE_CHECK).toInt()).isEqualTo(check)
+        assertThat(counter(CheckerMetrics.BALANCE_INVALID).toInt()).isEqualTo(invalid)
+    }
+
+    private fun counter(name: String): Double {
+        return registry.counter(name, listOf(ImmutableTag("blockchain", Blockchain.ETHEREUM.value))).count()
+    }
+}
