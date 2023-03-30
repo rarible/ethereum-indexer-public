@@ -52,7 +52,11 @@ class BalanceBatchCheckerHandler(
             val eventBlockNumber = balance.blockNumber
             if (eventBlockNumber != null && blockNumber - eventBlockNumber < props.skipNumberOfBlocks) {
                 val eventBuffer = blockBuffer.getOrPut(eventBlockNumber) { BufferMap() }
-                eventBuffer[event.balanceId] = ShortBalance(event.lastUpdatedAt ?: Instant.now(), event.balance.balance)
+                eventBuffer.put(
+                    key = event.balanceId,
+                    value = ShortBalance(event.lastUpdatedAt ?: Instant.now(), event.balance.balance),
+                    checkUpdatedAt = props.checkUpdatedAt
+                )
             }
         }
     }
@@ -98,10 +102,14 @@ class BalanceBatchCheckerHandler(
     private suspend fun getBalance(contract: Address, owner: Address, blockNumber: Long): BigInteger {
         val hexBlock = "0x%x".format(blockNumber)
         val data = IERC20.balanceOfSignature().encode(owner)
-        val seq = CollectionConverters.asScala(listOf(mapOf(
-            "data" to data.prefixed(),
-            "to" to contract.prefixed()
-        ), hexBlock)).toSeq()
+        val seq = CollectionConverters.asScala(
+            listOf(
+                mapOf(
+                    "data" to data.prefixed(),
+                    "to" to contract.prefixed()
+                ), hexBlock
+            )
+        ).toSeq()
         val request = Request.apply(nextLong(), "eth_call", seq)
         val response = ethereum.executeRaw(request).awaitFirst()
         val textValue = (response.result() as Some).value().textValue()
@@ -111,9 +119,9 @@ class BalanceBatchCheckerHandler(
     // Map<BalanceId, Balance events>
     // We keep only significant fields for balances in order to decrease memory footprint
     class BufferMap : HashMap<String, ShortBalance>() {
-        override fun put(key: String, value: ShortBalance): ShortBalance? {
+        fun put(key: String, value: ShortBalance, checkUpdatedAt: Boolean): ShortBalance? {
             val existed = get(key)
-            return if (existed == null || existed.updated.isBefore(value.updated)) {
+            return if (existed == null || !checkUpdatedAt || existed.updated.isBefore(value.updated)) {
                 super.put(key, value)
             } else {
                 existed

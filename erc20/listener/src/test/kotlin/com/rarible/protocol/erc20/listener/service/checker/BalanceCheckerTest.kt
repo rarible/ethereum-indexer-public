@@ -25,18 +25,21 @@ import java.time.Instant
 import java.time.Instant.now
 import java.util.*
 
-class BalanceCheckerTest {
+internal class BalanceCheckerTest {
 
     private val registry = SimpleMeterRegistry()
     private val ethereum: MonoEthereum = mockk()
     private val checkerMetrics: CheckerMetrics = CheckerMetrics(Blockchain.ETHEREUM, registry)
     private val props: BalanceCheckerProperties = BalanceCheckerProperties()
 
-    private val balanceBatchCheckerHandler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, props)
+    private lateinit var balanceBatchCheckerHandler: BalanceBatchCheckerHandler
 
     @BeforeEach
     fun setUp() {
+        clearMocks(ethereum)
+        registry.clear()
         every { ethereum.ethBlockNumber() } returns Mono.just(100.toBigInteger())
+        balanceBatchCheckerHandler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, props)
     }
 
     @Test
@@ -57,7 +60,7 @@ class BalanceCheckerTest {
         val event = erc20Event(91, 5)
         balanceBatchCheckerHandler.handle(listOf(event))
         balanceBatchCheckerHandler.handle(listOf(event.copy(balanceId = event.balanceId,
-            balance = event.balance.copy(lastUpdatedAt = now().plusSeconds(100), balance = 15.toBigInteger()))))
+            balance = event.balance.copy(lastUpdatedAt = event.balance.lastUpdatedAt?.minusSeconds(100), balance = 15.toBigInteger()))))
         balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
         balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
 
