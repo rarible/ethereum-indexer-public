@@ -3,18 +3,18 @@ package com.rarible.protocol.erc20.listener.service.checker
 import com.rarible.contracts.erc20.IERC20
 import com.rarible.core.daemon.sequential.ConsumerBatchEventHandler
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.Erc20BalanceDto
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
 import com.rarible.protocol.erc20.core.metric.CheckerMetrics
+import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.listener.configuration.BalanceCheckerProperties
 import io.daonomic.rpc.domain.Request
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.time.delay
 import org.slf4j.LoggerFactory
 import scala.Some
 import scala.jdk.javaapi.CollectionConverters
 import scalether.core.MonoEthereum
+import scalether.domain.Address
 import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
@@ -30,30 +30,56 @@ class BalanceBatchCheckerHandler(
     private var lastUpdated = Instant.MIN
     private var lastBlockNumber: Long = 0
 
+    // Map<Block number, balance events>
+    private val blockBuffer = emptyMap<Long, BufferMap>().toSortedMap()
+
     override suspend fun handle(events: List<Erc20BalanceEventDto>) {
         logger.info("Handling ${events.size} Erc20BalanceEventDto events")
-        events.first().lastUpdatedAt?.let {
-            val delta = props.delay.minusSeconds(Instant.now().epochSecond - it.epochSecond)
-            if (delta > Duration.ZERO) {
-                logger.info("Waiting for $delta for checking erc20 balance")
-                delay(delta)
-            }
+        try {
+            events.forEach { fillBuffer(it) }
+            checkBuffer()
+            consumeBuffer()
+        } catch (ex: Exception) {
+            logger.error("Error during checking erc20 balances", ex)
         }
-        events.sortedByDescending { it.lastUpdatedAt }.distinctBy { it.balanceId }.forEach { handle(it) }
     }
 
-    suspend fun handle(event: Erc20BalanceEventDto) {
+    private suspend fun fillBuffer(event: Erc20BalanceEventDto) {
         checkerMetrics.onIncoming()
         if (event is Erc20BalanceUpdateEventDto) {
             val balance = event.balance
             val blockNumber = currentBlockNumber()
             val eventBlockNumber = balance.blockNumber
             if (eventBlockNumber != null && blockNumber - eventBlockNumber < props.skipNumberOfBlocks) {
+                val eventBuffer = blockBuffer.getOrPut(eventBlockNumber) { BufferMap() }
+                eventBuffer[event.balanceId] = ShortBalance(event.lastUpdatedAt ?: Instant.now(), event.balance.balance)
+            }
+        }
+    }
+
+    private suspend fun checkBuffer() {
+        val blockNumber = currentBlockNumber()
+        blockBuffer.entries.removeIf {
+            val isDeleted = blockNumber - it.key >= props.skipNumberOfBlocks
+            if (isDeleted) {
+                logger.info("Events for ${it.key} are outdated")
+            }
+            isDeleted
+        }
+    }
+
+    private suspend fun consumeBuffer() {
+        blockBuffer.asIterable().take(maxOf(blockBuffer.size - props.confirms, 0)).forEach {
+            val eventBlockNumber = it.key
+            val events = blockBuffer.remove(eventBlockNumber)
+            logger.info("Start process ${events?.size} balances from ${eventBlockNumber} block [${blockBuffer.size} cached block]")
+            events?.forEach { (t, u) ->
+                val balanceId = BalanceId.parseId(t)
+                val blockChainBalance = getBalance(balanceId.token, balanceId.owner, eventBlockNumber)
                 checkerMetrics.onCheck()
-                val blockChainBalance = getBalance(balance, eventBlockNumber)
-                if (balance.balance != blockChainBalance) {
+                if (u.value != blockChainBalance) {
                     checkerMetrics.onInvalid()
-                    logger.error("Balance is invalid: [owner=${balance.owner} contract=${balance.contract} balance=${balance.balance}(actual=${blockChainBalance}) block=${blockNumber}")
+                    logger.error("Balance is invalid: [id=${balanceId} balance=${u.value}(actual=${blockChainBalance}) block=${eventBlockNumber}")
                 }
             }
         }
@@ -69,17 +95,39 @@ class BalanceBatchCheckerHandler(
         return lastBlockNumber
     }
 
-    private suspend fun getBalance(balance: Erc20BalanceDto, blockNumber: Long): BigInteger {
+    private suspend fun getBalance(contract: Address, owner: Address, blockNumber: Long): BigInteger {
         val hexBlock = "0x%x".format(blockNumber)
-        val data = IERC20.balanceOfSignature().encode(balance.owner)
+        val data = IERC20.balanceOfSignature().encode(owner)
         val seq = CollectionConverters.asScala(listOf(mapOf(
             "data" to data.prefixed(),
-            "to" to balance.contract.prefixed()
+            "to" to contract.prefixed()
         ), hexBlock)).toSeq()
         val request = Request.apply(nextLong(), "eth_call", seq)
         val response = ethereum.executeRaw(request).awaitFirst()
         val textValue = (response.result() as Some).value().textValue()
         return EthUInt256.of(textValue).value
     }
+
+    // Map<BalanceId, Balance events>
+    // We keep only significant fields for balances in order to decrease memory footprint
+    class BufferMap : HashMap<String, ShortBalance>() {
+        override fun put(key: String, value: ShortBalance): ShortBalance? {
+            val existed = get(key)
+            return if (existed == null || existed.updated.isBefore(value.updated)) {
+                super.put(key, value)
+            } else {
+                existed
+            }
+        }
+    }
+
+    data class ShortBalance(
+
+        // date of event
+        val updated: Instant,
+
+        // balance
+        val value: BigInteger
+    )
 
 }
