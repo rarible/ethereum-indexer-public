@@ -11,7 +11,7 @@ class Erc20CalculatedFieldsReducer : Reducer<Erc20Event, Erc20Balance> {
     override suspend fun reduce(entity: Erc20Balance, event: Erc20Event): Erc20Balance {
         val updatedAt =
             // We try to get timestamp of the latest blockchain event
-            entity.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.log?.createdAt ?:
+            entity.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.date?.toInstant() ?:
             entity.lastUpdatedAt
 
         return entity.copy(lastUpdatedAt = updatedAt)
