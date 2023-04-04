@@ -36,7 +36,7 @@ class ReduceErc20BalanceTaskHandlerIt : AbstractIntegrationTest() {
 
     @Test
     fun `reduce token balances - from beginning`() = runBlocking<Unit> {
-        val token1 = randomAddress()
+        val token1 = Address.apply("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2") // weth
         val token2 = randomAddress()
         val owner1 = randomAddress()
         val owner2 = randomAddress()
