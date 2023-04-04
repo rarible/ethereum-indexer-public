@@ -44,3 +44,5 @@ listener:
     - "0x64d91f12ece7362f91a6f8e7940cd55f05060b92"
     - "0x4d224452801aced8b2f0aebe155379bb5d594381"
     - "0x9903a4cd589da8e434f264deafc406836418578e"
+  depositTokens:
+    - "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"

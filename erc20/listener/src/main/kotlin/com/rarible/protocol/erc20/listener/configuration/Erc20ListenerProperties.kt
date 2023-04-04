@@ -14,6 +14,7 @@ data class Erc20ListenerProperties(
     val blockchain: Blockchain,
     val tokens: List<String> = emptyList(),
     val ignoredOwners: List<String> = emptyList(),
+    val depositTokens: List<String> = emptyList(), // for these tokens we count deposit/withdrawal events
     val blockCountBeforeSnapshot: Int = 12,
     val logConsumeWorkerCount: Int = 10,
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),

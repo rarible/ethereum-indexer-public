@@ -13,11 +13,17 @@ import com.rarible.protocol.erc20.core.model.Erc20ReduceEvent
 import com.rarible.protocol.erc20.core.model.Erc20TokenApproval
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.model.Erc20Withdrawal
+import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import org.springframework.stereotype.Component
+import scalether.domain.Address
 import java.time.Instant
 
 @Component
-class BalanceReducer : Reducer<Erc20ReduceEvent, BalanceReduceSnapshot, Long, Erc20Balance, BalanceId> {
+class BalanceReducer(
+    props: Erc20ListenerProperties
+) : Reducer<Erc20ReduceEvent, BalanceReduceSnapshot, Long, Erc20Balance, BalanceId> {
+
+    val depositContracts = props.depositTokens.map { Address.apply(it) }.toSet()
 
     override suspend fun reduce(current: BalanceReduceSnapshot, event: Erc20ReduceEvent): BalanceReduceSnapshot {
         val logEvent = event.logEvent
@@ -35,12 +41,19 @@ class BalanceReducer : Reducer<Erc20ReduceEvent, BalanceReduceSnapshot, Long, Er
         }
 
         val eventDate = data.date.toInstant()
+        val isDepositContract = depositContracts.contains(data.token)
 
         val balance = when (data) {
             is Erc20IncomeTransfer -> currentBalance + data.value
             is Erc20OutcomeTransfer -> currentBalance - data.value
-            is Erc20Deposit -> currentBalance + data.value
-            is Erc20Withdrawal -> currentBalance - data.value
+            is Erc20Deposit -> when {
+                isDepositContract -> currentBalance + data.value
+                else -> currentBalance
+            }
+            is Erc20Withdrawal -> when {
+                isDepositContract -> currentBalance - data.value
+                else -> currentBalance
+            }
             is Erc20TokenApproval -> currentBalance
         }
 
