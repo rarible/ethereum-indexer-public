@@ -5,4 +5,4 @@ spring:
 
 listener:
   depositTokens:
-    - "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6"
+    - "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619"
