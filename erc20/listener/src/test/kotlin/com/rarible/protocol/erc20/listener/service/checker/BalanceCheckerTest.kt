@@ -1,13 +1,12 @@
 package com.rarible.protocol.erc20.listener.service.checker
 
 import com.fasterxml.jackson.databind.node.TextNode
-import com.ninjasquad.springmockk.clear
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.dto.Erc20BalanceDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
 import com.rarible.protocol.erc20.core.metric.CheckerMetrics
 import com.rarible.protocol.erc20.core.model.BalanceId
-import com.rarible.protocol.erc20.listener.configuration.BalanceCheckerProperties
+import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import io.daonomic.rpc.domain.Response
 import io.micrometer.core.instrument.ImmutableTag
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -20,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Instant
 import java.time.Instant.now
@@ -30,7 +30,10 @@ internal class BalanceCheckerTest {
     private val registry = SimpleMeterRegistry()
     private val ethereum: MonoEthereum = mockk()
     private val checkerMetrics: CheckerMetrics = CheckerMetrics(Blockchain.ETHEREUM, registry)
-    private val props: BalanceCheckerProperties = BalanceCheckerProperties()
+    private val props = Erc20ListenerProperties(
+        tokens = listOf(AddressFactory.create().prefixed()),
+        blockchain = Blockchain.ETHEREUM
+    )
 
     private lateinit var balanceBatchCheckerHandler: BalanceBatchCheckerHandler
 
@@ -109,7 +112,7 @@ internal class BalanceCheckerTest {
         eventId = UUID.randomUUID().toString(),
         balanceId = BalanceId(AddressFactory.create(), AddressFactory.create()).toString(),
         balance =  Erc20BalanceDto(
-            contract = AddressFactory.create(),
+            contract = Address.apply(props.tokens.first()),
             owner = AddressFactory.create(),
             balance = value.toBigInteger(),
             lastUpdatedAt = updated,
