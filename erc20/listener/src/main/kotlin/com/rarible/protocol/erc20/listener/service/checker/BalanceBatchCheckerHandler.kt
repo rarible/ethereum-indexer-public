@@ -7,7 +7,7 @@ import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
 import com.rarible.protocol.erc20.core.metric.CheckerMetrics
 import com.rarible.protocol.erc20.core.model.BalanceId
-import com.rarible.protocol.erc20.listener.configuration.BalanceCheckerProperties
+import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import io.daonomic.rpc.domain.Request
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
@@ -23,12 +23,14 @@ import kotlin.random.Random.Default.nextLong
 class BalanceBatchCheckerHandler(
     private val ethereum: MonoEthereum,
     private val checkerMetrics: CheckerMetrics,
-    private val props: BalanceCheckerProperties
+    private val commonProps: Erc20ListenerProperties
 ) : ConsumerBatchEventHandler<Erc20BalanceEventDto> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
     private var lastUpdated = Instant.MIN
     private var lastBlockNumber: Long = 0
+    private val props = commonProps.balanceCheckerProperties
+    private val checkedContracts = commonProps.tokens.map { Address.apply(it) }.toSet()
 
     // Map<Block number, balance events>
     private val blockBuffer = emptyMap<Long, BufferMap>().toSortedMap()
@@ -46,7 +48,7 @@ class BalanceBatchCheckerHandler(
 
     private suspend fun fillBuffer(event: Erc20BalanceEventDto) {
         checkerMetrics.onIncoming()
-        if (event is Erc20BalanceUpdateEventDto) {
+        if (event is Erc20BalanceUpdateEventDto && checkedContracts.contains(event.balance.contract)) {
             val balance = event.balance
             val blockNumber = currentBlockNumber()
             val eventBlockNumber = balance.blockNumber

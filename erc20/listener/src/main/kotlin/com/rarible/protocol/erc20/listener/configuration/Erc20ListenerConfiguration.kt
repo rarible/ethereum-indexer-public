@@ -49,7 +49,6 @@ class Erc20ListenerConfiguration(
 
     private val erc20BalanceConsumerGroup =
         "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.erc20.indexer.erc20-balance"
-    private val balanceCheckerProperties = commonProperties.balanceCheckerProperties
 
     @Bean
     fun sender(ethereum: MonoEthereum): ReadOnlyMonoTransactionSender {
@@ -131,7 +130,7 @@ class Erc20ListenerConfiguration(
         return ConsumerBatchWorker(
             consumer = consumer,
             properties = commonProperties.eventConsumerWorker,
-            eventHandler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, balanceCheckerProperties),
+            eventHandler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, commonProperties),
             meterRegistry = meterRegistry,
             workerName = "erc20-balance-checker"
         ).apply { start() }
