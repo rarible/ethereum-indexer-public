@@ -12,7 +12,8 @@ import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 object JsonPropertiesParser {
 
     private const val BASE_64_JSON_PREFIX = "data:application/json;base64,"
-    private const val JSON_PREFIX = "data:application/json;utf8,"
+    private const val JSON_UTF8_PREFIX = "data:application/json;utf8,"
+    private const val JSON_ASCII_PREFIX = "data:application/json;ascii,"
 
     private val emptyChars = "\uFEFF".toCharArray()
 
@@ -25,7 +26,8 @@ object JsonPropertiesParser {
         val trimmed = trim(data)
         return when {
             trimmed.startsWith(BASE_64_JSON_PREFIX) -> parseBase64(id, trimmed.removePrefix(BASE_64_JSON_PREFIX))
-            trimmed.startsWith(JSON_PREFIX) -> parseJson(id, trimmed.removePrefix(JSON_PREFIX))
+            trimmed.startsWith(JSON_UTF8_PREFIX) -> parseJson(id, trimmed.removePrefix(JSON_UTF8_PREFIX))
+            trimmed.startsWith(JSON_ASCII_PREFIX) -> parseJson(id, trimmed.removePrefix(JSON_ASCII_PREFIX))
             isRawJson(trimmed) -> parseJson(id, trimmed)
             else -> throw MetaException(
                 "failed to parse properties from json: $data",

@@ -62,4 +62,12 @@ class JsonPropertiesParserTest {
 
         assertThat(node.getText("a")).isEqualTo("b")
     }
+
+    @Test
+    fun `ascii json`() {
+        val data = """data:application/json;ascii,{"a":"b"}"""
+        val node = JsonPropertiesParser.parse(createRandomItemId(), data)
+
+        assertThat(node.getText("a")).isEqualTo("b")
+    }
 }
