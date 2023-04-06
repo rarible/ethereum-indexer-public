@@ -24,7 +24,23 @@ class JsonPropertiesParserTest {
     }
 
     @Test
-    fun `regular json with trailing spaces`() {
+    fun `regular json - encoded`() {
+        val data = """%7B%22a%22%3A%20%22b%22%7d"""
+        val node = JsonPropertiesParser.parse(createRandomItemId(), data)
+
+        assertThat(node.getText("a")).isEqualTo("b")
+    }
+
+    @Test
+    fun `regular json - partially encoded`() {
+        val data = """%7b"a"%20: "b"%7D"""
+        val node = JsonPropertiesParser.parse(createRandomItemId(), data)
+
+        assertThat(node.getText("a")).isEqualTo("b")
+    }
+
+    @Test
+    fun `regular json - with trailing spaces`() {
         val data = "\uFEFF\n\t\r " + """{"a": "b"}""" + "\n\t\r  \uFEFF "
         val node = JsonPropertiesParser.parse(createRandomItemId(), data)
 
@@ -32,8 +48,24 @@ class JsonPropertiesParserTest {
     }
 
     @Test
-    fun `json with data type`() {
+    fun `regular json - data type`() {
+        val data = """data:application/json, {"a": "b"} """
+        val node = JsonPropertiesParser.parse(createRandomItemId(), data)
+
+        assertThat(node.getText("a")).isEqualTo("b")
+    }
+
+    @Test
+    fun `regular json - data type utf8`() {
         val data = """data:application/json;utf8, {"a": "b"} """
+        val node = JsonPropertiesParser.parse(createRandomItemId(), data)
+
+        assertThat(node.getText("a")).isEqualTo("b")
+    }
+
+    @Test
+    fun `regular json - data type ascii`() {
+        val data = """data:application/json;ascii,{"a":"b"}"""
         val node = JsonPropertiesParser.parse(createRandomItemId(), data)
 
         assertThat(node.getText("a")).isEqualTo("b")
@@ -58,14 +90,6 @@ class JsonPropertiesParserTest {
     @Test
     fun `base64 json - with whitespaces`() {
         val data = "\n\t \uFEFFdata:application/json;base64,eyJhIjogImIiLH0=\n\t \uFEFF"
-        val node = JsonPropertiesParser.parse(createRandomItemId(), data)
-
-        assertThat(node.getText("a")).isEqualTo("b")
-    }
-
-    @Test
-    fun `ascii json`() {
-        val data = """data:application/json;ascii,{"a":"b"}"""
         val node = JsonPropertiesParser.parse(createRandomItemId(), data)
 
         assertThat(node.getText("a")).isEqualTo("b")
