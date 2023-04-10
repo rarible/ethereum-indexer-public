@@ -23,3 +23,8 @@ blockchain:
 
 common:
   kafka-replica-set: ${kafka.hosts}
+
+protocol:
+  nft:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
