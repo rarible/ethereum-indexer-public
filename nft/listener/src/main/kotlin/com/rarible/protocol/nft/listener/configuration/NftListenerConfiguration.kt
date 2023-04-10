@@ -201,7 +201,7 @@ class NftListenerConfiguration(
     }
 
     @Bean
-    fun erc20BalanceCheckerWorker(
+    fun ownershipCheckerWorker(
         ethereum: MonoEthereum,
         tokenRepository: TokenRepository,
         checkerMetrics: CheckerMetrics
