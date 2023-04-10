@@ -79,8 +79,7 @@ class OwnershipBatchCheckerHandler(
     }
 
     private suspend fun consumeBuffer() {
-//        blockBuffer.asIterable().take(maxOf(blockBuffer.size - props.confirms, 0)).forEach {
-        blockBuffer.asIterable().forEach {
+        blockBuffer.asIterable().take(maxOf(blockBuffer.size - props.confirms, 0)).forEach {
             val eventBlockNumber = it.key
             val events = blockBuffer.remove(eventBlockNumber)
             logger.info("Start process ${events?.size} ownerships from ${eventBlockNumber} block [${blockBuffer.size} cached block]")
