@@ -134,7 +134,7 @@ class OwnershipCheckerIt : AbstractIntegrationTest() {
     }
 
     private fun counter(name: String): Double {
-        return meterRegistry.counter(CheckerMetrics.OWNERSHIP_CHECK, listOf(
+        return meterRegistry.counter(CheckerMetrics.OWNERSHIPS_CHECKED, listOf(
             ImmutableTag(BaseMetrics.BLOCKCHAIN, Blockchain.ETHEREUM.value.lowercase()),
             ImmutableTag(BaseMetrics.STATUS, name))).count()
     }

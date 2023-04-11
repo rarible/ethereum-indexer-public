@@ -145,13 +145,13 @@ internal class OwnershipCheckerTest {
     }
 
     private fun counter(name: String): Int {
-        return registry.counter(CheckerMetrics.OWNERSHIP_CHECK, listOf(
+        return registry.counter(CheckerMetrics.OWNERSHIPS_CHECKED, listOf(
             ImmutableTag(BaseMetrics.BLOCKCHAIN, Blockchain.ETHEREUM.value.lowercase()),
             ImmutableTag(BaseMetrics.STATUS, name))).count().toInt()
     }
 
     private fun counterIncoming(): Int {
-        return registry.counter(CheckerMetrics.OWNERSHIP_INCOMING, listOf(
+        return registry.counter(CheckerMetrics.OWNERSHIPS_INCOMING, listOf(
             ImmutableTag(BaseMetrics.BLOCKCHAIN, Blockchain.ETHEREUM.value.lowercase()))).count().toInt()
     }
 }
