@@ -10,7 +10,7 @@ class CheckerMetrics(
 ) : BaseMetrics(meterRegistry) {
 
     fun onIncoming() {
-        increment(OWNERSHIP_CHECK, tag(blockchain), tagStatus(INCOMING_TAG))
+        increment(OWNERSHIP_INCOMING, tag(blockchain))
     }
 
     fun onSkipped() {
@@ -26,8 +26,8 @@ class CheckerMetrics(
     }
 
     companion object {
+        const val OWNERSHIP_INCOMING = "ownership_incoming"
         const val OWNERSHIP_CHECK = "ownership_check"
-        const val INCOMING_TAG = "incoming"
         const val SKIPPED_TAG = "skipped"
         const val SUCCESS_TAG = "success"
         const val FAIL_TAG = "fail"

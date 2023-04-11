@@ -83,9 +83,9 @@ class OwnershipCheckerIt : AbstractIntegrationTest() {
             .verifySuccess()
 
         BlockingWait.waitAssert {
-            assertThat(counter(CheckerMetrics.INCOMING_TAG)).isEqualTo(1.0)
             assertThat(counter(CheckerMetrics.SUCCESS_TAG)).isEqualTo(1.0)
             assertThat(counter(CheckerMetrics.FAIL_TAG)).isEqualTo(0.0)
+            assertThat(counter(CheckerMetrics.SKIPPED_TAG)).isEqualTo(0.0)
         }
     }
 
@@ -127,9 +127,9 @@ class OwnershipCheckerIt : AbstractIntegrationTest() {
             .verifySuccess()
 
         BlockingWait.waitAssert {
-            assertThat(counter(CheckerMetrics.INCOMING_TAG)).isEqualTo(1.0)
             assertThat(counter(CheckerMetrics.SUCCESS_TAG)).isEqualTo(1.0)
             assertThat(counter(CheckerMetrics.FAIL_TAG)).isEqualTo(0.0)
+            assertThat(counter(CheckerMetrics.SKIPPED_TAG)).isEqualTo(0.0)
         }
     }
 

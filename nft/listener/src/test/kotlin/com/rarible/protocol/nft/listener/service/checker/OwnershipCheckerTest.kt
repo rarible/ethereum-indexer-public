@@ -138,15 +138,20 @@ internal class OwnershipCheckerTest {
     }
 
     private fun checkMetrics(incoming: Int, success: Int, fail: Int, skipped: Int) {
-        assertThat(counter(CheckerMetrics.INCOMING_TAG).toInt()).isEqualTo(incoming)
-        assertThat(counter(CheckerMetrics.SUCCESS_TAG).toInt()).isEqualTo(success)
-        assertThat(counter(CheckerMetrics.FAIL_TAG).toInt()).isEqualTo(fail)
-        assertThat(counter(CheckerMetrics.SKIPPED_TAG).toInt()).isEqualTo(skipped)
+        assertThat(counterIncoming()).isEqualTo(incoming)
+        assertThat(counter(CheckerMetrics.SUCCESS_TAG)).isEqualTo(success)
+        assertThat(counter(CheckerMetrics.FAIL_TAG)).isEqualTo(fail)
+        assertThat(counter(CheckerMetrics.SKIPPED_TAG)).isEqualTo(skipped)
     }
 
-    private fun counter(name: String): Double {
+    private fun counter(name: String): Int {
         return registry.counter(CheckerMetrics.OWNERSHIP_CHECK, listOf(
             ImmutableTag(BaseMetrics.BLOCKCHAIN, Blockchain.ETHEREUM.value.lowercase()),
-            ImmutableTag(BaseMetrics.STATUS, name))).count()
+            ImmutableTag(BaseMetrics.STATUS, name))).count().toInt()
+    }
+
+    private fun counterIncoming(): Int {
+        return registry.counter(CheckerMetrics.OWNERSHIP_INCOMING, listOf(
+            ImmutableTag(BaseMetrics.BLOCKCHAIN, Blockchain.ETHEREUM.value.lowercase()))).count().toInt()
     }
 }
