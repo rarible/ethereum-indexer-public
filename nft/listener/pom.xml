@@ -28,7 +28,7 @@
         </dependency>
         <dependency>
             <groupId>com.rarible.protocol.ethereum</groupId>
-            <artifactId>protocol-subscriber-nft</artifactId>
+            <artifactId>protocol-subscriber-nft-starter</artifactId>
         </dependency>
 
         <!-- =============== Rarible-core ================ -->
