@@ -49,6 +49,11 @@ common:
   reduceProperties:
     skipOwnerships: true
 
+protocol:
+  nft:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+
 blockchain:
   scanner:
     kafka:

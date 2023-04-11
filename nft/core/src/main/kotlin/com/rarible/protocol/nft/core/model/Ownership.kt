@@ -27,6 +27,10 @@ data class Ownership(
     val pending: List<ItemTransfer>,
     val deleted: Boolean = false,
     val lastLazyEventTimestamp: Long? = null,
+
+    // This is the block which causes the balance change
+    val blockNumber: Long? = null,
+
     override val revertableEvents: List<OwnershipEvent> = emptyList(),
     @Version
     override val version: Long? = null
@@ -45,6 +49,10 @@ data class Ownership(
 
     fun isLazyOwnership(): Boolean {
         return lastLazyEventTimestamp != null
+    }
+
+    fun withBlockNumber(blockNumber: Long?): Ownership {
+        return copy(blockNumber = blockNumber)
     }
 
     @get:Id

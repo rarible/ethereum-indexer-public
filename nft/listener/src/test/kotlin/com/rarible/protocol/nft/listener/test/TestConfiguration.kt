@@ -10,6 +10,7 @@ import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
+import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
 import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
@@ -97,6 +98,14 @@ class TestConfiguration {
         )
         return ConsumerWorker(consumer, handler, "test-kafka-activity-worker")
     }
+
+    @Bean
+    @Primary
+    fun nftIndexerEventsConsumerFactory(env: ApplicationEnvironmentInfo) = NftIndexerEventsConsumerFactory(
+        brokerReplicaSet = nftIndexerProperties.kafkaReplicaSet,
+        host = "localhost",
+        environment = env.name
+    )
 
     @Bean
     @Primary

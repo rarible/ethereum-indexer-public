@@ -33,7 +33,7 @@ class ForwardOwnershipLazyValueReducer : Reducer<OwnershipEvent, Ownership> {
                 is OwnershipEvent.LazyTransferToEvent ->
                     throw IllegalArgumentException("This events can't be in this reducer")
             }
-            entity.copy(value = value, lazyValue = lazyValue)
+            entity.copy(value = value, lazyValue = lazyValue, blockNumber = event.log.blockNumber)
         } else {
             entity
         }

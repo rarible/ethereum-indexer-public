@@ -24,6 +24,7 @@ data class NftListenerProperties(
     val ownershipItemConsistency: OwnershipItemConsistencyProperties = OwnershipItemConsistencyProperties(),
     val inconsistentItemsRepair: InconsistentItemsRepairProperties = InconsistentItemsRepairProperties(),
     val updateSuspiciousItemsHandler: UpdateSuspiciousItemsHandlerProperties = UpdateSuspiciousItemsHandlerProperties(),
+    val ownershipCheckerProperties: OwnershipCheckerProperties = OwnershipCheckerProperties()
 )
 
 data class ActionExecuteProperties(
@@ -66,4 +67,10 @@ data class UpdateSuspiciousItemsHandlerProperties(
     val chunkSize: Int = 100,
     val handlePeriod: Duration = Duration.ofDays(3),
     val awakePeriod: Duration = Duration.ofHours(1)
+)
+
+data class OwnershipCheckerProperties(
+    val skipNumberOfBlocks: Long = 20,
+    val confirms: Int = 2,
+    val updateLastBlock: Duration = Duration.ofSeconds(5)
 )

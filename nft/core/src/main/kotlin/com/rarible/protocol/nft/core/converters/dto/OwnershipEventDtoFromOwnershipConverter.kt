@@ -23,14 +23,16 @@ object OwnershipEventDtoFromOwnershipConverter {
                 ownershipId = source.id.decimalStringValue,
                 ownership = DeletedOwnershipDtoConverter.convert(source.id),
                 deletedOwnership = OwnershipDtoConverter.convert(source),
-                eventTimeMarks = marks
+                eventTimeMarks = marks,
+                blockNumber = source.blockNumber
             )
         } else {
             NftOwnershipUpdateEventDto(
                 eventId = UUID.randomUUID().toString(),
                 ownershipId = source.id.decimalStringValue,
                 ownership = OwnershipDtoConverter.convert(source),
-                eventTimeMarks = marks
+                eventTimeMarks = marks,
+                blockNumber = source.blockNumber
             )
         }
     }
