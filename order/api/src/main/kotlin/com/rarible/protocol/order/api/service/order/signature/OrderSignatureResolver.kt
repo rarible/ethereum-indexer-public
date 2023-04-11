@@ -74,14 +74,15 @@ class OrderSignatureResolver(
 
     private suspend fun handleError(hash: Word, result: OperationResult.Fail<OpenSeaError>): Binary {
         logger.info("Get order $hash signature because of error: ${result.error.code}: ${result.error.message}")
-        val error = if (result.error.isGeneratingFulfillmentDataError()) {
+        val (error, exception) = if (result.error.isGeneratingFulfillmentDataError()) {
             cancelOrder(hash, result)
-            ExecutionError.SIGNATURE
+            orderMetrics.onOrderExecutionFailed(Platform.OPEN_SEA, ExecutionError.SIGNATURE)
+            ExecutionError.SIGNATURE to Retry.SkipRetryException(result.error.toApiException())
         } else {
-            ExecutionError.API
+            ExecutionError.API to result.error.toApiException()
         }
         orderMetrics.onOrderExecutionFailed(Platform.OPEN_SEA, error)
-        throw result.error.toApiException()
+        throw exception
     }
 
     private fun Blockchain.toNetwork(env: String): Network {

@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.misc
 
 import kotlinx.coroutines.time.delay
+import java.lang.RuntimeException
 import java.time.Duration
 
 object Retry {
@@ -14,6 +15,8 @@ object Retry {
         while (attempt <= attempts) {
             try {
                 return request()
+            } catch (ex: SkipRetryException) {
+                throw ex.throwable
             } catch (ex: Throwable) {
                 attempt += 1
                 lastError = ex
@@ -22,4 +25,6 @@ object Retry {
         }
         throw lastError!!
     }
+
+    class SkipRetryException(val throwable: Throwable) : RuntimeException()
 }
