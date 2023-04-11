@@ -44,10 +44,10 @@ class SudoSwapOutNftPairDescriptor(
     contracts = emptyList()
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftOut> {
-        //TODO: Remove this in release 1.41
         if (log.address() in sudoSwapLoad.ignorePairs) {
             return emptyList()
         }
+        logger.info("Handler pool ${log.address()}")
         val details = sudoSwapEventConverter.getSwapOutNftDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
