@@ -73,6 +73,7 @@ class OrderSignatureResolver(
     }
 
     private suspend fun handleError(hash: Word, result: OperationResult.Fail<OpenSeaError>): Binary {
+        logger.info("Get order $hash signature because of error: ${result.error.code}: ${result.error.message}")
         val error = if (result.error.isGeneratingFulfillmentDataError()) {
             cancelOrder(hash, result)
             ExecutionError.SIGNATURE
