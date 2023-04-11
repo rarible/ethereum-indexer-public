@@ -12,12 +12,17 @@ class OrderMetrics(
     meterRegistry: MeterRegistry,
 ) : BaseMetrics(meterRegistry) {
 
+    fun onOrderExecution(platform: Platform) {
+        increment(ORDER_EXECUTION, tag(blockchain), tag(platform))
+    }
+
     fun onOrderExecutionFailed(platform: Platform, error: ExecutionError) {
         increment(ORDER_EXECUTION_FAILED, tag(blockchain), tag(platform), tag("error", error.value))
     }
 
     private companion object {
         const val ORDER_EXECUTION_FAILED = "order_execution_failed"
+        const val ORDER_EXECUTION = "order_execution"
     }
 }
 

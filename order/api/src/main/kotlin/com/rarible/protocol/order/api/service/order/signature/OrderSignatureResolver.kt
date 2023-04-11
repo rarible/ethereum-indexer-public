@@ -62,7 +62,13 @@ class OrderSignatureResolver(
             .inputData
             .let {
                 val signature = it.parameters?.signature ?: it.order?.signature
-                signature ?: throw EntityNotFoundApiException("signature for hash", hash)
+                if (signature != null) {
+                    orderMetrics.onOrderExecution(Platform.OPEN_SEA)
+                    signature
+                } else {
+                    orderMetrics.onOrderExecutionFailed(Platform.OPEN_SEA, ExecutionError.NO_SIGNATURE)
+                    throw EntityNotFoundApiException("signature for hash", hash)
+                }
             }
     }
 
