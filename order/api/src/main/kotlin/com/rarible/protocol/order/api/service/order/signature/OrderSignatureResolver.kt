@@ -11,9 +11,12 @@ import com.rarible.opensea.client.model.v2.FulfillListingResponse
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.metric.ExecutionError
+import com.rarible.protocol.order.core.metric.OrderMetrics
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.misc.Retry
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.OrderCancelService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -26,6 +29,7 @@ class OrderSignatureResolver(
     private val orderCancelService: OrderCancelService,
     private val seaportClient: SeaportProtocolClient,
     private val orderRepository: OrderRepository,
+    private val orderMetrics: OrderMetrics,
     private val properties: OrderIndexerProperties,
     private val environmentInfo: ApplicationEnvironmentInfo,
     private val featureFlags: OrderIndexerProperties.FeatureFlags
@@ -63,10 +67,13 @@ class OrderSignatureResolver(
     }
 
     private suspend fun handleError(hash: Word, result: OperationResult.Fail<OpenSeaError>): Binary {
-        if (result.error.isGeneratingFulfillmentDataError() && featureFlags.cancelOrderOnGetSignatureError) {
-            orderCancelService.cancelOrder(hash)
-            logger.warn("Cancel order $hash because of error: ${result.error.code}: ${result.error.message}")
+        val error = if (result.error.isGeneratingFulfillmentDataError()) {
+            cancelOrder(hash, result)
+            ExecutionError.SIGNATURE
+        } else {
+            ExecutionError.API
         }
+        orderMetrics.onOrderExecutionFailed(Platform.OPEN_SEA, error)
         throw result.error.toApiException()
     }
 
@@ -81,6 +88,13 @@ class OrderSignatureResolver(
             Blockchain.OPTIMISM -> {
                 throw IllegalArgumentException("Unsupported blockchain $this")
             }
+        }
+    }
+
+    private suspend fun cancelOrder(hash: Word, result: OperationResult.Fail<OpenSeaError>) {
+        if (featureFlags.cancelOrderOnGetSignatureError) {
+            orderCancelService.cancelOrder(hash)
+            logger.warn("Cancel order $hash because of error: ${result.error.code}: ${result.error.message}")
         }
     }
 
