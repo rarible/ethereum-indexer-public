@@ -10,19 +10,19 @@ class CheckerMetrics(
 ) : BaseMetrics(meterRegistry) {
 
     fun onIncoming() {
-        increment(OWNERSHIP_CHECK, tag(blockchain), tag(INCOMING_TAG))
+        increment(OWNERSHIP_CHECK, tag(blockchain), tagStatus(INCOMING_TAG))
     }
 
     fun onSkipped() {
-        increment(OWNERSHIP_CHECK, tag(blockchain), tag(SKIPPED_TAG))
+        increment(OWNERSHIP_CHECK, tag(blockchain), tagStatus(SKIPPED_TAG))
     }
 
     fun onSuccess() {
-        increment(OWNERSHIP_CHECK, tag(blockchain), tag(SUCCESS_TAG))
+        increment(OWNERSHIP_CHECK, tag(blockchain), tagStatus(SUCCESS_TAG))
     }
 
     fun onFail() {
-        increment(OWNERSHIP_CHECK, tag(blockchain), tag(FAIL_TAG))
+        increment(OWNERSHIP_CHECK, tag(blockchain), tagStatus(FAIL_TAG))
     }
 
     companion object {

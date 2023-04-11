@@ -10,10 +10,10 @@ abstract class BaseMetrics(
 ) {
 
     protected fun tag(blockchain: Blockchain): Tag {
-        return tag(blockchain.name.lowercase())
+        return ImmutableTag(BLOCKCHAIN, blockchain.name.lowercase())
     }
 
-    protected fun tag(name: String): Tag {
+    protected fun tagStatus(name: String): Tag {
         return ImmutableTag(STATUS, name)
     }
 
