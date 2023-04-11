@@ -5,6 +5,7 @@ import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
+import com.rarible.protocol.nft.core.metric.BaseMetrics
 import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.test.IntegrationTest
@@ -82,9 +83,9 @@ class OwnershipCheckerIt : AbstractIntegrationTest() {
             .verifySuccess()
 
         BlockingWait.waitAssert {
-            assertThat(counter(CheckerMetrics.BALANCE_CHECK)).isEqualTo(1.0)
-            assertThat(counter(CheckerMetrics.BALANCE_INCOMING)).isEqualTo(1.0)
-            assertThat(counter(CheckerMetrics.BALANCE_INVALID)).isEqualTo(0.0)
+            assertThat(counter(CheckerMetrics.INCOMING_TAG)).isEqualTo(1.0)
+            assertThat(counter(CheckerMetrics.SUCCESS_TAG)).isEqualTo(1.0)
+            assertThat(counter(CheckerMetrics.FAIL_TAG)).isEqualTo(0.0)
         }
     }
 
@@ -126,14 +127,16 @@ class OwnershipCheckerIt : AbstractIntegrationTest() {
             .verifySuccess()
 
         BlockingWait.waitAssert {
-            assertThat(counter(CheckerMetrics.BALANCE_CHECK)).isEqualTo(1.0)
-            assertThat(counter(CheckerMetrics.BALANCE_INCOMING)).isEqualTo(1.0)
-            assertThat(counter(CheckerMetrics.BALANCE_INVALID)).isEqualTo(0.0)
+            assertThat(counter(CheckerMetrics.INCOMING_TAG)).isEqualTo(1.0)
+            assertThat(counter(CheckerMetrics.SUCCESS_TAG)).isEqualTo(1.0)
+            assertThat(counter(CheckerMetrics.FAIL_TAG)).isEqualTo(0.0)
         }
     }
 
     private fun counter(name: String): Double {
-        return meterRegistry.counter(name, listOf(ImmutableTag("blockchain", Blockchain.ETHEREUM.name.lowercase()))).count()
+        return meterRegistry.counter(CheckerMetrics.OWNERSHIP_CHECK, listOf(
+            ImmutableTag(BaseMetrics.BLOCKCHAIN, Blockchain.ETHEREUM.value.lowercase()),
+            ImmutableTag(BaseMetrics.STATUS, name))).count()
     }
 
 }

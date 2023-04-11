@@ -8,6 +8,7 @@ import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.core.data.createRandomOwnershipId
+import com.rarible.protocol.nft.core.metric.BaseMetrics
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -60,7 +61,7 @@ internal class OwnershipCheckerTest {
         ownershipBatchCheckerHandler.handle(listOf(ownershipUpdateEvent(ownershipId, 1, 92)))
         ownershipBatchCheckerHandler.handle(listOf(ownershipUpdateEvent(ownershipId, 1, 93)))
 
-        checkMetrics(3, 1, 0)
+        checkMetrics(3, 1, 0, 0)
     }
 
     @Test
@@ -74,7 +75,7 @@ internal class OwnershipCheckerTest {
         ownershipBatchCheckerHandler.handle(listOf(ownershipUpdateEvent(ownershipId, 1, 92)))
         ownershipBatchCheckerHandler.handle(listOf(ownershipUpdateEvent(ownershipId, 1, 93)))
 
-        checkMetrics(3, 1, 0)
+        checkMetrics(3, 1, 0, 0)
     }
 
     @Test
@@ -88,7 +89,7 @@ internal class OwnershipCheckerTest {
         ownershipBatchCheckerHandler.handle(listOf(ownershipUpdateEvent(ownershipId, 1, 92)))
         ownershipBatchCheckerHandler.handle(listOf(ownershipUpdateEvent(ownershipId, 1, 93)))
 
-        checkMetrics(3, 1, 1)
+        checkMetrics(3, 0, 1, 0)
     }
 
     @Test
@@ -102,7 +103,7 @@ internal class OwnershipCheckerTest {
         ownershipBatchCheckerHandler.handle(listOf(ownershipUpdateEvent(ownershipId, 1, 92)))
         ownershipBatchCheckerHandler.handle(listOf(ownershipUpdateEvent(ownershipId, 1, 93)))
 
-        checkMetrics(3, 1, 0)
+        checkMetrics(3, 1, 0, 0)
     }
 
     private fun ownershipUpdateEvent(ownershipId: OwnershipId, value: Int, blockNumber: Long) = NftOwnershipUpdateEventDto(
@@ -136,13 +137,16 @@ internal class OwnershipCheckerTest {
         )
     }
 
-    private fun checkMetrics(incoming: Int, check: Int, invalid: Int) {
-        assertThat(counter(CheckerMetrics.BALANCE_INCOMING).toInt()).isEqualTo(incoming)
-        assertThat(counter(CheckerMetrics.BALANCE_CHECK).toInt()).isEqualTo(check)
-        assertThat(counter(CheckerMetrics.BALANCE_INVALID).toInt()).isEqualTo(invalid)
+    private fun checkMetrics(incoming: Int, success: Int, fail: Int, skipped: Int) {
+        assertThat(counter(CheckerMetrics.INCOMING_TAG).toInt()).isEqualTo(incoming)
+        assertThat(counter(CheckerMetrics.SUCCESS_TAG).toInt()).isEqualTo(success)
+        assertThat(counter(CheckerMetrics.FAIL_TAG).toInt()).isEqualTo(fail)
+        assertThat(counter(CheckerMetrics.SKIPPED_TAG).toInt()).isEqualTo(skipped)
     }
 
     private fun counter(name: String): Double {
-        return registry.counter(name, listOf(ImmutableTag("blockchain", Blockchain.ETHEREUM.value))).count()
+        return registry.counter(CheckerMetrics.OWNERSHIP_CHECK, listOf(
+            ImmutableTag(BaseMetrics.BLOCKCHAIN, Blockchain.ETHEREUM.value.lowercase()),
+            ImmutableTag(BaseMetrics.STATUS, name))).count()
     }
 }

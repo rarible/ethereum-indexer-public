@@ -72,6 +72,7 @@ class OwnershipBatchCheckerHandler(
         blockBuffer.entries.removeIf {
             val isDeleted = blockNumber - it.key >= props.skipNumberOfBlocks
             if (isDeleted) {
+                checkerMetrics.onSkipped()
                 logger.info("Events for ${it.key} are outdated")
             }
             isDeleted
@@ -86,13 +87,14 @@ class OwnershipBatchCheckerHandler(
             events?.forEach { (ownershipId, value) ->
                 val blockChainBalance = valueOfToken(ownershipId, eventBlockNumber)
                 if (blockChainBalance != null) {
-                    checkerMetrics.onCheck()
                     if (value != blockChainBalance) {
-                        checkerMetrics.onInvalid()
+                        checkerMetrics.onFail()
                         logger.error("Ownership is invalid: [id=${ownershipId} value=${value}(actual=${blockChainBalance}) block=${eventBlockNumber}")
+                    } else {
+                        checkerMetrics.onSuccess()
                     }
                 } else {
-                    // We don't care about null ownerships
+                    checkerMetrics.onSkipped()
                 }
             }
         }

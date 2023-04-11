@@ -8,11 +8,21 @@ import io.micrometer.core.instrument.Tag
 abstract class BaseMetrics(
     private val meterRegistry: MeterRegistry
 ) {
+
     protected fun tag(blockchain: Blockchain): Tag {
-        return ImmutableTag("blockchain", blockchain.name.lowercase())
+        return tag(blockchain.name.lowercase())
+    }
+
+    protected fun tag(name: String): Tag {
+        return ImmutableTag(STATUS, name)
     }
 
     protected fun increment(name: String, vararg tags: Tag) {
         meterRegistry.counter(name, tags.toList()).increment()
+    }
+
+    companion object {
+        const val BLOCKCHAIN = "blockchain"
+        const val STATUS = "status"
     }
 }

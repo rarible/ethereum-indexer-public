@@ -10,20 +10,26 @@ class CheckerMetrics(
 ) : BaseMetrics(meterRegistry) {
 
     fun onIncoming() {
-        increment(BALANCE_INCOMING, tag(blockchain))
+        increment(OWNERSHIP_CHECK, tag(blockchain), tag(INCOMING_TAG))
     }
 
-    fun onCheck() {
-        increment(BALANCE_CHECK, tag(blockchain))
+    fun onSkipped() {
+        increment(OWNERSHIP_CHECK, tag(blockchain), tag(SKIPPED_TAG))
     }
 
-    fun onInvalid() {
-        increment(BALANCE_INVALID, tag(blockchain))
+    fun onSuccess() {
+        increment(OWNERSHIP_CHECK, tag(blockchain), tag(SUCCESS_TAG))
+    }
+
+    fun onFail() {
+        increment(OWNERSHIP_CHECK, tag(blockchain), tag(FAIL_TAG))
     }
 
     companion object {
-        const val BALANCE_INCOMING = "balance_incoming"
-        const val BALANCE_CHECK = "balance_check"
-        const val BALANCE_INVALID = "balance_invalid"
+        const val OWNERSHIP_CHECK = "ownership_check"
+        const val INCOMING_TAG = "incoming"
+        const val SKIPPED_TAG = "skipped"
+        const val SUCCESS_TAG = "success"
+        const val FAIL_TAG = "fail"
     }
 }
