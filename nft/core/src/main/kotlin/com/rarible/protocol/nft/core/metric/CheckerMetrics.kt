@@ -26,8 +26,8 @@ class CheckerMetrics(
     }
 
     companion object {
-        const val OWNERSHIP_INCOMING = "ownership_incoming"
-        const val OWNERSHIP_CHECK = "ownership_check"
+        const val OWNERSHIP_INCOMING = "ownerships_incoming"
+        const val OWNERSHIP_CHECK = "ownerships_checked"
         const val SKIPPED_TAG = "skipped"
         const val SUCCESS_TAG = "success"
         const val FAIL_TAG = "fail"
