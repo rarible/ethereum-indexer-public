@@ -37,7 +37,8 @@ data class OrderListenerProperties(
     var fixX2Y2: Boolean = false,
     val approvalEvenHandleDelay: Duration = Duration.ZERO,
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
-    val logConsumeWorkerCount: Int = 9
+    val logConsumeWorkerCount: Int = 9,
+    val floorPriceTopCollectionsCount: Int = 10
 ) {
     enum class OrderSide {
         ALL,
