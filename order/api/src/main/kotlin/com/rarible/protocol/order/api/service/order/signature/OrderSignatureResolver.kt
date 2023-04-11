@@ -4,13 +4,20 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.opensea.client.Network
 import com.rarible.opensea.client.SeaportProtocolClient
+import com.rarible.opensea.client.model.OpenSeaError
+import com.rarible.opensea.client.model.OperationResult
 import com.rarible.opensea.client.model.v2.FulfillListingRequest
+import com.rarible.opensea.client.model.v2.FulfillListingResponse
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.metric.ExecutionError
+import com.rarible.protocol.order.core.metric.OrderMetrics
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.misc.Retry
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.service.OrderCancelService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
@@ -19,16 +26,19 @@ import java.time.Duration
 
 @Component
 class OrderSignatureResolver(
+    private val orderCancelService: OrderCancelService,
     private val seaportClient: SeaportProtocolClient,
     private val orderRepository: OrderRepository,
+    private val orderMetrics: OrderMetrics,
     private val properties: OrderIndexerProperties,
-    private val environmentInfo: ApplicationEnvironmentInfo
+    private val environmentInfo: ApplicationEnvironmentInfo,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) {
     suspend fun resolveSeaportSignature(hash: Word): Binary {
         val order = orderRepository.findById(hash) ?: run {
             throw EntityNotFoundApiException("Order", hash)
         }
-        val data = order.data as OrderSeaportDataV1 ?: run {
+        val data = order.data as? OrderSeaportDataV1 ?: run {
             throw OrderDataException("Order $hash is not Seaport")
         }
         val request = FulfillListingRequest(
@@ -38,17 +48,41 @@ class OrderSignatureResolver(
             protocolAddress = data.protocol
         )
         return Retry.retry(attempts = 5, delay = Duration.ofMillis(500)) {
-            seaportClient
-                .getFulfillListingInfo(request)
-                .ensureSuccess()
-                .fulfillmentData
-                .transaction
-                .inputData
-                .let {
-                    val signature = it.parameters?.signature ?: it.order?.signature
-                    signature ?: throw EntityNotFoundApiException("signature for hash", hash)
-                }
+            when (val result = seaportClient.getFulfillListingInfo(request)) {
+                is OperationResult.Success -> getSignature(hash, result.result)
+                is OperationResult.Fail -> handleError(hash, result)
+            }
         }
+    }
+
+    private fun getSignature(hash: Word, result: FulfillListingResponse): Binary {
+        return result
+            .fulfillmentData
+            .transaction
+            .inputData
+            .let {
+                val signature = it.parameters?.signature ?: it.order?.signature
+                if (signature != null) {
+                    orderMetrics.onOrderExecution(Platform.OPEN_SEA)
+                    signature
+                } else {
+                    orderMetrics.onOrderExecutionFailed(Platform.OPEN_SEA, ExecutionError.NO_SIGNATURE)
+                    throw EntityNotFoundApiException("signature for hash", hash)
+                }
+            }
+    }
+
+    private suspend fun handleError(hash: Word, result: OperationResult.Fail<OpenSeaError>): Binary {
+        logger.info("Get order $hash signature because of error: ${result.error.code}: ${result.error.message}")
+        val (error, exception) = if (result.error.isGeneratingFulfillmentDataError()) {
+            cancelOrder(hash, result)
+            orderMetrics.onOrderExecutionFailed(Platform.OPEN_SEA, ExecutionError.SIGNATURE)
+            ExecutionError.SIGNATURE to Retry.SkipRetryException(result.error.toApiException())
+        } else {
+            ExecutionError.API to result.error.toApiException()
+        }
+        orderMetrics.onOrderExecutionFailed(Platform.OPEN_SEA, error)
+        throw exception
     }
 
     private fun Blockchain.toNetwork(env: String): Network {
@@ -65,6 +99,17 @@ class OrderSignatureResolver(
         }
     }
 
+    private suspend fun cancelOrder(hash: Word, result: OperationResult.Fail<OpenSeaError>) {
+        if (featureFlags.cancelOrderOnGetSignatureError) {
+            orderCancelService.cancelOrder(hash)
+            logger.warn("Cancel order $hash because of error: ${result.error.code}: ${result.error.message}")
+        }
+    }
+
+    private fun OpenSeaError.toApiException(): Throwable {
+        return OrderDataException("Seaport error: $code: $message")
+    }
 
     private val logger = LoggerFactory.getLogger(OrderSignatureResolver::class.java)
 }
+
