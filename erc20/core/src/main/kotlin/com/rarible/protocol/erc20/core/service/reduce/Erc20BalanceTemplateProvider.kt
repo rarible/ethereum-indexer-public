@@ -15,8 +15,8 @@ class Erc20BalanceTemplateProvider : EntityTemplateProvider<BalanceId, Erc20Bala
             token = id.token,
             version = version,
             balance = EthUInt256.ZERO,
-            createdAt = Instant.now(),
-            lastUpdatedAt = Instant.now(),
+            createdAt = Instant.EPOCH,
+            lastUpdatedAt = Instant.EPOCH,
             revertableEvents = emptyList(),
             blockNumber = null
         )
