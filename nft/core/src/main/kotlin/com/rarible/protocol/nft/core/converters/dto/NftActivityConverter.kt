@@ -80,7 +80,7 @@ class NftActivityConverter(
         updatedAt: java.time.Instant
     ): NftActivityDto {
         return when {
-            itemTransfer.from == Address.ZERO() -> {
+            itemTransfer.isMintTransfer() -> {
                 MintDto(
                     id = id,
                     owner = itemTransfer.owner,
@@ -97,7 +97,8 @@ class NftActivityConverter(
                     lastUpdatedAt = updatedAt
                 )
             }
-            itemTransfer.owner == Address.ZERO() -> {
+
+            itemTransfer.isBurnTransfer() -> {
                 BurnDto(
                     id = id,
                     owner = itemTransfer.from,

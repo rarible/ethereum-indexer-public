@@ -66,7 +66,15 @@ data class ItemTransfer(
     }
 
     fun isBurnTransfer(): Boolean {
-        return owner == Address.ZERO()
+        return BURN_ADDRESSES.contains(owner)
+    }
+
+    companion object {
+
+        val BURN_ADDRESSES = setOf(
+            Address.ZERO(),
+            Address.apply("0x000000000000000000000000000000000000dead")
+        )
     }
 }
 
