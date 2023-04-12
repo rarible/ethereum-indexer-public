@@ -7,14 +7,15 @@ import org.springframework.stereotype.Component
 
 @Component
 class Erc20BalanceUpdateService(
-    private val balanceRepository: Erc20BalanceService
+    private val balanceService: Erc20BalanceService
 ) : UpdateService<Erc20Balance> {
 
     override suspend fun update(data: Erc20Balance) {
-        val currentBalance = balanceRepository.get(data.id)
-
-        val balanceToSave = currentBalance?.withBalanceAndLastUpdatedAt(data.balance, data.lastUpdatedAt)
-            ?.withBlockNumber(data.blockNumber) ?: data
-        balanceRepository.update(balanceToSave)
+        val currentBalance = balanceService.get(data.id)
+        if (currentBalance?.versionLess() != data) {
+            val balanceToSave = currentBalance?.withBalanceAndLastUpdatedAt(data.balance, data.lastUpdatedAt)
+                ?.withBlockNumber(data.blockNumber) ?: data
+            balanceService.update(balanceToSave)
+        }
     }
 }

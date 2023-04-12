@@ -51,4 +51,6 @@ data class Erc20Balance(
     fun withBlockNumber(blockNumber: Long?): Erc20Balance {
         return copy(blockNumber = blockNumber)
     }
+
+    fun versionLess() = copy(version = null)
 }

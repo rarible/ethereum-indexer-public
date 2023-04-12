@@ -13,6 +13,7 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceEventTopicProvider
+import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
 import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Balance
@@ -37,6 +38,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
+import java.math.BigInteger
 import java.util.Date
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
@@ -167,6 +169,73 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
                     assertThat(event.value.lastUpdatedAt).isEqualTo(balance.lastUpdatedAt)
                 })
         }
+        job.cancel()
+    }
+
+    @Test
+    fun `shouldn't send duplication event for existed balance`() = runBlocking<Unit> {
+        val consumer = createConsumer()
+        val events = CopyOnWriteArrayList<KafkaMessage<Erc20BalanceEventDto>>()
+        val job = async {
+            consumer
+                .receiveAutoAck()
+                .collect { events.add(it) }
+        }
+
+        val walletToken = randomAddress()
+        val walletOwner = randomAddress()
+        val balanceId = BalanceId(walletToken, walletOwner)
+        val incomeDate = Date(nowMillis().minusSeconds(30).toEpochMilli())
+        val outcomeDate = Date(nowMillis().minusSeconds(10).toEpochMilli())
+
+        val currentBalance = Erc20Balance(
+            token = walletToken,
+            owner = walletOwner,
+            balance = EthUInt256.of(5),
+            createdAt = incomeDate.toInstant(),
+            lastUpdatedAt = incomeDate.toInstant(),
+            blockNumber = 1
+        )
+        erc20BalanceRepository.save(currentBalance)
+
+        val transfer = mockk<Erc20TokenHistory> {
+            every { token } returns walletToken
+            every { owner } returns walletOwner
+        }
+
+        prepareStorage(
+            walletToken,
+            Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = incomeDate, value = EthUInt256.of(5))
+        )
+        balanceReduceService.onEvents(listOf(randomErc20ReduceEvent(transfer)))
+
+        val balance = erc20BalanceRepository.get(balanceId)!!
+        assertThat(balance.balance).isEqualTo(EthUInt256.of(5))
+        assertThat(balance.createdAt).isEqualTo(currentBalance.createdAt)
+        assertThat(balance.lastUpdatedAt!!.toEpochMilli()).isEqualTo(incomeDate.time)
+
+        // no changes
+        Wait.waitAssert {
+            assertThat(events).hasSize(0)
+        }
+
+        // let's trigger the balance changing
+        prepareStorage(
+            walletToken,
+            Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = outcomeDate, value = EthUInt256.of(5))
+        )
+        balanceReduceService.onEvents(listOf(randomErc20ReduceEvent(transfer)))
+        Wait.waitAssert {
+            assertThat(events)
+                .hasSize(1)
+                .satisfies(Consumer { events ->
+                    val event = events.first { it.value.balanceId == balance.id.stringValue }.value as Erc20BalanceUpdateEventDto
+                    assertThat(event.balance.balance).isEqualTo(BigInteger.ZERO)
+                    assertThat(event.balance.createdAt).isEqualTo(incomeDate.toInstant())
+                    assertThat(event.balance.lastUpdatedAt).isEqualTo(outcomeDate.toInstant())
+                })
+        }
+
         job.cancel()
     }
 
