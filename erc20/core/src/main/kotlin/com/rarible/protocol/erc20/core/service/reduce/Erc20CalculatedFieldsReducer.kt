@@ -13,7 +13,9 @@ class Erc20CalculatedFieldsReducer : Reducer<Erc20Event, Erc20Balance> {
             // We try to get timestamp of the latest blockchain event
             entity.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.date?.toInstant() ?:
             entity.lastUpdatedAt
-        val blockNumber = entity.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.log?.blockNumber
+        val blockNumber =
+            entity.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.log?.blockNumber ?:
+            entity.blockNumber
         return entity.copy(lastUpdatedAt = updatedAt).withBlockNumber(blockNumber)
     }
 }
