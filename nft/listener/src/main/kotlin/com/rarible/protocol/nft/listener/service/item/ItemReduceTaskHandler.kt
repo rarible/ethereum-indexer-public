@@ -44,7 +44,7 @@ class ItemReduceTaskHandler(
         ).map { (token, tokenId) -> ItemReduceState(token, tokenId) }
             .windowTimeout(Int.MAX_VALUE, Duration.ofSeconds(5))
             .flatMap {
-                it.last()
+                it.next()
             }
             .asFlow()
     }

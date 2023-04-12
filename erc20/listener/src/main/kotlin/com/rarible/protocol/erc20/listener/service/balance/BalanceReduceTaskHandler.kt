@@ -43,7 +43,7 @@ class BalanceReduceTaskHandler(
             .map { it.id.toState() }
             .windowTimeout(Int.MAX_VALUE, Duration.ofSeconds(5))
             .flatMap {
-                it.last()
+                it.next()
             }
             .asFlow()
     }
