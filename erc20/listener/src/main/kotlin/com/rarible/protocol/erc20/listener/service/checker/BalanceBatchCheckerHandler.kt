@@ -48,7 +48,7 @@ class BalanceBatchCheckerHandler(
 
     private suspend fun fillBuffer(event: Erc20BalanceEventDto) {
         checkerMetrics.onIncoming()
-        if (event is Erc20BalanceUpdateEventDto && checkedContracts.contains(event.balance.contract)) {
+        if (event is Erc20BalanceUpdateEventDto && (checkedContracts.isEmpty() || checkedContracts.contains(event.balance.contract))) {
             val balance = event.balance
             val blockNumber = currentBlockNumber()
             val eventBlockNumber = balance.blockNumber
