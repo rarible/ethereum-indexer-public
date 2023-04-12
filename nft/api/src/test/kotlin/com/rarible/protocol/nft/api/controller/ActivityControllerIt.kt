@@ -205,4 +205,25 @@ class ActivityControllerIt : AbstractIntegrationTest() {
         assertThat(confirmedResult.body!!.items).hasSize(1)
         assertThat(confirmedResult.body!!.items.first().id).isEqualTo(confirmed.id.toString())
     }
+
+    @Test
+    fun `get activities - ok, burns`() = runBlocking<Unit> {
+        val deadAddress = Address.apply("0x000000000000000000000000000000000000dead")
+        val zeroAddressBurn = historyRepository.save(createItemTransfer(owner = Address.ZERO())).awaitFirst()
+        val deadAddressBurn = historyRepository.save(createItemTransfer(owner = deadAddress)).awaitFirst()
+        val transfer = historyRepository.save(createItemTransfer()).awaitFirst()
+
+        val result = activityController.getNftActivities(
+            NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.BURN)),
+            null,
+            5,
+            ActivitySortDto.LATEST_FIRST
+        ).body!!.items
+
+        assertThat(result).hasSize(2)
+        assertThat(result.map { it.id }).containsExactlyInAnyOrder(
+            zeroAddressBurn.id.toString(),
+            deadAddressBurn.id.toString()
+        )
+    }
 }
