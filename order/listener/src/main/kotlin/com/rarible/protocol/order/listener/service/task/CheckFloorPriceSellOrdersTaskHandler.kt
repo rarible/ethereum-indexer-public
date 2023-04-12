@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.task
 
 import com.rarible.core.task.TaskHandler
+import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.dto.SeaportFulfillmentSimpleResponseDto
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
@@ -23,7 +24,8 @@ import java.util.*
 class CheckFloorPriceSellOrdersTaskHandler(
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val floorSellOrderProvider: FloorSellOrderProvider,
-    private val properties: OrderListenerProperties
+    private val properties: OrderListenerProperties,
+    private val blockchain: Blockchain,
 ) : TaskHandler<String> {
 
     private val client = RestTemplate()
@@ -55,7 +57,7 @@ class CheckFloorPriceSellOrdersTaskHandler(
 
     private fun checkOrderSignatureAvailable(hash: Word) {
         try {
-            val url = "https://ethereum-api.rarible.org/v0.1/order/signature/seaport/simple/${hash.prefixed()}"
+            val url = String.format("http://%s-order-api:8080/v0.1/signature/seaport/simple/%s", blockchain, hash.prefixed())
             val result = client.getForObject(url, SeaportFulfillmentSimpleResponseDto::class.java)
             logger.info("Get order signature for $hash: $result")
         } catch (ex: Exception) {
