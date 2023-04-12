@@ -15,7 +15,7 @@ import org.apache.commons.lang3.RandomUtils
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.ThreadLocalRandom
 
 fun LogEvent.withTransferOwner(owner: Address): LogEvent {
@@ -59,9 +59,11 @@ fun createItemBurn(): LogEvent {
         .withTransferFrom(AddressFactory.create())
 }
 
-fun createItemTransfer(): LogEvent {
+fun createItemTransfer(
+    owner: Address = createAddress()
+): LogEvent {
     val data = ItemTransfer(
-        owner = createAddress(),
+        owner = owner,
         from = createAddress(),
         token = createAddress(),
         tokenId = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 2)),

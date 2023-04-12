@@ -71,11 +71,12 @@ class NftActivityConverterTest {
     }
 
     @Test
-    fun `convert - burn, reverted`() {
-        val transfer = createItemHistory().copy(owner = Address.ZERO())
+    fun `convert - burn, dead address`() {
+        val transfer = createItemHistory()
+            .copy(owner = Address.apply("0x000000000000000000000000000000000000dead"))
         val record = randomReversedLogRecord(transfer)
 
-        val converted = converter.convert(record, true) as BurnDto
+        val converted = converter.convert(record, false) as BurnDto
 
         assertThat(converted.owner).isEqualTo(transfer.from)
         assertThat(converted.tokenId).isEqualTo(transfer.tokenId.value)
@@ -86,6 +87,18 @@ class NftActivityConverterTest {
         assertThat(converted.blockHash).isEqualTo(record.blockHash)
         assertThat(converted.blockNumber).isEqualTo(record.blockNumber)
         assertThat(converted.logIndex).isEqualTo(record.logIndex)
+
+        assertThat(converted.reverted).isFalse()
+    }
+
+    @Test
+    fun `convert - burn, reverted`() {
+        val transfer = createItemHistory().copy(owner = Address.ZERO())
+        val record = randomReversedLogRecord(transfer)
+
+        val converted = converter.convert(record, true) as BurnDto
+
+        assertThat(converted.owner).isEqualTo(transfer.from)
 
         assertThat(converted.reverted).isTrue()
     }
