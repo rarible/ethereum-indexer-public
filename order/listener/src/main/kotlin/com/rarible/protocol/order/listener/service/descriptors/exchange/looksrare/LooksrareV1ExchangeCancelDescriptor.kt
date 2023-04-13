@@ -21,7 +21,7 @@ class LooksrareV1ExchangeCancelDescriptor(
 ) : AbstractLooksrareExchangeDescriptor<OrderCancel>(
     name = "lr_cancel_multiple",
     CancelMultipleOrdersEvent.id(),
-    contractsProvider,
+    contractsProvider.looksrareV1(),
     orderRepository,
     looksrareCancelOrdersEventMetric
 ) {
