@@ -6,7 +6,10 @@ import com.rarible.core.apm.withSpan
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
+import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.EntityEventListeners
+import com.rarible.protocol.erc20.core.model.Erc20Balance
+import com.rarible.protocol.erc20.core.model.Erc20Event
 import com.rarible.protocol.erc20.core.model.SubscriberGroup
 import com.rarible.protocol.erc20.core.model.SubscriberGroups
 import com.rarible.protocol.erc20.core.service.Erc20BalanceService
@@ -25,12 +28,16 @@ class Erc20EventReduceService(
 ) : EntityEventListener {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private val delegate = EventReduceService(
+    private val delegate = object : EventReduceService<BalanceId, Erc20Event, Erc20Balance>(
         erc20BalanceService,
         erc20BalanceIdService,
         erc20BalanceTemplateProvider,
         erc20BalanceReducer
-    )
+    ) {
+        override fun isChanged(current: Erc20Balance, result: Erc20Balance): Boolean {
+            return current.balance != result.balance
+        }
+    }
 
     override val id: String = EntityEventListeners.erc20HistoryListenerId(environmentInfo.name, properties.blockchain)
 
