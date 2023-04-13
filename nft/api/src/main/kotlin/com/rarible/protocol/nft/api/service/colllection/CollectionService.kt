@@ -55,7 +55,7 @@ class CollectionService(
             ?.takeIf { it.standard != TokenStandard.NONE && it.status != ContractStatus.ERROR }
             ?: throw EntityNotFoundApiException("Collection", collectionId)
         // TODO remove meta later
-        return ExtendedCollectionDtoConverter.convert(ExtendedToken(token, tokenMetaService.get(collectionId)))
+        return ExtendedCollectionDtoConverter.convert(enrichWithMeta(token))
     }
 
     suspend fun get(ids: List<Address>): List<NftCollectionDto> {
@@ -141,13 +141,14 @@ class CollectionService(
 
     private suspend fun enrichWithMeta(tokens: List<Token>): List<ExtendedToken> = coroutineScope {
         tokens.map { token ->
-            async {
-                val meta = withTimeoutOrNull(timeMillis = nftIndexerApiProperties.metaTimeout) {
-                    tokenMetaService.get(token.id)
-                } ?: TokenMeta.EMPTY
-
-                ExtendedToken(token, meta)
-            }
+            async { enrichWithMeta(token) }
         }.awaitAll()
+    }
+
+    private suspend fun enrichWithMeta(token: Token): ExtendedToken {
+        val meta = withTimeoutOrNull(timeMillis = nftIndexerApiProperties.metaTimeout) {
+            tokenMetaService.get(token.id)
+        } ?: TokenMeta.EMPTY
+        return ExtendedToken(token, meta)
     }
 }
