@@ -8,6 +8,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.randomBidOrderUsdValue
 import com.rarible.protocol.order.core.data.randomSellOrderUsdValue
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
@@ -78,38 +79,38 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
     )
 
     @Test
-    fun `should convert erc721 sell event`() = runBlocking<Unit> {
+    fun `should convert sell event`() = runBlocking<Unit> {
         val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
         val data = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val bidOrderUsd = randomBidOrderUsdValue()
         val sellOrderUsd = randomSellOrderUsdValue()
         val log = log(
             listOf(
-                Word.apply("0x9aaa45d6db2ef74ead0751ea9113263d1dec1b50cea05f0ca2002cb8063564a4"),
+                Word.apply("0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3"),
             ),
-            "5b05cb79586cff5aa741ed716514bdd17cb83c374a0093f0e33f6116c3142bbd" +
-                    "000000000000000000000000000000000000000000000000000000000000001a" +
+            "1855813a4636aa7dc4078f1412c483264e1b0ff45c3b90910b5800669f242c2c" +
+                    "0000000000000000000000000000000000000000000000000000000000000000" +
                     "0000000000000000000000000000000000000000000000000000000000000001" +
-                    "00000000000000000000000041af51792cdcfab9bdc0239f1d1c274e0b2682ae" +
-                    "00000000000000000000000077c0c1c3d55a9afad3ad19f231259cf78a203a8d" +
-                    "0000000000000000000000000000000000000000000000000000000000000001" +
-                    "000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" +
-                    "00000000000000000000000049cf6f5d44e70224e2e23fdcdd2c053f30ada28b" +
+                    "0000000000000000000000006a67e811868e54f7d4547f5feba0be8a043f7837" +
+                    "0000000000000000000000006a67e811868e54f7d4547f5feba0be8a043f7837" +
+                    "0000000000000000000000000000000000000000000000000000000000000000" +
+                    "0000000000000000000000000000000000000000000000000000000000000000" +
+                    "000000000000000000000000edb61f74b0d09b2558f1eeb79b247c1f363ae452" +
                     "00000000000000000000000000000000000000000000000000000000000001e0" +
                     "0000000000000000000000000000000000000000000000000000000000000220" +
-                    "00000000000000000000000041af51792cdcfab9bdc0239f1d1c274e0b2682ae" +
+                    "000000000000000000000000317a690c61951e0b05a4bd65fabf483f98de44cd" +
                     "0000000000000000000000000000000000000000000000000000000000000000" +
-                    "0000000000000000000000000000000000000000000000001f34fcbc626bc000" +
+                    "0000000000000000000000000000000000000000000000000b0bf5c859360000" +
                     "0000000000000000000000000000000000000000000000000000000000000000" +
-                    "0000000000000000000000000000000000000000000000000028254a45f64000" +
+                    "000000000000000000000000000000000000000000000000000e35fa931a0000" +
                     "0000000000000000000000000000000000000000000000000000000000000001" +
-                    "0000000000000000000000000000000000000000000000000000000000002bd6" +
+                    "0000000000000000000000000000000000000000000000000000000000000b10" +
                     "0000000000000000000000000000000000000000000000000000000000000001" +
                     "0000000000000000000000000000000000000000000000000000000000000001"
         )
         val nftAssetType = Erc721AssetType(
-            Address.apply("0x49cf6f5d44e70224e2e23fdcdd2c053f30ada28b"),
-            EthUInt256.of("11222")
+            Address.apply("0xedb61f74b0d09b2558f1eeb79b247c1f363ae452"),
+            EthUInt256.of("2832")
         )
         val expectedNft = Asset(
             nftAssetType,
@@ -117,7 +118,7 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         )
         val expectedPayment = Asset(
             EthAssetType,
-            EthUInt256.of("9800000000000000")
+            EthUInt256.of("796000000000000000")
         )
         coEvery {
             priceUpdateService.getAssetsUsdValue(make = expectedNft, take = expectedPayment, at = data)
@@ -131,15 +132,15 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         coEvery { tokenStandardProvider.getTokenStandard(nftAssetType.token) } returns TokenStandard.ERC721
         coEvery { orderRepository.findByMakeAndByCounters(any(), any(), any()) } returns emptyFlow()
 
-        val matches = descriptorAsk.convert(log, transaction, data.epochSecond, 0, 0).toFlux().collectList()
+        val matches = descriptorBid.convert(log, transaction, data.epochSecond, 0, 0).toFlux().collectList()
             .awaitFirst()
 
         assertThat(matches).hasSize(2)
         val left = matches[0] as OrderSideMatch
-        assertThat(left.hash).isEqualTo(Word.apply("4b5927612372ee90e7c770328f999a62e862d815c133a2ad75e840997c735760"))
+        assertThat(left.hash).isEqualTo(Word.apply("1855813a4636aa7dc4078f1412c483264e1b0ff45c3b90910b5800669f242c2c"))
         assertThat(left.side).isEqualTo(OrderSide.LEFT)
-        assertThat(left.maker).isEqualTo(Address.apply("0x47921676A46CcFe3D80b161c7B4DDC8Ed9e716B6"))
-        assertThat(left.taker).isEqualTo(Address.apply("0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"))
+        assertThat(left.maker).isEqualTo(Address.apply("0x317a690C61951E0b05A4Bd65FaBf483f98de44cd"))
+        assertThat(left.taker).isEqualTo(Address.apply("0x6a67E811868e54f7d4547F5FeBA0bE8A043f7837"))
         assertThat(left.make).isEqualTo(expectedNft)
         assertThat(left.take).isEqualTo(expectedPayment)
         assertThat(left.fill).isEqualTo(expectedNft.value)
@@ -148,16 +149,16 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         assertThat(left.takeUsd).isEqualTo(sellOrderUsd.takeUsd)
         assertThat(left.makePriceUsd).isEqualTo(sellOrderUsd.makePriceUsd)
         assertThat(left.takePriceUsd).isEqualTo(sellOrderUsd.takePriceUsd)
-        assertThat(left.takeValue).isEqualTo(BigDecimal("0.009800000000000000"))
+        assertThat(left.takeValue).isEqualTo(BigDecimal("0.796000000000000000"))
         assertThat(left.makeValue).isEqualTo(BigDecimal.ONE)
         assertThat(left.source).isEqualTo(HistorySource.LOOKSRARE)
         assertThat(left.adhoc).isFalse()
         assertThat(left.counterAdhoc).isTrue()
         val right = matches[1] as OrderSideMatch
-        assertThat(right.counterHash).isEqualTo(Word.apply("0x4b5927612372ee90e7c770328f999a62e862d815c133a2ad75e840997c735760"))
+        assertThat(right.counterHash).isEqualTo(Word.apply("1855813a4636aa7dc4078f1412c483264e1b0ff45c3b90910b5800669f242c2c"))
         assertThat(right.side).isEqualTo(OrderSide.RIGHT)
-        assertThat(right.maker).isEqualTo(Address.apply("0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"))
-        assertThat(right.taker).isEqualTo(Address.apply("0x47921676A46CcFe3D80b161c7B4DDC8Ed9e716B6"))
+        assertThat(right.maker).isEqualTo(Address.apply("0x6a67E811868e54f7d4547F5FeBA0bE8A043f7837"))
+        assertThat(right.taker).isEqualTo(Address.apply("0x317a690C61951E0b05A4Bd65FaBf483f98de44cd"))
         assertThat(right.make).isEqualTo(expectedPayment)
         assertThat(right.take).isEqualTo(expectedNft)
         assertThat(right.fill).isEqualTo(expectedNft.value)
@@ -166,7 +167,7 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         assertThat(right.takeUsd).isEqualTo(bidOrderUsd.takeUsd)
         assertThat(right.makePriceUsd).isEqualTo(bidOrderUsd.makePriceUsd)
         assertThat(right.takePriceUsd).isEqualTo(bidOrderUsd.takePriceUsd)
-        assertThat(right.makeValue).isEqualTo(BigDecimal("0.009800000000000000"))
+        assertThat(right.makeValue).isEqualTo(BigDecimal("0.796000000000000000"))
         assertThat(right.takeValue).isEqualTo(BigDecimal.ONE)
         assertThat(right.source).isEqualTo(HistorySource.LOOKSRARE)
         assertThat(left.adhoc).isFalse()
@@ -174,7 +175,7 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
     }
 
     @Test
-    fun `should convert erc721 bid event`() = runBlocking<Unit> {
+    fun `should convert bid event`() = runBlocking<Unit> {
         val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
         val data = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val bidOrderUsd = randomBidOrderUsdValue()

@@ -67,7 +67,7 @@ class LooksrareV2ExchangeTakerBidDescriptor(
             tokenId = EthUInt256.of(tokenId),
             amount = EthUInt256.of(amount),
             price = EthUInt256.of(price),
-            isAsk = false,
+            isAsk = true,
             royalty = if (creator == Address.ZERO() || royalty == BigInteger.ZERO) null else {
                 Royalty(creator, EthUInt256.of(royalty))
             },
