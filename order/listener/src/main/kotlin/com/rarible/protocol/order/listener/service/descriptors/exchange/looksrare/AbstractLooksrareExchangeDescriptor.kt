@@ -7,7 +7,6 @@ import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.map
@@ -19,13 +18,13 @@ import java.time.Instant
 abstract class AbstractLooksrareExchangeDescriptor<T : EventData>(
     name: String,
     topic: Word,
-    protected val contractsProvider: ContractsProvider,
+    contracts: List<Address>,
     private val orderRepository: OrderRepository,
     private val looksrareCancelOrdersEventMetric: RegisteredCounter,
 ) : ExchangeSubscriber<OrderExchangeHistory>(
     name = name,
     topic = topic,
-    contracts = contractsProvider.looksrareV1()
+    contracts = contracts
 ) {
 
     protected suspend fun cancelUserOrders(date: Instant, maker: Address, nonces: List<BigInteger>): List<OrderCancel> {

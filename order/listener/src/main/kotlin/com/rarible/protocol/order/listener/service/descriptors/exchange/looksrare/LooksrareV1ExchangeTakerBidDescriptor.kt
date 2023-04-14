@@ -28,6 +28,7 @@ class LooksrareV1ExchangeTakerBidDescriptor(
 ) : AbstractLooksrareV1ExchangeTakerDescriptor(
     name = "lr_taker_bid",
     TakerBidEvent.id(),
+    contractsProvider.looksrareV1(),
     contractsProvider,
     orderRepository,
     looksrareCancelOrdersEventMetric,
@@ -43,7 +44,7 @@ class LooksrareV1ExchangeTakerBidDescriptor(
             taker = event.taker(),
             maker = event.maker(),
             orderHash = Word.apply(event.orderHash()),
-            orderNonce = event.orderNonce().toLong(),
+            orderNonce = event.orderNonce(),
             currency = event.currency(),
             collection = event.collection(),
             tokenId = EthUInt256.of(event.tokenId()),
