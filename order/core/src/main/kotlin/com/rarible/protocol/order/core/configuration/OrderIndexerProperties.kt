@@ -75,6 +75,7 @@ data class OrderIndexerProperties(
         var cryptoPunks: Address,
         var zeroEx: Address,
         var looksrareV1: Address,
+        var looksrareV2: Address,
         var x2y2V1: Address,
     )
 

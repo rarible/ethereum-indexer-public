@@ -20,16 +20,19 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.misc.looksrareError
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Word
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.math.BigInteger
 import java.time.Instant
 
 abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
     name: String,
     topic: Word,
-    contractsProvider: ContractsProvider,
+    contracts: List<Address>,
+    private val contractsProvider: ContractsProvider,
     orderRepository: OrderRepository,
     looksrareCancelOrdersEventMetric: RegisteredCounter,
     private val looksrareTakeEventMetric: RegisteredCounter,
@@ -40,16 +43,16 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
 ) : AbstractLooksrareExchangeDescriptor<OrderExchangeHistory>(
     name,
     topic,
-    contractsProvider,
+    contracts,
     orderRepository,
     looksrareCancelOrdersEventMetric
 ) {
-    private val logger = LoggerFactory.getLogger(javaClass::class.java)
+    protected val logger: Logger = LoggerFactory.getLogger(javaClass::class.java)
 
-    protected abstract fun getTakeEvent(log: Log): TakeEvent
+    protected abstract fun getTakeEvent(log: Log): TakeEvent?
 
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderExchangeHistory> {
-        val event = getTakeEvent(log)
+        val event = getTakeEvent(log) ?: return emptyList()
         val collectionType = tokenStandardProvider.getTokenStandard(event.collection)
         val taker = OrderSideMatch.getRealTaker(event.taker, transaction)
 
@@ -67,7 +70,8 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                 value = event.amount
             )
             val currency = Asset(
-                type = if (event.currency == contractsProvider.weth()) EthAssetType else Erc20AssetType(event.currency),
+                type = if (event.currency == contractsProvider.weth() || event.currency == Address.ZERO())
+                    EthAssetType else Erc20AssetType(event.currency),
                 value = event.price
             )
             if (event.isAsk) (nft to currency) else (currency to nft)
@@ -123,8 +127,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
             transaction.input(),
             wrapperLooksrareMatchEventMetric
         )
-
-        val cancelEvents = cancelUserOrders(timestamp, event.maker, listOf(event.orderNonce.toBigInteger()))
+        val cancelEvents = cancelUserOrders(timestamp, event.maker, listOf(event.orderNonce))
             // All orders with same nonce should be cancelled, except executed one
             .filter { it.hash != event.orderHash }
 
@@ -135,12 +138,20 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
         val maker: Address,
         val taker: Address,
         val orderHash: Word,
-        val orderNonce: Long,
+        val orderNonce: BigInteger,
         val currency: Address,
         val collection: Address,
         val tokenId: EthUInt256,
         val amount: EthUInt256,
         val price: EthUInt256,
-        val isAsk: Boolean
+        val isAsk: Boolean,
+        val isNonceInvalidated: Boolean = false,
+        val protocolFee: BigInteger? = null,
+        val royalty: Royalty? = null
+    )
+
+    protected data class Royalty(
+        val creator: Address,
+        val amount: EthUInt256
     )
 }

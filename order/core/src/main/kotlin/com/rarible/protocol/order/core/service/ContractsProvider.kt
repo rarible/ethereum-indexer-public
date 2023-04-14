@@ -33,6 +33,10 @@ class ContractsProvider(
         return listOf(exchangeContractAddresses.looksrareV1)
     }
 
+    fun looksrareV2(): List<Address> {
+        return listOf(exchangeContractAddresses.looksrareV2)
+    }
+
     fun seaportV1(): List<Address> {
         return listOf(exchangeContractAddresses.seaportV1, exchangeContractAddresses.seaportV1_4)
     }
