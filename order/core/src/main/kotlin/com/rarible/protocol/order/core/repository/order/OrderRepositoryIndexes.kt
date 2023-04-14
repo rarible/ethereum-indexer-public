@@ -5,6 +5,7 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import org.springframework.data.domain.Sort
@@ -187,12 +188,26 @@ object OrderRepositoryIndexes {
 
     // --------------------- for updating status by start/end ---------------------//
 
-    val BY_PLATFORM_MAKER_COUNTER_HEX_STATUS: Index = Index()
+    val BY_PLATFORM_MAKER_GLOBAL_COUNTER_STATUS: Index = Index()
         .on(Order::platform.name, Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
         .on(MongoOrderRepository.COUNTER_HEX_KEY, Sort.Direction.ASC)
         .on(Order::status.name, Sort.Direction.ASC)
         .partial(PartialIndexFilter.of(Criteria(MongoOrderRepository.COUNTER_HEX_KEY).exists(true)))
+        .background()
+
+    val BY_PLATFORM_MAKER_ORDER_COUNTER_STATUS: Index = Index()
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::maker.name, Sort.Direction.ASC)
+        .on("${Order::data.name}.${OrderLooksrareDataV2::orderNonce.name}", Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(Criteria("${Order::data.name}.${OrderLooksrareDataV2::orderNonce.name}").exists(true)))
+        .background()
+
+    val BY_PLATFORM_MAKER_SUBSET_COUNTER_STATUS: Index = Index()
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::maker.name, Sort.Direction.ASC)
+        .on("${Order::data.name}.${OrderLooksrareDataV2::subsetNonce.name}", Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(Criteria("${Order::data.name}.${OrderLooksrareDataV2::subsetNonce.name}").exists(true)))
         .background()
 
     // --------------------- Other ---------------------//
@@ -268,7 +283,9 @@ object OrderRepositoryIndexes {
         BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
 
         BY_STATUS_AND_END_START,
-        BY_PLATFORM_MAKER_COUNTER_HEX_STATUS,
+        BY_PLATFORM_MAKER_GLOBAL_COUNTER_STATUS,
+        BY_PLATFORM_MAKER_ORDER_COUNTER_STATUS,
+        BY_PLATFORM_MAKER_SUBSET_COUNTER_STATUS,
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,

@@ -194,6 +194,7 @@ data class Order(
                 is OrderRaribleV2DataV3Sell,
                 is OrderBasicSeaportDataV1,
                 is OrderLooksrareDataV1,
+                is OrderLooksrareDataV2,
                 is OrderX2Y2DataV1,
                 is OrderSudoSwapAmmDataV1 -> false
             }
@@ -344,6 +345,7 @@ data class Order(
                 is OrderBasicSeaportDataV1 -> EthUInt256.ZERO
                 is OrderX2Y2DataV1 -> EthUInt256.ZERO
                 is OrderLooksrareDataV1 -> EthUInt256.ZERO
+                is OrderLooksrareDataV2 -> EthUInt256.ZERO
                 is OrderSudoSwapAmmDataV1 -> EthUInt256.ZERO
             }
         }

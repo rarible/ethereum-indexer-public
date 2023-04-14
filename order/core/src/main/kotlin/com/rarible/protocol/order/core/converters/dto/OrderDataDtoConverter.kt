@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
@@ -31,6 +32,7 @@ object OrderDataDtoConverter: Converter<OrderData, OrderDataDto> {
             is OrderX2Y2DataV1 -> X2Y2DataDtoConverter.convert(source)
             is OrderLooksrareDataV1 -> LooksrareDataDtoConverter.convert(source)
             is OrderSudoSwapAmmDataV1 -> SudoSwapAmmDataV1DtoConverter.convert(source)
+            is OrderLooksrareDataV2 -> throw IllegalArgumentException("LooksRare V2 is not supported")
         }
     }
 }

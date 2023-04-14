@@ -64,6 +64,10 @@ interface OrderRepository {
 
     fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<BigInteger>): Flow<Order>
 
+    fun findLRByMakeAndByOrderCounters(maker: Address, counters: List<BigInteger>): Flow<Order>
+
+    fun findLRByMakeAndBySubsetCounters(maker: Address, counters: List<BigInteger>): Flow<Order>
+
     fun findNotCanceledByMakerAndCounterLtThen(platform: Platform, maker: Address, counter: BigInteger): Flow<Word>
 
     fun findExpiredOrders(now: Instant): Flow<Order>

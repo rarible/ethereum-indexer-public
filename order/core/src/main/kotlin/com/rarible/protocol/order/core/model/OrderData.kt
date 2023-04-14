@@ -53,7 +53,6 @@ data class OrderDataLegacy(
 sealed class OrderRaribleV2Data : OrderData()
 
 interface OrderCountableData {
-
     @JsonIgnore
     fun getCounterValue(): EthUInt256
     fun isValidCounter(blockchainCounter: BigInteger): Boolean
@@ -276,6 +275,27 @@ data class OrderLooksrareDataV1(
     }
 }
 
+data class OrderLooksrareDataV2(
+    val quoteType: LooksrareQuoteType,
+    val orderNonce: EthUInt256,
+    val subsetNonce: EthUInt256,
+    val counterHex: EthUInt256,
+    val strategyId: EthUInt256,
+    val additionalParameters: Binary?,
+) : OrderCountableData, OrderData() {
+
+    @get:Transient
+    override val version get() = OrderDataVersion.LOOKSRARE_V2
+
+    override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
+
+    override fun getCounterValue() = counterHex
+
+    override fun isValidCounter(blockchainCounter: BigInteger): Boolean {
+        return getCounterValue().value >= blockchainCounter
+    }
+}
+
 sealed class OrderAmmData : OrderData() {
 
     abstract val poolAddress: Address
@@ -308,6 +328,7 @@ enum class OrderDataVersion(val ethDataType: Binary? = null) {
     BASIC_SEAPORT_DATA_V1(id("BASIC_SEAPORT_DATA_V1")),
     CRYPTO_PUNKS,
     LOOKSRARE_V1,
+    LOOKSRARE_V2,
     X2Y2_V1,
     SUDOSWAP_V1,
 }
@@ -341,6 +362,8 @@ fun OrderData.getOriginFees(): List<Part>? {
         is OrderDataLegacy,
         is OrderX2Y2DataV1,
         is OrderLooksrareDataV1,
+        is OrderLooksrareDataV2,
         is OrderSudoSwapAmmDataV1 -> null
+
     }
 }
