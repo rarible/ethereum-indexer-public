@@ -18,4 +18,10 @@ class Erc20BalanceFullReduceService(
     entityIdService = entityIdService,
     templateProvider = templateProvider,
     reducer = reducer
-)
+) {
+
+    override fun isChanged(current: Erc20Balance?, result: Erc20Balance?): Boolean {
+        return current?.balance != result?.balance
+    }
+
+}
