@@ -44,6 +44,7 @@ class SudoSwapOutNftPairDescriptor(
     contracts = emptyList()
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftOut> {
+        logger.info("log=${log}, transaction=${transaction}, index=${index}, totalLogs=${totalLogs}")
         if (log.address() in sudoSwapLoad.ignorePairs) {
             return emptyList()
         }
