@@ -85,31 +85,31 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         val sellOrderUsd = randomSellOrderUsdValue()
         val log = log(
             listOf(
-                Word.apply("0x3ee3de4684413690dee6fff1a0a4f92916a1b97d1c5a83cdf24671844306b2e3"),
+                Word.apply("0x9aaa45d6db2ef74ead0751ea9113263d1dec1b50cea05f0ca2002cb8063564a4"),
             ),
-            "4b5927612372ee90e7c770328f999a62e862d815c133a2ad75e840997c735760" +
-                    "0000000000000000000000000000000000000000000000000000000000000000" +
+            "5b05cb79586cff5aa741ed716514bdd17cb83c374a0093f0e33f6116c3142bbd" +
+                    "000000000000000000000000000000000000000000000000000000000000001a" +
                     "0000000000000000000000000000000000000000000000000000000000000001" +
-                    "0000000000000000000000006c8ba1dafb22eae61e9cd3da724cbc3d164c27b9" +
-                    "0000000000000000000000006c8ba1dafb22eae61e9cd3da724cbc3d164c27b9" +
-                    "0000000000000000000000000000000000000000000000000000000000000000" +
-                    "0000000000000000000000000000000000000000000000000000000000000000" +
-                    "000000000000000000000000d8560c88d1dc85f9ed05b25878e366c49b68bef9" +
+                    "00000000000000000000000041af51792cdcfab9bdc0239f1d1c274e0b2682ae" +
+                    "00000000000000000000000077c0c1c3d55a9afad3ad19f231259cf78a203a8d" +
+                    "0000000000000000000000000000000000000000000000000000000000000001" +
+                    "000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" +
+                    "00000000000000000000000049cf6f5d44e70224e2e23fdcdd2c053f30ada28b" +
                     "00000000000000000000000000000000000000000000000000000000000001e0" +
                     "0000000000000000000000000000000000000000000000000000000000000220" +
-                    "00000000000000000000000047921676a46ccfe3d80b161c7b4ddc8ed9e716b6" +
+                    "00000000000000000000000041af51792cdcfab9bdc0239f1d1c274e0b2682ae" +
                     "0000000000000000000000000000000000000000000000000000000000000000" +
-                    "0000000000000000000000000000000000000000000000000022d10c4ecc8000" +
+                    "0000000000000000000000000000000000000000000000001f34fcbc626bc000" +
                     "0000000000000000000000000000000000000000000000000000000000000000" +
-                    "0000000000000000000000000000000000000000000000000000b5e620f48000" +
+                    "0000000000000000000000000000000000000000000000000028254a45f64000" +
                     "0000000000000000000000000000000000000000000000000000000000000001" +
-                    "47921676a46ccfe3d80b161c7b4ddc8ed9e716b6000000000000000000000001" +
+                    "0000000000000000000000000000000000000000000000000000000000002bd6" +
                     "0000000000000000000000000000000000000000000000000000000000000001" +
                     "0000000000000000000000000000000000000000000000000000000000000001"
         )
         val nftAssetType = Erc721AssetType(
-            Address.apply("0xd8560c88d1dc85f9ed05b25878e366c49b68bef9"),
-            EthUInt256.of("32372326957878872325869669322028881416287194712918919938492792330334129618945")
+            Address.apply("0x49cf6f5d44e70224e2e23fdcdd2c053f30ada28b"),
+            EthUInt256.of("11222")
         )
         val expectedNft = Asset(
             nftAssetType,
@@ -122,6 +122,7 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         coEvery {
             priceUpdateService.getAssetsUsdValue(make = expectedNft, take = expectedPayment, at = data)
         } returns sellOrderUsd
+
 
         coEvery {
             priceUpdateService.getAssetsUsdValue(make = expectedPayment, take = expectedNft, at = data)
@@ -183,40 +184,40 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
             listOf(
                 Word.apply("0x9aaa45d6db2ef74ead0751ea9113263d1dec1b50cea05f0ca2002cb8063564a4"),
             ),
-               "d4c830c73bef43192c2a91303ce93187f1cf0b8f74963385de1ba477f9a0a2ad" +
+            "5b05cb79586cff5aa741ed716514bdd17cb83c374a0093f0e33f6116c3142bbd" +
+                    "000000000000000000000000000000000000000000000000000000000000001a" +
                     "0000000000000000000000000000000000000000000000000000000000000001" +
+                    "00000000000000000000000041af51792cdcfab9bdc0239f1d1c274e0b2682ae" +
+                    "00000000000000000000000077c0c1c3d55a9afad3ad19f231259cf78a203a8d" +
                     "0000000000000000000000000000000000000000000000000000000000000001" +
-                    "0000000000000000000000006c8ba1dafb22eae61e9cd3da724cbc3d164c27b9" +
-                    "00000000000000000000000047921676a46ccfe3d80b161c7b4ddc8ed9e716b6" +
-                    "0000000000000000000000000000000000000000000000000000000000000000" +
-                    "000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d6" +
-                    "000000000000000000000000d8560c88d1dc85f9ed05b25878e366c49b68bef9" +
+                    "000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" +
+                    "00000000000000000000000049cf6f5d44e70224e2e23fdcdd2c053f30ada28b" +
                     "00000000000000000000000000000000000000000000000000000000000001e0" +
                     "0000000000000000000000000000000000000000000000000000000000000220" +
-                    "0000000000000000000000006c8ba1dafb22eae61e9cd3da724cbc3d164c27b9" +
+                    "00000000000000000000000041af51792cdcfab9bdc0239f1d1c274e0b2682ae" +
                     "0000000000000000000000000000000000000000000000000000000000000000" +
-                    "0000000000000000000000000000000000000000000000000011688627664000" +
+                    "0000000000000000000000000000000000000000000000001f34fcbc626bc000" +
                     "0000000000000000000000000000000000000000000000000000000000000000" +
-                    "00000000000000000000000000000000000000000000000000005af3107a4000" +
+                    "0000000000000000000000000000000000000000000000000028254a45f64000" +
                     "0000000000000000000000000000000000000000000000000000000000000001" +
-                    "47921676a46ccfe3d80b161c7b4ddc8ed9e716b6000000000000000000000001" +
+                    "0000000000000000000000000000000000000000000000000000000000002bd6" +
                     "0000000000000000000000000000000000000000000000000000000000000001" +
                     "0000000000000000000000000000000000000000000000000000000000000001"
         )
         val nftAssetType = Erc721AssetType(
-            Address.apply("0xd8560c88d1dc85f9ed05b25878e366c49b68bef9"),
-            EthUInt256.of("32372326957878872325869669322028881416287194712918919938492792330334129618945")
+            Address.apply("0x49cf6f5d44e70224e2e23fdcdd2c053f30ada28b"),
+            EthUInt256.of("11222")
         )
         val expectedNft = Asset(
             nftAssetType,
             EthUInt256.ONE
         )
         val expectedPayment = Asset(
-            Erc20AssetType(Address.apply("0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6")),
-            EthUInt256.of("4900000000000000")
+            Erc20AssetType(Address.apply("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")),
+            EthUInt256.of("2248700000000000000")
         )
         coEvery {
-            contractService.get(Address.apply("0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6"))
+            contractService.get(Address.apply("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"))
         } returns contract
         coEvery {
             priceUpdateService.getAssetsUsdValue(make = expectedNft, take = expectedPayment, at = data)
@@ -229,44 +230,44 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         coEvery { tokenStandardProvider.getTokenStandard(nftAssetType.token) } returns TokenStandard.ERC721
         coEvery { orderRepository.findByMakeAndByCounters(any(), any(), any()) } returns emptyFlow()
 
-        val matches = descriptorBid
+        val matches = descriptorAsk
             .convert(log, transaction, data.epochSecond, 0, 0).toFlux().collectList()
             .awaitFirst()
 
         assertThat(matches).hasSize(2)
         val left = matches[0] as OrderSideMatch
-        assertThat(left.hash).isEqualTo(Word.apply("d4c830c73bef43192c2a91303ce93187f1cf0b8f74963385de1ba477f9a0a2ad"))
+        assertThat(left.hash).isEqualTo(Word.apply("0x5b05cb79586cff5aa741ed716514bdd17cb83c374a0093f0e33f6116c3142bbd"))
         assertThat(left.side).isEqualTo(OrderSide.LEFT)
-        assertThat(left.maker).isEqualTo(Address.apply("0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"))
-        assertThat(left.taker).isEqualTo(Address.apply("0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"))
+        assertThat(left.maker).isEqualTo(Address.apply("0x41af51792CDcfAB9bDC0239f1D1c274e0B2682Ae"))
+        assertThat(left.taker).isEqualTo(Address.apply("0x77C0c1c3d55A9aFad3ad19f231259cf78A203a8D"))
         assertThat(left.make).isEqualTo(expectedPayment)
         assertThat(left.take).isEqualTo(expectedNft)
         assertThat(left.fill).isEqualTo(expectedNft.value)
         assertThat(left.date).isEqualTo(data)
-        assertThat(left.makeUsd).isEqualTo(sellOrderUsd.makeUsd)
-        assertThat(left.takeUsd).isEqualTo(sellOrderUsd.takeUsd)
-        assertThat(left.makePriceUsd).isEqualTo(sellOrderUsd.makePriceUsd)
-        assertThat(left.takePriceUsd).isEqualTo(sellOrderUsd.takePriceUsd)
-        assertThat(left.takeValue).isEqualTo(BigDecimal("0.009800000000000000"))
-        assertThat(left.makeValue).isEqualTo(BigDecimal.ONE)
+        assertThat(left.makeUsd).isEqualTo(bidOrderUsd.makeUsd)
+        assertThat(left.takeUsd).isEqualTo(bidOrderUsd.takeUsd)
+        assertThat(left.makePriceUsd).isEqualTo(bidOrderUsd.makePriceUsd)
+        assertThat(left.takePriceUsd).isEqualTo(bidOrderUsd.takePriceUsd)
+        assertThat(left.makeValue).isEqualTo(BigDecimal("2.248700000000000000"))
+        assertThat(left.takeValue).isEqualTo(BigDecimal.ONE)
         assertThat(left.source).isEqualTo(HistorySource.LOOKSRARE)
         assertThat(left.adhoc).isFalse()
         assertThat(left.counterAdhoc).isTrue()
         val right = matches[1] as OrderSideMatch
-        assertThat(right.counterHash).isEqualTo(Word.apply("0x4b5927612372ee90e7c770328f999a62e862d815c133a2ad75e840997c735760"))
+        assertThat(right.counterHash).isEqualTo(Word.apply("0x5b05cb79586cff5aa741ed716514bdd17cb83c374a0093f0e33f6116c3142bbd"))
         assertThat(right.side).isEqualTo(OrderSide.RIGHT)
-        assertThat(right.maker).isEqualTo(Address.apply("0x47921676A46CcFe3D80b161c7B4DDC8Ed9e716B6"))
-        assertThat(right.taker).isEqualTo(Address.apply("0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"))
-        assertThat(right.make).isEqualTo(expectedPayment)
-        assertThat(right.take).isEqualTo(expectedNft)
+        assertThat(right.maker).isEqualTo(Address.apply("0x77C0c1c3d55A9aFad3ad19f231259cf78A203a8D"))
+        assertThat(right.taker).isEqualTo(Address.apply("0x41af51792CDcfAB9bDC0239f1D1c274e0B2682Ae"))
+        assertThat(right.make).isEqualTo(expectedNft)
+        assertThat(right.take).isEqualTo(expectedPayment)
         assertThat(right.fill).isEqualTo(expectedNft.value)
         assertThat(right.date).isEqualTo(data)
-        assertThat(right.makeUsd).isEqualTo(bidOrderUsd.makeUsd)
-        assertThat(right.takeUsd).isEqualTo(bidOrderUsd.takeUsd)
-        assertThat(right.makePriceUsd).isEqualTo(bidOrderUsd.makePriceUsd)
-        assertThat(right.takePriceUsd).isEqualTo(bidOrderUsd.takePriceUsd)
-        assertThat(right.makeValue).isEqualTo(BigDecimal("0.004900000000000000"))
-        assertThat(right.takeValue).isEqualTo(BigDecimal.ONE)
+        assertThat(right.makeUsd).isEqualTo(sellOrderUsd.makeUsd)
+        assertThat(right.takeUsd).isEqualTo(sellOrderUsd.takeUsd)
+        assertThat(right.makePriceUsd).isEqualTo(sellOrderUsd.makePriceUsd)
+        assertThat(right.takePriceUsd).isEqualTo(sellOrderUsd.takePriceUsd)
+        assertThat(right.makeValue).isEqualTo(BigDecimal.ONE)
+        assertThat(right.takeValue).isEqualTo(BigDecimal("2.248700000000000000"))
         assertThat(right.source).isEqualTo(HistorySource.LOOKSRARE)
         assertThat(left.adhoc).isFalse()
         assertThat(left.counterAdhoc).isTrue()
