@@ -38,7 +38,7 @@ class LooksrareOrderService(
                 pagination = Pagination(first = properties.loadMaxSize, cursor = nextId)
             )
             logger.looksrareInfo(
-                "Load next: createdAfter=${createdAfter.epochSecond}, cursor=${request.pagination?.cursor}"
+                "Load next: createdAfter=$createdAfter, cursor=${request.pagination?.cursor}"
             )
             val result = getOrders(request)
             if (result.success.not()) throw IllegalStateException("$LOOKSRARE_LOG Can't load orders: ${result.message}")
@@ -46,7 +46,7 @@ class LooksrareOrderService(
             loadOrders.addAll(result.data)
 
             val lastLoadOrder = result.data.lastOrNull()
-            logger.looksrareInfo("Last load order created time ${lastLoadOrder?.createdAt?.epochSecond}")
+            logger.looksrareInfo("Last load order created time ${lastLoadOrder?.createdAt}")
             nextId = lastLoadOrder?.id
         } while (lastLoadOrder != null && lastLoadOrder.createdAt > createdAfter)
 
