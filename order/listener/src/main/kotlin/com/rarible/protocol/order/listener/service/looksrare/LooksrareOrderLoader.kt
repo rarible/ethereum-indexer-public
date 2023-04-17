@@ -81,7 +81,9 @@ class LooksrareOrderLoader(
             buildString {
                 append("Fetched ${orders.size}, ")
                 append("createdAfter=$createdAfter (${createdAfter.epochSecond}), ")
-                append("new orders: ${orders.joinToString { it.hash.toString() }}")
+                append("minCreatedAt: ${orders.minByOrNull { it.createdAt }}, ")
+                append("maxCreatedAt: ${orders.maxOfOrNull { it.createdAt }}, ")
+                append("newOrders: ${orders.joinToString { it.hash.toString() }}")
             }
         }
         logger.looksrareInfo(logMessage)
