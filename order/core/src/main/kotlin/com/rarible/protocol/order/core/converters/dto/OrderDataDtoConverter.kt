@@ -32,7 +32,7 @@ object OrderDataDtoConverter: Converter<OrderData, OrderDataDto> {
             is OrderX2Y2DataV1 -> X2Y2DataDtoConverter.convert(source)
             is OrderLooksrareDataV1 -> LooksrareDataDtoConverter.convert(source)
             is OrderSudoSwapAmmDataV1 -> SudoSwapAmmDataV1DtoConverter.convert(source)
-            is OrderLooksrareDataV2 -> throw IllegalArgumentException("LooksRare V2 is not supported")
+            is OrderLooksrareDataV2 -> LooksrareDataDtoConverter.convert(source)
         }
     }
 }
