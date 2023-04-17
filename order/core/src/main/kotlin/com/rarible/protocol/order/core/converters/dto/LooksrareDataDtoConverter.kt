@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.core.converters.dto
 
+import com.rarible.protocol.dto.LooksRareMerkleProofDto
 import com.rarible.protocol.dto.OrderLooksRareDataV1Dto
 import com.rarible.protocol.dto.OrderLooksRareDataV2Dto
+import com.rarible.protocol.order.core.model.LooksrareMerkleProof
 import com.rarible.protocol.order.core.model.LooksrareQuoteType
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
@@ -24,7 +26,16 @@ object LooksrareDataDtoConverter {
             orderNonce = source.orderNonce.value,
             subsetNonce = source.subsetNonce.value,
             quoteType = convert(source.quoteType),
-            strategyId = source.strategyId.value
+            strategyId = source.strategyId.value,
+            merkleProof = source.merkleProof?.map { convert(it) },
+            merkleRoot = source.merkleRoot
+        )
+    }
+
+    private fun convert(source: LooksrareMerkleProof): LooksRareMerkleProofDto {
+        return LooksRareMerkleProofDto(
+            position = source.position,
+            value = source.value
         )
     }
 

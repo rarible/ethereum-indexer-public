@@ -16,7 +16,6 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.Duration
 import java.time.Instant
 
 internal class LooksrareOrderLoaderTest {
@@ -48,9 +47,8 @@ internal class LooksrareOrderLoaderTest {
         val order1 = createOrder().copy(id = Order.Id(looksrareOrder1.hash), hash = looksrareOrder1.hash)
         val order2 = createOrder().copy(id = Order.Id(looksrareOrder2.hash), hash = looksrareOrder2.hash)
         val listedAfter = Instant.now()
-        val listedBefore = Instant.now() + Duration.ofDays(1)
 
-        coEvery { looksrareOrderService.getNextSellOrders(listedAfter, listedBefore) } returns listOf(
+        coEvery { looksrareOrderService.getNextSellOrders(listedAfter) } returns listOf(
             looksrareOrder1,
             looksrareOrder2
         )
@@ -63,8 +61,8 @@ internal class LooksrareOrderLoaderTest {
         coEvery { orderUpdateService.save(eq(orderVersion2), any()) } returns order2
         coEvery { orderUpdateService.updateMakeStock(order2, any(), any()) } returns (order2 to true)
 
-        val orders = loader.load(listedAfter, listedBefore)
-        assertThat(orders).containsExactlyInAnyOrder(looksrareOrder1.hash, looksrareOrder2.hash)
+        val orders = loader.load(listedAfter)
+        assertThat(orders.map { it.hash }).containsExactlyInAnyOrder(looksrareOrder1.hash, looksrareOrder2.hash)
 
         coVerify(exactly = 1) { orderUpdateService.save(eq(orderVersion1), any()) }
         coVerify(exactly = 1) { orderUpdateService.save(eq(orderVersion2), any()) }
@@ -78,9 +76,8 @@ internal class LooksrareOrderLoaderTest {
         val looksrareOrder1 = randomLooksrareOrder()
         val orderVersion1 = createOrderVersion().copy(hash = looksrareOrder1.hash)
         val listedAfter = Instant.now()
-        val listedBefore = Instant.now() + Duration.ofDays(1)
 
-        coEvery { looksrareOrderService.getNextSellOrders(listedAfter, listedBefore) } returns listOf(looksrareOrder1)
+        coEvery { looksrareOrderService.getNextSellOrders(listedAfter) } returns listOf(looksrareOrder1)
         coEvery { looksrareOrderConverter.convert(looksrareOrder1) } returns orderVersion1
         coVerify(exactly = 0) { orderUpdateService.save(orderVersion1) }
     }

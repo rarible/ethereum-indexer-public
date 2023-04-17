@@ -283,6 +283,8 @@ data class OrderLooksrareDataV2(
     val counterHex: EthUInt256,
     val strategyId: EthUInt256,
     val additionalParameters: Binary?,
+    val merkleRoot: Binary?,
+    val merkleProof: List<LooksrareMerkleProof>?,
 ) : OrderCountableData, OrderData() {
 
     @get:Transient
