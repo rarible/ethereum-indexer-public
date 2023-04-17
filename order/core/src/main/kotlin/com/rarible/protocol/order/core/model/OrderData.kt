@@ -27,6 +27,7 @@ import java.math.BigInteger
     JsonSubTypes.Type(value = OrderBasicSeaportDataV1::class, name = "BASIC_SEAPORT_DATA_V1"),
     JsonSubTypes.Type(value = OrderCryptoPunksData::class, name = "CRYPTO_PUNKS"),
     JsonSubTypes.Type(value = OrderLooksrareDataV1::class, name = "LOOKSRARE_V1"),
+    JsonSubTypes.Type(value = OrderLooksrareDataV2::class, name = "LOOKSRARE_V2"),
     JsonSubTypes.Type(value = OrderX2Y2DataV1::class, name = "X2Y2_V1"),
     JsonSubTypes.Type(value = OrderSudoSwapAmmDataV1::class, name = "SUDOSWAP_V1"),
 )
