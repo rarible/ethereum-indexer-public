@@ -46,7 +46,7 @@ class LooksrareOrderService(
             loadOrders.addAll(result.data)
 
             val lastLoadOrder = result.data.lastOrNull()
-            logger.looksrareInfo("Last load order startTime ${lastLoadOrder?.startTime?.epochSecond}")
+            logger.looksrareInfo("Last load order created time ${lastLoadOrder?.createdAt?.epochSecond}")
             nextId = lastLoadOrder?.id
         } while (lastLoadOrder != null && lastLoadOrder.createdAt > createdAfter)
 

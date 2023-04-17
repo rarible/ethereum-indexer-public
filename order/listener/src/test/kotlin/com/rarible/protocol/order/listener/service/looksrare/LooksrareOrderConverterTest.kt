@@ -65,7 +65,7 @@ internal class LooksrareOrderConverterTest {
         assertThat(orderVersion.end).isEqualTo(looksrareOrder.endTime.epochSecond)
         assertThat(orderVersion.createdAt).isEqualTo(looksrareOrder.startTime)
         assertThat(orderVersion.signature).isEqualTo(looksrareOrder.signature)
-        assertThat(orderVersion.data).isInstanceOf(OrderLooksrareDataV1::class.java)
+        assertThat(orderVersion.data).isInstanceOf(OrderLooksrareDataV2::class.java)
         with(orderVersion.data as OrderLooksrareDataV2) {
             assertThat(counterHex!!.value).isEqualTo(looksrareOrder.globalNonce)
             assertThat(orderNonce!!.value).isEqualTo(looksrareOrder.orderNonce)

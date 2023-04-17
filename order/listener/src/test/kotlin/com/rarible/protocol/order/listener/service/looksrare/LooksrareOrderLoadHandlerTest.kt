@@ -31,25 +31,24 @@ internal class LooksrareOrderLoadHandlerTest {
     @Test
     fun `should get orders with init state`() = runBlocking<Unit> {
         val now = nowMillis().truncatedTo(ChronoUnit.SECONDS)
-        val expectedListedAfter = now - properties.delay - properties.loadPeriod
-        val expectedListedBefore = expectedListedAfter + properties.loadPeriod
+        val next = now - Duration.ofHours(1)
 
         mockkStatic(Instant::class) {
             every{ Instant.now() } returns now
-            coEvery { aggregatorStateRepository.getLooksrareState() } returns null
+            coEvery { aggregatorStateRepository.getLooksrareV2State() } returns null
             coEvery { aggregatorStateRepository.save(any()) } returns Unit
-            coEvery { looksrareOrderLoader.load(any()) } returns listOf(randomLooksrareOrder())
+            coEvery { looksrareOrderLoader.load(any()) } returns listOf(randomLooksrareOrder().copy(createdAt = next))
 
             handler.handle()
 
             coVerify {
                 looksrareOrderLoader.load(
-                    withArg { assertThat(it).isEqualTo(expectedListedAfter) },
+                    withArg { assertThat(it).isEqualTo(next) },
                 )
             }
             coVerify {
                 aggregatorStateRepository.save(
-                    withArg { assertThat(it.cursor).isEqualTo(expectedListedBefore.epochSecond.toString()) }
+                    withArg { assertThat(it.cursor).isEqualTo(next.epochSecond.toString()) }
                 )
             }
         }
@@ -57,23 +56,23 @@ internal class LooksrareOrderLoadHandlerTest {
 
     @Test
     fun `should get orders with saved state`() = runBlocking<Unit> {
-        val expectedListedAfter = nowMillis().truncatedTo(ChronoUnit.SECONDS) - Duration.ofDays(1)
-        val expectedListedBefore = expectedListedAfter + properties.loadPeriod
+        val expectedCreatedAfter = nowMillis().truncatedTo(ChronoUnit.SECONDS) - Duration.ofDays(1)
+        val next = Instant.now() - Duration.ofHours(1)
 
-        coEvery { aggregatorStateRepository.getLooksrareV2State() } returns LooksrareV2FetchState.withCreatedAfter(expectedListedAfter)
+        coEvery { aggregatorStateRepository.getLooksrareV2State() } returns LooksrareV2FetchState.withCreatedAfter(expectedCreatedAfter)
         coEvery { aggregatorStateRepository.save(any()) } returns Unit
-        coEvery { looksrareOrderLoader.load(any()) } returns listOf(randomLooksrareOrder())
+        coEvery { looksrareOrderLoader.load(any()) } returns listOf(randomLooksrareOrder().copy(createdAt = next))
 
         handler.handle()
 
         coVerify {
             looksrareOrderLoader.load(
-                withArg { assertThat(it).isEqualTo(expectedListedAfter) },
+                withArg { assertThat(it).isEqualTo(expectedCreatedAfter) },
             )
         }
         coVerify {
             aggregatorStateRepository.save(
-                withArg { assertThat(it.cursor).isEqualTo(expectedListedBefore.epochSecond.toString()) }
+                withArg { assertThat(it.cursor).isEqualTo(next.epochSecond.toString()) }
             )
         }
     }

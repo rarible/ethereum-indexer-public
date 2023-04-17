@@ -33,16 +33,15 @@ internal class LooksrareOrderServiceTest {
 
     @Test
     fun `should get all order in one iteration`() = runBlocking<Unit> {
-        val listedBefore = Instant.now()
-        val listedAfter = listedBefore - Duration.ofSeconds(10)
+        val createdAfter = Instant.now() - Duration.ofHours(1)
 
-        val order1 = randomLooksrareOrder().copy(status = Status.VALID)
-        val order2 = randomLooksrareOrder().copy(startTime = listedAfter - Duration.ofSeconds(1), status = Status.VALID)
+        val order1 = randomLooksrareOrder().copy(createdAt = createdAfter, status = Status.VALID)
+        val order2 = randomLooksrareOrder().copy(createdAt = createdAfter - Duration.ofHours(2), status = Status.VALID)
 
         val result = LooksrareOrders(success = true, message = "", data = listOf(order1, order2))
         coEvery { looksrareClient.getOrders(any()) } returns LooksrareResult.success(result)
 
-        val orders = service.getNextSellOrders(listedAfter)
+        val orders = service.getNextSellOrders(createdAfter)
         assertThat(orders).containsExactly(order1, order2)
 
         coVerify(exactly = 1) {
@@ -59,19 +58,19 @@ internal class LooksrareOrderServiceTest {
 
     @Test
     fun `should get all order in two iterations`() = runBlocking<Unit> {
-        val listedBefore = Instant.now()
-        val listedAfter = listedBefore - Duration.ofSeconds(10)
+        val now = Instant.now()
+        val createdAfter = now - Duration.ofSeconds(10)
 
-        val order1 = randomLooksrareOrder().copy(status = Status.VALID)
-        val order2 = randomLooksrareOrder().copy(startTime = listedAfter + Duration.ofSeconds(1), status = Status.VALID)
-        val order3 = randomLooksrareOrder().copy(status = Status.VALID)
-        val order4 = randomLooksrareOrder().copy(startTime = listedAfter - Duration.ofSeconds(1), status = Status.VALID)
+        val order1 = randomLooksrareOrder().copy(status = Status.VALID, createdAt = now)
+        val order2 = randomLooksrareOrder().copy(status = Status.VALID, createdAt = now - Duration.ofSeconds(1))
+        val order3 = randomLooksrareOrder().copy(status = Status.VALID, createdAt = now - Duration.ofSeconds(2))
+        val order4 = randomLooksrareOrder().copy(status = Status.VALID, createdAt = now - Duration.ofSeconds(11))
 
         val result1 = LooksrareOrders(success = true, message = "", data = listOf(order1, order2))
         val result2 = LooksrareOrders(success = true, message = "", data = listOf(order3, order4))
         coEvery { looksrareClient.getOrders(any()) } returnsMany listOf(LooksrareResult.success(result1), LooksrareResult.success(result2))
 
-        val orders = service.getNextSellOrders(listedAfter)
+        val orders = service.getNextSellOrders(createdAfter)
         assertThat(orders).containsExactly(order1, order2, order3, order4)
 
         coVerify(exactly = 1) {
@@ -81,7 +80,7 @@ internal class LooksrareOrderServiceTest {
         }
         coVerify(exactly = 1) {
             looksrareClient.getOrders(
-                match { it.pagination?.cursor == order2.hash.prefixed() }
+                match { it.pagination?.cursor == order2.id }
             )
         }
     }
