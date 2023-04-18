@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderCancel
 import com.rarible.protocol.order.core.data.createOrderDataLegacy
 import com.rarible.protocol.order.core.data.createOrderLooksrareDataV1
+import com.rarible.protocol.order.core.data.createOrderLooksrareDataV2
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderRaribleV1DataV3Sell
 import com.rarible.protocol.order.core.data.createOrderSideMatch
@@ -452,9 +453,9 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                         counterHex = EthUInt256.ZERO,
                         counter = 0L
                     )
-
                     OrderType.CRYPTO_PUNKS -> OrderCryptoPunksData
                     OrderType.LOOKSRARE -> createOrderLooksrareDataV1()
+                    OrderType.LOOKSRARE_V2 -> createOrderLooksrareDataV2()
                     OrderType.X2Y2 -> createOrderX2Y2DataV1()
                     OrderType.AMM -> createOrderSudoSwapAmmDataV1()
                     OrderType.OPEN_SEA_V1 -> throw IllegalArgumentException("Illegal order data for this test")

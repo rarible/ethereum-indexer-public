@@ -7,6 +7,7 @@ enum class OrderType {
     SEAPORT_V1,
     CRYPTO_PUNKS,
     LOOKSRARE,
+    LOOKSRARE_V2,
     X2Y2,
     AMM, // Automated market maker
 }

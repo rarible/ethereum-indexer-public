@@ -86,6 +86,7 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
         OrderType.CRYPTO_PUNKS,
         OrderType.X2Y2,
         OrderType.LOOKSRARE,
+        OrderType.LOOKSRARE_V2,
         OrderType.AMM -> throw IllegalArgumentException("$type order can't be created or updated")
     }
 }

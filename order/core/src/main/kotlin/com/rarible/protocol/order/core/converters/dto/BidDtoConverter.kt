@@ -4,11 +4,13 @@ import com.rarible.protocol.dto.AmmOrderBidDto
 import com.rarible.protocol.dto.CryptoPunksOrderBidDto
 import com.rarible.protocol.dto.LegacyOrderBidDto
 import com.rarible.protocol.dto.LooksRareOrderBidDto
+import com.rarible.protocol.dto.LooksRareV2OrderBidDto
 import com.rarible.protocol.dto.OpenSeaV1OrderBidDto
 import com.rarible.protocol.dto.OrderAmmDataV1Dto
 import com.rarible.protocol.dto.OrderBidDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderLooksRareDataV1Dto
+import com.rarible.protocol.dto.OrderLooksRareDataV2Dto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataDto
 import com.rarible.protocol.dto.OrderSeaportDataV1Dto
@@ -171,6 +173,24 @@ class BidDtoConverter(
                 salt = Uint256Type.encode(source.order.salt.value),
                 signature = source.order.signature.orEmpty(),
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderAmmDataV1Dto,
+                makeBalance = BigInteger.ZERO,
+            )
+            OrderType.LOOKSRARE_V2 -> LooksRareV2OrderBidDto(
+                orderHash = source.order.hash,
+                status = BidStatusDtoConverter.convert(source.status),
+                make = assetDtoConverter.convert(source.version.make),
+                take = assetDtoConverter.convert(source.version.take),
+                maker = source.version.maker,
+                taker = source.version.taker,
+                makePriceUsd = source.version.makePriceUsd,
+                takePriceUsd = source.version.takePriceUsd,
+                createdAt = source.version.createdAt,
+                fill = source.order.fill.value,
+                makeStock = source.order.makeStock.value,
+                cancelled = source.order.cancelled,
+                salt = Uint256Type.encode(source.order.salt.value),
+                signature = source.order.signature.orEmpty(),
+                data = OrderDataDtoConverter.convert(source.order.data) as OrderLooksRareDataV2Dto,
                 makeBalance = BigInteger.ZERO,
             )
         }

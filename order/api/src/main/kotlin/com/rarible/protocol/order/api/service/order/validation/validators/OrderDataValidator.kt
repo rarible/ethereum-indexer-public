@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.OrderAmmData
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderRaribleV2Data
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -28,6 +29,7 @@ class OrderDataValidator : OrderVersionValidator {
             OrderType.CRYPTO_PUNKS -> orderVersion.data is OrderCryptoPunksData
             OrderType.X2Y2 -> orderVersion.data is OrderX2Y2DataV1
             OrderType.LOOKSRARE -> orderVersion.data is OrderLooksrareDataV1
+            OrderType.LOOKSRARE_V2 -> orderVersion.data is OrderLooksrareDataV2
             OrderType.AMM -> orderVersion.data is OrderAmmData
         }
         if (isValidOrderDataType.not()) {

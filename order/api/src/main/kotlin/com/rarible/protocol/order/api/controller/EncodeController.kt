@@ -72,6 +72,7 @@ class EncodeController(
             OrderType.SEAPORT_V1,
             OrderType.X2Y2,
             OrderType.LOOKSRARE,
+            OrderType.LOOKSRARE_V2,
             OrderType.AMM,
             OrderType.CRYPTO_PUNKS -> throw ValidationApiException("Unsupported order type ${order.type}")
         }

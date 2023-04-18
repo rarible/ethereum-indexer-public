@@ -21,7 +21,6 @@ import com.rarible.protocol.order.core.model.LooksrareQuoteType
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import java.math.BigInteger
 
 @Component
 class LooksrareOrderConverter(
@@ -80,7 +79,7 @@ class LooksrareOrderConverter(
             taker = null,
             make = make,
             take = take,
-            type = OrderType.LOOKSRARE,
+            type = OrderType.LOOKSRARE_V2,
             salt = EthUInt256.ZERO,
             start = startTime.epochSecond,
             end = endTime.epochSecond,

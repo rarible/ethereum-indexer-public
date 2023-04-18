@@ -465,6 +465,7 @@ class OrderReduceService(
             OrderType.CRYPTO_PUNKS -> exchangeContractAddresses.cryptoPunks
             OrderType.RARIBLE_V2 -> exchangeContractAddresses.v2
             OrderType.LOOKSRARE -> exchangeContractAddresses.looksrareV1
+            OrderType.LOOKSRARE_V2 -> exchangeContractAddresses.looksrareV2
             OrderType.X2Y2 -> exchangeContractAddresses.x2y2V1
             OrderType.AMM -> (data as OrderAmmData).poolAddress
         }
