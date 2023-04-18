@@ -59,7 +59,7 @@ internal class LooksrareOrderConverterTest {
         assertThat(orderVersion.take.value.value).isEqualTo(looksrareOrder.price)
         assertThat(orderVersion.take.type).isInstanceOf(Erc20AssetType::class.java)
         assertThat((orderVersion.take.type as Erc20AssetType).token).isEqualTo(looksrareOrder.currency)
-        assertThat(orderVersion.type).isEqualTo(OrderType.LOOKSRARE)
+        assertThat(orderVersion.type).isEqualTo(OrderType.LOOKSRARE_V2)
         assertThat(orderVersion.salt).isEqualTo(EthUInt256.ZERO)
         assertThat(orderVersion.start).isEqualTo(looksrareOrder.startTime.epochSecond)
         assertThat(orderVersion.end).isEqualTo(looksrareOrder.endTime.epochSecond)
