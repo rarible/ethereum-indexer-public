@@ -12,7 +12,7 @@ import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.converter.MetaStatusConverter
 import com.rarible.protocol.nft.api.service.colllection.CollectionService
 import com.rarible.protocol.nft.core.converters.dto.EthCollectionMetaDtoConverter
-import com.rarible.protocol.nft.core.converters.dto.ExtendedCollectionDtoConverter
+import com.rarible.protocol.nft.core.converters.dto.CollectionDtoConverter
 import com.rarible.protocol.nft.core.converters.dto.TokenIdDtoConverter
 import com.rarible.protocol.nft.core.model.TokenFilter
 import com.rarible.protocol.nft.core.page.PageSize
@@ -70,12 +70,6 @@ class CollectionController(
         )
     }
 
-    override suspend fun resetNftCollectionMetaById(collection: String): ResponseEntity<Unit> {
-        // TODO Remove in PT-568
-        collectionService.resetMeta(AddressParser.parse(collection))
-        return ResponseEntity.noContent().build()
-    }
-
     override suspend fun getCollectionMeta(collection: String): ResponseEntity<EthCollectionMetaResultDto> {
         val response = try {
             val meta = collectionService.getMetaWithTimeout(
@@ -131,11 +125,11 @@ class CollectionController(
     private suspend fun searchCollections(filter: TokenFilter): NftCollectionsDto {
         val collections = collectionService.search(filter)
         val continuation =
-            if (collections.isEmpty() || collections.size < filter.size) null else collections.last().token.id.toString()
+            if (collections.isEmpty() || collections.size < filter.size) null else collections.last().id.toString()
 
         return NftCollectionsDto(
             total = collections.size.toLong(),
-            collections = collections.map { ExtendedCollectionDtoConverter.convert(it) },
+            collections = collections.map { CollectionDtoConverter.convert(it) },
             continuation = continuation
         )
     }

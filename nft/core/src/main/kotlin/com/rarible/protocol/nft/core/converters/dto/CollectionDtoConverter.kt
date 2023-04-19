@@ -2,16 +2,15 @@ package com.rarible.protocol.nft.core.converters.dto
 
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.core.model.ContractStatus
-import com.rarible.protocol.nft.core.model.ExtendedToken
+import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import org.slf4j.LoggerFactory
 
-object ExtendedCollectionDtoConverter {
+object CollectionDtoConverter {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun convert(source: ExtendedToken): NftCollectionDto {
-        val (token, meta) = source
+    fun convert(token: Token): NftCollectionDto {
         try {
             return NftCollectionDto(
                 id = token.id,
@@ -23,7 +22,6 @@ object ExtendedCollectionDtoConverter {
                 features = token.features.map { CollectionFeatureDtoConverter.convert(it) },
                 supportsLazyMint = token.features.contains(TokenFeature.MINT_AND_TRANSFER),
                 minters = if (token.isRaribleContract) listOfNotNull(token.owner) else emptyList(),
-                meta = EthCollectionMetaDtoConverter.convert(meta), // TODO PT-2370 remove later
                 isRaribleContract = token.isRaribleContract
             )
         } catch (e: Throwable) {

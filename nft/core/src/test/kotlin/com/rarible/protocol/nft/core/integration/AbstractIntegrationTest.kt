@@ -13,7 +13,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.dto.EthCollectionMetaDto
+import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
@@ -74,7 +74,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
 
@@ -307,13 +307,13 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         }
     }
 
-    protected suspend fun checkMetaWasPublished(
-        meta: EthCollectionMetaDto
+    protected suspend fun checkCollectionWasPublished(
+        expected: NftCollectionDto
     ) = coroutineScope {
         Wait.waitAssert {
             assertThat(collectionEvents).anySatisfy(Consumer { event ->
                 assertThat(event).isInstanceOfSatisfying(NftCollectionUpdateEventDto::class.java) {
-                    assertThat(it.collection.meta).isEqualTo(meta)
+                    assertThat(it.collection).isEqualTo(expected)
                 }
             })
         }

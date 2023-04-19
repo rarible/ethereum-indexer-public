@@ -10,12 +10,11 @@ import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.daemon.sequential.ConsumerWorkerHolder
 import com.rarible.core.lockredis.EnableRaribleRedisLock
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
-import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
-import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.configuration.ProducerConfiguration
+import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.core.misc.RateLimiter
 import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ItemId
@@ -24,7 +23,6 @@ import com.rarible.protocol.nft.core.producer.InternalTopicProvider
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.action.ActionEventHandler
 import com.rarible.protocol.nft.core.service.action.ActionJobHandler
-import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 import com.rarible.protocol.nft.listener.service.checker.OwnershipBatchCheckerHandler
 import com.rarible.protocol.nft.listener.service.item.InconsistentItemsRepairJobHandler
 import com.rarible.protocol.nft.listener.service.item.ItemOwnershipConsistencyJobHandler
@@ -66,25 +64,6 @@ class NftListenerConfiguration(
     @Bean
     fun updateSuspiciousItemsHandlerProperties(): UpdateSuspiciousItemsHandlerProperties {
         return nftListenerProperties.updateSuspiciousItemsHandler
-    }
-
-    @Bean
-    fun collectionMetaExtenderWorker(internalCollectionHandler: InternalCollectionHandler): ConsumerWorkerHolder<NftCollectionEventDto> {
-        logger.info("Creating batch of ${nftIndexerProperties.nftCollectionMetaExtenderWorkersCount} collection meta extender workers")
-        val workers = (1..nftIndexerProperties.nftCollectionMetaExtenderWorkersCount).map {
-            ConsumerWorker(
-                consumer = InternalCollectionHandler.createInternalCollectionConsumer(
-                    applicationEnvironmentInfo,
-                    nftIndexerProperties.blockchain,
-                    nftIndexerProperties.kafkaReplicaSet
-                ),
-                properties = nftIndexerProperties.daemonWorkerProperties,
-                eventHandler = internalCollectionHandler,
-                meterRegistry = meterRegistry,
-                workerName = "nftCollectionMetaExtender.$it"
-            )
-        }
-        return ConsumerWorkerHolder(workers).apply { start() }
     }
 
     @Bean

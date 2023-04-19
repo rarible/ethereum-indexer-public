@@ -1,23 +1,17 @@
 package com.rarible.protocol.nft.api.e2e.items
 
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.CollectionsByIdRequestDto
-import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createToken
-import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
 import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
-import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
@@ -107,28 +101,6 @@ class CollectionControllerTest : AbstractIntegrationTest() {
         assertThat(result1.collections).hasSizeGreaterThanOrEqualTo(0)
 
         assertThat(result1.continuation).isNull()
-    }
-
-    @Disabled // TODO Fix then new collection reset will be implemented
-    @Test
-    fun `refresh collection metadata`() = runBlocking<Unit> {
-        val token = createToken().copy(standard = TokenStandard.ERC721)
-        tokenRepository.save(token).awaitFirst()
-
-        val items = (0 until 10).map {
-            createItem().copy(
-                token = token.id,
-                tokenId = EthUInt256.of(it)
-            )
-        }
-        items.forEach { itemRepository.save(it).awaitFirst() }
-
-        val itemMeta = randomItemMeta()
-        coEvery { mockItemMetaResolver.resolveItemMeta(any()) } returns itemMeta
-
-        nftCollectionApiClient.resetNftCollectionMetaById(token.id.prefixed()).awaitFirstOrNull()
-
-        // TODO[meta]: also in this test make sure the collection metadata is re-loaded.
     }
 
     @Test
