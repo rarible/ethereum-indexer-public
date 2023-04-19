@@ -17,10 +17,8 @@ class InternalCollectionHandler(
     private val protocolNftEventPublisher: ProtocolNftEventPublisher
 ) : ConsumerEventHandler<NftCollectionEventDto> {
 
-    override suspend fun handle(event: NftCollectionEventDto) = when(event) {
-        is NftCollectionUpdateEventDto -> {
-            protocolNftEventPublisher.publish(event)
-        }
+    override suspend fun handle(event: NftCollectionEventDto) {
+        protocolNftEventPublisher.publish(event)
     }
 
     companion object {
