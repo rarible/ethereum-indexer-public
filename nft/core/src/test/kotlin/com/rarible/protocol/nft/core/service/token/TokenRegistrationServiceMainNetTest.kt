@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.service.token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import io.daonomic.rpc.mono.WebClientTransport
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -17,9 +18,12 @@ import java.time.Duration
 @Disabled
 class TokenRegistrationServiceMainNetTest {
     private val tokenRepository = mockk<TokenRepository>()
+    private val listener = mockk<TokenEventListener> {
+        coEvery { onTokenChanged(any()) } returns Unit
+    }
     private val sender = createSender()
     private val tokenByteCodeProvider = TokenByteCodeProvider(sender, 3, 5, 1, Duration.ofMinutes(1))
-    private val service = TokenRegistrationService(tokenRepository, sender, tokenByteCodeProvider, emptyList(), 1)
+    private val service = TokenRegistrationService(tokenRepository, listener, sender, tokenByteCodeProvider, emptyList(), 1)
 
     private fun createSender() = ReadOnlyMonoTransactionSender(
         MonoEthereum(
