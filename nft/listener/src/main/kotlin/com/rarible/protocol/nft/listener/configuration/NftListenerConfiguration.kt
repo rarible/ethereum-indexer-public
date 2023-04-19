@@ -12,10 +12,10 @@ import com.rarible.core.lockredis.EnableRaribleRedisLock
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
-import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.configuration.ProducerConfiguration
+import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.core.misc.RateLimiter
 import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ItemId
@@ -68,10 +68,11 @@ class NftListenerConfiguration(
         return nftListenerProperties.updateSuspiciousItemsHandler
     }
 
+    @Deprecated("remove after release")
     @Bean
     fun collectionMetaExtenderWorker(internalCollectionHandler: InternalCollectionHandler): ConsumerWorkerHolder<NftCollectionEventDto> {
-        logger.info("Creating batch of ${nftIndexerProperties.nftCollectionMetaExtenderWorkersCount} collection meta extender workers")
-        val workers = (1..nftIndexerProperties.nftCollectionMetaExtenderWorkersCount).map {
+        logger.info("Creating collection meta extender worker")
+        val workers = listOf(
             ConsumerWorker(
                 consumer = InternalCollectionHandler.createInternalCollectionConsumer(
                     applicationEnvironmentInfo,
@@ -81,9 +82,9 @@ class NftListenerConfiguration(
                 properties = nftIndexerProperties.daemonWorkerProperties,
                 eventHandler = internalCollectionHandler,
                 meterRegistry = meterRegistry,
-                workerName = "nftCollectionMetaExtender.$it"
+                workerName = "nftCollectionMetaExtender"
             )
-        }
+        )
         return ConsumerWorkerHolder(workers).apply { start() }
     }
 
@@ -213,7 +214,12 @@ class NftListenerConfiguration(
         return ConsumerBatchWorker(
             consumer = consumer,
             properties = nftListenerProperties.eventConsumerWorker,
-            eventHandler = OwnershipBatchCheckerHandler(nftListenerProperties, ethereum, tokenRepository, checkerMetrics),
+            eventHandler = OwnershipBatchCheckerHandler(
+                nftListenerProperties,
+                ethereum,
+                tokenRepository,
+                checkerMetrics
+            ),
             meterRegistry = meterRegistry,
             workerName = "ownership-checker"
         ).apply { start() }

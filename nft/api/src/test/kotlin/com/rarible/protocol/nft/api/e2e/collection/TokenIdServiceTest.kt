@@ -147,10 +147,5 @@ class CollectionServiceIt {
         val tokenWithMeta = collectionService.get(listOf(token.id))[0]
 
         assertThat(tokenWithMeta.id).isEqualTo(token.id)
-        assertThat(tokenWithMeta.meta).isEqualTo(
-            EthCollectionMetaDto(
-                "Untitled"
-            )
-        )
     }
 }

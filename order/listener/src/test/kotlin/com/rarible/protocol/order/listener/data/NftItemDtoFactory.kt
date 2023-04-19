@@ -72,7 +72,6 @@ fun createNftCollectionDto(): NftCollectionDto {
         features = emptyList(),
         id = randomAddress(),
         isRaribleContract = randomBoolean(),
-        meta = null,
         minters = emptyList(),
         name = randomString(),
         owner = null,

@@ -4,9 +4,8 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.nft.core.converters.dto.ExtendedCollectionDtoConverter
+import com.rarible.protocol.nft.core.converters.dto.CollectionDtoConverter
 import com.rarible.protocol.nft.core.model.ContractStatus
-import com.rarible.protocol.nft.core.model.ExtendedToken
 import com.rarible.protocol.nft.core.model.SignedTokenId
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
@@ -20,14 +19,10 @@ import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.time.withTimeout
-import kotlinx.coroutines.withTimeoutOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.web3j.crypto.Sign
@@ -54,14 +49,12 @@ class CollectionService(
         val token = tokenRepository.findById(collectionId).awaitFirstOrNull()
             ?.takeIf { it.standard != TokenStandard.NONE && it.status != ContractStatus.ERROR }
             ?: throw EntityNotFoundApiException("Collection", collectionId)
-        // TODO remove meta later
-        return ExtendedCollectionDtoConverter.convert(enrichWithMeta(token))
+        return CollectionDtoConverter.convert(token)
     }
 
     suspend fun get(ids: List<Address>): List<NftCollectionDto> {
         val tokens = tokenRepository.findByIds(ids).toList()
-        val enriched = enrichWithMeta(tokens)
-        return enriched.map { ExtendedCollectionDtoConverter.convert(it) }
+        return tokens.map { CollectionDtoConverter.convert(it) }
     }
 
     suspend fun getMetaWithTimeout(
@@ -87,14 +80,8 @@ class CollectionService(
         }
     }
 
-    suspend fun resetMeta(collectionId: Address) {
-        logger.info("Refreshing collection meta by $collectionId")
-        tokenMetaService.reset(collectionId)
-    }
-
-    suspend fun search(filter: TokenFilter): List<ExtendedToken> {
-        val tokens = tokenRepository.search(filter).collectList().awaitFirst()
-        return enrichWithMeta(tokens) // TODO PT-2370 remove later
+    suspend fun search(filter: TokenFilter): List<Token> {
+        return tokenRepository.search(filter).collectList().awaitFirst()
     }
 
     suspend fun generateId(collectionId: Address, minter: Address): SignedTokenId {
@@ -137,18 +124,5 @@ class CollectionService(
             Uint256Type.encode(value)
         }
         return Sign.signMessage(toSign.bytes(), operatorPublicKey, operatorPrivateKey)
-    }
-
-    private suspend fun enrichWithMeta(tokens: List<Token>): List<ExtendedToken> = coroutineScope {
-        tokens.map { token ->
-            async { enrichWithMeta(token) }
-        }.awaitAll()
-    }
-
-    private suspend fun enrichWithMeta(token: Token): ExtendedToken {
-        val meta = withTimeoutOrNull(timeMillis = nftIndexerApiProperties.metaTimeout) {
-            tokenMetaService.get(token.id)
-        } ?: TokenMeta.EMPTY
-        return ExtendedToken(token, meta)
     }
 }

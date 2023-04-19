@@ -2,7 +2,6 @@ package com.rarible.protocol.nft.core.service.item.meta.properties
 
 import com.rarible.core.common.ifNotBlank
 import com.rarible.protocol.dto.MetaContentDto.Representation
-import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemMetaContent
 import com.rarible.protocol.nft.core.model.TokenMetaContent
 import com.rarible.protocol.nft.core.model.meta.EthImageProperties
@@ -36,18 +35,6 @@ object ContentBuilder {
     }
 
     fun String?.cleanUrl() = this?.trim()?.ifNotBlank()
-
-    // TODO Remove after moving calculation Token content meta to Union
-    fun populateContent(ethMetaContent: EthMetaContent?, data: ContentMeta?): EthMetaContent? {
-        return ethMetaContent?.copy(
-            properties = EthImageProperties(
-                mimeType = data?.type,
-                size = data?.size,
-                width = data?.width,
-                height = data?.height
-            )
-        )
-    }
 
     private fun toVideo(url: String, representation: Representation): EthMetaContent {
         return EthMetaContent(

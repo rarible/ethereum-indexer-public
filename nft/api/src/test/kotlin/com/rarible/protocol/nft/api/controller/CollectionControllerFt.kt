@@ -111,7 +111,6 @@ class CollectionControllerFt : AbstractIntegrationTest() {
         val expected = TokenMeta(tokenProperties)
 
         coEvery { mockTokenStandardPropertiesResolver.resolve(eq(token.id)) } returns tokenProperties
-        coEvery { mockMediaMetaService.getMediaMetaFromCache(imageUrl, any()) } returns null
 
         val result = nftCollectionApiClient.getCollectionMeta(token.id.toString()).awaitSingle()
 
@@ -124,13 +123,8 @@ class CollectionControllerFt : AbstractIntegrationTest() {
         val token = createToken(standard = TokenStandard.ERC721)
         tokenRepository.save(token).awaitSingle()
 
-        val tokenProperties = randomTokenProperties()
-        val imageUrl = tokenProperties.content.imageOriginal!!.url
-
-        coEvery { mockTokenStandardPropertiesResolver.resolve(eq(token.id)) } returns tokenProperties
-        coEvery {
-            mockMediaMetaService.getMediaMetaFromCache(imageUrl, any())
-        } throws MetaException("json", MetaException.Status.UnparseableJson)
+        coEvery { mockTokenStandardPropertiesResolver.resolve(eq(token.id)) } throws
+            MetaException("json", MetaException.Status.UnparseableJson)
 
         val result = nftCollectionApiClient.getCollectionMeta(token.id.toString()).awaitSingle()
 
@@ -143,11 +137,7 @@ class CollectionControllerFt : AbstractIntegrationTest() {
         val token = createToken(standard = TokenStandard.ERC721)
         tokenRepository.save(token).awaitSingle()
 
-        val tokenProperties = randomTokenProperties()
-        val imageUrl = tokenProperties.content.imageOriginal!!.url
-
-        coEvery { mockTokenStandardPropertiesResolver.resolve(eq(token.id)) } returns tokenProperties
-        coEvery { mockMediaMetaService.getMediaMetaFromCache(imageUrl, any()) } throws RuntimeException("runtime")
+        coEvery { mockTokenStandardPropertiesResolver.resolve(eq(token.id)) } throws RuntimeException("runtime")
 
         val result = nftCollectionApiClient.getCollectionMeta(token.id.toString()).awaitSingle()
 

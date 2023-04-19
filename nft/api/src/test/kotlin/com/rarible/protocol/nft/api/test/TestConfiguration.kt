@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.api.test
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.cache.CacheService
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
@@ -10,9 +9,7 @@ import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemEventTopicProvider
 import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
-import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
@@ -66,25 +63,14 @@ class TestConfiguration {
     @Bean
     @Primary
     fun testTokenPropertiesService(
-        cacheService: CacheService,
         @Qualifier("mockStandardTokenPropertiesResolver") standardPropertiesResolver: StandardTokenPropertiesResolver,
         @Qualifier("mockOpenseaTokenPropertiesResolver") openseaPropertiesResolver: OpenseaTokenPropertiesResolver
     ): TokenPropertiesService {
         return TokenPropertiesService(
-            Long.MAX_VALUE,
-            cacheService,
             listOf(standardPropertiesResolver, openseaPropertiesResolver),
             mockk(),
-            mockk(),
-            mockk(),
-            FeatureFlags().copy(enableTokenMetaSelfRepair = false)
         )
     }
-
-    @Bean
-    @Primary
-    @Qualifier("mockMediaMetaService")
-    fun mockMediaMetaService(): MediaMetaService = mockk()
 
     @Bean
     fun testRestTemplate(): RestTemplate {

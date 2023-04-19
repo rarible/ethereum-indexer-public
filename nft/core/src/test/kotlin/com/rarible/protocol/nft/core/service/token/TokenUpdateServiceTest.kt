@@ -8,6 +8,8 @@ import com.rarible.protocol.contracts.collection.CreateEvent
 import com.rarible.protocol.dto.EthCollectionMetaDto
 import com.rarible.protocol.dto.ImageContentDto
 import com.rarible.protocol.dto.MetaContentDto
+import com.rarible.protocol.dto.NftCollectionDto
+import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.CreateCollection
@@ -42,12 +44,13 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
         )
 
         val id = randomAddress()
+        val owner = randomAddress()
         coEvery { mockStandardTokenPropertiesResolver.resolve(any()) } returns props
         tokenHistoryRepository.save(
             LogEvent(
                 CreateCollection(
                     id = id,
-                    owner = randomAddress(),
+                    owner = owner,
                     name = "Test",
                     symbol = "TEST"
                 ),
@@ -64,25 +67,22 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
 
         tokenUpdateService.update(id)
 
-        checkMetaWasPublished(
-            EthCollectionMetaDto(
-                name = "Feudalz",
-                description = "Feudalz emerged to protect their Peasants.",
-                externalUri = "https://feudalz.io",
-                feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
-                sellerFeeBasisPoints = 250,
-                genres = emptyList(),
-                tags = emptyList(),
-                content = listOf(
-                    ImageContentDto(
-                        fileName = null,
-                        url = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
-                        representation = MetaContentDto.Representation.ORIGINAL,
-                        mimeType = null,
-                        size = null,
-                        width = null,
-                        height = null
-                ))
+        checkCollectionWasPublished(
+            NftCollectionDto(
+                id = id,
+                name = "Test",
+                symbol = "TEST",
+                supportsLazyMint = false,
+                type = NftCollectionDto.Type.ERC721,
+                status = NftCollectionDto.Status.CONFIRMED,
+                owner = owner,
+                features = listOf(
+                    NftCollectionDto.Features.APPROVE_FOR_ALL,
+                    NftCollectionDto.Features.SET_URI_PREFIX,
+                    NftCollectionDto.Features.BURN
+                ),
+                isRaribleContract = true,
+                minters = listOf(owner),
             )
         )
     }
