@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.service.token.meta
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.core.kafka.RaribleKafkaConsumer
@@ -9,15 +7,13 @@ import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
-import com.rarible.protocol.nft.core.converters.dto.EthCollectionMetaDtoConverter
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
 import org.springframework.stereotype.Component
-import java.util.*
+import java.util.UUID
 
 @Component
 @Deprecated("remove after release")
 class InternalCollectionHandler(
-    private val tokenMetaService: TokenMetaService,
     private val protocolNftEventPublisher: ProtocolNftEventPublisher
 ) : ConsumerEventHandler<NftCollectionEventDto> {
 
