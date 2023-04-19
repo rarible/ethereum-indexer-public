@@ -307,6 +307,7 @@ internal class ApproveServiceTest {
         looksrareTransferManagerERC1155 = randomAddress(),
         looksrareTransferManagerNonCompliantERC721 = randomAddress(),
         x2y2TransferProxyErc721 = randomAddress(),
-        x2y2TransferProxyErc1155 = randomAddress()
+        x2y2TransferProxyErc1155 = randomAddress(),
+        looksrareV2TransferManager = randomAddress()
     )
 }
