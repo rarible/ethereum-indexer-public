@@ -27,11 +27,11 @@ class LooksrareOrderLoader(
     private val looksrareSaveCounter: RegisteredCounter,
     private val looksrareOrderDelayGauge: RegisteredGauge<Long>
 ) {
-    suspend fun load(createdAfter: Instant): List<LooksrareOrder> {
+    suspend fun load(createdAfter: Instant): Result {
         val orders = safeGetNextSellOrders(createdAfter)
         logOrderLoad(orders, createdAfter)
         return coroutineScope {
-            orders
+            val saved = orders
                 .chunked(properties.saveBatchSize)
                 .map { chunk ->
                     chunk.map {
@@ -57,7 +57,10 @@ class LooksrareOrderLoader(
                 .filterNotNull()
                 .also { logger.looksrareInfo("Saved ${it.size}") }
 
-            orders
+            Result(
+                latestCreatedAt = orders.maxOfOrNull { it.createdAt },
+                saved = saved.size.toLong()
+            )
         }
     }
 
@@ -88,6 +91,11 @@ class LooksrareOrderLoader(
         }
         logger.looksrareInfo(logMessage)
     }
+
+    data class Result(
+        val latestCreatedAt: Instant?,
+        val saved: Long
+    )
 
     private companion object {
         val logger: Logger = LoggerFactory.getLogger(LooksrareOrderLoader::class.java)

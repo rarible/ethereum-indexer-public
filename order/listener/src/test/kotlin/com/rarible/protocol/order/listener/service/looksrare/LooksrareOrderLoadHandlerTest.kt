@@ -4,7 +4,6 @@ import com.rarible.core.common.nowMillis
 import com.rarible.protocol.order.core.model.LooksrareV2FetchState
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
-import com.rarible.protocol.order.listener.data.randomLooksrareOrder
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -37,7 +36,7 @@ internal class LooksrareOrderLoadHandlerTest {
             every{ Instant.now() } returns now
             coEvery { aggregatorStateRepository.getLooksrareV2State() } returns null
             coEvery { aggregatorStateRepository.save(any()) } returns Unit
-            coEvery { looksrareOrderLoader.load(any()) } returns listOf(randomLooksrareOrder().copy(createdAt = next))
+            coEvery { looksrareOrderLoader.load(any()) } returns LooksrareOrderLoader.Result(next, 1)
 
             handler.handle()
 
@@ -61,7 +60,7 @@ internal class LooksrareOrderLoadHandlerTest {
 
         coEvery { aggregatorStateRepository.getLooksrareV2State() } returns LooksrareV2FetchState.withCreatedAfter(expectedCreatedAfter)
         coEvery { aggregatorStateRepository.save(any()) } returns Unit
-        coEvery { looksrareOrderLoader.load(any()) } returns listOf(randomLooksrareOrder().copy(createdAt = next))
+        coEvery { looksrareOrderLoader.load(any()) } returns LooksrareOrderLoader.Result(next, 0)
 
         handler.handle()
 

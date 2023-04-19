@@ -20,10 +20,10 @@ class LooksrareOrderLoadHandler(
         val state = aggregatorStateRepository.getLooksrareV2State() ?: getDefaultFetchState()
         val createdAfter = state.createdAfter
         val result = looksrareOrderLoader.load(createdAfter = createdAfter)
-        val next = result.maxOfOrNull { it.createdAt }
-        if (next != null) {
-            aggregatorStateRepository.save(state.withCreatedAfter(next))
-        } else {
+        if (result.latestCreatedAt != null) {
+            aggregatorStateRepository.save(state.withCreatedAfter(result.latestCreatedAt))
+        }
+        if (result.saved == 0L) {
             delay(properties.pollingPeriod)
         }
     }

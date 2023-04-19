@@ -40,8 +40,8 @@ internal class LooksrareOrderLoaderTest {
     @Test
     fun `should convert and save a new looksrare order`() = runBlocking<Unit> {
         properties.saveEnabled = true
-        val looksrareOrder1 = randomLooksrareOrder()
-        val looksrareOrder2 = randomLooksrareOrder()
+        val looksrareOrder1 = randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(10))
+        val looksrareOrder2 = randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(5))
         val orderVersion1 = createOrderVersion().copy(hash = looksrareOrder1.hash)
         val orderVersion2 = createOrderVersion().copy(hash = looksrareOrder2.hash)
         val order1 = createOrder().copy(id = Order.Id(looksrareOrder1.hash), hash = looksrareOrder1.hash)
@@ -61,8 +61,8 @@ internal class LooksrareOrderLoaderTest {
         coEvery { orderUpdateService.save(eq(orderVersion2), any()) } returns order2
         coEvery { orderUpdateService.updateMakeStock(order2, any(), any()) } returns (order2 to true)
 
-        val orders = loader.load(listedAfter)
-        assertThat(orders.map { it.hash }).containsExactlyInAnyOrder(looksrareOrder1.hash, looksrareOrder2.hash)
+        val result = loader.load(listedAfter)
+        assertThat(result.latestCreatedAt).isEqualTo(looksrareOrder2.createdAt)
 
         coVerify(exactly = 1) { orderUpdateService.save(eq(orderVersion1), any()) }
         coVerify(exactly = 1) { orderUpdateService.save(eq(orderVersion2), any()) }
