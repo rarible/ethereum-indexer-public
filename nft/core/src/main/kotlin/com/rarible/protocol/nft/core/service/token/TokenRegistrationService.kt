@@ -124,7 +124,7 @@ class TokenRegistrationService(
     }
 
     private fun onTokenFetched(token: Token): Mono<Token> = mono {
-        tokenListener.onTokenChanged(token)
+        if (token.standard.isNotNone()) tokenListener.onTokenChanged(token)
         token
     }
 
