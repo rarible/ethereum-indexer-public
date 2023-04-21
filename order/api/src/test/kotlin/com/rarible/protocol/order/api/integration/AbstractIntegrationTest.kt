@@ -22,6 +22,7 @@ import com.rarible.protocol.order.api.client.OrderControllerApi
 import com.rarible.protocol.order.api.client.OrderEncodeControllerApi
 import com.rarible.protocol.order.api.client.OrderIndexerApiClientFactory
 import com.rarible.protocol.order.api.client.OrderTransactionControllerApi
+import com.rarible.protocol.order.api.client.OrderSignatureControllerApi
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.MakeBalanceState
@@ -207,6 +208,7 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
     protected lateinit var transactionApi: OrderTransactionControllerApi
     protected lateinit var auctionClient: AuctionControllerApi
     protected lateinit var auctionActivityClient: AuctionActivityControllerApi
+    protected lateinit var orderSignatureClient: OrderSignatureControllerApi
 
     @LocalServerPort
     private var port: Int = 0
@@ -248,5 +250,6 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
         transactionApi = clientsFactory.createOrderTransactionApiClient(Blockchain.ETHEREUM.name)
         auctionClient = clientsFactory.createAuctionApiClient(Blockchain.ETHEREUM.name)
         auctionActivityClient = clientsFactory.createAuctionActivityApiClient(Blockchain.ETHEREUM.name)
+        orderSignatureClient = clientsFactory.createOrderSignatureApiClient(Blockchain.ETHEREUM.name)
     }
 }

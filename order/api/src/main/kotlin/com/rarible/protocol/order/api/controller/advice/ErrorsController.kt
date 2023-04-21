@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.api.controller.advice
 
+import com.rarible.ethereum.sign.service.InvalidSignatureException
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
 import com.rarible.protocol.order.api.exceptions.OrderIndexerApiException
@@ -24,12 +25,24 @@ class ErrorsController {
     @ExceptionHandler(ServerWebInputException::class)
     fun handleServerWebInputException(ex: ServerWebInputException) = mono {
         // For ServerWebInputException status is always 400
+        val error = toErrorDto(ex)
+        logger.warn("Web input error: {}", error.message)
+        ResponseEntity.status(ex.status).body(error)
+    }
+
+    @ExceptionHandler(InvalidSignatureException::class)
+    fun handleInvalidSignatureException(ex: InvalidSignatureException) = mono {
+        val error = toErrorDto(ex)
+        logger.warn("Signature validation error: {}", error.message)
+        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
+    }
+
+    private fun toErrorDto(ex: Exception): EthereumApiErrorBadRequestDto {
         val error = EthereumApiErrorBadRequestDto(
             code = EthereumApiErrorBadRequestDto.Code.BAD_REQUEST,
             message = ex.cause?.cause?.message ?: ex.cause?.message ?: ex.message ?: MISSING_MESSAGE
         )
-        logger.warn("Web input error: {}", error.message)
-        ResponseEntity.status(ex.status).body(error)
+        return error
     }
 
     @ExceptionHandler(Throwable::class)
