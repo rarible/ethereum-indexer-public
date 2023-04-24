@@ -27,6 +27,7 @@ import scalether.domain.request.Transaction
 import scalether.transaction.ReadOnlyMonoTransactionSender
 
 internal class ApproveServiceTest {
+
     private val transferProxyAddresses = randomProxyAddresses()
     private val approveRepository = mockk<ApprovalHistoryRepository>()
     private val sender = mockk<ReadOnlyMonoTransactionSender>()
@@ -87,8 +88,9 @@ internal class ApproveServiceTest {
     fun `should approve for looksrare erc721`() = runBlocking<Unit> {
         `should approve for looksrare`(
             proxyWithEvent = transferProxyAddresses.looksrareTransferManagerERC721,
-            proxyWithNoEvent1 = transferProxyAddresses.looksrareTransferManagerERC1155,
-            proxyWithNoEvent2 =  transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+            transferProxyAddresses.looksrareTransferManagerERC1155,
+            transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
+            transferProxyAddresses.looksrareV2TransferManager
         )
     }
 
@@ -96,8 +98,9 @@ internal class ApproveServiceTest {
     fun `should approve for looksrare non erc721`() = runBlocking<Unit> {
         `should approve for looksrare`(
             proxyWithEvent = transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
-            proxyWithNoEvent1 = transferProxyAddresses.looksrareTransferManagerERC1155,
-            proxyWithNoEvent2 =  transferProxyAddresses.looksrareTransferManagerERC721
+            transferProxyAddresses.looksrareTransferManagerERC1155,
+            transferProxyAddresses.looksrareTransferManagerERC721,
+            transferProxyAddresses.looksrareV2TransferManager
         )
     }
 
@@ -105,8 +108,19 @@ internal class ApproveServiceTest {
     fun `should approve for looksrare erc1155`() = runBlocking<Unit> {
         `should approve for looksrare`(
             proxyWithEvent = transferProxyAddresses.looksrareTransferManagerERC1155,
-            proxyWithNoEvent1 = transferProxyAddresses.looksrareTransferManagerERC721,
-            proxyWithNoEvent2 =  transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+            transferProxyAddresses.looksrareTransferManagerERC721,
+            transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
+            transferProxyAddresses.looksrareV2TransferManager
+        )
+    }
+
+    @Test
+    fun `should approve for looksrare V2`() = runBlocking<Unit> {
+        `should approve for looksrare`(
+            proxyWithEvent = transferProxyAddresses.looksrareV2TransferManager,
+            transferProxyAddresses.looksrareTransferManagerERC1155,
+            transferProxyAddresses.looksrareTransferManagerERC721,
+            transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
         )
     }
 
@@ -150,7 +164,8 @@ internal class ApproveServiceTest {
             transferProxyAddresses.looksrareTransferManagerERC721,
             otherProxies = listOf(
                 transferProxyAddresses.looksrareTransferManagerERC1155,
-                transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+                transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
+                transferProxyAddresses.looksrareV2TransferManager
             )
         )
     }
@@ -162,7 +177,8 @@ internal class ApproveServiceTest {
             transferProxyAddresses.looksrareTransferManagerERC1155,
             listOf(
                 transferProxyAddresses.looksrareTransferManagerERC721,
-                transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+                transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
+                transferProxyAddresses.looksrareV2TransferManager
             )
         )
     }
@@ -174,7 +190,21 @@ internal class ApproveServiceTest {
             transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
             listOf(
                 transferProxyAddresses.looksrareTransferManagerERC721,
-                transferProxyAddresses.looksrareTransferManagerERC1155
+                transferProxyAddresses.looksrareTransferManagerERC1155,
+                transferProxyAddresses.looksrareV2TransferManager
+            )
+        )
+    }
+
+    @Test
+    fun `should check looksrare V2 on chain approve`() = runBlocking<Unit> {
+        testOnChainApproval(
+            Platform.LOOKSRARE,
+            transferProxyAddresses.looksrareV2TransferManager,
+            listOf(
+                transferProxyAddresses.looksrareTransferManagerERC721,
+                transferProxyAddresses.looksrareTransferManagerERC1155,
+                transferProxyAddresses.looksrareTransferManagerNonCompliantERC721,
             )
         )
     }
@@ -222,21 +252,22 @@ internal class ApproveServiceTest {
 
     private fun `should approve for looksrare`(
         proxyWithEvent: Address,
-        proxyWithNoEvent1: Address,
-        proxyWithNoEvent2: Address,
+        vararg proxyWithNoEvents: Address
     ) = runBlocking<Unit> {
         val maker = randomAddress()
         val token = randomAddress()
         val approved = randomBoolean()
 
         mockGetLogEvent(token, maker, proxyWithEvent, approved)
-        mockGetLogEvent(token, maker, proxyWithNoEvent1, null)
-        mockGetLogEvent(token, maker, proxyWithNoEvent2, null)
+        proxyWithNoEvents.forEach {
+            mockGetLogEvent(token, maker, it, null)
+        }
         val result = approveService.checkApprove(maker, token, Platform.LOOKSRARE)
         assertThat(result).isEqualTo(approved)
         coVerify { approveRepository.lastApprovalLogEvent(token, maker, proxyWithEvent) }
-        coVerify { approveRepository.lastApprovalLogEvent(token, maker, proxyWithNoEvent1) }
-        coVerify { approveRepository.lastApprovalLogEvent(token, maker, proxyWithNoEvent2) }
+        proxyWithNoEvents.forEach {
+            coVerify { approveRepository.lastApprovalLogEvent(token, maker, it) }
+        }
     }
 
     private suspend fun testApproval(platform: Platform, proxy: Address) {
@@ -291,12 +322,18 @@ internal class ApproveServiceTest {
     }
 
     private fun mockGetLogEvent(collection: Address, maker: Address, proxy: Address, expectedApproval: Boolean?) {
-        coEvery { approveRepository.lastApprovalLogEvent(collection, maker, proxy) } returns expectedApproval?.let { logEvent(it) }
+        coEvery {
+            approveRepository.lastApprovalLogEvent(
+                collection,
+                maker,
+                proxy
+            )
+        } returns expectedApproval?.let { logEvent(it) }
     }
 
     private fun logEvent(approved: Boolean) = createLogEvent(randomApproveHistory(approved = approved))
 
-    private fun randomProxyAddresses() =OrderIndexerProperties.TransferProxyAddresses(
+    private fun randomProxyAddresses() = OrderIndexerProperties.TransferProxyAddresses(
         transferProxy = randomAddress(),
         erc20TransferProxy = randomAddress(),
         erc721LazyTransferProxy = randomAddress(),

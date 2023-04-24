@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.model
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderDataLegacy
 import com.rarible.protocol.order.core.data.createOrderLooksrareDataV1
+import com.rarible.protocol.order.core.data.createOrderLooksrareDataV2
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderRaribleV1DataV3Buy
 import com.rarible.protocol.order.core.data.createOrderRaribleV1DataV3Sell
@@ -31,6 +32,7 @@ internal class OrderDataTest {
             createOrderX2Y2DataV1() to OrderX2Y2DataV1::class.java,
             OrderCryptoPunksData to OrderCryptoPunksData::class.java,
             createOrderLooksrareDataV1() to OrderLooksrareDataV1::class.java,
+            createOrderLooksrareDataV2() to OrderLooksrareDataV2::class.java,
             createOrderSudoSwapAmmDataV1() to OrderSudoSwapAmmDataV1::class.java,
         )
 
