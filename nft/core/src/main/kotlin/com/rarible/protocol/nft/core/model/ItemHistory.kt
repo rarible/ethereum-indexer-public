@@ -73,7 +73,8 @@ data class ItemTransfer(
 
         val BURN_ADDRESSES = setOf(
             Address.ZERO(),
-            Address.apply("0x000000000000000000000000000000000000dead")
+            Address.apply("0x000000000000000000000000000000000000dead"),
+            Address.apply("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
         )
     }
 }
