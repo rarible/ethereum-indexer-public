@@ -3,12 +3,14 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.looksra
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import scalether.domain.Address
@@ -26,9 +28,29 @@ abstract class AbstractLooksrareExchangeDescriptor<T : EventData>(
     topic = topic,
     contracts = contracts
 ) {
-
     protected suspend fun cancelUserOrders(date: Instant, maker: Address, nonces: List<BigInteger>): List<OrderCancel> {
-        val result = orderRepository.findByMakeAndByCounters(Platform.LOOKSRARE, maker, nonces).map {
+        return cancelOrders(date) {
+            orderRepository.findByMakeAndByCounters(Platform.LOOKSRARE, maker, nonces)
+        }
+    }
+
+    protected suspend fun cancelByOrderNonce(date: Instant, maker: Address, nonces: List<BigInteger>): List<OrderCancel> {
+        return cancelOrders(date) {
+            orderRepository.findLRByMakeAndByOrderCounters(maker, nonces)
+        }
+    }
+
+    protected suspend fun cancelBySubsetNonce(date: Instant, maker: Address, nonces: List<BigInteger>): List<OrderCancel> {
+        return cancelOrders(date) {
+            orderRepository.findLRByMakeAndBySubsetCounters(maker, nonces)
+        }
+    }
+
+    private suspend fun cancelOrders(
+        date: Instant,
+        find: () -> Flow<Order>
+    ): List<OrderCancel> {
+        val result = find().map {
             OrderCancel(
                 hash = it.hash,
                 maker = it.maker,

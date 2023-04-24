@@ -32,7 +32,11 @@ class OrderInvertService(
         return when (order.type) {
             OrderType.RARIBLE_V2 -> invertRaribleV2(order, maker, amount, salt, originFees)
             OrderType.OPEN_SEA_V1 -> invertOpenSeaV1(order, maker, amount, salt)
-            OrderType.RARIBLE_V1, OrderType.SEAPORT_V1, OrderType.X2Y2, OrderType.LOOKSRARE -> throw IllegalArgumentException("Order type ${order.type} not supported to be inverted")
+            OrderType.RARIBLE_V1,
+            OrderType.SEAPORT_V1,
+            OrderType.X2Y2,
+            OrderType.LOOKSRARE,
+            OrderType.LOOKSRARE_V2 -> throw IllegalArgumentException("Order type ${order.type} not supported to be inverted")
             OrderType.CRYPTO_PUNKS,
             OrderType.AMM -> throw IllegalArgumentException("${order.type} orders cannot be inverted")
         }

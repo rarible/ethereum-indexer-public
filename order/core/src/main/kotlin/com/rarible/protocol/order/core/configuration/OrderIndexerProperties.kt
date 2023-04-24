@@ -94,7 +94,8 @@ data class OrderIndexerProperties(
         val x2y2TransferProxyErc1155: Address,
         val looksrareTransferManagerERC721: Address,
         val looksrareTransferManagerERC1155: Address,
-        val looksrareTransferManagerNonCompliantERC721: Address
+        val looksrareTransferManagerNonCompliantERC721: Address,
+        val looksrareV2TransferManager: Address
     )
 
     data class PublishProperties(

@@ -24,6 +24,7 @@ data class SeaportFetchState(
     }
 }
 
+@Deprecated("Need use LooksrareV2FetchState")
 data class LooksrareFetchState(
     override val cursor: String,
     @Id
@@ -48,6 +49,33 @@ data class LooksrareFetchState(
         }
 
         const val ID = "looksrare-order-fetch"
+    }
+}
+
+data class LooksrareV2FetchState(
+    override val cursor: String,
+    @Id
+    override val id: String = ID
+) : AggregatorFetchState {
+
+    @get:Transient
+    val createdAfter: Instant
+        get() = Instant.ofEpochSecond(cursor.toLong())
+
+    fun withCreatedAfter(createdAfter: Instant): LooksrareV2FetchState {
+        return withCursor(createdAfter.epochSecond.toString())
+    }
+
+    override fun withCursor(cursor: String): LooksrareV2FetchState {
+        return copy(cursor = cursor)
+    }
+
+    companion object {
+        fun withCreatedAfter(createdAfter: Instant): LooksrareV2FetchState {
+            return LooksrareV2FetchState(cursor = createdAfter.epochSecond.toString())
+        }
+
+        const val ID = "looksrare-v2-order-fetch"
     }
 }
 

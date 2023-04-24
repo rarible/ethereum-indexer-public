@@ -42,6 +42,7 @@ import java.util.*
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class TokenRegistrationService(
     private val tokenRepository: TokenRepository,
+    private val tokenListener: TokenEventListener,
     private val sender: MonoTransactionSender,
     private val tokenByteCodeProvider: TokenByteCodeProvider,
     private val tokeByteCodeFilters: List<TokeByteCodeFilter>,
@@ -117,7 +118,14 @@ class TokenRegistrationService(
             )
         }.flatMap {  token ->
             detectScam(token)
+        }.flatMap { token ->
+            onTokenFetched(token)
         }.withSpan(name = "fetchToken", labels = listOf("address" to address.toString()))
+    }
+
+    private fun onTokenFetched(token: Token): Mono<Token> = mono {
+        if (token.standard.isNotNone()) tokenListener.onTokenChanged(token)
+        token
     }
 
     private fun <T : Any> Mono<T>.emptyIfError(): Mono<Optional<T>> {
@@ -133,7 +141,7 @@ class TokenRegistrationService(
             token
         } else {
             token.copy(
-                standard =TokenStandard.NONE,
+                standard = TokenStandard.NONE,
                 scam = true
             )
         }

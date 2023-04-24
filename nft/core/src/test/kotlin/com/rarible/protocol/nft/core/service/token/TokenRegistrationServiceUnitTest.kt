@@ -28,6 +28,9 @@ import java.io.IOException
 internal class TokenRegistrationServiceUnitTest {
     private val tokenRepository = mockk<TokenRepository>()
     private val sender = mockk<MonoTransactionSender>()
+    private val listener = mockk<TokenEventListener> {
+        coEvery { onTokenChanged(any()) } returns Unit
+    }
     private val tokenByteCodeProvider = mockk<TokenByteCodeProvider> {
         coEvery { fetchByteCode(any()) } returns null
     }
@@ -36,6 +39,7 @@ internal class TokenRegistrationServiceUnitTest {
     }
     private val tokenRegistrationService = TokenRegistrationService(
         tokenRepository = tokenRepository,
+        tokenListener = listener,
         sender = sender,
         tokenByteCodeProvider = tokenByteCodeProvider,
         tokeByteCodeFilters = listOf(tokeByteCodeFilter),
@@ -101,8 +105,9 @@ internal class TokenRegistrationServiceUnitTest {
 
     @Test
     fun `cache limit`() = runBlocking<Unit> {
-        val limitedCache = TokenRegistrationService(tokenRepository, mockk(), tokenByteCodeProvider, emptyList(), 3)
-
+        val limitedCache = TokenRegistrationService(
+            tokenRepository, listener, mockk(), tokenByteCodeProvider, emptyList(), 3
+        )
         every { tokenRepository.findById(any()) } answers {
             Token(
                 id = firstArg(),

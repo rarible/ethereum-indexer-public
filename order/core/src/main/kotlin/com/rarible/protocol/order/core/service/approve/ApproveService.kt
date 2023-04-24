@@ -36,6 +36,7 @@ class ApproveService(
     private val looksrareTransferProxyErc721 = transferProxyAddresses.looksrareTransferManagerERC721
     private val looksrareTransferProxyErc1155 = transferProxyAddresses.looksrareTransferManagerERC1155
     private val looksrareTransferProxyNonCompliantErc721 = transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+    private val looksrareV2TransferManager = transferProxyAddresses.looksrareV2TransferManager
 
     private val platformByOperatorMap: Map<Address, Platform> = mapOf(
         raribleTransferProxy to Platform.RARIBLE,
@@ -45,7 +46,9 @@ class ApproveService(
         cryptoPunksTransferProxy to Platform.CRYPTO_PUNKS,
         looksrareTransferProxyErc721 to Platform.LOOKSRARE,
         looksrareTransferProxyErc1155 to Platform.LOOKSRARE,
-        looksrareTransferProxyNonCompliantErc721 to Platform.LOOKSRARE
+        looksrareTransferProxyNonCompliantErc721 to Platform.LOOKSRARE,
+        looksrareTransferProxyNonCompliantErc721 to Platform.LOOKSRARE,
+        looksrareV2TransferManager to Platform.LOOKSRARE
     )
     private val operatorsByPlatformMap = platformByOperatorMap.entries.groupBy(
         { it.value }, { it.key }

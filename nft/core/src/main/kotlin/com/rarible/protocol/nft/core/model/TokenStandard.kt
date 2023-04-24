@@ -102,6 +102,10 @@ enum class TokenStandard(
     ),
     NONE;
 
+    fun isNotNone(): Boolean {
+        return this != NONE
+    }
+
     companion object {
         val CREATE_TOPIC_MAP = mapOf<Word, Pair<TokenStandard, Set<TokenFeature>>>(
             CreateEvent.id() to Pair(ERC721, setOf(APPROVE_FOR_ALL, SET_URI_PREFIX, BURN)),

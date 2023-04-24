@@ -4,5 +4,16 @@ spring:
       uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}/?w=1&readConcernLevel=local
 
 listener:
+  tokens:
+    - "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619" # WETH
+    - "0x2791bca1f2de4661ed88a30c99a7a9449aa84174" # USDC
+    - "0xbbba073c31bf03b8acf7c28ef0738decf3695683" # SAND
+    - "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063" # DAI
+    - "0x6968105460f67c3bf751be7c15f92f5286fd0ce5" # MONA
+    - "0x70c006878a5a50ed185ac4c87d837633923de296" # REVV
+    - "0x400072e8a35fe026a11cfcdf4f58422cdf7dc182" # Educacoin (EDCTK)
+    - "0x0000000000000000000000000000000000001010" # Matic Token (MATIC)
+    - "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270" # WMATIC
+    - "0xc2132d05d31c914a87c6611c10748aeb04b58e8f" # USDT
   depositTokens:
-    - "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619"
+    - "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619" # WETH

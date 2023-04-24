@@ -50,6 +50,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import com.rarible.protocol.order.core.model.HeadTransaction
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.LooksrareQuoteType
 import com.rarible.protocol.order.core.model.OnChainOrder
 import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
 import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
@@ -61,6 +62,7 @@ import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
@@ -323,6 +325,21 @@ fun createOrderLooksrareDataV1(
         counter = counter,
         counterHex = EthUInt256.of(counter),
         params = randomBinary()
+    )
+}
+
+fun createOrderLooksrareDataV2(
+    counter: Long = randomLong()
+): OrderLooksrareDataV2 {
+    return OrderLooksrareDataV2(
+        quoteType = LooksrareQuoteType.values().random(),
+        orderNonce = EthUInt256.of(randomBigInt()),
+        subsetNonce = EthUInt256.of(randomBigInt()),
+        counterHex = EthUInt256.of(randomBigInt()),
+        strategyId = EthUInt256.of(randomBigInt()),
+        additionalParameters = Binary.empty(),
+        merkleRoot = Binary.empty(),
+        merkleProof = emptyList(),
     )
 }
 

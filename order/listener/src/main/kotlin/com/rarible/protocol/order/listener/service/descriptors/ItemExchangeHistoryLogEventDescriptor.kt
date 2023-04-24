@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
@@ -43,6 +44,7 @@ fun getOriginMaker(maker: Address, data: OrderData?): Address {
         is OrderDataLegacy, is OrderOpenSeaV1DataV1, is OrderBasicSeaportDataV1, is OrderCryptoPunksData,
         is OrderX2Y2DataV1,
         is OrderLooksrareDataV1,
+        is OrderLooksrareDataV2,
         is OrderSudoSwapAmmDataV1 -> maker
         null -> maker
     }

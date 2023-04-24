@@ -194,6 +194,7 @@ data class Order(
                 is OrderRaribleV2DataV3Sell,
                 is OrderBasicSeaportDataV1,
                 is OrderLooksrareDataV1,
+                is OrderLooksrareDataV2,
                 is OrderX2Y2DataV1,
                 is OrderSudoSwapAmmDataV1 -> false
             }
@@ -258,6 +259,7 @@ data class Order(
                 OrderType.RARIBLE_V1,
                 OrderType.CRYPTO_PUNKS -> calculatedMakeStock
                 OrderType.LOOKSRARE,
+                OrderType.LOOKSRARE_V2,
                 OrderType.X2Y2,
                 OrderType.OPEN_SEA_V1,
                 OrderType.SEAPORT_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else calculatedMakeStock
@@ -344,6 +346,7 @@ data class Order(
                 is OrderBasicSeaportDataV1 -> EthUInt256.ZERO
                 is OrderX2Y2DataV1 -> EthUInt256.ZERO
                 is OrderLooksrareDataV1 -> EthUInt256.ZERO
+                is OrderLooksrareDataV2 -> EthUInt256.ZERO
                 is OrderSudoSwapAmmDataV1 -> EthUInt256.ZERO
             }
         }
@@ -382,6 +385,7 @@ data class Order(
                 OrderType.OPEN_SEA_V1 -> openSeaV1Hash(maker, make, taker, take, salt, start, end, data)
                 OrderType.SEAPORT_V1,
                 OrderType.LOOKSRARE,
+                OrderType.LOOKSRARE_V2,
                 OrderType.CRYPTO_PUNKS,
                 OrderType.X2Y2,
                 OrderType.AMM -> throw IllegalArgumentException("Can't calculate $type order hash")

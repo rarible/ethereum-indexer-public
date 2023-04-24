@@ -10,6 +10,7 @@ val OrderDto.platform: PlatformDto
             is CryptoPunkOrderDto -> PlatformDto.CRYPTO_PUNKS
             is X2Y2OrderDto -> PlatformDto.X2Y2
             is LooksRareOrderDto -> PlatformDto.LOOKSRARE
+            is LooksRareV2OrderDto -> PlatformDto.LOOKSRARE
             is AmmOrderDto -> when (data) {
                 is OrderSudoSwapAmmDataV1Dto -> PlatformDto.SUDOSWAP
             }

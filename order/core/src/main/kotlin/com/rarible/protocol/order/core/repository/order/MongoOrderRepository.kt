@@ -12,6 +12,9 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
+import com.rarible.protocol.order.core.model.OrderCountableData
+import com.rarible.protocol.order.core.model.OrderData
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
@@ -28,8 +31,10 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.index.IndexDefinition
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.KPropertyPath
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.exists
@@ -223,7 +228,7 @@ class MongoOrderRepository(
                 .and(Order::status.name).ne(OrderStatus.CANCELLED)
                 .and(COUNTER_HEX_KEY).exists(true).lt(counterValue)
         )
-        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_HEX_STATUS.indexKeys)
+        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_GLOBAL_COUNTER_STATUS.indexKeys)
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
@@ -350,21 +355,57 @@ class MongoOrderRepository(
     }
 
     override fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<BigInteger>): Flow<Order> {
-        val counterValues = counters.map { EthUInt256.of(it) }
+        return findByMakeAndCounters(
+            platform = platform,
+            maker = maker,
+            counters = counters,
+            counterKey = Order::data / OrderLooksrareDataV2::counterHex,
+            hint = OrderRepositoryIndexes.BY_PLATFORM_MAKER_GLOBAL_COUNTER_STATUS
+        )
+    }
 
+    override fun findLRByMakeAndByOrderCounters(maker: Address, counters: List<BigInteger>): Flow<Order> {
+        return findByMakeAndCounters(
+            platform = Platform.LOOKSRARE,
+            maker = maker,
+            counters = counters,
+            counterKey = Order::data / OrderLooksrareDataV2::orderNonce,
+            hint = OrderRepositoryIndexes.BY_PLATFORM_MAKER_ORDER_COUNTER_STATUS
+        )
+    }
+
+    override fun findLRByMakeAndBySubsetCounters(maker: Address, counters: List<BigInteger>): Flow<Order> {
+        return findByMakeAndCounters(
+            platform = Platform.LOOKSRARE,
+            maker = maker,
+            counters = counters,
+            counterKey = Order::data / OrderLooksrareDataV2::subsetNonce,
+            hint = OrderRepositoryIndexes.BY_PLATFORM_MAKER_SUBSET_COUNTER_STATUS
+        )
+    }
+
+    private fun findByMakeAndCounters(
+        platform: Platform,
+        maker: Address,
+        counters: List<BigInteger>,
+        counterKey: KPropertyPath<EthUInt256, OrderData>,
+        hint: IndexDefinition
+    ): Flow<Order> {
+        val counterValues = counters.map { EthUInt256.of(it) }
         val criteria = where(Order::platform).isEqualTo(platform)
             .and(Order::maker).isEqualTo(maker)
             .run {
                 if (counterValues.isSingleton) {
-                    and(COUNTER_HEX_KEY).isEqualTo(counterValues.single())
+                    and(counterKey).isEqualTo(counterValues.single())
                 } else {
-                    and(COUNTER_HEX_KEY).inValues(counterValues)
+                    and(counterKey).inValues(counterValues)
                 }
             }
 
-        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_HEX_STATUS.indexKeys)
+        val query = Query(criteria).withHint(hint.indexKeys)
         return template.query<Order>().matching(query).all().asFlow()
     }
+
 
     private suspend fun dropIndexes(vararg names: String) {
         val existing = template.indexOps(COLLECTION).indexInfo.map { it.name }.collectList().awaitFirst()
