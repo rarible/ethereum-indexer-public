@@ -6,15 +6,17 @@ import com.rarible.opensea.client.SeaportProtocolClient
 import com.rarible.opensea.client.model.OpenSeaError
 import com.rarible.opensea.client.model.OperationResult
 import com.rarible.opensea.client.model.v2.SeaportOrders
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.order.logger
-import com.rarible.opensea.client.model.v2.OrdersRequest as SeaportOrdersRequest
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.delay
 import org.springframework.stereotype.Component
 import kotlin.math.max
+import com.rarible.opensea.client.model.v2.OrdersRequest as SeaportOrdersRequest
 
 @Component
 @CaptureSpan(type = SpanType.EXT)
@@ -22,6 +24,7 @@ class OpenSeaOrderServiceImpl(
     private val seaportRequestCursorProducer: SeaportRequestCursorProducer,
     private val seaportProtocolClient: SeaportProtocolClient,
     private val seaportLoad: SeaportLoadProperties,
+    private val metrics: ForeignOrderMetrics
 ) : OpenSeaOrderService {
 
     override suspend fun getNextSellOrders(nextCursor: String?, loadAhead: Boolean): SeaportOrders {
@@ -46,7 +49,7 @@ class OpenSeaOrderServiceImpl(
                 )
             }
         }
-        return coroutineScope {
+        val result = coroutineScope {
             val results = requests.map { async { getOrders(it) } }.awaitAll()
             when (results.size) {
                 0 -> throw IllegalStateException("Unexpected results size for $nextCursor")
@@ -58,6 +61,8 @@ class OpenSeaOrderServiceImpl(
                 }
             }
         }
+        result.orders.forEach { metrics.onOrderReceived(Platform.OPEN_SEA, it.createdAt) }
+        return result
     }
 
     private suspend fun getOrders(request: SeaportOrdersRequest): SeaportOrders {

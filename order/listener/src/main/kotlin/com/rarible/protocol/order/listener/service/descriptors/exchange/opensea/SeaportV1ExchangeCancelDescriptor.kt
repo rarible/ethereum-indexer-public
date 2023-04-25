@@ -2,10 +2,11 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent
 import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.opensea.SeaportEventConverter
 import org.springframework.stereotype.Service
@@ -18,7 +19,7 @@ import java.time.Instant
 class SeaportV1ExchangeCancelDescriptor(
     contractsProvider: ContractsProvider,
     private val seaportEventConverter: SeaportEventConverter,
-    private val seaportCancelEventCounter: RegisteredCounter,
+    private val metrics: ForeignOrderMetrics
 ) : ExchangeSubscriber<OrderCancel>(
     name = "os_cancelled",
     topic = OrderCancelledEvent.id(),
@@ -28,6 +29,6 @@ class SeaportV1ExchangeCancelDescriptor(
         val event = OrderCancelledEvent.apply(log)
         return seaportEventConverter
             .convert(event, transaction, index, totalLogs, timestamp)
-            .also { seaportCancelEventCounter.increment() }
+            .also { metrics.onOrderEventHandled(Platform.OPEN_SEA, "cancel") }
     }
 }

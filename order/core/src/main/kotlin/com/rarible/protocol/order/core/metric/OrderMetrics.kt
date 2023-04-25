@@ -10,7 +10,7 @@ class OrderMetrics(
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val blockchain: Blockchain,
     meterRegistry: MeterRegistry,
-) : BaseMetrics(meterRegistry) {
+) : BaseOrderMetrics(meterRegistry) {
 
     fun onOrderExecution(platform: Platform) {
         increment(ORDER_EXECUTION, tag(blockchain), tag(platform))

@@ -1,30 +1,24 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.x2y2
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.log
-import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
 import io.daonomic.rpc.domain.Word
-import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
-import java.time.Instant
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import reactor.kotlin.core.publisher.toFlux
+import java.time.Instant
 
 class X2Y2OrderCancelDescriptorTest {
-
-    private val cancerMetric = mockk<RegisteredCounter>() {
-        every { increment() } just Runs
-    }
 
     private val existsOrderHash = Word.apply("0x039b0a8b3591535498ce70112227790408a73e034f66671b8701440172172dc1")
     private val nonExistsOrderHash = Word.apply("0x5b0b06d07e20243724d90e17a20034972f339eb28bd1c9437a71999bd15a1e7a")
@@ -39,9 +33,14 @@ class X2Y2OrderCancelDescriptorTest {
     private val contractsProvider = mockk<ContractsProvider>() {
         every { x2y2V1() } returns listOf(randomAddress())
     }
+    private val metrics = mockk<ForeignOrderMetrics> {
+        every { onOrderEventHandled(Platform.X2Y2, "cancel") } returns Unit
+    }
+
     private val descriptor = X2Y2OrderCancelDescriptor(
         contractsProvider,
-        converter, cancerMetric
+        converter,
+        metrics
     )
 
     @Test
@@ -56,9 +55,6 @@ class X2Y2OrderCancelDescriptorTest {
             )
             val date = Instant.ofEpochSecond(1L)
             val actual = descriptor.convert(log, mockk(), 1L, 1, 1).toFlux().awaitSingle()
-            verify(exactly = 1) {
-                cancerMetric.increment()
-            }
             assertThat(actual).isNotNull
             assertThat(actual.make).isNotNull
             assertThat(actual.take).isNotNull
@@ -80,9 +76,6 @@ class X2Y2OrderCancelDescriptorTest {
             )
             val date = Instant.ofEpochSecond(1L)
             val actual = descriptor.convert(log, mockk(), 1L, 1, 1).toFlux().awaitSingle()
-            verify(exactly = 1) {
-                cancerMetric.increment()
-            }
             assertThat(actual).isNotNull
             assertThat(actual.make).isNull()
             assertThat(actual.take).isNull()

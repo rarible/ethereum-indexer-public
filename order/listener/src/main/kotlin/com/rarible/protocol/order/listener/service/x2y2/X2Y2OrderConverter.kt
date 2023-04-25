@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
@@ -12,37 +11,38 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.x2y2.client.model.ErcType
 import com.rarible.x2y2.client.model.Order
 import com.rarible.x2y2.client.model.OrderStatus
-import com.rarible.x2y2.client.model.OrderType as ClientOrderType
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import com.rarible.x2y2.client.model.OrderType as ClientOrderType
 
 @Component
 class X2Y2OrderConverter(
     private val priceUpdateService: PriceUpdateService,
-    private val x2y2LoadErrorCounter: RegisteredCounter
+    private val metrics: ForeignOrderMetrics
 ) {
     suspend fun convert(order: Order): OrderVersion? {
         if (order.isBundle) return run {
-            x2y2LoadErrorCounter.increment()
+            metrics.onDownloadedOrderSkipped(Platform.X2Y2, "bundle")
             null
         }
         if (order.isCollectionOffer) return run {
-            x2y2LoadErrorCounter.increment()
+            metrics.onDownloadedOrderSkipped(Platform.X2Y2, "collection_offer")
             null
         }
         if (order.status != OrderStatus.OPEN) return run {
-            x2y2LoadErrorCounter.increment()
+            metrics.onDownloadedOrderSkipped(Platform.X2Y2, "closed")
             null
         }
         if (order.type != ClientOrderType.SELL) return run {
-            x2y2LoadErrorCounter.increment()
+            metrics.onDownloadedOrderSkipped(Platform.X2Y2, "bid")
             null
         }
         val token = order.token ?: return run {
-            x2y2LoadErrorCounter.increment()
+            metrics.onDownloadedOrderSkipped(Platform.X2Y2, "empty_token")
             null
         }
         val data = OrderX2Y2DataV1(

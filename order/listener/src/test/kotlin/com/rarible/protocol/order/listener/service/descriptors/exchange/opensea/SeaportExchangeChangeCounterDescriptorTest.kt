@@ -1,10 +1,11 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
@@ -19,15 +20,16 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 internal class SeaportExchangeChangeCounterDescriptorTest {
+
     private val contractsProvider = mockk<ContractsProvider>() {
         every { seaportV1() } returns listOf(randomAddress())
     }
-    private val seaportCounterEventCounter = mockk<RegisteredCounter> {
-        every { increment() } returns Unit
+    private val metrics: ForeignOrderMetrics = mockk {
+        every { onOrderEventHandled(Platform.OPEN_SEA, "counter") } returns Unit
     }
-    private val descriptor =  SeaportExchangeChangeCounterDescriptor(
+    private val descriptor = SeaportExchangeChangeCounterDescriptor(
         contractsProvider,
-        seaportCounterEventCounter
+        metrics
     )
 
     @Test
@@ -47,6 +49,6 @@ internal class SeaportExchangeChangeCounterDescriptorTest {
         assertThat(events.single().newNonce).isEqualTo(EthUInt256.ONE)
         assertThat(events.single().maker).isEqualTo(Address.apply("0x50bd1d1d160928a1c5923646a8474036e3c91c7d"))
 
-        verify(exactly = 1) { seaportCounterEventCounter.increment() }
+        verify(exactly = 1) { metrics.onOrderEventHandled(Platform.OPEN_SEA, "counter") }
     }
 }

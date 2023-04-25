@@ -5,8 +5,6 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.task.EnableRaribleTask
-import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
@@ -27,11 +25,11 @@ import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJo
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2CancelEventsFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2OrdersFetchWorker
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
 import com.rarible.protocol.order.listener.service.looksrare.LooksrareOrderLoadHandler
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
-import com.rarible.protocol.order.listener.service.opensea.MeasurableOpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
@@ -64,9 +62,7 @@ class OrderListenerConfiguration(
     private val meterRegistry: MeterRegistry,
     private val erc20IndexerEventsConsumerFactory: Erc20IndexerEventsConsumerFactory,
     private val nftIndexerEventsConsumerFactory: NftIndexerEventsConsumerFactory,
-    private val micrometer: MeterRegistry,
-    private val seaportLoadCounter: RegisteredCounter,
-    private val seaportOrderDelayGauge : RegisteredGauge<Long>
+    private val metrics: ForeignOrderMetrics
 ) {
     private val erc20BalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.erc20-balance"
     private val ownershipBalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
@@ -201,17 +197,16 @@ class OrderListenerConfiguration(
         openSeaOrderValidator: OpenSeaOrderValidator,
         orderRepository: OrderRepository,
         orderUpdateService: OrderUpdateService,
-        properties: SeaportLoadProperties,
-        seaportSaveCounter: RegisteredCounter,
+        properties: SeaportLoadProperties
     ): SeaportOrdersFetchWorker {
         val loader = SeaportOrderLoader(
-            openSeaOrderService = measurableOpenSeaOrderService(openSeaOrderService),
+            openSeaOrderService = openSeaOrderService,
             openSeaOrderConverter = openSeaOrderConverter,
             openSeaOrderValidator = openSeaOrderValidator,
             orderRepository = orderRepository,
             orderUpdateService = orderUpdateService,
             properties = properties,
-            seaportSaveCounter = seaportSaveCounter
+            metrics = metrics
         )
         val handler = SeaportOrderLoadHandler(
             seaportOrderLoader = loader,
@@ -234,22 +229,16 @@ class OrderListenerConfiguration(
         openSeaOrderValidator: OpenSeaOrderValidator,
         orderRepository: OrderRepository,
         orderUpdateService: OrderUpdateService,
-        properties: SeaportLoadProperties,
-        seaportTaskSaveCounter: RegisteredCounter,
-        seaportTaskLoadCounter: RegisteredCounter,
+        properties: SeaportLoadProperties
     ): SeaportOrdersLoadTaskHandler {
         val loader = SeaportOrderLoader(
-            openSeaOrderService = measurableOpenSeaOrderService(
-                openSeaOrderService = openSeaOrderService,
-                seaportCounter = seaportTaskLoadCounter,
-                measureDelay = false,
-            ),
+            openSeaOrderService = openSeaOrderService,
             openSeaOrderConverter = openSeaOrderConverter,
             openSeaOrderValidator = openSeaOrderValidator,
             orderRepository = orderRepository,
             orderUpdateService = orderUpdateService,
             properties = properties,
-            seaportSaveCounter = seaportTaskSaveCounter
+            metrics = metrics
         )
         return SeaportOrdersLoadTaskHandler(loader)
     }
@@ -318,20 +307,5 @@ class OrderListenerConfiguration(
             meterRegistry = meterRegistry,
             handler = looksrareOrderLoadHandler
         ).apply { start() }
-    }
-
-    private fun measurableOpenSeaOrderService(
-        openSeaOrderService: OpenSeaOrderService,
-        measureDelay: Boolean = true,
-        seaportCounter: RegisteredCounter = seaportLoadCounter
-    ): MeasurableOpenSeaOrderService {
-        return MeasurableOpenSeaOrderService(
-            delegate = openSeaOrderService,
-            micrometer = micrometer,
-            blockchain = blockchain(),
-            seaportLoadCounter = seaportCounter,
-            seaportDelayGauge = seaportOrderDelayGauge,
-            measureDelay = measureDelay
-        )
     }
 }

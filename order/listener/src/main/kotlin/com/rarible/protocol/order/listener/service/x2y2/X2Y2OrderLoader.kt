@@ -1,10 +1,11 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.dto.integrationEventMark
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.X2Y2OrderLoadProperties
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.seaportInfo
 import com.rarible.protocol.order.listener.misc.x2y2Error
 import com.rarible.protocol.order.listener.misc.x2y2Info
@@ -13,7 +14,6 @@ import com.rarible.x2y2.client.model.Order
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -24,8 +24,11 @@ class X2Y2OrderLoader(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
     private val properties: X2Y2OrderLoadProperties,
-    private val x2y2SaveCounter: RegisteredCounter
+    private val metrics: ForeignOrderMetrics
 ) {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     suspend fun load(cursor: String?): ApiListResponse<Order> {
         val result = safeGetNextSellOrders(cursor)
         val orders = result.data
@@ -59,7 +62,7 @@ class X2Y2OrderLoader(
                                     orderUpdateService.save(it, eventTimeMarks).also {
                                         orderUpdateService.updateMakeStock(it, null, eventTimeMarks)
                                     }
-                                    x2y2SaveCounter.increment()
+                                    metrics.onDownloadedOrderHandled(Platform.X2Y2)
                                     logger.x2y2Info("Saved new order ${it.hash}")
                                 }
                             }
@@ -76,14 +79,12 @@ class X2Y2OrderLoader(
 
     private suspend fun safeGetNextSellOrders(cursor: String?): ApiListResponse<Order> {
         return try {
-            x2y2OrderService.getNextSellOrders(cursor)
+            val orders = x2y2OrderService.getNextSellOrders(cursor)
+            orders.data.forEach { metrics.onOrderReceived(Platform.X2Y2, it.createdAt) }
+            orders
         } catch (ex: Throwable) {
             logger.x2y2Error("Can't get next orders with cursor $cursor", ex)
             throw ex
         }
-    }
-
-    private companion object {
-        val logger: Logger = LoggerFactory.getLogger(X2Y2OrderLoader::class.java)
     }
 }

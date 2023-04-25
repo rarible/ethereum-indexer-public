@@ -24,6 +24,7 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -45,17 +46,17 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 internal class LooksrareV1ExchangeTakerDescriptorTest {
+
     private val contractsProvider = mockk<ContractsProvider> {
         every { looksrareV1() } returns listOf(randomAddress())
         every { weth() } returns Address.apply("0xc778417e063141139fce010982780140aa0cd5ab")
     }
-    private val looksrareTakeEventMetric = mockk<RegisteredCounter> {
-        every { increment() } returns Unit
-    }
     private val wrapperLooksrareMetric = mockk<RegisteredCounter> {
         every { increment() } returns Unit
     }
-    private val looksrareCancelOrdersEventMetric = mockk<RegisteredCounter> { every { increment(any()) } returns Unit }
+    private val metrics = mockk<ForeignOrderMetrics>() {
+        every { onOrderEventHandled(Platform.LOOKSRARE, any()) } returns Unit
+    }
     private val tokenStandardProvider = mockk<TokenStandardProvider>()
     private val priceUpdateService = mockk<PriceUpdateService>()
     private val contractService = mockk<ContractService>()
@@ -65,22 +66,20 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
     private val descriptorBid = LooksrareV1ExchangeTakerBidDescriptor(
         contractsProvider,
         orderRepository,
-        looksrareCancelOrdersEventMetric,
-        looksrareTakeEventMetric,
         wrapperLooksrareMetric,
         tokenStandardProvider,
         priceUpdateService,
         prizeNormalizer,
+        metrics
     )
     private val descriptorAsk = LooksrareV1ExchangeTakerAskDescriptor(
         contractsProvider,
         orderRepository,
-        looksrareCancelOrdersEventMetric,
-        looksrareTakeEventMetric,
         wrapperLooksrareMetric,
         tokenStandardProvider,
         priceUpdateService,
         prizeNormalizer,
+        metrics
     )
 
     @Test

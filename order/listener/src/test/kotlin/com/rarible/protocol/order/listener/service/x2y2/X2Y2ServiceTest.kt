@@ -1,42 +1,22 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.protocol.order.listener.data.randomX2Y2Event
 import com.rarible.protocol.order.listener.data.randomX2Y2Order
 import com.rarible.x2y2.client.X2Y2ApiClient
 import com.rarible.x2y2.client.model.ApiListResponse
 import com.rarible.x2y2.client.model.EventType
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 internal class X2Y2ServiceTest {
-    private val x2y2ApiClient = mockk<X2Y2ApiClient>()
 
-    private val x2y2OrderDelayGauge = mockk<RegisteredGauge<Long>> {
-        every { set(any()) } returns Unit
-    }
-    private val x2y2LoadCounter = mockk<RegisteredCounter> {
-        every { increment(any()) } returns Unit
-    }
-    private val x2y2EventDelayGauge = mockk<RegisteredGauge<Long>> {
-        every { set(any()) } returns Unit
-    }
-    private val x2y2EventLoadCounter = mockk<RegisteredCounter> {
-        every { increment(any()) } returns Unit
-    }
+    private val x2y2ApiClient = mockk<X2Y2ApiClient>()
     private val service = X2Y2Service(
-        x2y2ApiClient,
-        x2y2OrderDelayGauge,
-        x2y2LoadCounter,
-        x2y2EventLoadCounter,
-        x2y2EventDelayGauge
+        x2y2ApiClient
     )
 
     @Test
@@ -48,8 +28,6 @@ internal class X2Y2ServiceTest {
 
         val result = service.getNextSellOrders(cursor)
         assertThat(result).isEqualTo(expectedResult)
-        verify { x2y2OrderDelayGauge.set(any()) }
-        verify { x2y2LoadCounter.increment(orders.size) }
     }
 
     @Test
@@ -62,8 +40,6 @@ internal class X2Y2ServiceTest {
 
         val result = service.getNextEvents(type, cursor)
         assertThat(result).isEqualTo(expectedResult)
-        verify { x2y2EventDelayGauge.set(any()) }
-        verify { x2y2EventLoadCounter.increment(events.size) }
     }
 
     @Test

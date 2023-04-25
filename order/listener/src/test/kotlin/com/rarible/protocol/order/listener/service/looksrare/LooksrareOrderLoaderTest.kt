@@ -1,14 +1,15 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -19,12 +20,16 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 
 internal class LooksrareOrderLoaderTest {
+
     private val looksrareOrderService = mockk<LooksrareOrderService>()
     private val looksrareOrderConverter = mockk<LooksrareOrderConverter>()
     private val orderRepository = mockk<OrderRepository>()
     private val orderUpdateService = mockk<OrderUpdateService>()
     private val properties = LooksrareLoadProperties()
-    private val looksrareSaveCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
+    private val metrics = mockk<ForeignOrderMetrics> {
+        every { onDownloadedOrderHandled(Platform.LOOKSRARE) } returns Unit
+        every { onOrderReceived(Platform.LOOKSRARE, any()) } returns Unit
+    }
     private val looksrareOrderDelayGauge = mockk<RegisteredGauge<Long>> { every { set(any()) } returns Unit }
 
     private val loader = LooksrareOrderLoader(
@@ -33,8 +38,7 @@ internal class LooksrareOrderLoaderTest {
         orderRepository,
         orderUpdateService,
         properties,
-        looksrareSaveCounter,
-        looksrareOrderDelayGauge
+        metrics
     )
 
     @Test

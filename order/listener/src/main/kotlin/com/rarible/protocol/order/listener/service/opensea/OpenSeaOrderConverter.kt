@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.opensea
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.opensea.client.model.v1.AssetSchema
 import com.rarible.opensea.client.model.v1.OpenSeaOrder
@@ -19,6 +18,7 @@ import com.rarible.protocol.order.core.model.SeaportItemType.ERC721_WITH_CRITERI
 import com.rarible.protocol.order.core.model.SeaportItemType.NATIVE
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.seaportInfo
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -38,8 +38,7 @@ class OpenSeaOrderConverter(
     private val priceUpdateService: PriceUpdateService,
     private val exchangeContracts: OrderIndexerProperties.ExchangeContractAddresses,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
-    private val openSeaErrorCounter: RegisteredCounter,
-    private val seaportErrorCounter: RegisteredCounter,
+    private val metrics: ForeignOrderMetrics,
     properties: OrderListenerProperties
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -69,12 +68,12 @@ class OpenSeaOrderConverter(
             ClientSeaportOrderType.BASIC -> {
                 if (offer.size != 1) {
                     logger.seaportInfo("Unexpected seaport offer size (${offer.size}), for basic order $clientSeaportOrder")
-                    seaportErrorCounter.increment()
+                    metrics.onDownloadedOrderError(Platform.OPEN_SEA, "offer_size")
                     return null
                 }
                 if (consideration.isEmpty()) {
                     logger.seaportInfo("Must contains at least one consideration, for basic order $clientSeaportOrder")
-                    seaportErrorCounter.increment()
+                    metrics.onDownloadedOrderError(Platform.OPEN_SEA, "missing_consideration")
                     return null
                 }
                 val offererConsiderationItemType = consideration.first().itemType
@@ -84,12 +83,12 @@ class OpenSeaOrderConverter(
 
                 if (take.value != currentPrice) {
                     logger.seaportInfo("Protocol total amount must be equal currentPrice: $clientSeaportOrder")
-                    seaportErrorCounter.increment()
+                    metrics.onDownloadedOrderError(Platform.OPEN_SEA, "invalid_price")
                     return null
                 }
                 if (make.type.token in seaportLoadProperties.ignoredSellTokens) {
                     logger.seaportInfo("Skip order $orderHash with token ${make.type.token}")
-                    seaportErrorCounter.increment()
+                    metrics.onDownloadedOrderSkipped(Platform.OPEN_SEA, "ignored_sell_token")
                     return null
                 }
                 val data = OrderBasicSeaportDataV1(
@@ -107,7 +106,7 @@ class OpenSeaOrderConverter(
             }
             ClientSeaportOrderType.ENGLISH_AUCTION, ClientSeaportOrderType.DUTCH_AUCTION -> {
                 logger.info("Unsupported seaport order type ${clientSeaportOrder.orderType}")
-                seaportErrorCounter.increment()
+                metrics.onDownloadedOrderSkipped(Platform.OPEN_SEA, "unsupported_type")
                 return null
             }
         }
@@ -374,13 +373,16 @@ class OpenSeaOrderConverter(
                 data = data.copy(nonce = nonce)
             )
             if (calculatedHash == expectedHash ||
-                Order.openSeaV1EIP712HashToSign(hash = calculatedHash, domain = openSeaExchangeDomainHashV2) == expectedHash
+                Order.openSeaV1EIP712HashToSign(
+                    hash = calculatedHash,
+                    domain = openSeaExchangeDomainHashV2
+                ) == expectedHash
             ) {
                 logger.info("Calculated nonce $nonce for $expectedHash")
                 return nonce
             }
         }
-        openSeaErrorCounter.increment()
+        metrics.onDownloadedOrderError(Platform.OPEN_SEA, "hash_mismatch")
         return null
     }
 
