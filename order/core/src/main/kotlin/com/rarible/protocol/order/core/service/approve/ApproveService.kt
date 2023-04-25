@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
-import java.lang.IllegalArgumentException
 
 @Component
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -46,7 +45,6 @@ class ApproveService(
         cryptoPunksTransferProxy to Platform.CRYPTO_PUNKS,
         looksrareTransferProxyErc721 to Platform.LOOKSRARE,
         looksrareTransferProxyErc1155 to Platform.LOOKSRARE,
-        looksrareTransferProxyNonCompliantErc721 to Platform.LOOKSRARE,
         looksrareTransferProxyNonCompliantErc721 to Platform.LOOKSRARE,
         looksrareV2TransferManager to Platform.LOOKSRARE
     )
