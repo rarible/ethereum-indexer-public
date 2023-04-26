@@ -8,8 +8,10 @@ import com.rarible.opensea.client.model.OpenSeaResult
 import com.rarible.opensea.client.model.OperationResult
 import com.rarible.opensea.client.model.v2.OrdersRequest
 import com.rarible.opensea.client.model.v2.SeaportOrders
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.data.randomSeaportOrder
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -21,8 +23,12 @@ import org.junit.jupiter.api.assertThrows
 import java.time.Duration
 
 internal class OpenSeaOrderServiceImplTest {
+
     private val seaportRequestCursorProducer = mockk<SeaportRequestCursorProducer> {
         every { produceNextFromCursor(any(), any(), any()) } returns emptyList()
+    }
+    private val metrics: ForeignOrderMetrics = mockk {
+        every { onOrderReceived(eq(Platform.OPEN_SEA), any()) } returns Unit
     }
     private val seaportProtocolClient = mockk<SeaportProtocolClient>()
     private val seaportLoad = SeaportLoadProperties(retry = 2, retryDelay = Duration.ZERO)
@@ -30,6 +36,7 @@ internal class OpenSeaOrderServiceImplTest {
         seaportRequestCursorProducer = seaportRequestCursorProducer,
         seaportProtocolClient = seaportProtocolClient,
         seaportLoad = seaportLoad,
+        metrics = metrics
     )
 
     @Test
@@ -38,7 +45,6 @@ internal class OpenSeaOrderServiceImplTest {
         val expectedResult = SeaportOrders(next = "", previous = null, orders = emptyList())
 
         coEvery { seaportProtocolClient.getListOrders(any()) } returns OperationResult.success(expectedResult)
-
         val result = openSeaOrderService.getNextSellOrders(next)
 
         assertThat(result).isEqualTo(expectedResult)

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 class ApprovalMetrics(
     private val blockchain: Blockchain,
     meterRegistry: MeterRegistry,
-) : BaseMetrics(meterRegistry) {
+) : BaseOrderMetrics(meterRegistry) {
 
     fun onApprovalEventMiss(platform: Platform) {
         increment(APPROVAL_EVENT_MISS, tag(blockchain), tag(platform))

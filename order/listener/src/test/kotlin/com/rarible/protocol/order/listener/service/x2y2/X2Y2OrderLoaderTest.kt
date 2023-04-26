@@ -1,28 +1,31 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.X2Y2OrderLoadProperties
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.data.randomX2Y2Order
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.x2y2.client.model.ApiListResponse
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
 internal class X2Y2OrderLoaderTest {
+
     private val x2y2OrderService = mockk<X2Y2Service>()
     private val x2Y2OrderConverter = mockk<X2Y2OrderConverter>()
     private val orderRepository = mockk<OrderRepository>()
     private val orderUpdateService = mockk<OrderUpdateService>()
     private val properties = X2Y2OrderLoadProperties(saveEnabled = true)
-    private val x2y2SaveCounter = mockk<RegisteredCounter>()
+    private val metrics: ForeignOrderMetrics = mockk() {
+        coEvery { onDownloadedOrderHandled(Platform.X2Y2) } returns Unit
+        coEvery { onOrderReceived(Platform.X2Y2, any()) } returns Unit
+    }
 
     private val handler = X2Y2OrderLoader(
         x2y2OrderService,
@@ -30,7 +33,7 @@ internal class X2Y2OrderLoaderTest {
         orderRepository,
         orderUpdateService,
         properties,
-        x2y2SaveCounter
+        metrics
     )
 
     @Test
@@ -65,7 +68,6 @@ internal class X2Y2OrderLoaderTest {
         coEvery { orderUpdateService.updateMakeStock(eq(validOrder1), any(), any()) } returns (validOrder1 to true)
         coEvery { orderUpdateService.save(eq(validOrderVersion2), any()) } returns validOrder2
         coEvery { orderUpdateService.updateMakeStock(eq(validOrder2), any(), any()) } returns (validOrder2 to true)
-        every { x2y2SaveCounter.increment() } returns Unit
 
         handler.load(null)
 
@@ -80,6 +82,5 @@ internal class X2Y2OrderLoaderTest {
         coVerify(exactly = 2) { orderUpdateService.save(any(), any()) }
         coVerify(exactly = 1) { orderUpdateService.save(eq(validOrderVersion1), any()) }
         coVerify(exactly = 1) { orderUpdateService.save(eq(validOrderVersion2), any()) }
-        verify(exactly = 2) { x2y2SaveCounter.increment() }
     }
 }

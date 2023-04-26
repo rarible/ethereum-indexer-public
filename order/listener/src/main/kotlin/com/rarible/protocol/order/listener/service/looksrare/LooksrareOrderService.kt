@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.looksrare.client.LooksrareClientV2
 import com.rarible.looksrare.client.model.LooksrareError
 import com.rarible.looksrare.client.model.OperationResult
@@ -22,7 +21,6 @@ import java.time.Instant
 @Component
 class LooksrareOrderService(
     private val looksrareClient: LooksrareClientV2,
-    private val looksrareLoadCounter: RegisteredCounter,
     private val properties: LooksrareLoadProperties
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -42,7 +40,6 @@ class LooksrareOrderService(
             )
             val result = getOrders(request)
             if (result.success.not()) throw IllegalStateException("$LOOKSRARE_LOG Can't load orders: ${result.message}")
-            looksrareLoadCounter.increment(result.data.size)
             loadOrders.addAll(result.data)
 
             val lastLoadOrder = result.data.lastOrNull()

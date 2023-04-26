@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.looksrare
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Order
@@ -8,6 +7,7 @@ import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +22,7 @@ abstract class AbstractLooksrareExchangeDescriptor<T : EventData>(
     topic: Word,
     contracts: List<Address>,
     private val orderRepository: OrderRepository,
-    private val looksrareCancelOrdersEventMetric: RegisteredCounter,
+    private val metrics: ForeignOrderMetrics
 ) : ExchangeSubscriber<OrderExchangeHistory>(
     name = name,
     topic = topic,
@@ -63,7 +63,7 @@ abstract class AbstractLooksrareExchangeDescriptor<T : EventData>(
 
         if (result.isNotEmpty()) {
             // TODO or maybe nonces size?
-            looksrareCancelOrdersEventMetric.increment(result.size)
+            metrics.onOrderEventHandled(Platform.LOOKSRARE, "cancel")
         }
         return result
     }

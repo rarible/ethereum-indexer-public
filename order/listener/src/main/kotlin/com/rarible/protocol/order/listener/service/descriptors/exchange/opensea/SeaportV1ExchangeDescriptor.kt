@@ -2,11 +2,12 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.opensea.SeaportEventConverter
 import org.slf4j.LoggerFactory
@@ -20,15 +21,23 @@ import java.time.Instant
 class SeaportV1ExchangeDescriptor(
     contractsProvider: ContractsProvider,
     private val seaportEventConverter: SeaportEventConverter,
-    private val seaportEventErrorCounter: RegisteredCounter,
-    private val seaportFulfilledEventCounter: RegisteredCounter,
+    private val metrics: ForeignOrderMetrics,
     private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) : ExchangeSubscriber<OrderSideMatch>(
     name = "os_fulfilled",
     topic = OrderFulfilledEvent.id(),
     contracts = contractsProvider.seaportV1()
 ) {
-    override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    override suspend fun convert(
+        log: Log,
+        transaction: Transaction,
+        timestamp: Instant,
+        index: Int,
+        totalLogs: Int
+    ): List<OrderSideMatch> {
         val event = OrderFulfilledEvent.apply(log)
         val orderSideMatches = seaportEventConverter.convert(event, timestamp, transaction.input())
         recordMetric(orderSideMatches, log)
@@ -53,14 +62,9 @@ class SeaportV1ExchangeDescriptor(
     private fun recordMetric(sideMatches: List<OrderSideMatch>, log: Log) {
         if (sideMatches.isEmpty()) {
             logger.warn("Can't convert event $log to order side matches")
-            seaportEventErrorCounter.increment()
+            metrics.onOrderEventError(Platform.OPEN_SEA, "match", "mismatch")
         } else {
-            seaportFulfilledEventCounter.increment()
+            metrics.onOrderEventHandled(Platform.OPEN_SEA, "match")
         }
-    }
-
-
-    private companion object {
-        private val logger = LoggerFactory.getLogger(SeaportV1ExchangeDescriptor::class.java)
     }
 }

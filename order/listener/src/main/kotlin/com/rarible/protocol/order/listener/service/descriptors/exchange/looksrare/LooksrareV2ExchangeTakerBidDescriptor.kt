@@ -4,12 +4,12 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.looksrare.v2.TakerAskEvent
 import com.rarible.protocol.contracts.looksrare.v2.TakerBidEvent
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
@@ -22,24 +22,22 @@ import java.math.BigInteger
 class LooksrareV2ExchangeTakerBidDescriptor(
     contractsProvider: ContractsProvider,
     orderRepository: OrderRepository,
-    looksrareCancelOrdersEventMetric: RegisteredCounter,
-    looksrareTakeAskEventMetric: RegisteredCounter,
     wrapperLooksrareMatchEventMetric: RegisteredCounter,
     tokenStandardProvider: TokenStandardProvider,
     priceUpdateService: PriceUpdateService,
     prizeNormalizer: PriceNormalizer,
+    metrics: ForeignOrderMetrics
 ) : AbstractLooksrareV1ExchangeTakerDescriptor(
     name = "lr_v2_taker_bid",
     TakerBidEvent.id(),
     contractsProvider.looksrareV2(),
     contractsProvider,
     orderRepository,
-    looksrareCancelOrdersEventMetric,
-    looksrareTakeAskEventMetric,
     wrapperLooksrareMatchEventMetric,
     tokenStandardProvider,
     priceUpdateService,
     prizeNormalizer,
+    metrics
 ) {
     override fun getTakeEvent(log: Log): TakeEvent? {
         val event = TakerBidEvent.apply(log)

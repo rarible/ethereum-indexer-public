@@ -23,7 +23,7 @@ import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OpenSeaSigner
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.data.createOrderVersion
-import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -39,6 +39,7 @@ internal class OpenSeaOrderValidatorTest {
     private val properties = mockk<OrderIndexerProperties> {
         every { chainId } returns 4
         every { minSeaportMakePrice } returns BigDecimal.valueOf(1, 15)
+        every { blockchain } returns Blockchain.ETHEREUM
     }
     private val openSeaOrderValidator = OpenSeaOrderValidatorImp(
         commonSigner = CommonSigner(),
@@ -52,12 +53,7 @@ internal class OpenSeaOrderValidatorTest {
                 Address.apply("0xdd54d660178b28f6033a953b0e55073cfa7e3744")
             )
         ),
-        openSeaErrorCounter = OpenSeaOrderErrorMetric("", Blockchain.ETHEREUM).bind(
-            SimpleMeterRegistry()
-        ),
-        seaportErrorCounter = OpenSeaOrderErrorMetric("", Blockchain.ETHEREUM).bind(
-            SimpleMeterRegistry()
-        ),
+        metrics = ForeignOrderMetrics(properties, SimpleMeterRegistry()),
         seaportLoadProperties = SeaportLoadProperties(),
         properties = properties
     )

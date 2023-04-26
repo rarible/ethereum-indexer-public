@@ -1,11 +1,14 @@
 package com.rarible.protocol.order.listener.service.opensea
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.common.mapAsync
+import com.rarible.opensea.client.model.v2.SeaportOrder
 import com.rarible.opensea.client.model.v2.SeaportOrders
 import com.rarible.protocol.dto.integrationEventMark
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.seaportError
 import com.rarible.protocol.order.listener.misc.seaportInfo
 import kotlinx.coroutines.CoroutineScope
@@ -24,7 +27,7 @@ class SeaportOrderLoader(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
     private val properties: SeaportLoadProperties,
-    private val seaportSaveCounter: RegisteredCounter
+    private val metrics: ForeignOrderMetrics
 ) {
 
     suspend fun load(
@@ -53,29 +56,8 @@ class SeaportOrderLoader(
                     }
                 )
                 @Suppress("ConvertCallChainIntoSequence")
-                orders
-                    .chunked(properties.saveBatchSize)
-                    .map { chunk ->
-                        chunk.map {
-                            async {
-                                val order = openSeaOrderConverter.convert(it)
-                                if (
-                                    order != null &&
-                                    properties.saveEnabled &&
-                                    openSeaOrderValidator.validate(order) &&
-                                    orderRepository.findById(order.hash) == null
-                                ) {
-                                    val eventTimeMarks = integrationEventMark("indexer-in_order", order.createdAt)
-                                    // TODO 2 events will be emitted here - is it fine?
-                                    val saved = orderUpdateService.save(order, eventTimeMarks).run {
-                                        orderUpdateService.updateMakeStock(this, null, eventTimeMarks).first
-                                    }
-                                    seaportSaveCounter.increment()
-                                    logger.seaportInfo("Saved new order ${saved.id}: ${saved.status}")
-                                }
-                            }
-                        }.awaitAll()
-                    }
+                orders.chunked(properties.saveBatchSize)
+                    .map { chunk -> chunk.mapAsync { update(it) } }
                     .flatten()
                     .lastOrNull()
             }
@@ -83,6 +65,28 @@ class SeaportOrderLoader(
         }
         handlesAsync.awaitAll()
         lastSeaResult ?: throw IllegalStateException("Unexpected null result for cursor $cursor")
+    }
+
+    private suspend fun update(seaportOrder: SeaportOrder) {
+        val order = openSeaOrderConverter.convert(seaportOrder) ?: return
+        if (!properties.saveEnabled) {
+            return
+        }
+        if (!openSeaOrderValidator.validate(order)) {
+            return
+        }
+        if (orderRepository.findById(order.hash) != null) {
+            metrics.onDownloadedOrderSkipped(Platform.OPEN_SEA, "already_exists")
+            return
+        }
+
+        val eventTimeMarks = integrationEventMark("indexer-in_order", order.createdAt)
+        // TODO 2 events will be emitted here - is it fine?
+        val saved = orderUpdateService.save(order, eventTimeMarks).run {
+            orderUpdateService.updateMakeStock(this, null, eventTimeMarks).first
+        }
+        metrics.onDownloadedOrderHandled(Platform.OPEN_SEA)
+        logger.seaportInfo("Saved new order ${saved.id}: ${saved.status}")
     }
 
     @Suppress("EXPERIMENTAL_API_USAGE", "OPT_IN_USAGE")

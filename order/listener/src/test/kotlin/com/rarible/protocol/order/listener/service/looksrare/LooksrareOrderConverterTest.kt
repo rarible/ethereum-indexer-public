@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.looksrare.client.model.v2.CollectionType
@@ -10,12 +9,13 @@ import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
-import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -25,18 +25,19 @@ import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
 internal class LooksrareOrderConverterTest {
+
     private val priceUpdateService = mockk<PriceUpdateService> {
         coEvery { withUpdatedPrices(any<OrderVersion>()) } answers { it.invocation.args.first() as OrderVersion }
     }
-    private val looksrareErrorCounter = mockk<RegisteredCounter> {
-        every { increment() } returns Unit
+    private val metrics: ForeignOrderMetrics = mockk {
+        every { onDownloadedOrderError(Platform.LOOKSRARE, "incorrect_amount") } returns Unit
     }
     private val currencyAddresses = OrderIndexerProperties.CurrencyContractAddresses(weth = randomAddress())
 
     private val converter = LooksrareOrderConverter(
         priceUpdateService = priceUpdateService,
         currencyAddresses = currencyAddresses,
-        looksrareErrorCounter = looksrareErrorCounter
+        metrics
     )
 
     @Test
@@ -67,9 +68,9 @@ internal class LooksrareOrderConverterTest {
         assertThat(orderVersion.signature).isEqualTo(looksrareOrder.signature)
         assertThat(orderVersion.data).isInstanceOf(OrderLooksrareDataV2::class.java)
         with(orderVersion.data as OrderLooksrareDataV2) {
-            assertThat(counterHex!!.value).isEqualTo(looksrareOrder.globalNonce)
-            assertThat(orderNonce!!.value).isEqualTo(looksrareOrder.orderNonce)
-            assertThat(subsetNonce!!.value).isEqualTo(looksrareOrder.subsetNonce)
+            assertThat(counterHex.value).isEqualTo(looksrareOrder.globalNonce)
+            assertThat(orderNonce.value).isEqualTo(looksrareOrder.orderNonce)
+            assertThat(subsetNonce.value).isEqualTo(looksrareOrder.subsetNonce)
             assertThat(strategyId.value).isEqualTo(looksrareOrder.strategyId.toBigInteger())
         }
     }

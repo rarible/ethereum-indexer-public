@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.data.randomX2Y2Order
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.x2y2.client.model.ErcType
 import com.rarible.x2y2.client.model.Order
 import com.rarible.x2y2.client.model.OrderStatus
@@ -26,17 +27,21 @@ import org.junit.jupiter.params.provider.MethodSource
 import scalether.domain.Address
 import java.math.BigInteger
 
-class X2Y2ConverterTest {
+class X2Y2OrderConverterTest {
+
+    private val metrics = mockk<ForeignOrderMetrics> {
+        every { onDownloadedOrderSkipped(Platform.X2Y2, any()) } returns Unit
+    }
+
     private val converter = X2Y2OrderConverter(
         mockk {
             coEvery { withUpdatedPrices(orderVersion = any()) } returnsArgument 0
         },
-        mockk {
-            every { increment() } returns Unit
-        }
+        metrics
     )
 
     private companion object {
+
         @JvmStatic
         fun notOpenStatuses() = OrderStatus.values().filter { it != OrderStatus.OPEN }.stream()
     }

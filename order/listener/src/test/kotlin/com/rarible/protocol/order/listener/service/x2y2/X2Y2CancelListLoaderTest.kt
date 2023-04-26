@@ -1,11 +1,12 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomString
 import com.rarible.protocol.order.core.model.OrderState
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.data.randomX2Y2Event
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.x2y2.client.model.ApiListResponse
 import com.rarible.x2y2.client.model.EventType
 import io.mockk.coEvery
@@ -17,16 +18,21 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class X2Y2CancelListLoaderTest {
+
     private val x2y2Service = mockk<X2Y2Service>()
     private val orderStateRepository = mockk<OrderStateRepository>()
     private val orderUpdateService = mockk<OrderUpdateService>()
-    private val x2y2OffChainOrderCancelCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
+    private val metrics = mockk<ForeignOrderMetrics> {
+        every { onOrderEventHandled(Platform.X2Y2, "cancel_offchain") } returns Unit
+        every { onOrderReceived(Platform.X2Y2, any()) } returns Unit
+        every { onOrderReceived(Platform.X2Y2, any(), any()) } returns Unit
+    }
 
-    private val handler =  X2Y2CancelListEventLoader(
+    private val handler = X2Y2CancelListEventLoader(
         x2y2Service,
         orderStateRepository,
         orderUpdateService,
-        x2y2OffChainOrderCancelCounter
+        metrics
     )
 
     @Test

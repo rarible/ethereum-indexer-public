@@ -2,11 +2,11 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.looksra
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.contracts.exchange.looksrare.v1.CancelMultipleOrdersEvent
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
@@ -17,13 +17,13 @@ import java.time.Instant
 class LooksrareV1ExchangeCancelDescriptor(
     contractsProvider: ContractsProvider,
     orderRepository: OrderRepository,
-    looksrareCancelOrdersEventMetric: RegisteredCounter,
+    metrics: ForeignOrderMetrics
 ) : AbstractLooksrareExchangeDescriptor<OrderCancel>(
     name = "lr_cancel_multiple",
     CancelMultipleOrdersEvent.id(),
     contractsProvider.looksrareV1(),
     orderRepository,
-    looksrareCancelOrdersEventMetric
+    metrics
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderCancel> {
         val event = CancelMultipleOrdersEvent.apply(log)

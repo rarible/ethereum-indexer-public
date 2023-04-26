@@ -1,42 +1,47 @@
 package com.rarible.protocol.order.listener.service.opensea
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.opensea.client.model.v2.SeaportOrder
 import com.rarible.opensea.client.model.v2.SeaportOrders
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.data.randomSeaportOrder
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 internal class SeaportOrderLoaderTest {
+
     private val openSeaOrderService = mockk<OpenSeaOrderService>()
     private val openSeaOrderConverter = mockk<OpenSeaOrderConverter>()
     private val openSeaOrderValidator = mockk<OpenSeaOrderValidator>()
     private val orderRepository = mockk<OrderRepository>()
     private val orderUpdateService = mockk<OrderUpdateService>()
-    private val seaportSaveCounter = mockk<RegisteredCounter>()
+    private val metrics = mockk<ForeignOrderMetrics>() {
+        every { onDownloadedOrderHandled(Platform.OPEN_SEA) } returns Unit
+        every { onDownloadedOrderSkipped(Platform.OPEN_SEA, any()) } returns Unit
+        every { onDownloadedOrderError(Platform.OPEN_SEA, any()) } returns Unit
+    }
     private val properties = SeaportLoadProperties(saveEnabled = true)
 
-    private val handler =  SeaportOrderLoader(
+    private val handler = SeaportOrderLoader(
         openSeaOrderService = openSeaOrderService,
         openSeaOrderConverter = openSeaOrderConverter,
         openSeaOrderValidator = openSeaOrderValidator,
         orderRepository = orderRepository,
         orderUpdateService = orderUpdateService,
         properties = properties,
-        seaportSaveCounter = seaportSaveCounter
+        metrics = metrics
     )
 
     @Test
@@ -72,7 +77,6 @@ internal class SeaportOrderLoaderTest {
 
         coEvery { orderUpdateService.save(eq(validOrderVersion1), any()) } returns order1
         coEvery { orderUpdateService.updateMakeStock(order1, any(), any()) } returns (order1 to true)
-        every { seaportSaveCounter.increment() } returns Unit
 
         handler.load(null, false)
 
@@ -86,7 +90,6 @@ internal class SeaportOrderLoaderTest {
 
         coVerify(exactly = 1) { orderUpdateService.save(any(), any()) }
         coVerify(exactly = 1) { orderUpdateService.save(eq(validOrderVersion1), any()) }
-        verify(exactly = 1) { seaportSaveCounter.increment() }
     }
 
     @Test
@@ -143,7 +146,6 @@ internal class SeaportOrderLoaderTest {
         coEvery { orderUpdateService.updateMakeStock(order1, any(), any()) } returns (order1 to true)
         coEvery { orderUpdateService.updateMakeStock(order2, any(), any()) } returns (order2 to true)
         coEvery { orderUpdateService.updateMakeStock(order3, any(), any()) } returns (order3 to true)
-        every { seaportSaveCounter.increment() } returns Unit
 
         val result = handler.load(previous, false)
         assertThat(result).isEqualTo(seaportOrders3)
@@ -178,7 +180,6 @@ internal class SeaportOrderLoaderTest {
         coEvery { orderRepository.findById(orderVersion1.hash) } returns null
         coEvery { orderUpdateService.save(orderVersion1) } returns createOrder()
         coEvery { orderUpdateService.updateMakeStock(eq(orderVersion1.hash), any(), any()) } returns mockk()
-        every { seaportSaveCounter.increment() } returns Unit
 
         assertThrows<RuntimeException> {
             runBlocking {
@@ -206,7 +207,6 @@ internal class SeaportOrderLoaderTest {
             coEvery { orderUpdateService.save(eq(orderVersion), any()) } returns order
             coEvery { orderUpdateService.updateMakeStock(eq(order), any(), any()) } returns (order to true)
         }
-        every { seaportSaveCounter.increment() } returns Unit
 
         val result = handler.load("previous0", false)
         assertThat(result.previous).isEqualTo("previous${properties.maxLoadResults}")

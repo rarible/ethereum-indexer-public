@@ -12,11 +12,13 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.TokenStandard
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.looksrareError
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Word
@@ -34,18 +36,17 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
     contracts: List<Address>,
     private val contractsProvider: ContractsProvider,
     orderRepository: OrderRepository,
-    looksrareCancelOrdersEventMetric: RegisteredCounter,
-    private val looksrareTakeEventMetric: RegisteredCounter,
     private val wrapperLooksrareMatchEventMetric: RegisteredCounter,
     private val tokenStandardProvider: TokenStandardProvider,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
+    private val metrics: ForeignOrderMetrics
 ) : AbstractLooksrareExchangeDescriptor<OrderExchangeHistory>(
     name,
     topic,
     contracts,
     orderRepository,
-    looksrareCancelOrdersEventMetric
+    metrics
 ) {
     protected val logger: Logger = LoggerFactory.getLogger(javaClass::class.java)
 
@@ -120,7 +121,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                 counterAdhoc = false,
             )
         )
-        looksrareTakeEventMetric.increment()
+        metrics.onOrderEventHandled(Platform.LOOKSRARE, "match")
 
         val matchEvents = OrderSideMatch.addMarketplaceMarker(
             events,

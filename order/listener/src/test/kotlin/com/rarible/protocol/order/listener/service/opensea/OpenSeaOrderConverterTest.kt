@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.opensea
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomWord
@@ -26,6 +25,7 @@ import com.rarible.protocol.order.listener.data.randomOffer
 import com.rarible.protocol.order.listener.data.randomOrderParameters
 import com.rarible.protocol.order.listener.data.randomProtocolData
 import com.rarible.protocol.order.listener.data.randomSeaportOrder
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -38,8 +38,10 @@ internal class OpenSeaOrderConverterTest {
 
     private val featureFlags = mockk<OrderIndexerProperties.FeatureFlags>()
     private val exchangeContracts = mockk<OrderIndexerProperties.ExchangeContractAddresses>()
-    private val openSeaErrorCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
-    private val seaportErrorCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
+    private val metrics = mockk<ForeignOrderMetrics> {
+        every { onDownloadedOrderSkipped(any(), any()) } returns Unit
+        every { onDownloadedOrderError(any(), any()) } returns Unit
+    }
     private val seaportLoadProperties = mockk<SeaportLoadProperties>() {
         every { ignoredSellTokens } returns emptyList()
     }
@@ -54,9 +56,8 @@ internal class OpenSeaOrderConverterTest {
         priceUpdateService = priceUpdateService,
         exchangeContracts = exchangeContracts,
         featureFlags = featureFlags,
-        openSeaErrorCounter = openSeaErrorCounter,
-        seaportErrorCounter = seaportErrorCounter,
-        properties = properties
+        properties = properties,
+        metrics = metrics
     )
 
     @Test

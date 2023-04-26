@@ -1,11 +1,10 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.looksrare.client.model.v2.CollectionType
 import com.rarible.looksrare.client.model.v2.LooksrareOrder
 import com.rarible.looksrare.client.model.v2.MerkleProof
 import com.rarible.looksrare.client.model.v2.QuoteType
-import com.rarible.looksrare.client.model.v2.CollectionType
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
@@ -13,12 +12,13 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.LooksrareMerkleProof
+import com.rarible.protocol.order.core.model.LooksrareQuoteType
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
-import com.rarible.protocol.order.core.model.LooksrareQuoteType
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
@@ -26,14 +26,14 @@ import scalether.domain.Address
 class LooksrareOrderConverter(
     private val priceUpdateService: PriceUpdateService,
     private val currencyAddresses: OrderIndexerProperties.CurrencyContractAddresses,
-    private val looksrareErrorCounter: RegisteredCounter
+    private val metrics: ForeignOrderMetrics
 ) {
     suspend fun convert(looksrareOrder: LooksrareOrder): OrderVersion? {
         if (
             looksrareOrder.itemIds.size != 1 ||
             looksrareOrder.amounts.size != 1
         ) return run {
-            looksrareErrorCounter.increment()
+            metrics.onDownloadedOrderError(Platform.LOOKSRARE, "incorrect_amount")
             null
         }
         val tokenId = looksrareOrder.itemIds.single()

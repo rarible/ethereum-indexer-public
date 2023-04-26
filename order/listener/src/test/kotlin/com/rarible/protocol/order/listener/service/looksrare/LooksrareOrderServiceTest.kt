@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
-import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.looksrare.client.LooksrareClientV2
 import com.rarible.looksrare.client.model.LooksrareResult
 import com.rarible.looksrare.client.model.v2.LooksrareOrders
@@ -10,7 +9,6 @@ import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -20,14 +18,10 @@ import java.time.Instant
 
 internal class LooksrareOrderServiceTest {
     private val looksrareClient = mockk<LooksrareClientV2>()
-    private val looksrareLoadCounter = mockk<RegisteredCounter> {
-        every { increment(any()) } returns Unit
-    }
     private val properties = LooksrareLoadProperties()
 
     private val service = LooksrareOrderService(
         looksrareClient,
-        looksrareLoadCounter,
         properties
     )
 
