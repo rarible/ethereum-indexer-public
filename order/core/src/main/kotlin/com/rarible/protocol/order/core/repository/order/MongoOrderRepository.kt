@@ -227,7 +227,7 @@ class MongoOrderRepository(
                 .and(Order::status.name).ne(OrderStatus.CANCELLED)
                 .and(COUNTER_HEX_KEY).exists(true).lt(counterValue)
         )
-        //query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_GLOBAL_COUNTER_STATUS.indexKeys)
+        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_GLOBAL_COUNTER_STATUS.indexKeys)
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
