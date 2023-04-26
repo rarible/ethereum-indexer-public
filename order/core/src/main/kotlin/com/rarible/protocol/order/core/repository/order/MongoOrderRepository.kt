@@ -12,7 +12,6 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
-import com.rarible.protocol.order.core.model.OrderCountableData
 import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
@@ -228,7 +227,7 @@ class MongoOrderRepository(
                 .and(Order::status.name).ne(OrderStatus.CANCELLED)
                 .and(COUNTER_HEX_KEY).exists(true).lt(counterValue)
         )
-        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_GLOBAL_COUNTER_STATUS.indexKeys)
+        //query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_GLOBAL_COUNTER_STATUS.indexKeys)
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
@@ -370,7 +369,7 @@ class MongoOrderRepository(
             maker = maker,
             counters = counters,
             counterKey = Order::data / OrderLooksrareDataV2::orderNonce,
-            hint = OrderRepositoryIndexes.BY_PLATFORM_MAKER_ORDER_COUNTER_STATUS
+            //hint = OrderRepositoryIndexes.BY_PLATFORM_MAKER_ORDER_COUNTER_STATUS
         )
     }
 
@@ -380,7 +379,7 @@ class MongoOrderRepository(
             maker = maker,
             counters = counters,
             counterKey = Order::data / OrderLooksrareDataV2::subsetNonce,
-            hint = OrderRepositoryIndexes.BY_PLATFORM_MAKER_SUBSET_COUNTER_STATUS
+            //hint = OrderRepositoryIndexes.BY_PLATFORM_MAKER_SUBSET_COUNTER_STATUS
         )
     }
 
@@ -389,7 +388,7 @@ class MongoOrderRepository(
         maker: Address,
         counters: List<BigInteger>,
         counterKey: KPropertyPath<EthUInt256, OrderData>,
-        hint: IndexDefinition
+        hint: IndexDefinition? = null
     ): Flow<Order> {
         val counterValues = counters.map { EthUInt256.of(it) }
         val criteria = where(Order::platform).isEqualTo(platform)
@@ -402,7 +401,7 @@ class MongoOrderRepository(
                 }
             }
 
-        val query = Query(criteria).withHint(hint.indexKeys)
+        val query = hint?.let { Query(criteria).withHint(it.indexKeys) } ?: Query(criteria)
         return template.query<Order>().matching(query).all().asFlow()
     }
 
