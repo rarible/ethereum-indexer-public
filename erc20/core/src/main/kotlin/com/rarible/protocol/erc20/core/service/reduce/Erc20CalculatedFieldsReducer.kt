@@ -17,6 +17,6 @@ class Erc20CalculatedFieldsReducer : Reducer<Erc20Event, Erc20Balance> {
         val blockNumber =
             lastEvent?.log?.blockNumber ?:
             entity.blockNumber
-        return entity.copy(lastUpdatedAt = updatedAt).withBlockNumber(blockNumber)
+        return entity.copy(lastUpdatedAt = updatedAt, blockNumber = blockNumber)
     }
 }

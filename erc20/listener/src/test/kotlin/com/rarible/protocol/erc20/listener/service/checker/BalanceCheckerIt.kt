@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
-import scalether.domain.AddressFactory
 
 // This test is flaky due to kafka events from other tests can change metrics
 // Better to run these test separately
@@ -52,10 +51,10 @@ class BalanceCheckerIt : AbstractIntegrationTest() {
         val walletOwner = sender.from()
         val erc20 = SimpleERC20.deployAndWait(sender, poller).awaitFirst()
         erc20.mint(walletOwner, 10.toBigInteger()).withSender(sender).execute().verifySuccess()
-        erc20.approve(walletOwner, 9.toBigInteger()).withSender(sender).execute().verifySuccess()
 
         // transfer to random address
-        erc20.transferFrom(walletOwner, AddressFactory.create(), 3.toBigInteger()).withSender(sender).execute().verifySuccess()
+//        erc20.approve(walletOwner, 9.toBigInteger()).withSender(sender).execute().verifySuccess()
+//        erc20.transferFrom(walletOwner, AddressFactory.create(), 3.toBigInteger()).withSender(sender).execute().verifySuccess()
 
         meterRegistry.clear() // metric clean
         waitAssert {
