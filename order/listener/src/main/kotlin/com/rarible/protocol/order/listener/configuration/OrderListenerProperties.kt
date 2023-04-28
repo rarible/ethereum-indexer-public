@@ -21,6 +21,7 @@ data class OrderListenerProperties(
     val updateAuctionOngoingStateEndLag: Duration = Duration.ofMinutes(5),
     val openSeaClientUserAgents: String = "",
     val ownershipConsumerWorkersCount: Int = 4,
+    val itemConsumerWorkersCount: Int = 3,
     val zeroExExchangeDomainHash: String = "0x",
     val openSeaExchangeDomainHashV2: String = "0x0000000000000000000000000000000000000000000000000000000000000000",
     val openSeaOrdersLoadPeriodWorker: OpenSeaOrdersLoadPeriodWorkerProperties = OpenSeaOrdersLoadPeriodWorkerProperties(),

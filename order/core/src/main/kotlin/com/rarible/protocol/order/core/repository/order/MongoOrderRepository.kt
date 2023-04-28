@@ -12,7 +12,6 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
-import com.rarible.protocol.order.core.model.OrderCountableData
 import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
@@ -145,6 +144,23 @@ class MongoOrderRepository(
                 .and(Order::cancelled).isEqualTo(false)
 
         val query = Query(criteria)
+        return template.query<Order>().matching(query).all().asFlow()
+    }
+
+    override fun findSellOrdersNotCancelledByItemId(
+        platform: Platform,
+        token: Address,
+        tokenId: EthUInt256
+    ): Flow<Order> {
+        val criteria =
+            (Order::make / Asset::type / NftAssetType::nft isEqualTo true)
+                .and(Order::cancelled).isEqualTo(false)
+                .and(Order::platform).isEqualTo(platform)
+                .and(Order::make / Asset::type / NftAssetType::token).isEqualTo(token)
+                .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
+
+        val query = Query(criteria)
+            .withHint(OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_PLATFORM_NOT_CANCELLED.indexKeys)
         return template.query<Order>().matching(query).all().asFlow()
     }
 
@@ -406,7 +422,6 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-
     private suspend fun dropIndexes(vararg names: String) {
         val existing = template.indexOps(COLLECTION).indexInfo.map { it.name }.collectList().awaitFirst()
         for (name in names) {
@@ -420,6 +435,7 @@ class MongoOrderRepository(
     }
 
     companion object {
+
         const val COLLECTION = "order"
         const val COUNTER_HEX_KEY = "data.counterHex"
     }

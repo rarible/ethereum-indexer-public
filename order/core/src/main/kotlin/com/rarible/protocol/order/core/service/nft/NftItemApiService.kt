@@ -9,24 +9,24 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import reactor.core.publisher.Mono
 
 @Component
 @CaptureSpan(type = SpanType.EXT)
 class NftItemApiService(
     private val nftItemApi: NftItemControllerApi
 ) {
+
     suspend fun getNftItemById(itemId: String): NftItemDto? {
-        return clientRequest {  nftItemApi.getNftItemById(itemId) }
+        return clientRequest { nftItemApi.getNftItemById(itemId).awaitFirstOrNull() }
     }
 
     suspend fun getNftLazyItemById(itemId: String): LazyNftDto? {
-        return clientRequest {  nftItemApi.getNftLazyItemById(itemId) }
+        return clientRequest { nftItemApi.getNftLazyItemById(itemId).awaitFirstOrNull() }
     }
 
-    private suspend fun <T> clientRequest(body: suspend () -> Mono<T>): T? {
+    private suspend fun <T> clientRequest(body: suspend () -> T): T? {
         return try {
-            body().awaitFirstOrNull()
+            body()
         } catch (ex: WebClientResponseException) {
             if (ex.statusCode == HttpStatus.NOT_FOUND) {
                 null

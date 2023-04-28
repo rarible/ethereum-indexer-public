@@ -7,14 +7,14 @@ import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.order.OrderFilterAll
 import com.rarible.protocol.order.core.model.order.OrderFilterSort
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @IntegrationTest
-internal class OrderRepositoryServiceTest : AbstractIntegrationTest() {
+internal class OrderRepositoryServiceIt : AbstractIntegrationTest() {
+
     @Autowired
     private lateinit var orderRepositoryService: OrderRepositoryService
 

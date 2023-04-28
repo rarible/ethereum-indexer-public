@@ -40,6 +40,8 @@ interface OrderRepository {
 
     fun findByTargetNftAndNotCanceled(maker: Address, token: Address, tokenId: EthUInt256): Flow<Order>
 
+    fun findSellOrdersNotCancelledByItemId(platform: Platform, token: Address, tokenId: EthUInt256): Flow<Order>
+
     fun findByTargetBalanceAndNotCanceled(maker: Address, token: Address): Flow<Order>
 
     fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?, status: OrderStatus?, platform: Platform?): Flow<Order>

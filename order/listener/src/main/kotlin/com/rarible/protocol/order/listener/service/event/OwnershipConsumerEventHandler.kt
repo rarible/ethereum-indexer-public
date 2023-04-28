@@ -4,8 +4,10 @@ import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
-class NftOwnershipConsumerEventHandler(
+@Component
+class OwnershipConsumerEventHandler(
     private val orderBalanceService: OrderBalanceService
 ) : ConsumerEventHandler<NftOwnershipEventDto> {
 
