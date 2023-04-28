@@ -112,6 +112,22 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    // Orders for item which are not cancelled (for deactivation by suspicious items)
+    val SELL_ORDERS_BY_ITEM_PLATFORM_NOT_CANCELLED = Index()
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::cancelled.name, Sort.Direction.ASC)
+        .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .partial(
+            PartialIndexFilter.of(
+                Criteria.where(Order::cancelled.name).isEqualTo(false)
+                    .and("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
+            )
+        )
+        .background()
+
     // --------------------- getSellOrdersByCollection ---------------------//
     val SELL_ORDERS_BY_COLLECTION_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::nft.name}", Sort.Direction.ASC)
@@ -267,6 +283,7 @@ object OrderRepositoryIndexes {
         SELL_ORDERS_BY_ITEM_PLATFORM_SORT_BY_USD_PRICE_DEFINITION,
         SELL_ORDERS_BY_ITEM_CURRENCY_STATUS_SORT_BY_PRICE_DEFINITION,
         SELL_ORDERS_BY_ITEM_MAKER_SORT_BY_PRICE_DEFINITION,
+        SELL_ORDERS_BY_ITEM_PLATFORM_NOT_CANCELLED,
         SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION,
 
         SELL_ORDERS_BY_COLLECTION_DEFINITION,
