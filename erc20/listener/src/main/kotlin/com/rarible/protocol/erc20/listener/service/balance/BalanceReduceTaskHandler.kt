@@ -44,10 +44,10 @@ class BalanceReduceTaskHandler(
                 val balance = BalanceId.parseId(param)
                 Pair(balance.token, balance.owner)
             }
-            // all balances
-            param.isNotBlank() -> Pair(null, null)
             // token only
-            else -> Pair(Address.apply(param), null)
+            param.isNotBlank() -> Pair(Address.apply(param), null)
+            // all balances
+            else -> Pair(null, null)
         }
         return erc20BalanceReduceService.update(token = token, owner = owner, from = from?.toBalanceId())
             .map { it.id.toState() }
