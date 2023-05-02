@@ -62,7 +62,7 @@ object SeaportOrderParser {
                 }
             }
 
-            // Seaport v1.4
+            // Seaport v1.4/1.5
             SeaportV1_4.matchAdvancedOrdersSignature().id() -> {
                 val methodSignature = SeaportV1_4.matchAdvancedOrdersSignature()
                 methodSignature.`in`().decode(input, 4).value()._1().map { advancedOrder ->
