@@ -13,6 +13,7 @@ class ContractsProvider(
     private val currencyContractAddresses: OrderIndexerProperties.CurrencyContractAddresses,
     private val sudoSwapAddresses: SudoSwapAddresses,
 ) {
+
     fun raribleExchangeV1(): List<Address> {
         return LambdaList { listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old) }
     }
@@ -38,7 +39,11 @@ class ContractsProvider(
     }
 
     fun seaportV1(): List<Address> {
-        return listOf(exchangeContractAddresses.seaportV1, exchangeContractAddresses.seaportV1_4)
+        return listOf(
+            exchangeContractAddresses.seaportV1,
+            exchangeContractAddresses.seaportV1_4,
+            exchangeContractAddresses.seaportV1_5
+        )
     }
 
     fun blurV1(): List<Address> {
