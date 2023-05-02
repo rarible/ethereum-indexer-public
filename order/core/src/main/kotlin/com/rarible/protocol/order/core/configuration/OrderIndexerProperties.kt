@@ -71,6 +71,7 @@ data class OrderIndexerProperties(
         var openSeaV2: Address,
         var seaportV1: Address,
         var seaportV1_4: Address,
+        var seaportV1_5: Address,
         var blurV1: Address,
         var cryptoPunks: Address,
         var zeroEx: Address,

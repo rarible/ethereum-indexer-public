@@ -6,6 +6,7 @@ common:
   exchange-contract-addresses:
     seaportV1: "0x00000000006c3852cbef3e08e8df289169ede581"
     seaportV1_4: "0x00000000000001ad428e4906ae43d8f9852d0dd6"
+    seaportV1_5: "0x00000000000000adc04c56bf30ac9d3c0aaf14dc"
   transfer-proxy-addresses:
     seaport-transfer-proxy: "0x1e0049783f008a0085193e00003d00cd54003c71"
   order-event-handle:
