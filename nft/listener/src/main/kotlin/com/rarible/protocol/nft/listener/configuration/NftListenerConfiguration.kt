@@ -10,7 +10,6 @@ import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.daemon.sequential.ConsumerWorkerHolder
 import com.rarible.core.lockredis.EnableRaribleRedisLock
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
-import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -24,7 +23,6 @@ import com.rarible.protocol.nft.core.producer.InternalTopicProvider
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.action.ActionEventHandler
 import com.rarible.protocol.nft.core.service.action.ActionJobHandler
-import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 import com.rarible.protocol.nft.listener.service.checker.OwnershipBatchCheckerHandler
 import com.rarible.protocol.nft.listener.service.item.InconsistentItemsRepairJobHandler
 import com.rarible.protocol.nft.listener.service.item.ItemOwnershipConsistencyJobHandler
@@ -66,26 +64,6 @@ class NftListenerConfiguration(
     @Bean
     fun updateSuspiciousItemsHandlerProperties(): UpdateSuspiciousItemsHandlerProperties {
         return nftListenerProperties.updateSuspiciousItemsHandler
-    }
-
-    @Deprecated("remove after release")
-    @Bean
-    fun collectionMetaExtenderWorker(internalCollectionHandler: InternalCollectionHandler): ConsumerWorkerHolder<NftCollectionEventDto> {
-        logger.info("Creating collection meta extender worker")
-        val workers = listOf(
-            ConsumerWorker(
-                consumer = InternalCollectionHandler.createInternalCollectionConsumer(
-                    applicationEnvironmentInfo,
-                    nftIndexerProperties.blockchain,
-                    nftIndexerProperties.kafkaReplicaSet
-                ),
-                properties = nftIndexerProperties.daemonWorkerProperties,
-                eventHandler = internalCollectionHandler,
-                meterRegistry = meterRegistry,
-                workerName = "nftCollectionMetaExtender"
-            )
-        )
-        return ConsumerWorkerHolder(workers).apply { start() }
     }
 
     @Bean
