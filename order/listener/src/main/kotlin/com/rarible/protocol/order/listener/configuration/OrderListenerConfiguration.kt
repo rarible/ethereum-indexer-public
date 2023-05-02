@@ -9,6 +9,7 @@ import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.dto.Erc20BalanceEventDto
+import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFactory
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
@@ -27,7 +28,8 @@ import com.rarible.protocol.order.listener.job.X2Y2CancelEventsFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2OrdersFetchWorker
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
-import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
+import com.rarible.protocol.order.listener.service.event.ItemConsumerEventHandler
+import com.rarible.protocol.order.listener.service.event.OwnershipConsumerEventHandler
 import com.rarible.protocol.order.listener.service.looksrare.LooksrareOrderLoadHandler
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
@@ -35,7 +37,6 @@ import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoadHandler
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoader
-import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import com.rarible.protocol.order.listener.service.order.OrderStartEndCheckerHandler
 import com.rarible.protocol.order.listener.service.order.SeaportOrdersLoadTaskHandler
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2CancelEventsLoadHandler
@@ -65,7 +66,10 @@ class OrderListenerConfiguration(
     private val metrics: ForeignOrderMetrics
 ) {
     private val erc20BalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.erc20-balance"
-    private val ownershipBalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
+    private val ownershipBalanceConsumerGroup =
+        "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
+    private val itemConsumerGroup =
+        "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.item"
 
     @Bean
     fun blockchain(): Blockchain {
@@ -108,7 +112,9 @@ class OrderListenerConfiguration(
     }
 
     @Bean
-    fun erc20BalanceChangeWorker(orderBalanceService: OrderBalanceService): ConsumerWorker<Erc20BalanceEventDto> {
+    fun erc20BalanceChangeWorker(
+        handler: Erc20BalanceConsumerEventHandler
+    ): ConsumerWorker<Erc20BalanceEventDto> {
         val args = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsConsumer(
             consumerGroup = erc20BalanceConsumerGroup,
             blockchain = blockchain()
@@ -123,14 +129,16 @@ class OrderListenerConfiguration(
         )
         return ConsumerWorker(
             consumer = consumer,
-            eventHandler = Erc20BalanceConsumerEventHandler(orderBalanceService),
+            eventHandler = handler,
             meterRegistry = meterRegistry,
             workerName = "erc20-balance-handler"
         ).apply { start() }
     }
 
     @Bean
-    fun ownershipChangeWorker(orderBalanceService: OrderBalanceService): BatchedConsumerWorker<NftOwnershipEventDto> {
+    fun ownershipChangeWorker(
+        handler: OwnershipConsumerEventHandler
+    ): BatchedConsumerWorker<NftOwnershipEventDto> {
         val consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
             ownershipBalanceConsumerGroup,
             blockchain = blockchain()
@@ -139,7 +147,7 @@ class OrderListenerConfiguration(
             (1..listenerProperties.ownershipConsumerWorkersCount).map { index ->
                 ConsumerWorker(
                     consumer = consumer,
-                    eventHandler = NftOwnershipConsumerEventHandler(orderBalanceService),
+                    eventHandler = handler,
                     meterRegistry = meterRegistry,
                     workerName = "ownership-handler-$index"
                 )
@@ -147,13 +155,32 @@ class OrderListenerConfiguration(
         ).apply { start() }
     }
 
+    @Bean
+    fun itemChangeWorker(
+        handler: ItemConsumerEventHandler
+    ): BatchedConsumerWorker<NftItemEventDto> {
+        val consumer = nftIndexerEventsConsumerFactory.createItemEventsConsumer(
+            consumerGroup = itemConsumerGroup,
+            blockchain = blockchain()
+        )
+        return BatchedConsumerWorker(
+            (1..listenerProperties.itemConsumerWorkersCount).map { index ->
+                ConsumerWorker(
+                    consumer = consumer,
+                    eventHandler = handler,
+                    meterRegistry = meterRegistry,
+                    workerName = "item-handler-$index"
+                )
+            }
+        ).apply { start() }
+    }
 
     @Bean
     @ExperimentalCoroutinesApi
     @ConditionalOnProperty(
         prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["start-end-worker.enabled"],
-        havingValue="true"
+        name = ["start-end-worker.enabled"],
+        havingValue = "true"
     )
     fun startEndWorker(
         handler: OrderStartEndCheckerHandler,

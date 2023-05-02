@@ -22,6 +22,12 @@ data class OrderState(
     }
 
     companion object {
+
+        fun default(id: Word) = OrderState(
+            id = id,
+            canceled = false
+        )
+
         fun toState(hash: Word, dto: OrderStateDto): OrderState {
             return OrderState(id = hash, canceled = dto.canceled)
         }

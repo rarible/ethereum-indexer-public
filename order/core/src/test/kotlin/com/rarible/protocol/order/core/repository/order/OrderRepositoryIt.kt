@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderRaribleV2DataV1
+import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
@@ -14,8 +15,11 @@ import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.token
+import com.rarible.protocol.order.core.model.tokenId
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.bson.Document
@@ -49,7 +53,7 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
             order.id,
             Document::class.java,
             MongoOrderRepository.COLLECTION
-        ).block()
+        ).awaitFirst()
 
         assertEquals(
             order.maker,
@@ -298,6 +302,27 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         listOf(order1, order2, order3, order4).forEach { orderRepository.save(it) }
         val bids = orderRepository.findAllLiveBidsHashesLastUpdatedBefore(before).toList()
         assertThat(bids).containsExactlyInAnyOrder(order1.hash, order2.hash)
+    }
+
+    @Test
+    fun `find - sell, not cancelled, by item and platform`() = runBlocking<Unit> {
+        val asset = randomErc721()
+
+        // Only this one matches the conditions
+        val order1 = createSellOrder().copy(platform = Platform.OPEN_SEA, make = asset)
+
+        val order2 = createSellOrder().copy(platform = Platform.OPEN_SEA)
+        val order4 = createSellOrder().copy(platform = Platform.RARIBLE, make = asset)
+        val order3 = createSellOrder().copy(platform = Platform.OPEN_SEA, make = asset, cancelled = true)
+        listOf(order1, order2, order3, order4).forEach { orderRepository.save(it) }
+
+        val result = orderRepository.findSellOrdersNotCancelledByItemId(
+            Platform.OPEN_SEA,
+            asset.type.token,
+            asset.type.tokenId!!
+        ).toList().map { it.hash }
+
+        assertThat(result).isEqualTo(listOf(order1.hash))
     }
 }
 
