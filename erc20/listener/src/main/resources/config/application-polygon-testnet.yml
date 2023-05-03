@@ -13,5 +13,6 @@ listener:
     - "0x2d7882bedcbfddce29ba99965dd3cdf7fcb10a1e"
     - "0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747"
     - "0xd6e804e7edb5b2aecb31d9ccc9d9f3940a7b4ce2"
+    - "0x9c3c9283d3e44854697cd22d3faa240cfb032889" # wrapped matic
   depositTokens:
     - "0xa6fa4fb5f76172d178d61b04b0ecd319c5d1c0aa"
