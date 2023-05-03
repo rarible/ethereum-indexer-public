@@ -120,6 +120,7 @@ sealed class BidsOrderVersionFilter : OrderVersionFilter() {
         private val makers: List<Address> = emptyList(),
         private val origin: Address?,
         private val platforms: List<Platform>,
+        private val currencyIds: List<Address>?,
         private val startDate: Instant?,
         private val endDate: Instant?,
         private val size: Int,
@@ -135,6 +136,9 @@ sealed class BidsOrderVersionFilter : OrderVersionFilter() {
                 if (makers.isNotEmpty()) { OrderVersion::maker inValues makers } else null,
                 origin?.let { (OrderVersion::data / OrderRaribleV2DataV1::originFees).elemMatch(Part::account isEqualTo origin) },
                 if (platforms.isNotEmpty()) platforms.let { OrderVersion::platform inValues it } else null,
+                currencyIds?.let {
+                    makeNftContractKey inValues currencyIds
+                },
                 startDate?.let { OrderVersion::createdAt gte it },
                 endDate?.let { OrderVersion::createdAt lte it }
             )
