@@ -55,6 +55,7 @@ class OrderReduceService(
     private val poolPriceProvider: PoolPriceProvider,
     private val orderStateRepository: OrderStateRepository,
 ) {
+
     private val exchangeContractAddresses = indexerProperties.exchangeContractAddresses
     private val raribleOrderExpiration = indexerProperties.raribleOrderExpiration
 
@@ -94,20 +95,24 @@ class OrderReduceService(
     }
 
     private sealed class OrderUpdate {
+
         abstract val orderHash: Word
         abstract val eventId: ObjectId
 
         data class ByOrderVersion(val orderVersion: OrderVersion) : OrderUpdate() {
+
             override val orderHash get() = orderVersion.hash
             override val eventId get() = orderVersion.id
         }
 
         data class ByExchangeLogEvent(val logEvent: LogEvent) : OrderUpdate() {
+
             override val orderHash get() = logEvent.data.toExchangeHistory().hash
             override val eventId get() = logEvent.id
         }
 
         data class ByPoolLogEvent(val logEvent: LogEvent) : OrderUpdate() {
+
             override val orderHash get() = logEvent.data.toPoolHistory().hash
             override val eventId get() = logEvent.id
         }
@@ -130,6 +135,7 @@ class OrderReduceService(
                         order.updateWith(update.orderVersion, update.eventId.toHexString())
                     }
                 }
+
                 is OrderUpdate.ByExchangeLogEvent -> {
                     val exchangeHistory = update.logEvent.data.toExchangeHistory()
 
@@ -138,6 +144,7 @@ class OrderReduceService(
                     }
                     order.updateWith(update.logEvent, exchangeHistory, update.eventId.toHexString())
                 }
+
                 is OrderUpdate.ByPoolLogEvent -> {
                     val poolHistory = update.logEvent.data.toPoolHistory()
 
@@ -209,13 +216,16 @@ class OrderReduceService(
                         )
                     }
                 }
+
                 is OrderCancel -> copy(
                     cancelled = true,
                     lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date),
                     lastEventId = accumulateEventId(lastEventId, eventId)
                 )
+
                 is OnChainOrder -> error("Must have been processed above")
             }
+
             else -> this
         }
     }
@@ -232,6 +242,7 @@ class OrderReduceService(
                     lastUpdateAt = maxOf(lastUpdateAt, poolHistory.date),
                 )
             }
+
             else -> this
         }
     }
@@ -349,12 +360,14 @@ class OrderReduceService(
         }
     }
 
+    // TODO all this functions should be refactored as separate contributors
+    private val openseaAffectedStatuses = setOf(OrderStatus.NOT_STARTED, OrderStatus.INACTIVE, OrderStatus.ACTIVE)
+
     private suspend fun Order.withCancelOpenSea(): Order {
         if (this.type != OrderType.OPEN_SEA_V1) return this
         val exchange = (this.data as? OrderOpenSeaV1DataV1)?.exchange ?: return this
         val lastUpdateAt = if (exchangeContractAddresses.openSeaV1 == exchange) 1645812000L else 1659366000L
-        val affectedStatuses = arrayOf(OrderStatus.NOT_STARTED, OrderStatus.INACTIVE, OrderStatus.ACTIVE)
-        return if (this.status in affectedStatuses) {
+        return if (this.status in openseaAffectedStatuses) {
             logger.info("Cancel order $id as OpenSea exchangeV1/V2 contract was expired")
             this.copy(
                 cancelled = true,
@@ -364,6 +377,26 @@ class OrderReduceService(
         } else {
             this
         }
+    }
+
+    private suspend fun Order.withCancelSeaport(): Order {
+        if (this.type != OrderType.SEAPORT_V1) return this
+        val protocol = (this.data as? OrderBasicSeaportDataV1)?.protocol ?: return this
+        if (exchangeContractAddresses.seaportV1 != protocol) {
+            return this
+        }
+        if (!openseaAffectedStatuses.contains(this.status)) {
+            return this
+        }
+
+        logger.info("Cancel order $id - SeaPort v1.1 is not supported anymore")
+        return this.copy(
+            cancelled = true,
+            // The day when seaport v1.1 has been disabled (05.05.2023)
+            lastUpdateAt = maxOf(this.lastUpdateAt, Instant.ofEpochSecond(1680652800L)),
+            lastEventId = accumulateEventId(this.lastEventId, protocol.toString())
+        )
+
     }
 
     private suspend fun Order.withCancelSmallPriceSeaport(): Order {
@@ -390,7 +423,7 @@ class OrderReduceService(
         val expiredDate = now - raribleOrderExpiration.bidExpirePeriod
 
         return if (
-            //Bids witch were expired by 'end' time must be canceled also
+        //Bids witch were expired by 'end' time must be canceled also
             this.isEnded() ||
             this.lastUpdateAt <= expiredDate
         ) {
@@ -416,7 +449,7 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withSellApproval(): Order {
-        val collection =  when  {
+        val collection = when {
             make.type.nft -> make.type.token
             else -> return this
         }
@@ -439,6 +472,7 @@ class OrderReduceService(
             .withNewPrice()
             .withUpdatedCounter()
             .withCancelOpenSea()
+            .withCancelSeaport()
             .withApproval()
             .withBidExpire()
             .withCancelSmallPriceSeaport()
@@ -471,6 +505,7 @@ class OrderReduceService(
         }
 
     companion object {
+
         val EMPTY_ORDER_HASH = 0.toBigInteger().toWord()
 
         private val emptyOrder = Order(
