@@ -463,6 +463,7 @@ class OrderController(
         continuation: String?,
         size: Int?,
         status: List<OrderStatusDto>?,
+        currencyIds: List<Address>?,
         startDate: Long?,
         endDate: Long?
     ): ResponseEntity<OrdersPaginationDto> {
@@ -473,6 +474,7 @@ class OrderController(
             maker,
             originAddress,
             safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },
+            currencyIds,
             startDate?.let { Instant.ofEpochSecond(it) },
             endDate?.let { Instant.ofEpochSecond(it) },
             requestSize,

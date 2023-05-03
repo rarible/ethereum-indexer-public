@@ -477,24 +477,25 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val maker = AddressFactory.create()
         val maker2 = AddressFactory.create()
         val makeAddress = AddressFactory.create()
-        val currencyToken = AddressFactory.create()
+        val currencyToken1 = AddressFactory.create()
+        val currencyToken2 = AddressFactory.create()
         val now = nowMillis()
         val order1V = createErc721BidOrderVersion().copy(
-            make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(1)),
+            make = Asset(Erc20AssetType(currencyToken1), EthUInt256.of(1)),
             maker = maker,
             take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
             takePrice = BigDecimal.valueOf(1L),
             createdAt = now.minusSeconds(5)
         )
         val order2V = createErc721BidOrderVersion().copy(
-            make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(2)),
+            make = Asset(Erc20AssetType(currencyToken1), EthUInt256.of(2)),
             maker = maker,
             take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
             takePrice = BigDecimal.valueOf(2L),
             createdAt = now
         )
         val order3V = createErc721BidOrderVersion().copy(
-            make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(2)),
+            make = Asset(Erc20AssetType(currencyToken2), EthUInt256.of(2)),
             maker = maker2,
             take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
             takePrice = BigDecimal.valueOf(2L),
@@ -509,6 +510,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             null,
             1,
             OrderStatusDto.values().toList(),
+            null,
             null,
             null
         ).awaitFirst()
@@ -525,6 +527,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             2,
             OrderStatusDto.values().toList(),
             null,
+            null,
             null
         ).awaitFirst()
         assertThat(result2.orders.size).isEqualTo(1)
@@ -539,10 +542,24 @@ class OrderSearchFt : AbstractIntegrationTest() {
             10,
             OrderStatusDto.values().toList(),
             null,
+            null,
             null
         ).awaitFirst()
         assertThat(result3.orders.size).isEqualTo(3)
         assertThat(result3.orders.map { it.maker }.toSet()).containsExactlyInAnyOrder(maker, maker2)
+
+        val result4 = orderClient.getOrderBidsByMakerAndByStatus(
+            listOf(maker, maker2),
+            null,
+            null,
+            null,
+            10,
+            OrderStatusDto.values().toList(),
+            listOf(currencyToken2),
+            null,
+            null
+        ).awaitFirst()
+        assertThat(result4.orders.map { it.id }.toSet()).containsExactlyInAnyOrder(order3V.hash.toString())
     }
 
     @Test
