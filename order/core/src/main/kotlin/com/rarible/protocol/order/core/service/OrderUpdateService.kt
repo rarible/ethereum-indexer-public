@@ -82,7 +82,7 @@ class OrderUpdateService(
         eventTimeMarks: EventTimeMarksDto?
     ) {
         val updated = order.withApproved(approved)
-        val result = customUpdaters.fold(updated) { update, updater -> updater.update(update) }
+        val result = customUpdaters.fold(updated) { updatedOrder, updater -> updater.update(updatedOrder) }
         update(result.hash, eventTimeMarks)
     }
 

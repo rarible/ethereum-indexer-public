@@ -12,11 +12,10 @@ import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.model.tokenId
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.core.service.updater.X2Y2OrderUpdater
+import com.rarible.protocol.order.core.service.updater.CancelInactiveOrderUpdater
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2Service
 import org.springframework.stereotype.Component
-import java.lang.IllegalStateException
 
 @Component
 class OrderX2Y2StatusTaskHandler(
@@ -24,7 +23,7 @@ class OrderX2Y2StatusTaskHandler(
     properties: OrderListenerProperties,
     private val orderUpdateService: OrderUpdateService,
     private val x2y2Service: X2Y2Service,
-    private val x2Y2OrderUpdater: X2Y2OrderUpdater,
+    private val cancelInactiveOrderUpdater: CancelInactiveOrderUpdater,
 ) : AbstractOrderUpdateStatusTaskHandler(orderRepository, properties) {
 
     override val type: String
@@ -72,7 +71,7 @@ class OrderX2Y2StatusTaskHandler(
         require(inactiveOrder.status == OrderStatus.INACTIVE) { "Not INACTIVE status for order: $inactiveOrder" }
         require(inactiveOrder.platform == Platform.X2Y2) { "Not X2Y2 order: $inactiveOrder" }
 
-        x2Y2OrderUpdater.update(inactiveOrder)
+        cancelInactiveOrderUpdater.update(inactiveOrder)
         orderUpdateService.update(inactiveOrder.hash)
 
         val updated = orderRepository.findById(inactiveOrder.hash)
