@@ -98,6 +98,18 @@ class TokenRegistrationService(
         return savedToken
     }
 
+    suspend fun update(address: Address): Token? {
+        val token = tokenRepository.findById(address).awaitFirstOrNull()
+        return if (token != null) {
+            val updatedToken = fetchToken(address).awaitFirstOrNull()
+            if (token != updatedToken) {
+                logger.info("Token id=$address was overwritten: $updatedToken")
+                tokenRepository.save(token)
+            }
+            updatedToken
+        } else null
+    }
+
     private fun fetchToken(address: Address): Mono<Token> {
         val nft = IERC721(address, sender)
         val ownable = Ownable(address, sender)
