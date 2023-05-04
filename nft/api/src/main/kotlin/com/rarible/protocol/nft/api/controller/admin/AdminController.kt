@@ -97,7 +97,7 @@ class AdminController(
         value = ["/admin/nft/collections/{collectionId}/update"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    suspend fun refreshToken(
+    suspend fun updateToken(
         @PathVariable("collectionId") collectionId: Address,
         @RequestParam(value = "reduce", required = false, defaultValue = "false") reduce: Boolean,
     ): ResponseEntity<TokenDto> {
