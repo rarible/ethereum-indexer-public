@@ -93,7 +93,7 @@ class Erc20TransferHistoryRepository(
             }
         }
 
-        val query = Query(criteria).with(LOG_SORT_ASC)
+        val query = Query(criteria).with(LOG_SORT_ASC).cursorBatchSize(0)
         return template
             .find(query, LogEvent::class.java, COLLECTION)
             .mapNotNull {
