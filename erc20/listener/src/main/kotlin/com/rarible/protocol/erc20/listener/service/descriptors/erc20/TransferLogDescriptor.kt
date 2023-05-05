@@ -3,11 +3,13 @@ package com.rarible.protocol.erc20.listener.service.descriptors.erc20
 import com.rarible.contracts.erc20.TransferEvent
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.contract.TransferEventWithFullData
+import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
 import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.descriptors.Erc20LogEventDescriptor
+import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
 import com.rarible.protocol.erc20.listener.service.token.Erc20RegistrationService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -22,8 +24,10 @@ import java.util.Date
 @Service
 class TransferLogDescriptor(
     private val registrationService: Erc20RegistrationService,
-    properties: Erc20ListenerProperties
-) : Erc20LogEventDescriptor<Erc20TokenHistory> {
+    properties: Erc20ListenerProperties,
+    ignoredOwnersResolver: IgnoredOwnersResolver,
+    metrics: DescriptorMetrics
+) : AbstractLogDescriptor(ignoredOwnersResolver, metrics), Erc20LogEventDescriptor<Erc20TokenHistory> {
 
     private val addresses = properties.tokens.map { Address.apply(it) }
     override val topic: Word = TransferEvent.id()
@@ -67,7 +71,7 @@ class TransferLogDescriptor(
             )
         } else null
 
-        return listOfNotNull(outcome, income)
+        return listOfNotNull(outcome, income).filterByOwner()
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {

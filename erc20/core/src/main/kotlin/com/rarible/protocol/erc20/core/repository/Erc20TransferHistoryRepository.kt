@@ -53,7 +53,7 @@ class Erc20TransferHistoryRepository(
                 } ?: this
             }
 
-        val query = Query(criteria).with(LOG_SORT_ASC)
+        val query = Query(criteria).with(LOG_SORT_ASC).cursorBatchSize(BATCH_SIZE)
         return template.find(query, LogEvent::class.java, COLLECTION)
     }
 
@@ -63,7 +63,7 @@ class Erc20TransferHistoryRepository(
                 and(LogEvent::data / Erc20TokenHistory::owner).gt(it)
             } ?: this
         }
-        val query = Query(criteria).with(LOG_SORT_ASC)
+        val query = Query(criteria).with(LOG_SORT_ASC).cursorBatchSize(BATCH_SIZE)
         return template.find(query, LogEvent::class.java, COLLECTION)
     }
 
@@ -93,7 +93,7 @@ class Erc20TransferHistoryRepository(
             }
         }
 
-        val query = Query(criteria).with(LOG_SORT_ASC)
+        val query = Query(criteria).with(LOG_SORT_ASC).cursorBatchSize(BATCH_SIZE)
         return template
             .find(query, LogEvent::class.java, COLLECTION)
             .mapNotNull {
@@ -110,6 +110,9 @@ class Erc20TransferHistoryRepository(
     companion object {
 
         const val COLLECTION = "erc20_history"
+
+        // Default batch = 32, it's better to use bigger size to get all records in single query from cursor
+        const val BATCH_SIZE = 100_000
 
         val DATA_TOKEN = "${LogEvent::data.name}.${Erc20TokenHistory::token.name}"
         val DATA_OWNER = "${LogEvent::data.name}.${Erc20TokenHistory::owner.name}"

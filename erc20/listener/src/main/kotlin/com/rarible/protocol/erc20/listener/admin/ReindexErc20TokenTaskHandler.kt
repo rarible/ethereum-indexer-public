@@ -10,6 +10,7 @@ import com.rarible.ethereum.listener.log.LogListenService
 import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
 import com.rarible.protocol.erc20.core.admin.model.ReindexErc20TokenTaskParam
 import com.rarible.protocol.erc20.core.admin.repository.Erc20TaskRepository
+import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.listener.configuration.EnableOnScannerV1
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
@@ -18,6 +19,7 @@ import com.rarible.protocol.erc20.listener.service.descriptors.erc20.ApprovalLog
 import com.rarible.protocol.erc20.listener.service.descriptors.erc20.DepositLogDescriptor
 import com.rarible.protocol.erc20.listener.service.descriptors.erc20.TransferLogDescriptor
 import com.rarible.protocol.erc20.listener.service.descriptors.erc20.WithdrawalLogDescriptor
+import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
 import com.rarible.protocol.erc20.listener.service.token.Erc20RegistrationService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -35,7 +37,9 @@ class ReindexErc20TokenTaskHandler(
     private val logListenService: LogListenService,
     private val registrationService: Erc20RegistrationService,
     private val ethereum: MonoEthereum,
-    private val properties: Erc20ListenerProperties
+    private val properties: Erc20ListenerProperties,
+    private val ignoredOwnersResolver: IgnoredOwnersResolver,
+    private val descriptorMetrics: DescriptorMetrics
 ) : TaskHandler<Long> {
 
     override val type: String get() = ReindexErc20TokenTaskParam.ADMIN_REINDEX_ERC20_TOKENS
@@ -65,10 +69,10 @@ class ReindexErc20TokenTaskHandler(
     private fun getDescriptor(taskParam: ReindexErc20TokenTaskParam): Erc20LogEventDescriptor<Erc20TokenHistory> {
         val props = properties.copy(tokens = taskParam.tokens.map { it.prefixed() })
         return when (taskParam.descriptor) {
-            ReindexErc20TokenTaskParam.Descriptor.APPROVAL -> ApprovalLogDescriptor(registrationService, props)
-            ReindexErc20TokenTaskParam.Descriptor.DEPOSIT -> DepositLogDescriptor(registrationService, props)
-            ReindexErc20TokenTaskParam.Descriptor.TRANSFER -> TransferLogDescriptor(registrationService, props)
-            ReindexErc20TokenTaskParam.Descriptor.WITHDRAWAL -> WithdrawalLogDescriptor(registrationService, props)
+            ReindexErc20TokenTaskParam.Descriptor.APPROVAL -> ApprovalLogDescriptor(registrationService, props, ignoredOwnersResolver, descriptorMetrics)
+            ReindexErc20TokenTaskParam.Descriptor.DEPOSIT -> DepositLogDescriptor(registrationService, props, ignoredOwnersResolver, descriptorMetrics)
+            ReindexErc20TokenTaskParam.Descriptor.TRANSFER -> TransferLogDescriptor(registrationService, props, ignoredOwnersResolver, descriptorMetrics)
+            ReindexErc20TokenTaskParam.Descriptor.WITHDRAWAL -> WithdrawalLogDescriptor(registrationService, props, ignoredOwnersResolver, descriptorMetrics)
             else -> throw IllegalArgumentException("Unknown descriptor name ${taskParam.descriptor}")
         }
     }
