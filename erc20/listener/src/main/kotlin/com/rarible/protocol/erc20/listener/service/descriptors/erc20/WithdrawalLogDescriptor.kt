@@ -7,6 +7,7 @@ import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.model.Erc20Withdrawal
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.descriptors.Erc20LogEventDescriptor
+import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
 import com.rarible.protocol.erc20.listener.service.token.Erc20RegistrationService
 import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
@@ -20,11 +21,13 @@ import java.util.*
 @Service
 class WithdrawalLogDescriptor(
     private val registrationService: Erc20RegistrationService,
-    properties: Erc20ListenerProperties
+    properties: Erc20ListenerProperties,
+    ignoredOwnersResolver: IgnoredOwnersResolver
 ) : Erc20LogEventDescriptor<Erc20TokenHistory> {
 
     private val addresses = properties.tokens.map { Address.apply(it) }
     override val topic: Word = WithdrawalEvent.id()
+    private val ignoredOwners = ignoredOwnersResolver.resolve()
 
     override suspend fun convert(log: Log, date: Date): List<Erc20TokenHistory> {
         val erc20Token = registrationService.tryRegister(log.address()) ?: return emptyList()
@@ -44,7 +47,7 @@ class WithdrawalLogDescriptor(
             value = EthUInt256.of(event.wad()),
             date = date
         )
-        return listOf(withdrawal)
+        return listOf(withdrawal).filter { it.owner !in ignoredOwners }
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {

@@ -7,6 +7,7 @@ import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.descriptors.Erc20LogEventDescriptor
+import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
 import com.rarible.protocol.erc20.listener.service.token.Erc20RegistrationService
 import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
@@ -20,12 +21,14 @@ import java.util.*
 @Service
 class DepositLogDescriptor(
     private val registrationService: Erc20RegistrationService,
-    properties: Erc20ListenerProperties
+    properties: Erc20ListenerProperties,
+    ignoredOwnersResolver: IgnoredOwnersResolver
 ) : Erc20LogEventDescriptor<Erc20TokenHistory> {
 
     private val addresses = properties.tokens
         .map { Address.apply(it) }
         .also { logger.info("Tokens to observe: ${it.joinToString()}") }
+    private val ignoredOwners = ignoredOwnersResolver.resolve()
 
     override val topic: Word = DepositEvent.id()
 
@@ -47,7 +50,7 @@ class DepositLogDescriptor(
             value = EthUInt256.of(event.wad()),
             date = date
         )
-        return listOf(approval)
+        return listOf(approval).filter { it.owner !in ignoredOwners }
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {
