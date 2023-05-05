@@ -3,11 +3,13 @@ package com.rarible.protocol.erc20.listener.service.descriptors.erc20
 import com.rarible.contracts.erc20.ApprovalEvent
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.contract.ApprovalEventByLogData
+import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.core.model.Erc20TokenApproval
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.repository.Erc20ApprovalHistoryRepository
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.descriptors.Erc20LogEventDescriptor
+import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
 import com.rarible.protocol.erc20.listener.service.token.Erc20RegistrationService
 import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
@@ -21,8 +23,10 @@ import java.util.*
 @Service
 class ApprovalLogDescriptor(
     private val registrationService: Erc20RegistrationService,
-    properties: Erc20ListenerProperties
-) : Erc20LogEventDescriptor<Erc20TokenHistory> {
+    properties: Erc20ListenerProperties,
+    ignoredOwnersResolver: IgnoredOwnersResolver,
+    metrics: DescriptorMetrics
+) : AbstractLogDescriptor(ignoredOwnersResolver, metrics), Erc20LogEventDescriptor<Erc20TokenHistory> {
 
     private val addresses = properties.tokens.map { Address.apply(it) }
 
@@ -50,7 +54,7 @@ class ApprovalLogDescriptor(
             value = EthUInt256.of(event.value()),
             date = date
         )
-        return listOf(approval)
+        return listOf(approval).filterByOwner()
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {

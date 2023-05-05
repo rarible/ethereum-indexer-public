@@ -12,6 +12,10 @@ abstract class BaseMetrics(
         return ImmutableTag("blockchain", blockchain.name.lowercase())
     }
 
+    protected fun tag(name: String, value: String): Tag {
+        return ImmutableTag(name, value)
+    }
+
     protected fun increment(name: String, vararg tags: Tag) {
         meterRegistry.counter(name, tags.toList()).increment()
     }
