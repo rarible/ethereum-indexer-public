@@ -7,16 +7,20 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.contracts.collection.CreateEvent
 import com.rarible.protocol.contracts.erc721.OwnershipTransferredEvent
+import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
+import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.CollectionEvent
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
+import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenEvent
 import com.rarible.protocol.nft.core.model.TokenStandard
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
@@ -152,6 +156,50 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
         assertThat(withUpdatedOwner.revertableEvents).hasSize(2)
         assertThat(withUpdatedOwner.revertableEvents[0]).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
         assertThat(withUpdatedOwner.revertableEvents[1]).isInstanceOf(TokenEvent.TokenChangeOwnershipEvent::class.java)
+    }
+
+    @Test
+    fun `should fix collection with NONE standard`() = runBlocking<Unit> {
+
+        val adminSender = newSender().second
+        val erc721 = ERC721Rarible.deployAndWait(adminSender, poller).awaitFirst()
+        erc721.__ERC721Rarible_init(
+            "Test",
+            "TEST",
+            "baseURI",
+            "contractURI"
+        ).execute().verifySuccess()
+
+        // Let's assume we failed to set standard and features for the first time
+        val token = createToken().copy(
+            id = erc721.address(),
+            standard = TokenStandard.NONE,
+            features = emptySet(),
+            status = ContractStatus.CONFIRMED
+        )
+        tokenRepository.save(token).awaitFirstOrNull()
+
+        val updated = tokenRegistrationService.update(erc721.address())!!
+        assertThat(updated.standard).isEqualTo(TokenStandard.ERC721)
+
+        checkCollectionWasPublished(
+            NftCollectionDto(
+                id = erc721.address(),
+                name = "Test",
+                symbol = "TEST",
+                supportsLazyMint = true,
+                type = NftCollectionDto.Type.ERC721,
+                status = NftCollectionDto.Status.CONFIRMED,
+                owner = adminSender.from(),
+                features = listOf(
+                    NftCollectionDto.Features.APPROVE_FOR_ALL,
+                    NftCollectionDto.Features.BURN,
+                    NftCollectionDto.Features.MINT_AND_TRANSFER
+                ),
+                isRaribleContract = false,
+                minters = emptyList(),
+            )
+        )
     }
 
     private suspend fun prepareStorage(

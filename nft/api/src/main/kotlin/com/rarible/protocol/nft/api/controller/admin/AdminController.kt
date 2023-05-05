@@ -15,12 +15,10 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
+import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -41,6 +39,7 @@ class AdminController(
     private val tokenUpdateService: TokenUpdateService,
     private val itemReduceService: ItemReduceService,
     private val maintenanceService: MaintenanceService,
+    private val tokenRegistrationService: TokenRegistrationService
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -91,6 +90,24 @@ class AdminController(
     ): ResponseEntity<TokenDto> {
         val token = tokenUpdateService.getToken(collectionId)
             ?: throw EntityNotFoundApiException("Collection", collectionId)
+        return ResponseEntity.ok().body(convert(token))
+    }
+
+    @GetMapping(
+        value = ["/admin/nft/collections/{collectionId}/update"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    suspend fun updateToken(
+        @PathVariable("collectionId") collectionId: Address,
+        @RequestParam(value = "reduce", required = false, defaultValue = "false") reduce: Boolean,
+    ): ResponseEntity<TokenDto> {
+        logger.info("Attempting to refresh token id=$collectionId reduce=$reduce")
+        val token = tokenRegistrationService.update(collectionId)
+            ?: throw EntityNotFoundApiException("Collection", collectionId)
+        if (reduce && token.standard != TokenStandard.NONE) {
+            reindexTokenService.createReduceTokenTask(collectionId, true)
+            reindexTokenService.createReduceTokenItemsTask(collectionId, true)
+        }
         return ResponseEntity.ok().body(convert(token))
     }
 
