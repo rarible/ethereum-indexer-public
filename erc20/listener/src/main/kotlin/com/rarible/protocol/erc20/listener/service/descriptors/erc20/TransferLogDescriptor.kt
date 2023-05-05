@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.listener.service.descriptors.erc20
 import com.rarible.contracts.erc20.TransferEvent
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.contract.TransferEventWithFullData
+import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
 import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
@@ -24,11 +25,11 @@ import java.util.Date
 class TransferLogDescriptor(
     private val registrationService: Erc20RegistrationService,
     properties: Erc20ListenerProperties,
-    ignoredOwnersResolver: IgnoredOwnersResolver
-) : Erc20LogEventDescriptor<Erc20TokenHistory> {
+    ignoredOwnersResolver: IgnoredOwnersResolver,
+    metrics: DescriptorMetrics
+) : AbstractLogDescriptor(ignoredOwnersResolver, metrics), Erc20LogEventDescriptor<Erc20TokenHistory> {
 
     private val addresses = properties.tokens.map { Address.apply(it) }
-    private val ignoredOwners = ignoredOwnersResolver.resolve()
     override val topic: Word = TransferEvent.id()
 
     init {
@@ -70,7 +71,7 @@ class TransferLogDescriptor(
             )
         } else null
 
-        return listOfNotNull(outcome, income).filter { it.owner !in ignoredOwners }
+        return listOfNotNull(outcome, income).filterByOwner()
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {

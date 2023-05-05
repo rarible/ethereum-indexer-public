@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.listener.service.descriptors.erc20
 import com.rarible.contracts.interfaces.weth9.DepositEvent
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.contract.DepositEventByLogData
+import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
@@ -22,13 +23,13 @@ import java.util.*
 class DepositLogDescriptor(
     private val registrationService: Erc20RegistrationService,
     properties: Erc20ListenerProperties,
-    ignoredOwnersResolver: IgnoredOwnersResolver
-) : Erc20LogEventDescriptor<Erc20TokenHistory> {
+    ignoredOwnersResolver: IgnoredOwnersResolver,
+    metrics: DescriptorMetrics
+) : AbstractLogDescriptor(ignoredOwnersResolver, metrics), Erc20LogEventDescriptor<Erc20TokenHistory> {
 
     private val addresses = properties.tokens
         .map { Address.apply(it) }
         .also { logger.info("Tokens to observe: ${it.joinToString()}") }
-    private val ignoredOwners = ignoredOwnersResolver.resolve()
 
     override val topic: Word = DepositEvent.id()
 
@@ -50,7 +51,7 @@ class DepositLogDescriptor(
             value = EthUInt256.of(event.wad()),
             date = date
         )
-        return listOf(approval).filter { it.owner !in ignoredOwners }
+        return listOf(approval).filterByOwner()
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {

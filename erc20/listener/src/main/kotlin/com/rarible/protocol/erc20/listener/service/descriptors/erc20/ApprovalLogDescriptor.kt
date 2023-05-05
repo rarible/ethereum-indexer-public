@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.listener.service.descriptors.erc20
 import com.rarible.contracts.erc20.ApprovalEvent
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.contract.ApprovalEventByLogData
+import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.core.model.Erc20TokenApproval
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.repository.Erc20ApprovalHistoryRepository
@@ -23,11 +24,11 @@ import java.util.*
 class ApprovalLogDescriptor(
     private val registrationService: Erc20RegistrationService,
     properties: Erc20ListenerProperties,
-    ignoredOwnersResolver: IgnoredOwnersResolver
-) : Erc20LogEventDescriptor<Erc20TokenHistory> {
+    ignoredOwnersResolver: IgnoredOwnersResolver,
+    metrics: DescriptorMetrics
+) : AbstractLogDescriptor(ignoredOwnersResolver, metrics), Erc20LogEventDescriptor<Erc20TokenHistory> {
 
     private val addresses = properties.tokens.map { Address.apply(it) }
-    private val ignoredOwners = ignoredOwnersResolver.resolve()
 
     override val collection: String
         get() = Erc20ApprovalHistoryRepository.COLLECTION
@@ -53,7 +54,7 @@ class ApprovalLogDescriptor(
             value = EthUInt256.of(event.value()),
             date = date
         )
-        return listOf(approval).filter { it.owner !in ignoredOwners }
+        return listOf(approval).filterByOwner()
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {
