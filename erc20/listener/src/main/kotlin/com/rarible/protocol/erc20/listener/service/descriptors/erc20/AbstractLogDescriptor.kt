@@ -13,10 +13,9 @@ abstract class AbstractLogDescriptor(
 
     protected fun Iterable<Erc20TokenHistory>.filterByOwner() =
         filterTo(ArrayList()) { log ->
-            metrics.onIncoming()
             val ignored = log.owner in ignoredOwners
             if (ignored) {
-                metrics.onIgnored()
+                metrics.onSkipped("ignored")
             } else {
                 metrics.onSaved()
             }

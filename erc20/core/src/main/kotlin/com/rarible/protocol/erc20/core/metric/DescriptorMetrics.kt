@@ -9,21 +9,17 @@ class DescriptorMetrics(
     meterRegistry: MeterRegistry,
 ) : BaseMetrics(meterRegistry) {
 
-    fun onIncoming() {
-        increment(LOG_EVENT_INCOMING, tag(blockchain))
-    }
-
     fun onSaved() {
         increment(LOG_EVENT_SAVED, tag(blockchain))
     }
 
-    fun onIgnored() {
-        increment(LOG_EVENT_IGNORED, tag(blockchain))
+    fun onSkipped(reason: String) {
+        increment(LOG_EVENT_SKIPPED, tag(blockchain), tag(TAG_REASON, reason))
     }
 
     companion object {
-        const val LOG_EVENT_INCOMING = "log_event_incoming"
         const val LOG_EVENT_SAVED = "log_event_saved"
-        const val LOG_EVENT_IGNORED = "log_event_ignored"
+        const val LOG_EVENT_SKIPPED = "log_event_skipped"
+        const val TAG_REASON = "reason"
     }
 }
