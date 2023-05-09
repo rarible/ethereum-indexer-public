@@ -102,15 +102,15 @@ class TokenRegistrationService(
         val token = tokenRepository.findById(address).awaitFirstOrNull()
         return if (token != null) {
             val updatedToken = fetchToken(address).awaitFirstOrNull()
-            if (token != updatedToken) {
+            if (updatedToken != null && token != updatedToken) {
                 logger.info("Token id=$address was overwritten: $updatedToken")
-                tokenRepository.save(token)
+                tokenRepository.save(updatedToken.copy(version = token.version)).awaitFirst()
             }
             updatedToken
         } else null
     }
 
-    private fun fetchToken(address: Address): Mono<Token> {
+    fun fetchToken(address: Address): Mono<Token> {
         val nft = IERC721(address, sender)
         val ownable = Ownable(address, sender)
         return Mono.zip(
@@ -159,7 +159,7 @@ class TokenRegistrationService(
         }
     }
 
-    private suspend fun fetchTokenStandard(address: Address): TokenStandard {
+    suspend fun fetchTokenStandard(address: Address): TokenStandard {
         logStandard(address, "started fetching")
         if (address in WELL_KNOWN_TOKENS_WITHOUT_ERC165) {
             val standard = WELL_KNOWN_TOKENS_WITHOUT_ERC165.getValue(address)

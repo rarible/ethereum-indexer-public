@@ -10,7 +10,7 @@ import com.rarible.protocol.nft.api.dto.TokenDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.model.sorted
 import com.rarible.protocol.nft.api.service.admin.MaintenanceService
-import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
+import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard

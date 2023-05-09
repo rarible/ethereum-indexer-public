@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.service.admin
+package com.rarible.protocol.nft.core.service
 
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
@@ -16,7 +16,6 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.model.TokenTaskParam
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
