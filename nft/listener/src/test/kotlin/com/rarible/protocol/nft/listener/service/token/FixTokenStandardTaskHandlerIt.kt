@@ -29,7 +29,7 @@ import java.time.Instant.now
 
 
 @IntegrationTest
-class FindTokenWithNoneStandardHandlerIt : AbstractIntegrationTest() {
+class FixTokenStandardTaskHandlerIt : AbstractIntegrationTest() {
 
     @Test
     fun `find tokens with NONE standard`() = runBlocking<Unit> {
@@ -55,6 +55,10 @@ class FindTokenWithNoneStandardHandlerIt : AbstractIntegrationTest() {
             standard = TokenStandard.NONE,
             dbUpdatedAt = now().minusSeconds(60),
             features = emptySet())).awaitSingle()
+
+        Wait.waitAssert {
+            assertThat(tokenRepository.findById(erc721.address()).awaitFirst().standard).isEqualTo(TokenStandard.NONE)
+        }
 
         // run job to fix
         Wait.waitAssert {
