@@ -104,7 +104,7 @@ class AdminController(
         logger.info("Attempting to refresh token id=$collectionId reduce=$reduce")
         val token = tokenRegistrationService.update(collectionId)
             ?: throw EntityNotFoundApiException("Collection", collectionId)
-        if (reduce && token.standard != TokenStandard.NONE) {
+        if (reduce && token.standard.isNotIgnorable()) {
             reindexTokenService.createReduceTokenTask(collectionId, true)
             reindexTokenService.createReduceTokenItemsTask(collectionId, true)
         }

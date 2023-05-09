@@ -100,10 +100,32 @@ enum class TokenStandard(
             "tokenMetadata(uint256,string)"
         )
     ),
+
+    /**
+     * ERC20
+     *
+     * 0x36372b07 ===
+     *     bytes4(keccak256('totalSupply()')) == 0x18160ddd
+     *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
+     *     bytes4(keccak256('transfer(address,uint256)')) == 0xa9059cbb
+     *     bytes4(keccak256('transferFrom(address,address,uint256)')) == 0x23b872dd
+     *     bytes4(keccak256('allowance(address,address)')) == 0xdd62ed3e
+     */
+    ERC20(
+        interfaceId = Binary.apply("0x36372b07"),
+        functionSignatures = listOf(
+            "totalSupply()",
+            "balanceOf(address)",
+            "transfer(address,uint256)",
+            "transferFrom(address,address,uint256)",
+            "allowance(address,address)"
+        )
+    ),
+
     NONE;
 
-    fun isNotNone(): Boolean {
-        return this != NONE
+    fun isNotIgnorable(): Boolean {
+        return this !in IGNORABLE
     }
 
     companion object {
@@ -135,6 +157,7 @@ enum class TokenStandard(
                 setOf(APPROVE_FOR_ALL, SET_URI_PREFIX, BURN, MINT_WITH_ADDRESS, SECONDARY_SALE_FEES, MINT_AND_TRANSFER)
             )
         )
+        val IGNORABLE = setOf(NONE, ERC20)
     }
 }
 
