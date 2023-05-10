@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
-import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
@@ -25,8 +24,8 @@ import java.time.Instant
 import java.time.Instant.now
 
 /**
- * RPN-1316: background job that iterates over all LogEntry-s in the database,
- * tries to deserialize them and logs an error if failed.
+ * PT-1723: background job that iterates over all collections in the database,
+ * tries to set standard if it was missed.
  */
 @Component
 class FixTokenStandardTaskHandler(
@@ -34,22 +33,20 @@ class FixTokenStandardTaskHandler(
     private val tokenRegistrationService: TokenRegistrationService,
     private val nftHistoryRepository: NftHistoryRepository,
     private val reindexTokenService: ReindexTokenService,
-    private val tokenUpdateService: TokenUpdateService,
-    nftListenerProperties: NftListenerProperties
+    private val tokenUpdateService: TokenUpdateService
 ) : TaskHandler<Long> {
-
-    val dry = nftListenerProperties.fixTokenStandard.dry
 
     override val type: String
         get() = "FIX_TOKEN_STANDARD"
 
     override fun runLongTask(from: Long?, param: String): Flow<Long> {
-        val markerDate = Instant.ofEpochSecond((from ?: if (param.isNotBlank()) param.toLong() else now().epochSecond))
+        val parsed = FixTokenStandardParam.fromParamString(param)
+        val markerDate = Instant.ofEpochSecond(from ?: parsed.mark)
         logger.info("Started finding token with none-standard with date <= $markerDate")
         return findTokensWithNoneStandard(markerDate)
             .map {
                 val read = it.dbUpdatedAt!!
-                fixToken(it.id)
+                fixToken(it.id, parsed.dry)
                 read.epochSecond
             }
     }
@@ -62,7 +59,7 @@ class FixTokenStandardTaskHandler(
         return mongo.find(query, Token::class.java, Token.COLLECTION).asFlow()
     }
 
-    suspend fun fixToken(address: Address) {
+    suspend fun fixToken(address: Address, dry: Boolean) {
         val standard = tokenRegistrationService.fetchTokenStandard(address)
         if (standard.isNotIgnorable()) {
             logger.info("Found token with NONE standard but must be $standard for $address")
@@ -80,6 +77,26 @@ class FixTokenStandardTaskHandler(
 
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(FixTokenStandardTaskHandler::class.java)
+    }
+
+    data class FixTokenStandardParam(
+        val dry: Boolean,
+        val mark: Long
+    ) {
+
+        override fun toString(): String {
+            return "$dry:$mark"
+        }
+
+        companion object {
+            fun fromParamString(param: String): FixTokenStandardParam {
+                return if (param.contains(":")) {
+                    val parts = param.split(":")
+                    val mark = if (parts.last().isNotBlank()) parts.last().toLong() else now().epochSecond
+                    FixTokenStandardParam(parts.first().toBoolean(), mark)
+                } else FixTokenStandardParam(param.toBoolean(), now().epochSecond)
+            }
+        }
     }
 
 }

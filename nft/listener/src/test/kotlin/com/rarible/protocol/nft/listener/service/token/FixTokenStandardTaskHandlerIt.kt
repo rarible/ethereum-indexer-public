@@ -5,8 +5,6 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.admin.FixTokenStandardTaskHandler
-import com.rarible.protocol.nft.listener.configuration.FixTokenStandard
-import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.test.IntegrationTest
 import kotlinx.coroutines.flow.firstOrNull
@@ -62,11 +60,10 @@ class FixTokenStandardTaskHandlerIt : AbstractIntegrationTest() {
 
         // run job to fix
         Wait.waitAssert {
-            val props = NftListenerProperties().copy(fixTokenStandard = FixTokenStandard(dry = false))
             val findNonParseableLogEntriesTaskHandler = FixTokenStandardTaskHandler(
-                mongo, tokenRegistrationService, nftHistoryRepository, reindexTokenService, tokenUpdateService, props
+                mongo, tokenRegistrationService, nftHistoryRepository, reindexTokenService, tokenUpdateService
             )
-            val processed = findNonParseableLogEntriesTaskHandler.runLongTask(null, "").firstOrNull()
+            val processed = findNonParseableLogEntriesTaskHandler.runLongTask(null, "false").firstOrNull()
             assertThat(processed).isNotNull()
         }
 
