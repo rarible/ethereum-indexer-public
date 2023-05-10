@@ -118,6 +118,11 @@
             <artifactId>rarible-ethereum-contracts-test</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.rarible.protocol.contracts</groupId>
+            <artifactId>protocol-ethereum-contracts-erc20</artifactId>
+            <version>${rarible.ethereum.contracts.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.rarible.protocol</groupId>
             <artifactId>protocol-nft-indexer-core</artifactId>
             <classifier>tests</classifier>

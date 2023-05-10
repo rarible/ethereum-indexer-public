@@ -47,7 +47,7 @@ class CollectionService(
 
     suspend fun get(collectionId: Address): NftCollectionDto {
         val token = tokenRepository.findById(collectionId).awaitFirstOrNull()
-            ?.takeIf { it.standard != TokenStandard.NONE && it.status != ContractStatus.ERROR }
+            ?.takeIf { it.standard.isNotIgnorable() && it.status != ContractStatus.ERROR }
             ?: throw EntityNotFoundApiException("Collection", collectionId)
         return CollectionDtoConverter.convert(token)
     }

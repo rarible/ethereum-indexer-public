@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.token
 
+import com.rarible.protocol.contracts.erc20.test.SimpleERC20
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
@@ -49,5 +50,23 @@ internal class TokenRegistrationServiceTest : AbstractIntegrationTest() {
             Token::version.name,
             Token::dbUpdatedAt.name
         )
+    }
+
+    @Test
+    fun `register ERC20 token by checking interface`() = runBlocking<Unit> {
+        val adminSender = newSender().second
+        val erc20 = SimpleERC20.deployAndWait(adminSender, poller).awaitFirst()
+
+        val token = tokenRegistrationService.register(erc20.address()).awaitFirst()
+        assertThat(token.standard).isEqualTo(TokenStandard.ERC20)
+    }
+
+    @Test
+    fun `register ERC20 token by checking bytecode`() = runBlocking<Unit> {
+        val adminSender = newSender().second
+        val erc20 = SimpleERC20.deployAndWait(adminSender, poller).awaitFirst()
+
+        val standard = tokenRegistrationService.fetchTokenStandardByFunctionSignatures(adminSender, erc20.address())
+        assertThat(standard).isEqualTo(TokenStandard.ERC20)
     }
 }

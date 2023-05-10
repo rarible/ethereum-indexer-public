@@ -4,7 +4,7 @@ import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
+import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenRangeTaskParams

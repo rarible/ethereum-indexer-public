@@ -37,7 +37,7 @@ class ERC721TransferLogDescriptor(
     private val skipTransferContractTokens = indexerProperties.scannerProperties.skipTransferContractTokens.map(
         ItemIdFromStringConverter::convert
     )
-    private val ignoredStandards = listOf(TokenStandard.NONE, TokenStandard.CRYPTO_PUNKS)
+    private val ignoredStandards = listOf(TokenStandard.NONE, TokenStandard.CRYPTO_PUNKS, TokenStandard.ERC20)
 
     override val topic: Word = TransferEvent.id()
 
