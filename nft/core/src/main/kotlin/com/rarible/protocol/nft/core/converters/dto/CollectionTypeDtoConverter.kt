@@ -10,7 +10,7 @@ object CollectionTypeDtoConverter {
             TokenStandard.ERC721, TokenStandard.DEPRECATED -> NftCollectionDto.Type.ERC721
             TokenStandard.ERC1155 -> NftCollectionDto.Type.ERC1155
             TokenStandard.CRYPTO_PUNKS -> NftCollectionDto.Type.CRYPTO_PUNKS
-            TokenStandard.NONE -> throw IllegalArgumentException("Unexpected collection standard $source")
+            else -> throw IllegalArgumentException("Unexpected collection standard $source")
         }
     }
 }

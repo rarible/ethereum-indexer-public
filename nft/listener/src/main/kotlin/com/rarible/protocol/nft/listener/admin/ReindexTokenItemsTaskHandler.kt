@@ -64,7 +64,7 @@ class ReindexTokenItemsTaskHandler(
             )
             // TODO Maybe we need custom mint detector here too?
             TokenStandard.ERC1155 -> AdminErc1155TransferLogDescriptor(tokenRegistrationService, ignoredTokenResolver, params.tokens)
-            TokenStandard.CRYPTO_PUNKS, TokenStandard.DEPRECATED, TokenStandard.NONE -> return Flux.empty()
+            else -> return Flux.empty()
         }
         return logListenService.reindexWithDescriptor(descriptor, from ?: 1, end)
     }

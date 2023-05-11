@@ -68,7 +68,7 @@ class TokenRepository(
         val criteria = when (this) {
             is TokenFilter.All -> all()
             is TokenFilter.ByOwner -> byOwner(owner)
-        }.and(Token::standard).ne(TokenStandard.NONE).and(Token::status).ne(ContractStatus.ERROR) scrollTo continuation
+        }.and(Token::standard).nin(TokenStandard.IGNORABLE).and(Token::status).ne(ContractStatus.ERROR) scrollTo continuation
 
         return Query.query(criteria).limit(size)
     }

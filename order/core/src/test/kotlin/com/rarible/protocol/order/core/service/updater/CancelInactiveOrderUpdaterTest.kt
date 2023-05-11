@@ -5,43 +5,35 @@ import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
-import com.rarible.protocol.order.core.repository.order.OrderStateRepository
+import com.rarible.protocol.order.core.service.OrderStateService
 import io.mockk.clearMocks
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class X2Y2OrderUpdaterTest {
+class CancelInactiveOrderUpdaterTest {
 
-    private val orderStateRepository: OrderStateRepository = mockk()
-    private val updater = X2Y2OrderUpdater(orderStateRepository)
+    private val orderStateService: OrderStateService = mockk()
+    private val updater = CancelInactiveOrderUpdater(orderStateService)
 
     @BeforeEach
     fun beforeEach() {
-        clearMocks(orderStateRepository)
+        clearMocks(orderStateService)
     }
 
     @Test
     fun `inactive order cancelled`() = runBlocking<Unit> {
         val order = createOrder().copy(platform = Platform.X2Y2, makeStock = EthUInt256.ZERO)
 
-        coEvery { orderStateRepository.getById(order.hash) } returns null
-        coEvery { orderStateRepository.save(any()) } answers { it.invocation.args[0] as OrderState }
+        coEvery { orderStateService.setCancelState(order.hash) } returns OrderState(order.hash, true)
 
         val updated = updater.update(order)
 
         assertThat(updated.cancelled).isTrue
         assertThat(updated.status).isEqualTo(OrderStatus.CANCELLED)
-
-        coVerify(exactly = 1) {
-            orderStateRepository.save(match {
-                it.id == order.hash && it.canceled
-            })
-        }
     }
 
     @Test

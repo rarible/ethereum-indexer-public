@@ -16,6 +16,9 @@ import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
+import com.rarible.protocol.nft.core.service.ReindexTokenService
+import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.TokenUpdateService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
@@ -46,7 +49,7 @@ import javax.annotation.PostConstruct
 
 abstract class AbstractIntegrationTest {
 
-    private lateinit var sender: MonoTransactionSender
+    protected lateinit var sender: MonoTransactionSender
 
     @Autowired
     protected lateinit var mongo: ReactiveMongoOperations
@@ -86,6 +89,15 @@ abstract class AbstractIntegrationTest {
 
     @Autowired
     private lateinit var testActivityHandler: TestKafkaHandler<ActivityDto>
+
+    @Autowired
+    protected lateinit var tokenRegistrationService: TokenRegistrationService
+
+    @Autowired
+    protected lateinit var reindexTokenService: ReindexTokenService
+
+    @Autowired
+    protected lateinit var tokenUpdateService: TokenUpdateService
 
     @BeforeEach
     fun cleanDatabase() = runBlocking<Unit> {
