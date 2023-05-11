@@ -59,7 +59,7 @@ class ApprovalAllLogListener(
             history.owner, history.collection, platform, logEvent.blockNumber, logEvent.logIndex
         )
         orderRepository
-            .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
+            .findActiveOrInactiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
             .collect {
                 orderUpdateService.updateApproval(it, history.approved, mark)
             }
