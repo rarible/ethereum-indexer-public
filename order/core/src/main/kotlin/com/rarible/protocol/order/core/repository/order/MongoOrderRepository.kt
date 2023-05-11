@@ -12,7 +12,6 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
-import com.rarible.protocol.order.core.model.OrderCountableData
 import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
@@ -100,6 +99,10 @@ class MongoOrderRepository(
             .all()
             .collectList()
             .awaitFirst()
+    }
+
+    override fun searchAll(query: Query): Flow<Order> {
+        return template.query<Order>().matching(query).all().asFlow()
     }
 
     override suspend fun remove(hash: Word): Boolean {

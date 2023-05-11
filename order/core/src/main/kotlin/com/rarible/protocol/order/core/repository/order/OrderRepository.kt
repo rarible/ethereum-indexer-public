@@ -32,6 +32,8 @@ interface OrderRepository {
 
     suspend fun search(query: Query): List<Order>
 
+    fun searchAll(query: Query): Flow<Order>
+
     suspend fun remove(hash: Word): Boolean
 
     fun findActive(): Flow<Order>
