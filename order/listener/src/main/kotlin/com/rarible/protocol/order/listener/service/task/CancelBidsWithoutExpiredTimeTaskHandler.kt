@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderStatus.Companion.ALL_EXCEPT_CANCELLED
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -42,6 +43,7 @@ class CancelBidsWithoutExpiredTimeTaskHandler(
 
     override fun runLongTask(from: Long?, param: String): Flow<Long> {
         val criteria = (Order::take / Asset::type / AssetType::nft isEqualTo true)
+            .and(Order::platform).isEqualTo(Platform.RARIBLE)
             .and(Order::status).inValues(ALL_EXCEPT_CANCELLED)
             .and(Order::end).exists(false)
 
