@@ -211,6 +211,17 @@ object OrderRepositoryIndexes {
             )
         )
         .background()
+
+    val BY_BIDS_STATUS_AND_CREATED_AT_DEFINITION = Index()
+        .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
+        .on(Order::createdAt.name, Sort.Direction.ASC)
+        .partial(
+            PartialIndexFilter.of(
+                Criteria.where("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
+            )
+        )
+        .background()
     // --------------------- for updating status by start/end ---------------------//
 
     val BY_PLATFORM_MAKER_GLOBAL_COUNTER_STATUS: Index = Index()
@@ -313,6 +324,7 @@ object OrderRepositoryIndexes {
         BY_PLATFORM_MAKER_ORDER_COUNTER_STATUS,
         BY_PLATFORM_MAKER_SUBSET_COUNTER_STATUS,
         BY_BIDS_STATUS_AND_NO_END_DEFINITION,
+        BY_BIDS_STATUS_AND_CREATED_AT_DEFINITION,
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,
