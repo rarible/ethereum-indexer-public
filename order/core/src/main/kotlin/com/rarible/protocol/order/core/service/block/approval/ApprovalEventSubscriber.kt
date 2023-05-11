@@ -49,11 +49,11 @@ class ApprovalEventSubscriber(
             return
         }
         logger.info(
-            "Process approval: maker={}, collection={}, platform={}, block={}, logIndex={}, approved={}",
-            history.owner, history.collection, platform, logEvent.blockNumber, logEvent.logIndex, history.approved
+            "Process approval: maker={}, collection={}, platform={}, block={}, logIndex={}",
+            history.owner, history.collection, platform, logEvent.blockNumber, logEvent.logIndex
         )
         orderRepository
-            .findActiveOrInactiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
+            .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
             .collect {
                 orderUpdateService.updateApproval(it, history.approved, mark)
             }

@@ -355,13 +355,13 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    override fun findActiveOrInactiveSaleOrdersHashesByMakerAndToken(
+    override fun findActiveSaleOrdersHashesByMakerAndToken(
         maker: Address,
         token: Address,
         platform: Platform
     ): Flow<Order> {
         val criteria = where(Order::maker).isEqualTo(maker)
-            .and(Order::status).inValues(OrderStatus.ACTIVE, OrderStatus.INACTIVE)
+            .and(Order::status).isEqualTo(OrderStatus.ACTIVE)
             .and(Order::make / AssetType::type / AssetType::nft).isEqualTo(true)
             .and(Order::make / AssetType::type / NftAssetType::token).isEqualTo(token)
             .and(Order::platform).isEqualTo(platform)

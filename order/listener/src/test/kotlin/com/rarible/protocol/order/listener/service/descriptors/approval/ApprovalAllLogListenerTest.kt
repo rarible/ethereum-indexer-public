@@ -41,7 +41,7 @@ internal class ApprovalAllLogListenerTest {
 
         every { properties.handleApprovalAfterBlock } returns 5
         every { approveService.getPlatform(approval.operator) } returns platform
-        every { orderRepository.findActiveOrInactiveSaleOrdersHashesByMakerAndToken(
+        every { orderRepository.findActiveSaleOrdersHashesByMakerAndToken(
             approval.owner,
             approval.collection,
             platform
