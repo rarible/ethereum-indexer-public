@@ -39,6 +39,6 @@ enum class OrderStatus {
 
     companion object {
         val ALL_EXCEPT_HISTORICAL: Set<OrderStatus> = values().toMutableSet() - HISTORICAL
-        val ALL_EXCEPT_CANCELLED: Set<OrderStatus> = values().toMutableSet() - CANCELLED
+        val ALL_EXCEPT_CANCELLED: Set<OrderStatus> = values().toMutableSet() - CANCELLED - FILLED
     }
 }
