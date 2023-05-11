@@ -37,7 +37,7 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
 
     @Test
     internal fun `should handle approve for seaport`() {
-        checkPlatform(Platform.OPEN_SEA, transferProxyAddresses.seaportTransferProxy)
+        checkPlatform(Platform.OPEN_SEA, transferProxyAddresses.seaportTransferProxy, OrderStatus.CANCELLED)
     }
 
     @Test
