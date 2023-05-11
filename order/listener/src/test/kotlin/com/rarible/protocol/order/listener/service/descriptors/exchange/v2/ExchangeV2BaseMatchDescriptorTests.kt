@@ -44,6 +44,7 @@ import scalether.domain.AddressFactory
 import scalether.domain.request.Transaction
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.time.Instant
 
 abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
     abstract fun hashToSign(structHash: Word): Word
@@ -645,7 +646,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = null,
+            end = Instant.now().plusSeconds(1000).epochSecond,
             data = data,
             signature = null,
             createdAt = nowMillis(),
@@ -1138,7 +1139,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = null,
+            end = Instant.now().plusSeconds(1000).epochSecond,
             data = OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = false),
             signature = null,
             createdAt = nowMillis(),

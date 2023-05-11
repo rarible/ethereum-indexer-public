@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.model.*
 import scalether.domain.AddressFactory
 import java.math.BigInteger
+import java.time.Instant
 
 fun createOrderVersion(): OrderVersion {
     return OrderVersion(
@@ -28,7 +29,7 @@ fun createOrderVersion(): OrderVersion {
         type = OrderType.RARIBLE_V2,
         salt = EthUInt256.TEN,
         start = null,
-        end = null,
+        end = Instant.now().plusSeconds(1000).epochSecond,
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
         signature = null
     )
