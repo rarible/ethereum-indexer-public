@@ -142,7 +142,7 @@ fun createOrderVersion(make: Asset, take: Asset) = OrderVersion(
     type = OrderType.RARIBLE_V2,
     salt = EthUInt256.TEN,
     start = null,
-    end = null,
+    end = Instant.now().plusSeconds(1000).epochSecond,
     data = OrderRaribleV2DataV1(emptyList(), emptyList()),
     signature = null
 )

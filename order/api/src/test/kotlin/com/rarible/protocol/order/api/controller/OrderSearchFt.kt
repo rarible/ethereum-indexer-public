@@ -49,6 +49,7 @@ import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
+import java.time.Instant
 import java.util.Date
 import java.util.stream.Stream
 import com.rarible.protocol.order.api.data.createOrder as createOrderFully
@@ -656,7 +657,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
                 type = OrderType.RARIBLE_V2,
                 salt = EthUInt256(salt),
                 start = null,
-                end = null,
+                end = Instant.now().plusSeconds(1000).epochSecond,
                 data = OrderRaribleV2DataV1(emptyList(), emptyList()),
                 signature = null,
                 makePriceUsd = null,
