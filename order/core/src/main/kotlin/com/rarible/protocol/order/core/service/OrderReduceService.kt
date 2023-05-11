@@ -438,6 +438,22 @@ class OrderReduceService(
         } else this
     }
 
+    private suspend fun Order.withBidWithNoExpire(): Order {
+        if (this.isBid().not()) return this
+        if (this.platform != Platform.RARIBLE) return this
+        //Bids with no 'end' time must be canceled
+        return if (this.end == null) {
+            logger.info("Cancel rarible BID $id cause it has no 'end' time")
+            this.copy(
+                status = OrderStatus.CANCELLED,
+                lastUpdateAt = Instant.now(),
+                dbUpdatedAt = Instant.now(),
+                cancelled = true,
+                lastEventId = accumulateEventId(this.lastEventId, "")
+            )
+        } else this
+    }
+
     private suspend fun Order.withFinalState(): Order {
         val state = orderStateRepository.getById(id.hash) ?: return this
         return this.withFinalState(state)
@@ -475,6 +491,7 @@ class OrderReduceService(
             .withCancelSeaport()
             .withApproval()
             .withBidExpire()
+            .withBidWithNoExpire()
             .withCancelSmallPriceSeaport()
             .withFinalState()
 

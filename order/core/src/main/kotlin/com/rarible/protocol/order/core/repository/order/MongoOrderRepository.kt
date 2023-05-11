@@ -101,6 +101,10 @@ class MongoOrderRepository(
             .awaitFirst()
     }
 
+    override fun searchAll(query: Query): Flow<Order> {
+        return template.query<Order>().matching(query).all().asFlow()
+    }
+
     override suspend fun remove(hash: Word): Boolean {
         val criteria = Criteria.where("_id").isEqualTo(Order.Id(hash))
         return template.remove(Query(criteria), Order::class.java).awaitFirst().deletedCount > 0
