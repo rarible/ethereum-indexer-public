@@ -64,6 +64,8 @@ interface OrderRepository {
 
     fun findActiveSaleOrdersHashesByMakerAndToken(maker: Address, token: Address, platform: Platform): Flow<Order>
 
+    fun findInActiveSaleOrdersHashesByMakerAndToken(maker: Address, token: Address, platform: Platform): Flow<Order>
+
     fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<BigInteger>): Flow<Order>
 
     fun findLRByMakeAndByOrderCounters(maker: Address, counters: List<BigInteger>): Flow<Order>
