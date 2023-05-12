@@ -28,6 +28,7 @@ import org.web3j.utils.Numeric
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
+import java.time.Instant
 
 fun createOrder(
     maker: Address = AddressFactory.create(),
@@ -35,7 +36,7 @@ fun createOrder(
     make: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
     take: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
     start: Long? = null,
-    end: Long? = null
+    end: Long? = Instant.now().plusSeconds(1000).epochSecond
 ): Order {
     return Order(
         maker = maker,

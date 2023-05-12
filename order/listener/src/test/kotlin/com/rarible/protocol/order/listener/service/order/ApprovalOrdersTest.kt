@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import java.time.Duration
+import java.time.Instant
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -36,7 +37,7 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
 
     @Test
     internal fun `should handle approve for seaport`() {
-        checkPlatform(Platform.OPEN_SEA, transferProxyAddresses.seaportTransferProxy)
+        checkPlatform(Platform.OPEN_SEA, transferProxyAddresses.seaportTransferProxy, OrderStatus.CANCELLED)
     }
 
     @Test
@@ -85,7 +86,6 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
                 checkStatus(true, saved.hash, OrderStatus.ACTIVE)
                 assertThat(approveService.checkOnChainApprove(owner, token.address(), platform)).isEqualTo(true)
             }
-
             setApproval(token, proxy, false)
             Wait.waitAssert(Duration.ofSeconds(10)) {
                 checkStatus( false, saved.hash, noApprovalStatus)
@@ -119,7 +119,8 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
             maker = maker,
             make = randomErc721(token),
             take = randomErc20(),
-            platform = platform
+            platform = platform,
+            end = null
         )
         return orderUpdateService.save(version)
     }

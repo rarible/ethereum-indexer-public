@@ -227,7 +227,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             make = make,
             take = take,
             start = nowMillis().plus(Duration.ofHours(1)).epochSecond,
-            end = null
+            end = Instant.now().plusSeconds(1000).epochSecond,
         )
         val order = orderUpdateService.save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)

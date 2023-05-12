@@ -49,6 +49,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 import java.math.BigInteger
+import java.time.Instant
 
 /**
  * ExchangeV2 on-chain order upsert test.
@@ -121,7 +122,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
             orderType = OrderType.RARIBLE_V2,
             salt = salt,
             start = null,
-            end = null,
+            end = Instant.now().plusSeconds(1000).epochSecond,
             data = orderData,
             signature = null,
             createdAt = nowMillis(),
@@ -154,7 +155,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
             orderType = OrderType.RARIBLE_V2,
             salt = salt,
             start = null,
-            end = null,
+            end = Instant.now().plusSeconds(1000).epochSecond,
             data = orderData,
             signature = null,
             createdAt = nowMillis(),
@@ -183,7 +184,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
             orderType = OrderType.RARIBLE_V2,
             salt = salt,
             start = null,
-            end = null,
+            end = Instant.now().plusSeconds(1000).epochSecond,
             data = OrderRaribleV2DataV1(emptyList(), emptyList()),
             signature = null,
             createdAt = nowMillis(),
@@ -223,7 +224,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
             orderType = OrderType.RARIBLE_V2,
             salt = salt,
             start = null,
-            end = null,
+            end = Instant.now().plusSeconds(1000).epochSecond,
             data = OrderRaribleV2DataV1(emptyList(), emptyList()),
             signature = null,
             createdAt = nowMillis(),
@@ -261,7 +262,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
             orderType = OrderType.RARIBLE_V2,
             salt = salt,
             start = null,
-            end = null,
+            end = Instant.now().plusSeconds(1000).epochSecond,
             data = OrderRaribleV2DataV1(emptyList(), emptyList()),
             signature = null,
             createdAt = nowMillis(),
