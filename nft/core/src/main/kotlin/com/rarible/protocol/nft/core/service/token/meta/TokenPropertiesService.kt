@@ -57,7 +57,5 @@ class TokenPropertiesService(
         fun logProperties(id: Address, message: String, warn: Boolean = false) = logger.logMetaLoading(
             id.prefixed(), message, warn
         )
-
-        const val TOKEN_METADATA_COLLECTION = "token_metadata"
     }
 }
