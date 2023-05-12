@@ -13,6 +13,7 @@ import com.rarible.protocol.erc20.core.model.Erc20Event
 import com.rarible.protocol.erc20.core.model.SubscriberGroup
 import com.rarible.protocol.erc20.core.model.SubscriberGroups
 import com.rarible.protocol.erc20.core.service.Erc20BalanceService
+import org.bson.BsonMaximumSizeExceededException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -23,7 +24,7 @@ class Erc20EventReduceService(
     erc20BalanceIdService: Erc20BalanceIdService,
     erc20BalanceTemplateProvider: Erc20BalanceTemplateProvider,
     erc20BalanceReducer: Erc20BalanceReducer,
-    properties: Erc20IndexerProperties,
+    private val properties: Erc20IndexerProperties,
     environmentInfo: ApplicationEnvironmentInfo,
 ) : EntityEventListener {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -58,7 +59,11 @@ class Erc20EventReduceService(
             } catch (ex: Exception) {
                 val locations = events.map { it.record.asEthereumLogRecord() }.map { "${it.transactionHash}:${it.logIndex}:${it.minorLogIndex}" }
                 logger.error("Error on entity events: $locations", ex)
-                throw ex
+                if (properties.featureFlags.skipBsonMaximumSize && ex is BsonMaximumSizeExceededException) {
+                    logger.warn("Skipped BsonMaximumSizeExceededException", ex)
+                } else {
+                    throw ex
+                }
             }
         }
     }
