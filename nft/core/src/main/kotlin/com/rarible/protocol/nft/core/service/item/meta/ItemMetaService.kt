@@ -12,8 +12,7 @@ import java.time.Duration
  */
 @Component
 class ItemMetaService(
-    private val itemMetaResolver: ItemMetaResolver,
-    private val pendingItemTokenUriResolver: PendingItemTokenUriResolver
+    private val itemMetaResolver: ItemMetaResolver
 ) {
 
     suspend fun getMeta(
@@ -56,14 +55,5 @@ class ItemMetaService(
             logMetaLoading(itemId, message, warn = true)
             throw MetaException(message, status = MetaException.Status.Unknown)
         }
-    }
-
-    /**
-     * Save tokenUri to the cache for a pending utem.
-     * It is needed to guarantee that the first sent ItemUpdateEvent goes with an existing meta.
-     */
-    suspend fun saveTokenUriForPendingItem(itemId: ItemId, tokenUri: String) {
-        pendingItemTokenUriResolver.save(itemId, tokenUri)
-        logMetaLoading(itemId, "saved tokenUri for a pending item $tokenUri")
     }
 }
