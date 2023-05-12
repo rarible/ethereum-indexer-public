@@ -241,7 +241,7 @@ object OrderRepositoryIndexes {
         )
         .background()
 
-    @Deprecated("Remove in release 1.33")
+    // This index is used for activate/inactivate sale orders after changing approval
     val BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS = Index()
         .on(Order::maker.name, Sort.Direction.ASC)
         .on(Order::status.name, Sort.Direction.ASC)

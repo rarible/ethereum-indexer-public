@@ -363,9 +363,22 @@ class MongoOrderRepository(
         maker: Address,
         token: Address,
         platform: Platform
+    ) = findSaleOrdersHashesByMakerAndTokenAndStatus(maker, token, platform, OrderStatus.ACTIVE)
+
+    override fun findInActiveSaleOrdersHashesByMakerAndToken(
+        maker: Address,
+        token: Address,
+        platform: Platform
+    ) = findSaleOrdersHashesByMakerAndTokenAndStatus(maker, token, platform, OrderStatus.INACTIVE)
+
+    private fun findSaleOrdersHashesByMakerAndTokenAndStatus(
+        maker: Address,
+        token: Address,
+        platform: Platform,
+        status: OrderStatus
     ): Flow<Order> {
         val criteria = where(Order::maker).isEqualTo(maker)
-            .and(Order::status).isEqualTo(OrderStatus.ACTIVE)
+            .and(Order::status).isEqualTo(status)
             .and(Order::make / AssetType::type / AssetType::nft).isEqualTo(true)
             .and(Order::make / AssetType::type / NftAssetType::token).isEqualTo(token)
             .and(Order::platform).isEqualTo(platform)

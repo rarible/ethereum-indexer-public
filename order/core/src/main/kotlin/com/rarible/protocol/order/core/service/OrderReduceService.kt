@@ -460,7 +460,7 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withApproval(): Order {
-        if (this.status != OrderStatus.ACTIVE) return this
+        if (this.status !in setOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE)) return this
         return if (this.isBid()) withBidApproval() else withSellApproval()
     }
 
