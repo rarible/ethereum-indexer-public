@@ -76,8 +76,8 @@ class RemoveOpenSeaOutdatedOrdersTaskHandlerTest : AbstractIntegrationTest() {
         assertThat(updatedIds).containsAll(openseaV1Inactive)
         assertThat(updatedIds).containsAll(openseaV2Inactive)
         assertThat(updatedIds).containsAll(seaportV1Active)
+        assertThat(updatedIds).containsAll(seaportV1_4Active)
         assertThat(updatedIds).doesNotContainAnyElementsOf(seaportV1Cancelled)
-        assertThat(updatedIds).doesNotContainAnyElementsOf(seaportV1_4Active)
         assertThat(updatedIds).doesNotContainAnyElementsOf(seaportV1_5Active)
 
         updated.forEach { assertEquals(true, it.cancelled) }
@@ -94,6 +94,7 @@ class RemoveOpenSeaOutdatedOrdersTaskHandlerTest : AbstractIntegrationTest() {
         updated.filter { it.data is OrderBasicSeaportDataV1 }.forEach {
             when ((it.data as OrderBasicSeaportDataV1).protocol) {
                 seaportV1 -> assertThat(it.lastUpdateAt).isEqualTo(Instant.ofEpochSecond(1680652800))
+                seaportV1_4 -> assertThat(it.lastUpdateAt).isEqualTo(Instant.ofEpochSecond(1684195200))
                 else -> throw IllegalArgumentException("Unexpected Seaport test exchange")
             }
         }
