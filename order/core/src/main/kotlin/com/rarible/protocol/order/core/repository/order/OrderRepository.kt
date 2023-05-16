@@ -48,7 +48,11 @@ interface OrderRepository {
 
     fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?, status: OrderStatus?, platform: Platform?): Flow<Order>
 
-    fun findMakeTypesOfBidOrders(token: Address, tokenId: EthUInt256): Flow<AssetType>
+    fun findMakeTypesOfBidOrders(
+        token: Address,
+        tokenId: EthUInt256,
+        statuses: Collection<OrderStatus>
+    ): Flow<AssetType>
 
     suspend fun findByMake(token: Address, tokenId: EthUInt256): Order?
 
@@ -56,7 +60,11 @@ interface OrderRepository {
 
     suspend fun findByTake(token: Address, tokenId: EthUInt256): Order?
 
-    fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType>
+    fun findTakeTypesOfSellOrders(
+        token: Address,
+        tokenId: EthUInt256,
+        statuses: Collection<OrderStatus>
+    ): Flow<AssetType>
 
     suspend fun createIndexes()
 

@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.model.order
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.order.core.converters.model.OrderStatusConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.isSingleton
@@ -144,11 +145,7 @@ fun Criteria.fromOrigin(origin: Address?) = origin?.let {
 
 fun Criteria.forStatus(status: List<OrderStatusDto>?) =
     if (status?.isNotEmpty() == true) {
-        val statuses = status.map { OrderStatus.valueOf(it.name) }.toMutableList()
-        if (OrderStatus.INACTIVE in statuses) {
-            statuses += listOf(OrderStatus.ENDED, OrderStatus.NOT_STARTED)
-        }
-        and(Order::status).inValues(statuses)
+        and(Order::status).inValues(OrderStatusConverter.convert(status))
     } else {
         and(Order::status).inValues(OrderStatus.ALL_EXCEPT_HISTORICAL)
     }
