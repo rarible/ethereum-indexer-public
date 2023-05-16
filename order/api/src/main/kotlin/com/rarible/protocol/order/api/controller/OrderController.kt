@@ -32,12 +32,14 @@ import com.rarible.protocol.order.core.converters.dto.CompositeBidConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderSortDtoConverter
+import com.rarible.protocol.order.core.converters.model.OrderStatusConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
 import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.currency
@@ -506,24 +508,49 @@ class OrderController(
 
     override suspend fun getCurrenciesBySellOrdersOfItem(
         contract: String,
-        tokenId: String
+        tokenId: String,
+        status: List<OrderStatusDto>?
     ): ResponseEntity<OrderCurrenciesDto> {
-        val currencies = orderRepository.findTakeTypesOfSellOrders(
-            Address.apply(contract),
-            EthUInt256.of(BigInteger(tokenId))
-        ).map { assetTypeDtoConverter.convert(it) }.toList()
+        val sanitizedStatuses = convertCurrencyStatuses(status)
+        val currencies = if (sanitizedStatuses.isNotEmpty()) {
+            orderRepository.findTakeTypesOfSellOrders(
+                Address.apply(contract),
+                EthUInt256.of(BigInteger(tokenId)),
+                sanitizedStatuses
+            ).map { assetTypeDtoConverter.convert(it) }.toList()
+        } else {
+            // Means only HISTORICAL requested, not supported here
+            emptyList()
+        }
         return ResponseEntity.ok(OrderCurrenciesDto(OrderCurrenciesDto.OrderType.SELL, currencies))
     }
 
     override suspend fun getCurrenciesByBidOrdersOfItem(
         contract: String,
-        tokenId: String
+        tokenId: String,
+        status: List<OrderStatusDto>?
     ): ResponseEntity<OrderCurrenciesDto> {
-        val currencies = orderRepository.findMakeTypesOfBidOrders(
-            Address.apply(contract),
-            EthUInt256.of(BigInteger(tokenId))
-        ).map { assetTypeDtoConverter.convert(it) }.toList()
+        val sanitizedStatuses = convertCurrencyStatuses(status)
+        val currencies = if (sanitizedStatuses.isNotEmpty()) {
+            orderRepository.findMakeTypesOfBidOrders(
+                Address.apply(contract),
+                EthUInt256.of(BigInteger(tokenId)),
+                sanitizedStatuses
+            ).map { assetTypeDtoConverter.convert(it) }.toList()
+        } else {
+            // Means only HISTORICAL requested, not supported here
+            emptyList()
+        }
         return ResponseEntity.ok(OrderCurrenciesDto(OrderCurrenciesDto.OrderType.BID, currencies))
+    }
+
+    private fun convertCurrencyStatuses(dto: List<OrderStatusDto>?): Set<OrderStatus> {
+        val statuses = OrderStatusConverter.convert(dto ?: emptyList())
+        return if (statuses.isNotEmpty()) {
+            statuses.toMutableSet() - OrderStatus.HISTORICAL
+        } else {
+            OrderStatus.ALL_EXCEPT_HISTORICAL
+        }
     }
 
     // TODO workaround for AMM orders, should be fixed/improved in PT-1652

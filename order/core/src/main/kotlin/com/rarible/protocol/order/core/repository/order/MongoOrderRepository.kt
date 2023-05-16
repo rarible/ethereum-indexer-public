@@ -168,17 +168,21 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    override fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
+    override fun findTakeTypesOfSellOrders(
+        token: Address,
+        tokenId: EthUInt256,
+        statuses: Collection<OrderStatus>
+    ): Flow<AssetType> {
         val criteria = Criteria().andOperator(
+            Order::status inValues statuses,
             Order::make / Asset::type / NftAssetType::token isEqualTo token,
-            Order::status inValues OrderStatus.ALL_EXCEPT_HISTORICAL,
             Criteria().orOperator(
                 Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
                 (Order::make / Asset::type / NftAssetType::tokenId exists false)
                     .and(Order::make / Asset::type / NftAssetType::nft).isEqualTo(true)
             )
         )
-        return template.findDistinct<AssetType>(
+        return template.findDistinct(
             Query(criteria),
             "${Order::take.name}.${Asset::type.name}",
             Order::class.java,
@@ -186,18 +190,21 @@ class MongoOrderRepository(
         ).asFlow()
     }
 
-    override fun findMakeTypesOfBidOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
-        @Suppress("DuplicatedCode")
+    override fun findMakeTypesOfBidOrders(
+        token: Address,
+        tokenId: EthUInt256,
+        statuses: Collection<OrderStatus>
+    ): Flow<AssetType> {
         val criteria = Criteria().andOperator(
+            Order::status inValues statuses,
             Order::take / Asset::type / NftAssetType::token isEqualTo token,
-            Order::status inValues OrderStatus.ALL_EXCEPT_HISTORICAL,
             Criteria().orOperator(
                 Order::take / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
                 (Order::take / Asset::type / NftAssetType::tokenId exists false)
                     .and(Order::take / Asset::type / NftAssetType::nft).isEqualTo(true)
             )
         )
-        return template.findDistinct<AssetType>(
+        return template.findDistinct(
             Query(criteria),
             "${Order::make.name}.${Asset::type.name}",
             Order::class.java,

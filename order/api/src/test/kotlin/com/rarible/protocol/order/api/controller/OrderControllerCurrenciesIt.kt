@@ -5,6 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.AssetTypeDto
 import com.rarible.protocol.dto.EthAssetTypeDto
 import com.rarible.protocol.dto.OrderCurrenciesDto
+import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.order.api.data.createErc721Asset
 import com.rarible.protocol.order.api.data.createEthAsset
 import com.rarible.protocol.order.api.data.createOrderVersion
@@ -27,7 +28,7 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 @IntegrationTest
-class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
+class OrderControllerCurrenciesIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var controller: OrderController
@@ -62,7 +63,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
             createOrderVersion(sellMake, currency1),
             createOrderVersion(sellMake, currency2)
         )
-        checkSellCurrencies(currency1, currency2)
+        checkSellCurrencies(listOf(currency1, currency2))
     }
 
     @Test
@@ -74,7 +75,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
             createOrderVersion(sellMake, currency2),
             createOrderVersion(sellMake, currency2) // Order with the same currency
         )
-        checkSellCurrencies(currency1, currency2)
+        checkSellCurrencies(listOf(currency1, currency2))
     }
 
     @Test
@@ -85,11 +86,11 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
             createOrderVersion(currency, sellMake),
             createOrderVersion(createErc721Asset(), createEthAsset())
         )
-        checkSellCurrencies(currency)
+        checkSellCurrencies(listOf(currency))
     }
 
     @Test
-    fun `sell currencies - include inactive orders`() = runBlocking<Unit> {
+    fun `sell currencies - filtered by status`() = runBlocking<Unit> {
         val currency = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE)
         val inactiveCurrency = Asset(EthAssetType, EthUInt256.ONE)
         saveOrderVersions(createOrderVersion(sellMake, currency))
@@ -99,7 +100,8 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(EthUInt256.ZERO)
         saveOrderVersions(inactiveVersion)
 
-        checkSellCurrencies(currency, inactiveCurrency)
+        checkSellCurrencies(listOf(currency), listOf(OrderStatusDto.ACTIVE))
+        checkSellCurrencies(listOf(inactiveCurrency), listOf(OrderStatusDto.INACTIVE))
     }
 
     @Test
@@ -110,7 +112,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
             createOrderVersion(currency1, bidTake),
             createOrderVersion(currency2, bidTake)
         )
-        checkBidCurrencies(currency1, currency2)
+        checkBidCurrencies(listOf(currency1, currency2))
     }
 
     @Test
@@ -122,7 +124,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
             createOrderVersion(currency2, bidTake),
             createOrderVersion(currency2, bidTake) // Order with the same currency
         )
-        checkBidCurrencies(currency1, currency2)
+        checkBidCurrencies(listOf(currency1, currency2))
     }
 
     @Test
@@ -133,11 +135,11 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
             createOrderVersion(bidTake, currency),
             createOrderVersion(createErc721Asset(), createEthAsset())
         )
-        checkBidCurrencies(currency)
+        checkBidCurrencies(listOf(currency))
     }
 
     @Test
-    fun `bid currencies - include inactive orders`() = runBlocking<Unit> {
+    fun `bid currencies - filtered by status`() = runBlocking<Unit> {
         val currency = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE)
         val inactiveCurrency = Asset(EthAssetType, EthUInt256.ONE)
         saveOrderVersions(createOrderVersion(currency, bidTake))
@@ -147,7 +149,8 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(EthUInt256.ZERO)
         saveOrderVersions(inactiveVersion)
 
-        checkBidCurrencies(currency, inactiveCurrency)
+        checkBidCurrencies(listOf(currency), listOf(OrderStatusDto.ACTIVE))
+        checkBidCurrencies(listOf(inactiveCurrency), listOf(OrderStatusDto.INACTIVE))
     }
 
     @Test
@@ -155,7 +158,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
         val asset = Asset(CollectionAssetType(token), EthUInt256.ONE)
         val currency = Asset(EthAssetType, EthUInt256.ONE)
         saveOrderVersions(createOrderVersion(asset, currency))
-        checkSellCurrencies(currency)
+        checkSellCurrencies(listOf(currency))
     }
 
     @Test
@@ -163,19 +166,27 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
         val asset = Asset(CollectionAssetType(token), EthUInt256.ONE)
         val currency = Asset(EthAssetType, EthUInt256.ONE)
         saveOrderVersions(createOrderVersion(currency, asset))
-        checkBidCurrencies(currency)
+        checkBidCurrencies(listOf(currency))
     }
 
-    private suspend fun checkSellCurrencies(vararg currencies: Asset) {
-        val currenciesDto = controller.getCurrenciesBySellOrdersOfItem(token.prefixed(), tokenId.toString()).body!!
+    private suspend fun checkSellCurrencies(currencies: List<Asset>, statuses: List<OrderStatusDto> = emptyList()) {
+        val currenciesDto = controller.getCurrenciesBySellOrdersOfItem(
+            token.prefixed(),
+            tokenId.toString(),
+            statuses
+        ).body!!
         assertThat(currenciesDto.orderType).isEqualTo(OrderCurrenciesDto.OrderType.SELL)
         assertThat(currenciesDto.currencies.map { it.intern() }).containsExactlyInAnyOrderElementsOf(
             currencies.map { assetTypeDtoConverter.convert(it.type).intern() }
         ).hasSameSizeAs(currencies)
     }
 
-    private suspend fun checkBidCurrencies(vararg currencies: Asset) {
-        val currenciesDto = controller.getCurrenciesByBidOrdersOfItem(token.prefixed(), tokenId.toString()).body!!
+    private suspend fun checkBidCurrencies(currencies: List<Asset>, statuses: List<OrderStatusDto> = emptyList()) {
+        val currenciesDto = controller.getCurrenciesByBidOrdersOfItem(
+            token.prefixed(),
+            tokenId.toString(),
+            statuses
+        ).body!!
         assertThat(currenciesDto.orderType).isEqualTo(OrderCurrenciesDto.OrderType.BID)
         assertThat(currenciesDto.currencies.map { it.intern() }).containsExactlyInAnyOrderElementsOf(
             currencies.map { assetTypeDtoConverter.convert(it.type).intern() }
