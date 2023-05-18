@@ -173,11 +173,14 @@ class MongoOrderRepository(
         tokenId: EthUInt256,
         statuses: Collection<OrderStatus>
     ): Flow<AssetType> {
-        // TODO ideally refactor it and bidCurrencies to have separate requests for collection orders
         val criteria = Criteria().andOperator(
             Order::status inValues statuses,
             Order::make / Asset::type / NftAssetType::token isEqualTo token,
-            Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
+            Criteria().orOperator(
+                Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
+                (Order::make / Asset::type / NftAssetType::tokenId exists false)
+                    .and(Order::make / Asset::type / NftAssetType::nft).isEqualTo(true)
+            )
         )
         return template.findDistinct(
             Query(criteria),
