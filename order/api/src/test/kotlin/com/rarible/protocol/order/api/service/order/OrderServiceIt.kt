@@ -12,6 +12,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
+import com.rarible.protocol.contracts.erc20.test.SimpleERC20
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.dto.Continuation
@@ -26,6 +27,7 @@ import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.order.api.data.createOrder
 import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
+import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.PlatformDtoConverter
@@ -50,6 +52,7 @@ import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
@@ -77,6 +80,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.fail
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -84,9 +88,13 @@ import org.springframework.data.mongodb.core.allAndAwait
 import org.springframework.data.mongodb.core.remove
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
+import scalether.domain.Address
 import scalether.domain.AddressFactory
+import scalether.transaction.MonoSigningTransactionSender
+import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.time.Instant
 import java.util.function.Consumer
 import java.util.stream.Stream
 import kotlin.random.Random
@@ -571,14 +579,16 @@ class OrderServiceIt : AbstractOrderIt() {
         val nft = createNftOwnershipDto().copy(value = makerErc721Supply.value)
 
         // order doesn't belong the current start,end interval
-        val order = createOrder(maker, Long.MAX_VALUE-1, Long.MAX_VALUE)
+        val order = createOrder(maker, Long.MAX_VALUE - 1, Long.MAX_VALUE)
             .copy(
                 maker = maker,
                 make = Asset(erc721AssetType, EthUInt256.TEN),
                 take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(10))
             )
 
-        every { nftOwnershipApi.getNftOwnershipById(eq(erc721AssetType.ownershipId(maker)), any()) } returns Mono.just(nft)
+        every { nftOwnershipApi.getNftOwnershipById(eq(erc721AssetType.ownershipId(maker)), any()) } returns Mono.just(
+            nft
+        )
 
         val saved = orderService.put(order.toForm(privateKey))
 
@@ -695,16 +705,16 @@ class OrderServiceIt : AbstractOrderIt() {
 
         val itemId = "${erc721AssetType.token}:${erc721AssetType.tokenId}"
         every { nftItemApi.getNftItemById(eq(itemId)) } returns
-                Mono.just(
-                    createNftItemDto(
-                        erc721AssetType.token,
-                        erc721AssetType.tokenId.value
-                    ).copy(lazySupply = BigInteger.ONE)
-                )
+            Mono.just(
+                createNftItemDto(
+                    erc721AssetType.token,
+                    erc721AssetType.tokenId.value
+                ).copy(lazySupply = BigInteger.ONE)
+            )
         every { nftItemApi.getNftLazyItemById(eq(itemId)) } returns
-                Mono.just(lazyNft)
+            Mono.just(lazyNft)
         every { nftCollectionApi.getNftCollectionById(erc721AssetType.token.hex()) } returns
-                Mono.just(createNftCollectionDto(erc721AssetType.token))
+            Mono.just(createNftCollectionDto(erc721AssetType.token))
 
         orderService.put(realOrder.toForm(privateKey).withSignature(signature))
 
@@ -945,8 +955,18 @@ class OrderServiceIt : AbstractOrderIt() {
         )
         orderRepository.save(ammOrder)
         every {
-            nftOwnershipControllerApi.getNftOwnershipsByOwner(poolAddress.prefixed(), collection.prefixed(), continuation, size)
-        } returns Mono.just(NftOwnershipsDto(continuation = expectedContinuation, ownerships = listOf(ownership1, ownership2)))
+            nftOwnershipControllerApi.getNftOwnershipsByOwner(
+                poolAddress.prefixed(),
+                collection.prefixed(),
+                continuation,
+                size
+            )
+        } returns Mono.just(
+            NftOwnershipsDto(
+                continuation = expectedContinuation,
+                ownerships = listOf(ownership1, ownership2)
+            )
+        )
 
         val result = orderService.getAmmOrderHoldItemIds(ammOrder.hash, continuation, size)
         assertThat(result.itemIds).isEqualTo(expectedItemIds)
@@ -960,7 +980,8 @@ class OrderServiceIt : AbstractOrderIt() {
         val collection = randomAddress()
         val tokenId = EthUInt256.of(randomBigInt())
         val ammOrder = createOrder()
-        val nftIn = randomPoolTargetNftIn().copy(hash = ammOrder.hash, collection = collection, tokenIds = listOf(tokenId))
+        val nftIn =
+            randomPoolTargetNftIn().copy(hash = ammOrder.hash, collection = collection, tokenIds = listOf(tokenId))
 
         orderRepository.save(ammOrder)
         poolHistoryRepository.save(
@@ -1006,11 +1027,11 @@ class OrderServiceIt : AbstractOrderIt() {
             currencyControllerApi.getCurrencyRate(any(), any(), any())
         } returns Mono.just(
             CurrencyRateDto(
-                    "from",
-                    "usd",
-                    BigDecimal("3"),
-                    nowMillis()
-                )
+                "from",
+                "usd",
+                BigDecimal("3"),
+                nowMillis()
+            )
         )
         val nftCount = 2
         val result = orderService.getAmmBuyInfo(ammOrder.hash, nftCount)
@@ -1023,6 +1044,68 @@ class OrderServiceIt : AbstractOrderIt() {
         assertThat(result[1].price).isEqualTo(BigDecimal("0.2").eth())
         assertThat(result[1].priceValue).isEqualTo(BigDecimal("0.200000000000000000"))
         assertThat(result[1].priceUsd).isEqualTo(BigDecimal("0.600000000000000000"))
+    }
+
+    @Test
+    fun `validate and get expired`() = runBlocking<Unit> {
+        val (maker, erc20) = prepareErc20AndApprove(BigInteger.TEN)
+
+        val saved = orderRepository.save(
+            createOrder(
+                maker = maker,
+                make = Asset(Erc20AssetType(erc20.address()), EthUInt256.TEN),
+                start = Instant.now().minusSeconds(60).epochSecond,
+                end = Instant.now().plusSeconds(1).epochSecond
+            )
+        )
+        assertThat(saved.status).isEqualTo(OrderStatus.ACTIVE)
+
+        assertThat(orderService.validateAndGet(saved.hash)).isEqualTo(saved)
+
+        delay(1100)
+
+        try {
+            orderService.validateAndGet(saved.hash)
+            fail("Shouldn't be here")
+        } catch (e: ValidationApiException) {
+            assertThat(e.message).isEqualTo("order is not active")
+        }
+    }
+
+    private suspend fun prepareErc20AndApprove(approvedAmount: BigInteger): Pair<Address, SimpleERC20> {
+        val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
+        val sender = MonoSigningTransactionSender(
+            ethereum,
+            MonoSimpleNonceProvider(ethereum),
+            privateKey,
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
+        val maker = sender.from()
+        val erc20 = SimpleERC20.deployAndWait(sender, poller).awaitFirst()
+        erc20.mint(maker, 10.toBigInteger()).withSender(sender).execute().verifySuccess()
+
+        erc20.approve(orderIndexerProperties.transferProxyAddresses.erc20TransferProxy, approvedAmount)
+            .withSender(sender).execute().verifySuccess()
+        return Pair(maker, erc20)
+    }
+
+    @Test
+    fun `validate bid not approved`() = runBlocking<Unit> {
+        val (maker, erc20) = prepareErc20AndApprove(5.toBigInteger())
+
+        val saved = orderRepository.save(
+            createOrder(
+                maker = maker,
+                make = Asset(Erc20AssetType(erc20.address()), EthUInt256.TEN),
+            )
+        )
+
+        try {
+            orderService.validateAndGet(saved.hash)
+            fail("Shouldn't be here")
+        } catch (e: ValidationApiException) {
+            assertThat(e.message).isEqualTo("order is not approved")
+        }
     }
 
     private suspend fun saveRandomOrderWithMakeBalance(): Order {
@@ -1072,7 +1155,7 @@ class OrderServiceIt : AbstractOrderIt() {
         return orderRepository.save(order.copy(platform = Platform.BLUR))
     }
 
-    private suspend fun saveRandomOrder(): Order{
+    private suspend fun saveRandomOrder(): Order {
         val (_, _, signer) = generateNewKeys()
         val order = createOrder(signer)
         return orderRepository.save(order)
