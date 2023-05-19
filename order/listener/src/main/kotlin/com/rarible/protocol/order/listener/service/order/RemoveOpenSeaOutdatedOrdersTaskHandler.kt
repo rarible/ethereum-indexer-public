@@ -26,6 +26,11 @@ class RemoveOpenSeaOutdatedOrdersTaskHandler(
 
     override val type = "REMOVE_OPEN_SEA_OUTDATED_ORDERS"
 
+    private val legacyOrderContracts = setOf(
+        exchangeContractAddresses.seaportV1,
+        exchangeContractAddresses.seaportV1_4
+    )
+
     override fun runLongTask(from: String?, param: String): Flow<String> {
         val status = OrderStatus.valueOf(param)
         logger.info("Start $type task with $status param")
@@ -42,7 +47,8 @@ class RemoveOpenSeaOutdatedOrdersTaskHandler(
         }
         if (order.type == OrderType.SEAPORT_V1) {
             // Seaport V1.1 is not supported anymore
-            return (order.data as? OrderBasicSeaportDataV1)?.protocol == exchangeContractAddresses.seaportV1
+            val protocol = (order.data as? OrderBasicSeaportDataV1)?.protocol
+            return protocol != null && legacyOrderContracts.contains(protocol)
         }
         return false
     }

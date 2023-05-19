@@ -52,11 +52,24 @@ class ApprovalEventSubscriber(
             "Process approval: maker={}, collection={}, platform={}, block={}, logIndex={}",
             history.owner, history.collection, platform, logEvent.blockNumber, logEvent.logIndex
         )
-        orderRepository
-            .findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection, platform)
-            .collect {
-                orderUpdateService.updateApproval(it, history.approved, mark)
-            }
+        val orders = if (history.approved) {
+            orderRepository
+                .findInActiveSaleOrdersHashesByMakerAndToken(
+                    maker = history.owner,
+                    token = history.collection,
+                    platform = platform
+                )
+        } else {
+            orderRepository
+                .findActiveSaleOrdersHashesByMakerAndToken(
+                    maker = history.owner,
+                    token = history.collection,
+                    platform = platform
+                )
+        }
+        orders.collect {
+            orderUpdateService.updateApproval(it, history.approved, mark)
+        }
     }
 }
 

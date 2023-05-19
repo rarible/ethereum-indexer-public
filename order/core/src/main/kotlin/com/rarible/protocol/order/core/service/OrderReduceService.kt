@@ -382,18 +382,22 @@ class OrderReduceService(
     private suspend fun Order.withCancelSeaport(): Order {
         if (this.type != OrderType.SEAPORT_V1) return this
         val protocol = (this.data as? OrderBasicSeaportDataV1)?.protocol ?: return this
-        if (exchangeContractAddresses.seaportV1 != protocol) {
-            return this
-        }
         if (!openseaAffectedStatuses.contains(this.status)) {
             return this
         }
 
-        logger.info("Cancel order $id - SeaPort v1.1 is not supported anymore")
+        val disabledAt = when (protocol) {
+            // The day when seaport v1.1 has been disabled (05.05.2023)
+            exchangeContractAddresses.seaportV1 -> 1680652800L
+            // The day when seaport v1.1 has been disabled (05.16.2023)
+            exchangeContractAddresses.seaportV1_4 -> 1684195200L
+            else -> return this
+        }
+
+        logger.info("Cancel order $id - SeaPort v1.1/1.4 is not supported anymore")
         return this.copy(
             cancelled = true,
-            // The day when seaport v1.1 has been disabled (05.05.2023)
-            lastUpdateAt = maxOf(this.lastUpdateAt, Instant.ofEpochSecond(1680652800L)),
+            lastUpdateAt = maxOf(this.lastUpdateAt, Instant.ofEpochSecond(disabledAt)),
             lastEventId = accumulateEventId(this.lastEventId, protocol.toString())
         )
 
@@ -460,7 +464,7 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withApproval(): Order {
-        if (this.status != OrderStatus.ACTIVE) return this
+        if (this.status !in setOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE)) return this
         return if (this.isBid()) withBidApproval() else withSellApproval()
     }
 

@@ -645,6 +645,27 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(saved.status).isEqualTo(OrderStatus.INACTIVE)
     }
 
+    @Test
+    fun `should become active after getting approval`() = runBlocking<Unit> {
+        val order = createOrderVersion().copy(
+            make = randomErc721(), take = randomErc20(), platform = Platform.RARIBLE,
+            approved = false)
+        val saved = orderUpdateService.save(order)
+        assertThat(saved.status).isEqualTo(OrderStatus.INACTIVE)
+
+        // we received approval after the order creation
+        val approvalTrue = randomApproveHistory(
+            collection = order.make.type.token,
+            owner = order.maker,
+            operator = transferProxyAddresses.transferProxy,
+            approved = true
+        )
+        approvalHistoryRepository.save(createLogEvent(approvalTrue))
+
+        val updated = orderReduceService.updateOrder(order.hash)
+        assertThat(updated?.status).isEqualTo(OrderStatus.ACTIVE)
+    }
+
     private suspend fun prepareStorage(status: LogEventStatus, vararg histories: OrderExchangeHistory) {
         histories.forEachIndexed { index, history ->
             exchangeHistoryRepository.save(
