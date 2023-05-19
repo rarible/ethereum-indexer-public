@@ -174,6 +174,12 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
+    override suspend fun getValidatedOrderByHash(hash: String): ResponseEntity<OrderDto> {
+        val order = orderService.validateAndGet(hash.toOrderId().hash)
+        val result = orderDtoConverter.convert(order)
+        return ResponseEntity.ok(result)
+    }
+
     override suspend fun updateOrderMakeStock(
         hash: String
     ): ResponseEntity<OrderDto> {

@@ -1,9 +1,11 @@
 package com.rarible.protocol.order.core.service.approve
 
+import com.rarible.contracts.erc20.IERC20
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.metric.ApprovalMetrics
 import com.rarible.protocol.order.core.model.ApprovalHistory
+import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.token
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
+import java.math.BigInteger
 
 @Component
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -28,13 +31,15 @@ class ApproveService(
     transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
 ) {
     private val raribleTransferProxy = transferProxyAddresses.transferProxy
+    private val raribleErc20TransferProxy = transferProxyAddresses.erc20TransferProxy
     private val seaportTransferProxy = transferProxyAddresses.seaportTransferProxy
     private val x2y2TransferProxyErc721 = transferProxyAddresses.x2y2TransferProxyErc721
     private val x2y2TransferProxyErc1155 = transferProxyAddresses.x2y2TransferProxyErc1155
     private val cryptoPunksTransferProxy = transferProxyAddresses.cryptoPunksTransferProxy
     private val looksrareTransferProxyErc721 = transferProxyAddresses.looksrareTransferManagerERC721
     private val looksrareTransferProxyErc1155 = transferProxyAddresses.looksrareTransferManagerERC1155
-    private val looksrareTransferProxyNonCompliantErc721 = transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
+    private val looksrareTransferProxyNonCompliantErc721 =
+        transferProxyAddresses.looksrareTransferManagerNonCompliantERC721
     private val looksrareV2TransferManager = transferProxyAddresses.looksrareV2TransferManager
 
     private val platformByOperatorMap: Map<Address, Platform> = mapOf(
@@ -70,7 +75,7 @@ class ApproveService(
         platform: Platform,
         default: Boolean = false,
     ): Boolean {
-        return checkPlatformApprove(platform) { hasApprove(owner, it, collection)  } ?: run {
+        return checkPlatformApprove(platform) { hasApprove(owner, it, collection) } ?: run {
             logger.error(
                 "Can't find approval event for owner={}, collection={}, platform={}, use default={}",
                 owner, collection, platform, default
@@ -95,6 +100,15 @@ class ApproveService(
         } ?: error("Can't be null")
     }
 
+    suspend fun checkOnChainErc20Allowance(maker: Address, make: Asset): Boolean {
+        if (make.type.nft) {
+            return true
+        }
+        val contract = IERC20(make.type.token, sender)
+        val result = contract.allowance(maker, raribleErc20TransferProxy).awaitFirst()
+        return result >= make.value.value
+    }
+
     private suspend fun checkPlatformApprove(
         platform: Platform,
         check: suspend (Address) -> Boolean?
@@ -110,7 +124,7 @@ class ApproveService(
                     ?: throw IllegalArgumentException("Can't find operators for platform $platform")
                 coroutineScope {
                     operators
-                        .map { operator -> async { check(operator) }  }
+                        .map { operator -> async { check(operator) } }
                         .awaitAll()
                         .filterNotNull()
                         .fold(null as? Boolean?) { initial, value -> (initial ?: value) || value }
