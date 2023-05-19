@@ -38,6 +38,8 @@ sealed class OrderData {
     fun toDataVersion(): ByteArray? = version.ethDataType?.bytes()
 
     abstract fun toEthereum(wrongEncode: Boolean = false): Binary
+
+    open fun contract(): String? = null
 }
 
 data class OrderDataLegacy(
@@ -189,6 +191,8 @@ data class OrderOpenSeaV1DataV1(
     override fun isValidCounter(blockchainCounter: BigInteger): Boolean {
         return if (nonce == null) true else nonce == blockchainCounter.toLong()
     }
+
+    override fun contract(): String = exchange.toString()
 }
 
 sealed class OrderSeaportDataV1 : OrderCountableData, OrderData() {
@@ -200,6 +204,8 @@ sealed class OrderSeaportDataV1 : OrderCountableData, OrderData() {
     abstract val zone: Address
     abstract val zoneHash: Word
     abstract val conduitKey: Word
+
+    override fun contract(): String = protocol.toString()
 }
 
 data class OrderBasicSeaportDataV1(
@@ -274,6 +280,8 @@ data class OrderLooksrareDataV1(
     override fun isValidCounter(blockchainCounter: BigInteger): Boolean {
         return getCounterValue().value >= blockchainCounter
     }
+
+    override fun contract(): String = strategy.toString()
 }
 
 data class OrderLooksrareDataV2(
@@ -303,6 +311,8 @@ sealed class OrderAmmData : OrderData() {
 
     abstract val poolAddress: Address
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
+
+    override fun contract(): String = poolAddress.toString()
 }
 
 data class OrderSudoSwapAmmDataV1(

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
+@Deprecated("in favor of RemoveOutdatedOrdersTaskHandler")
 @Component
 class RemoveOpenSeaOutdatedOrdersTaskHandler(
     private val orderRepository: OrderRepository,
