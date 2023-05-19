@@ -1062,7 +1062,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         assertThat(orderService.validateAndGet(saved.hash)).isEqualTo(saved)
 
-        delay(1100)
+        delay(2000)
 
         try {
             orderService.validateAndGet(saved.hash)
