@@ -22,6 +22,7 @@ import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -153,6 +154,7 @@ class OrderControllerCurrenciesIt : AbstractIntegrationTest() {
         checkBidCurrencies(listOf(inactiveCurrency), listOf(OrderStatusDto.INACTIVE))
     }
 
+    @Disabled("Not actual ATM")
     @Test
     fun `sell currencies - collection asset`() = runBlocking<Unit> {
         val asset = Asset(CollectionAssetType(token), EthUInt256.ONE)

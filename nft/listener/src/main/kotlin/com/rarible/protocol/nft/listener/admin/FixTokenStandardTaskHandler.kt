@@ -53,7 +53,6 @@ class FixTokenStandardTaskHandler(
 
     fun findTokensWithNoneStandard(from: Instant): Flow<Token> {
         val criteria = (Token::standard isEqualTo TokenStandard.NONE)
-            .and(Token::scam).isEqualTo(false)
             .and(Token::dbUpdatedAt).lte(from)
         val query = Query.query(criteria).with(Sort.by(Sort.Direction.DESC, Token::dbUpdatedAt.name))
         return mongo.find(query, Token::class.java, Token.COLLECTION).asFlow()

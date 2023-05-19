@@ -173,14 +173,11 @@ class MongoOrderRepository(
         tokenId: EthUInt256,
         statuses: Collection<OrderStatus>
     ): Flow<AssetType> {
+        // TODO ideally refactor it and bidCurrencies to have separate requests for collection orders
         val criteria = Criteria().andOperator(
             Order::status inValues statuses,
             Order::make / Asset::type / NftAssetType::token isEqualTo token,
-            Criteria().orOperator(
-                Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
-                (Order::make / Asset::type / NftAssetType::tokenId exists false)
-                    .and(Order::make / Asset::type / NftAssetType::nft).isEqualTo(true)
-            )
+            Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
         )
         return template.findDistinct(
             Query(criteria),
@@ -370,9 +367,22 @@ class MongoOrderRepository(
         maker: Address,
         token: Address,
         platform: Platform
+    ) = findSaleOrdersHashesByMakerAndTokenAndStatus(maker, token, platform, OrderStatus.ACTIVE)
+
+    override fun findInActiveSaleOrdersHashesByMakerAndToken(
+        maker: Address,
+        token: Address,
+        platform: Platform
+    ) = findSaleOrdersHashesByMakerAndTokenAndStatus(maker, token, platform, OrderStatus.INACTIVE)
+
+    private fun findSaleOrdersHashesByMakerAndTokenAndStatus(
+        maker: Address,
+        token: Address,
+        platform: Platform,
+        status: OrderStatus
     ): Flow<Order> {
         val criteria = where(Order::maker).isEqualTo(maker)
-            .and(Order::status).isEqualTo(OrderStatus.ACTIVE)
+            .and(Order::status).isEqualTo(status)
             .and(Order::make / AssetType::type / AssetType::nft).isEqualTo(true)
             .and(Order::make / AssetType::type / NftAssetType::token).isEqualTo(token)
             .and(Order::platform).isEqualTo(platform)
