@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.repository.token
 
+import com.rarible.protocol.nft.core.model.CollectionStat
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFilter
@@ -45,6 +46,14 @@ class TokenRepository(
     fun findAllFrom(from: Address?): Flow<Token> {
         val criteria = from?.let { Criteria.where(ID).gt(it) } ?: Criteria()
         return mongo.find(Query.query(criteria).with(ID_ASC_SORT), Token::class.java).asFlow()
+    }
+
+    suspend fun findNone(limit: Int): List<Token> {
+        val query = Query(Token::standard isEqualTo TokenStandard.NONE)
+            .with(Sort.by(Sort.Direction.ASC, CollectionStat::lastUpdatedAt.name))
+            .limit(limit)
+
+        return mongo.find(query, Token::class.java).collectList().awaitFirst()
     }
 
     fun count(): Mono<Long> {

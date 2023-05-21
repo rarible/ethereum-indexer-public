@@ -16,6 +16,9 @@ class NftListenerMetricsFactory(
     private val root = properties.metricRootPath
     private val blockchainTag = ImmutableTag("blockchain", properties.blockchain.value)
 
+    val tokenStandardJobFixedbCounter: Counter = counter("token.standard.job.fixed")
+    val tokenStandardJobUnfixedCounter: Counter = counter("token.standard.job.unfixed")
+
     val itemOwnershipConsistencyJobCheckedCounter: Counter = counter("item.ownership.consistency.job.checked")
     val itemOwnershipConsistencyJobFixedCounter: Counter = counter("item.ownership.consistency.job.fixed")
     val itemOwnershipConsistencyJobUnfixedCounter: Counter = counter("item.ownership.consistency.job.unfixed")

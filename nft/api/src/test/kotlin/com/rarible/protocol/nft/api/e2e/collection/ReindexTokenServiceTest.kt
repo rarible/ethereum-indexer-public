@@ -37,7 +37,7 @@ class ReindexTokenServiceTest {
 
     }
 
-    private val service = ReindexTokenService(tokenRegistrationService, taskRepository)
+    private val service = ReindexTokenService(tokenRegistrationService, taskRepository, mockk())
 
     @Test
     fun `should create token reindex task`() = runBlocking<Unit> {
