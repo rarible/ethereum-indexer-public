@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.repository.token
 
-import com.rarible.protocol.nft.core.model.CollectionStat
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFilter
@@ -10,10 +9,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.*
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.and
-import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.*
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -48,9 +44,12 @@ class TokenRepository(
         return mongo.find(Query.query(criteria).with(ID_ASC_SORT), Token::class.java).asFlow()
     }
 
-    suspend fun findNone(limit: Int): List<Token> {
+    suspend fun findNone(limit: Int, retries: Int): List<Token> {
         val query = Query(Token::standard isEqualTo TokenStandard.NONE)
-            .with(Sort.by(Sort.Direction.ASC, CollectionStat::lastUpdatedAt.name))
+            .addCriteria(Criteria().orOperator(
+                Token::standardRetries exists false,
+                Token::standardRetries lt retries)
+            )
             .limit(limit)
 
         return mongo.find(query, Token::class.java).collectList().awaitFirst()

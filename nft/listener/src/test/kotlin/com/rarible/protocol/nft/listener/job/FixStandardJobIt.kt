@@ -43,6 +43,7 @@ internal class FixStandardJobIt : AbstractIntegrationTest() {
         job = FixStandardJob(
             batchSize = 10,
             enabled = true,
+            retries = 5,
             tokenRepository = tokenRepository,
             tokenRegistrationService = tokenRegistrationService,
             reindexTokenService = reindexTokenService,
@@ -81,7 +82,9 @@ internal class FixStandardJobIt : AbstractIntegrationTest() {
 
         // check standard
         Wait.waitAssert {
-            assertThat(tokenRepository.findById(erc721.address()).awaitFirst().standard).isEqualTo(TokenStandard.ERC721)
+            val updated = tokenRepository.findById(erc721.address()).awaitFirst()
+            assertThat(updated.standard).isEqualTo(TokenStandard.ERC721)
+            assertThat(updated.standardRetries).isEqualTo(1)
         }
 
         // check created tasks

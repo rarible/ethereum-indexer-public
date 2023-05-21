@@ -105,8 +105,9 @@ class TokenRegistrationService(
             if (updatedToken != null && token != updatedToken) {
                 logger.info("Token id=$address was overwritten: $updatedToken")
                 tokenRepository.save(updatedToken.copy(version = token.version)).awaitFirst()
+            } else {
+                updatedToken
             }
-            updatedToken
         } else null
     }
 

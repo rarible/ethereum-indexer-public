@@ -22,6 +22,7 @@ object TokenRepositoryIndexes {
 
     private val INDEX_STANDARD = Index()
         .on(Token::standard.name, Sort.Direction.ASC)
+        .on(Token::standardRetries.name, Sort.Direction.ASC)
 
     val ALL_INDEXES = listOf(
         INDEX_BY_DB_UPDATE,
