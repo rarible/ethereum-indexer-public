@@ -1,15 +1,21 @@
 package com.rarible.protocol.nft.listener.job
 
 import com.rarible.core.task.Task
+import com.rarible.core.task.TaskStatus
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.service.EnsDomainService
+import com.rarible.protocol.nft.listener.admin.ReduceTokenItemsDependentTaskHandler
+import com.rarible.protocol.nft.listener.configuration.FixStandardJobProperties
+import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.test.IntegrationTest
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitLast
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -19,6 +25,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
@@ -31,19 +38,24 @@ import java.time.Instant
 internal class FixStandardJobIt : AbstractIntegrationTest() {
 
     @Autowired
-    private lateinit var endDoomainService: EnsDomainService
+    private lateinit var metricsFactory: NftListenerMetricsFactory
 
     @Autowired
-    private lateinit var metricsFactory: NftListenerMetricsFactory
+    private lateinit var reduceTokenItemsDependentTaskHandler: ReduceTokenItemsDependentTaskHandler
 
     private lateinit var job: FixStandardJob
 
     @BeforeEach
     fun setUpJob() {
+        val props: NftListenerProperties = mockk() {
+            every { fixStandardJob } returns FixStandardJobProperties(
+                enabled = true,
+                batchSize = 10,
+                retries = 5
+            )
+        }
         job = FixStandardJob(
-            batchSize = 10,
-            enabled = true,
-            retries = 5,
+            listenerProps = props,
             tokenRepository = tokenRepository,
             tokenRegistrationService = tokenRegistrationService,
             reindexTokenService = reindexTokenService,
@@ -90,11 +102,28 @@ internal class FixStandardJobIt : AbstractIntegrationTest() {
         // check created tasks
         Wait.waitAssert {
             assertThat(findTask("BLOCK_SCANNER_REINDEX_TASK").param).isNotNull()
+            val param = findTask("REDUCE_TOKEN_ITEMS_DEPENDENT").param
+            assertThat(reduceTokenItemsDependentTaskHandler.isAbleToRun(param)).isFalse()
+        }
+        finishIndexing()
+
+        // check that reduce can start
+        Wait.waitAssert {
+            val param = findTask("REDUCE_TOKEN_ITEMS_DEPENDENT").param
+            assertThat(reduceTokenItemsDependentTaskHandler.isAbleToRun(param)).isTrue()
         }
     }
 
     private suspend fun findTask(name: String): Task {
         val criteria = (Task::type isEqualTo name)
         return mongo.find<Task>(Query.query(criteria), "task").awaitSingle()
+    }
+
+    private suspend fun finishIndexing() {
+        mongo.findAndModify(
+            Query(Task::type isEqualTo "BLOCK_SCANNER_REINDEX_TASK"),
+            Update().set(Task::lastStatus.name, TaskStatus.COMPLETED.name),
+            Task::class.java
+        ).awaitLast()
     }
 }

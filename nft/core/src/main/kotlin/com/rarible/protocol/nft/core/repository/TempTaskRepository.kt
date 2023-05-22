@@ -3,16 +3,20 @@ package com.rarible.protocol.nft.core.repository
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.task.Task
+import com.rarible.core.task.TaskStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.data.mongodb.core.count
 import org.springframework.data.mongodb.core.find
+import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.ne
 import org.springframework.stereotype.Component
 
 @Component
@@ -33,6 +37,18 @@ class TempTaskRepository(
             }
         }
         return template.find<Task>(Query.query(criteria)).asFlow()
+    }
+
+    suspend fun findById(id: ObjectId): Task? {
+        return template.findById<Task>(id).awaitFirstOrNull()
+    }
+
+    suspend fun countRunningTasks(type: String): Long {
+        val criteria = Criteria().andOperator(
+            Task::type isEqualTo type,
+            Task::lastStatus ne TaskStatus.COMPLETED
+        )
+        return template.count<Task>(Query.query(criteria)).awaitFirst()
     }
 
     suspend fun delete(id: ObjectId) {

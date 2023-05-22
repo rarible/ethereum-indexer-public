@@ -10,7 +10,6 @@ import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -51,7 +50,7 @@ class FixStandardJob(
                     incrementRetry(updated ?: token)
                     result
                 }
-                reindexTokenService.createReindexTokenTask(addresses)
+                reindexTokenService.createReindexAndReduceTokenTasks(addresses)
             } while (found.isNotEmpty())
         }
     }

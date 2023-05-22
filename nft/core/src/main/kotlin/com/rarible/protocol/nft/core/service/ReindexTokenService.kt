@@ -1,11 +1,13 @@
 package com.rarible.protocol.nft.core.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.blockchain.scanner.ethereum.task.EthereumReindexParam
 import com.rarible.blockchain.scanner.reindex.BlockRange
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.misc.splitToRanges
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ReduceTokenItemsDependentTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenRangeTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams
@@ -34,7 +36,8 @@ import scalether.domain.Address
 class ReindexTokenService(
     private val tokenRegistrationService: TokenRegistrationService,
     private val taskRepository: TempTaskRepository,
-    private val nftHistoryRepository: NftHistoryRepository
+    private val nftHistoryRepository: NftHistoryRepository,
+    private val mapper: ObjectMapper
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -171,22 +174,33 @@ class ReindexTokenService(
         return createdTasks
     }
 
-    suspend fun createReindexTokenTask(tokens: List<Address>, force: Boolean? = null) {
+    suspend fun createReindexAndReduceTokenTasks(tokens: List<Address>, force: Boolean? = null) {
         val startBlock: Long? = tokens.mapNotNull {
             val history = nftHistoryRepository.findAllByCollection(it).awaitFirstOrNull()
             history?.blockNumber
         }.minOrNull()
         if (startBlock != null) {
-            saveTask(
-                param = EthereumReindexParam(
+            val reindextask = saveTask(
+                param = mapper.writeValueAsString(EthereumReindexParam(
                     range = BlockRange(startBlock, null, 250),
                     topics = emptyList(),
                     addresses = tokens
-                ).toString(),
+                )),
                 type = "BLOCK_SCANNER_REINDEX_TASK",
-                state = "NONE",
+                state = null,
                 force = false
             )
+            tokens.forEach {
+                saveTask(
+                    param = ReduceTokenItemsDependentTaskParams(
+                        address = it,
+                        dependency = reindextask.id.toHexString()
+                    ).toParamString(),
+                    type = ReduceTokenItemsDependentTaskParams.REDUCE_TOKEN_ITEMS_DEPENDENT,
+                    state = null,
+                    force = false
+                )
+            }
         } else {
             logger.warn("Log with block number wasn't found for ${tokens}")
         }
