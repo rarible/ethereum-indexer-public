@@ -45,12 +45,8 @@ class NftHistoryRepository(
         return mongo.find(Query(criteria).with(LOG_SORT_ASC), COLLECTION)
     }
 
-    suspend fun findFirstByCollection(address: Address?): LogEvent? {
-        val criteria = if (address != null) {
-            Criteria.where("${LogEvent::data.name}._id").`is`(address)
-        } else {
-            Criteria()
-        }
+    suspend fun findFirstByCollection(address: Address): LogEvent? {
+        val criteria = Criteria.where("${LogEvent::data.name}._id").`is`(address)
         return mongo.find<LogEvent>(Query(criteria).with(LOG_SORT_ASC).limit(1), COLLECTION).awaitFirstOrNull()
     }
 
