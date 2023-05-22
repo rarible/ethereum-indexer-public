@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component
 class FixStandardJob(
     @Value("\${listener.fixStandard.batchSize:20}")
     private val batchSize: Int,
-    @Value("\${listener.fixStandard.enabled:true}")
+    @Value("\${listener.fixStandard.enabled:false}")
     private val enabled: Boolean,
     @Value("\${listener.fixStandard.retries:5}")
     private val retries: Int,
