@@ -176,7 +176,7 @@ class ReindexTokenService(
 
     suspend fun createReindexAndReduceTokenTasks(tokens: List<Address>, force: Boolean? = null) {
         val startBlock: Long? = tokens.mapNotNull {
-            val history = nftHistoryRepository.findAllByCollection(it).awaitFirstOrNull()
+            val history = nftHistoryRepository.findFirstByCollection(it)
             history?.blockNumber
         }.minOrNull()
         if (startBlock != null) {
