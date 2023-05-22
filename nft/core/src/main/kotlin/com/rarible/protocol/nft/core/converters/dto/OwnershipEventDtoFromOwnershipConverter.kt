@@ -7,15 +7,16 @@ import com.rarible.protocol.dto.blockchainEventMark
 import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
-import java.util.*
+import java.util.UUID
 
 object OwnershipEventDtoFromOwnershipConverter {
 
     fun convert(source: Ownership, event: OwnershipEvent? = null): NftOwnershipEventDto {
 
         val markName = "indexer-out_nft"
-        val eventEpochSeconds = event?.log?.blockTimestamp
-        val marks = eventEpochSeconds?.let { blockchainEventMark(markName, it) } ?: offchainEventMark(markName)
+        val marks = event?.eventTimeMarks?.addOut("nft")?.toDto()
+            ?: event?.log?.blockTimestamp?.let { blockchainEventMark(markName, it) }
+            ?: offchainEventMark(markName)
 
         return if (source.deleted) {
             NftOwnershipDeleteEventDto(
@@ -36,5 +37,4 @@ object OwnershipEventDtoFromOwnershipConverter {
             )
         }
     }
-
 }

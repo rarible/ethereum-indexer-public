@@ -7,7 +7,7 @@ import com.rarible.protocol.dto.blockchainEventMark
 import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
-import java.util.*
+import java.util.UUID
 
 object ItemEventDtoConverter {
 
@@ -15,8 +15,9 @@ object ItemEventDtoConverter {
         val eventId = UUID.randomUUID().toString()
 
         val markName = "indexer-out_nft"
-        val eventEpochSeconds = event?.log?.blockTimestamp
-        val marks = eventEpochSeconds?.let { blockchainEventMark(markName, it) } ?: offchainEventMark(markName)
+        val marks = event?.eventTimeMarks?.addOut("nft")?.toDto()
+            ?: event?.log?.blockTimestamp?.let { blockchainEventMark(markName, it) }
+            ?: offchainEventMark(markName)
 
         return if (item.deleted) {
             NftItemDeleteEventDto(

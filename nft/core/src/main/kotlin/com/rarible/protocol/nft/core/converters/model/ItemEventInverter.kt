@@ -8,7 +8,8 @@ object ItemEventInverter {
             supply = event.supply,
             owner = event.owner,
             entityId = event.entityId,
-            log = event.log
+            log = event.log,
+            eventTimeMarks = event.eventTimeMarks,
         )
     }
 
@@ -17,7 +18,8 @@ object ItemEventInverter {
             supply = event.supply,
             owner = event.owner,
             entityId = event.entityId,
-            log = event.log
+            log = event.log,
+            eventTimeMarks = event.eventTimeMarks,
         )
     }
 

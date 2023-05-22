@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.converters.model
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
@@ -13,16 +14,21 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import io.mockk.every
 import io.mockk.mockk
+import org.assertj.core.api.AbstractInstantAssert
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.data.TemporalUnitLessThanOffset
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import scalether.domain.Address
 import java.math.BigInteger
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.stream.Stream
 
 internal class ItemEventConverterTest {
     private val openSeaLazy = randomAddress()
+    private val timeDelta = TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS)
 
     private val converter = ItemEventConverter(
         mockk {
@@ -54,7 +60,15 @@ internal class ItemEventConverterTest {
             assertThat(supply).isEqualTo(transfer.value)
             assertThat(owner).isEqualTo(transfer.owner)
             assertThat(entityId).isEqualTo(ItemId(transfer.token, transfer.tokenId).stringValue)
+            verifyEventTimeMarks()
         }
+    }
+
+    private fun ItemEvent.verifyEventTimeMarks(): AbstractInstantAssert<*>? {
+        assertThat(eventTimeMarks!!.marks[0].name).isEqualTo("source")
+        assertThat(eventTimeMarks!!.marks[0].date).isEqualTo(Instant.ofEpochSecond(log.blockTimestamp!!))
+        assertThat(eventTimeMarks!!.marks[1].name).isEqualTo("indexer-in_nft")
+        return assertThat(eventTimeMarks!!.marks[1].date).isCloseTo(nowMillis(), timeDelta)
     }
 
     @Test
@@ -69,6 +83,7 @@ internal class ItemEventConverterTest {
             assertThat(supply).isEqualTo(transfer.value)
             assertThat(owner).isEqualTo(transfer.from)
             assertThat(entityId).isEqualTo(ItemId(transfer.token, transfer.tokenId).stringValue)
+            verifyEventTimeMarks()
         }
     }
 
@@ -107,6 +122,7 @@ internal class ItemEventConverterTest {
             assertThat(supply).isEqualTo(transfer.value)
             assertThat(from).isEqualTo(transfer.from)
             assertThat(entityId).isEqualTo(ItemId(transfer.token, transfer.tokenId).stringValue)
+            verifyEventTimeMarks()
         }
     }
 

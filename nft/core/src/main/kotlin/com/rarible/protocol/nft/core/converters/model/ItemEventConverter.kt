@@ -14,6 +14,7 @@ import com.rarible.protocol.nft.core.model.ItemRoyalty
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
+import com.rarible.protocol.nft.core.model.indexerInNftBlockchainTimeMark
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigInteger
@@ -25,7 +26,15 @@ class ItemEventConverter(
     private val openSeaLazyMintAddress = Address.apply(properties.openseaLazyMintAddress)
 
     fun convertToOwnershipId(source: ReversedEthereumLogRecord): OwnershipId? {
-        return (source.data as? ItemHistory)?.let { it.owner?.let { owner -> OwnershipId(it.token, it.tokenId, owner) } }
+        return (source.data as? ItemHistory)?.let {
+            it.owner?.let { owner ->
+                OwnershipId(
+                    it.token,
+                    it.tokenId,
+                    owner
+                )
+            }
+        }
     }
 
     fun convertToMintEvent(source: OwnershipEvent.TransferToEvent): ItemEvent.ItemMintEvent {
@@ -35,6 +44,7 @@ class ItemEventConverter(
                 owner = it.owner,
                 entityId = entityId(it.token, it.tokenId),
                 log = source.log,
+                eventTimeMarks = source.eventTimeMarks,
             )
         }
     }
@@ -51,7 +61,8 @@ class ItemEventConverter(
                             owner = data.owner,
                             log = source.log,
                             entityId = entityId(data.token, data.tokenId),
-                            tokenUri = data.tokenUri
+                            tokenUri = data.tokenUri,
+                            eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                         )
 
                     data.isBurnTransfer() ->
@@ -59,7 +70,8 @@ class ItemEventConverter(
                             supply = data.value,
                             owner = data.from,
                             log = source.log,
-                            entityId = entityId(data.token, data.tokenId)
+                            entityId = entityId(data.token, data.tokenId),
+                            eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                         )
 
                     source.log.address == openSeaLazyMintAddress && isLazyMintTokenAddress(data.tokenId) ->
@@ -67,7 +79,8 @@ class ItemEventConverter(
                             from = data.from,
                             supply = data.value,
                             log = source.log,
-                            entityId = entityId(data.token, data.tokenId)
+                            entityId = entityId(data.token, data.tokenId),
+                            eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                         )
 
                     else -> null
@@ -78,21 +91,24 @@ class ItemEventConverter(
                     supply = data.value,
                     creators = data.creators,
                     log = source.log,
-                    entityId = entityId(data.token, data.tokenId)
+                    entityId = entityId(data.token, data.tokenId),
+                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
             }
             is BurnItemLazyMint -> {
                 ItemEvent.LazyItemBurnEvent(
                     supply = data.value,
                     log = source.log,
-                    entityId = entityId(data.token, data.tokenId)
+                    entityId = entityId(data.token, data.tokenId),
+                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
             }
             is ItemCreators -> {
                 ItemEvent.ItemCreatorsEvent(
                     creators = data.creators,
                     log = source.log,
-                    entityId = entityId(data.token, data.tokenId)
+                    entityId = entityId(data.token, data.tokenId),
+                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
             }
             is ItemRoyalty, null -> null

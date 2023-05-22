@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.CollectionEvent
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.model.TokenEvent
+import com.rarible.protocol.nft.core.model.indexerInNftBlockchainTimeMark
 
 object TokenEventConverter {
     fun convert(source: ReversedEthereumLogRecord): TokenEvent? {
@@ -16,7 +17,8 @@ object TokenEventConverter {
                     name = data.name,
                     symbol = data.symbol,
                     log = source.log,
-                    entityId = data.id.prefixed()
+                    entityId = data.id.prefixed(),
+                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
             }
             is CollectionOwnershipTransferred -> {
@@ -24,7 +26,8 @@ object TokenEventConverter {
                     owner = data.newOwner,
                     previousOwner = data.previousOwner,
                     log = source.log,
-                    entityId = data.id.prefixed()
+                    entityId = data.id.prefixed(),
+                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
             }
             null -> null

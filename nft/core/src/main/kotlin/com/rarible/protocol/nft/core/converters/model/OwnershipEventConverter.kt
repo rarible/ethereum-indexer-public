@@ -13,6 +13,7 @@ import com.rarible.protocol.nft.core.model.ItemRoyalty
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
+import com.rarible.protocol.nft.core.model.indexerInNftBlockchainTimeMark
 import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -29,7 +30,8 @@ class OwnershipEventConverter(
                         from = data.from,
                         value = data.value,
                         log = source.log,
-                        entityId = OwnershipId(data.token, data.tokenId, owner).stringValue
+                        entityId = OwnershipId(data.token, data.tokenId, owner).stringValue,
+                        eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                     )
                 }
                 val transferFrom = data.from.takeUnless { data.isMintTransfer() }?.let { from ->
@@ -37,7 +39,8 @@ class OwnershipEventConverter(
                         to = data.owner,
                         value = data.value,
                         log = source.log,
-                        entityId = OwnershipId(data.token, data.tokenId, from).stringValue
+                        entityId = OwnershipId(data.token, data.tokenId, from).stringValue,
+                        eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                     )
                 }
                 //Revertable event for lazy ownership to change value and lazyValue
@@ -49,7 +52,8 @@ class OwnershipEventConverter(
                     OwnershipEvent.ChangeLazyValueEvent(
                         value = data.value,
                         log = source.log,
-                        entityId = OwnershipId(data.token, data.tokenId, lazyOwner).stringValue
+                        entityId = OwnershipId(data.token, data.tokenId, lazyOwner).stringValue,
+                        eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                     )
                 }
                 listOfNotNull(transferTo, transferFrom, changeLazyOwnership)
@@ -58,7 +62,8 @@ class OwnershipEventConverter(
                 val lazyTransferTo = OwnershipEvent.LazyTransferToEvent(
                     value = data.value,
                     log = source.log,
-                    entityId = OwnershipId(data.token, data.tokenId, data.owner).stringValue
+                    entityId = OwnershipId(data.token, data.tokenId, data.owner).stringValue,
+                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
                 listOf(lazyTransferTo)
             }
@@ -67,7 +72,8 @@ class OwnershipEventConverter(
                     from = data.from,
                     value = data.value,
                     log = source.log,
-                    entityId = OwnershipId(data.token, data.tokenId, data.from).stringValue
+                    entityId = OwnershipId(data.token, data.tokenId, data.from).stringValue,
+                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
                 listOf(lazyBurnEvent)
             }
