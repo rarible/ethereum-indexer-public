@@ -31,6 +31,7 @@ import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
+import com.rarible.protocol.nft.core.model.indexerInNftBlockchainTimeMark
 import com.rarible.protocol.nft.core.repository.data.createAddress
 import com.rarible.protocol.nft.core.repository.data.createItemHistory
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
@@ -161,66 +162,80 @@ fun ItemEvent.LazyItemBurnEvent.withNewValues(
 ) = copy(log = log.withNewValues(status, createdAt))
 
 fun createRandomCreatorsItemEvent(): ItemEvent.ItemCreatorsEvent {
+    val log = createRandomEthereumLog()
     return ItemEvent.ItemCreatorsEvent(
         creators = listOf(Part.fullPart(randomAddress()), Part.fullPart(randomAddress())),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 
 
 fun createRandomTransferItemEvent(): ItemEvent.ItemTransferEvent {
+    val log = createRandomEthereumLog()
     return ItemEvent.ItemTransferEvent(
         from = randomAddress(),
         to = randomAddress(),
         value = EthUInt256.of(randomInt()),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 
 fun createRandomOpenSeaLazyItemMintEvent(): ItemEvent.OpenSeaLazyItemMintEvent {
+    val log = createRandomEthereumLog()
     return ItemEvent.OpenSeaLazyItemMintEvent(
         from = randomAddress(),
         supply = EthUInt256.of(randomInt()),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 
 fun createRandomMintItemEvent(
     transactionSender: Address = randomAddress()
 ): ItemEvent.ItemMintEvent {
+    val log = createRandomEthereumLog(transactionSender = transactionSender)
     return ItemEvent.ItemMintEvent(
         owner = randomAddress(),
         supply = EthUInt256.of(randomInt()),
         entityId = randomString(),
-        log = createRandomEthereumLog(transactionSender = transactionSender)
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 
 fun createRandomBurnItemEvent(): ItemEvent.ItemBurnEvent {
+    val log = createRandomEthereumLog()
     return ItemEvent.ItemBurnEvent(
         supply = EthUInt256.of(randomInt()),
         owner = randomAddress(),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 
 fun createRandomLazyMintItemEvent(): ItemEvent.LazyItemMintEvent {
+    val log = createRandomEthereumLog()
     return ItemEvent.LazyItemMintEvent(
         supply = EthUInt256.of(randomInt()),
         creators = emptyList(),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 fun createRandomLazyBurnItemEvent(): ItemEvent.LazyItemBurnEvent {
+    val log = createRandomEthereumLog()
     return ItemEvent.LazyItemBurnEvent(
         supply = EthUInt256.of(randomInt()),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 
@@ -235,11 +250,13 @@ fun createRandomOwnershipTransferToEvent(
         tokenId = tokenId,
         owner = owner
     )
+    val log = createRandomEthereumLog()
     return OwnershipEvent.TransferToEvent(
         from = from,
         value = EthUInt256.of(randomInt()),
         entityId = entityId.stringValue,
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 
@@ -265,35 +282,43 @@ fun createRandomOwnership(): Ownership {
 }
 
 fun createRandomOwnershipTransferFromEvent(): OwnershipEvent.TransferFromEvent {
+    val log = createRandomEthereumLog()
     return OwnershipEvent.TransferFromEvent(
         to = randomAddress(),
         value = EthUInt256.of(randomInt()),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 
 fun createRandomOwnershipChangeLazyValueEvent(): OwnershipEvent.ChangeLazyValueEvent {
+    val log = createRandomEthereumLog()
     return OwnershipEvent.ChangeLazyValueEvent(
         value = EthUInt256.of(randomInt()),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 fun createRandomOwnershipLazyTransferToEvent(): OwnershipEvent.LazyTransferToEvent {
+    val log = createRandomEthereumLog()
     return OwnershipEvent.LazyTransferToEvent(
         value = EthUInt256.of(randomInt()),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 
 fun createRandomOwnershipLazyBurnEvent(): OwnershipEvent.LazyBurnEvent {
+    val log = createRandomEthereumLog()
     return OwnershipEvent.LazyBurnEvent(
         from = randomAddress(),
         value = EthUInt256.of(randomInt()),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = log,
+        eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
 

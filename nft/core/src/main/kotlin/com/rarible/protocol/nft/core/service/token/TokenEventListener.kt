@@ -17,8 +17,9 @@ class TokenEventListener(
 
     suspend fun onTokenChanged(token: Token, event: TokenEvent? = null) {
         val markName = "indexer-out_nft"
-        val eventEpochSeconds = event?.log?.blockTimestamp
-        val marks = eventEpochSeconds?.let { blockchainEventMark(markName, it) } ?: offchainEventMark(markName)
+        val marks = event?.eventTimeMarks?.addOut("nft")?.toDto()
+            ?: event?.log?.blockTimestamp?.let { blockchainEventMark(markName, it) }
+            ?: offchainEventMark(markName)
 
         val updateEvent = NftCollectionUpdateEventDto(
             eventId = token.lastEventId ?: UUID.randomUUID().toString(),

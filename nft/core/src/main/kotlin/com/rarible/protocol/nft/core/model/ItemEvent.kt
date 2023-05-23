@@ -7,12 +7,14 @@ import com.rarible.protocol.nft.core.converters.model.ItemEventInverter
 import scalether.domain.Address
 
 sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
+    abstract val eventTimeMarks: EthereumEventTimeMarks?
 
     data class ItemMintEvent(
         val supply: EthUInt256,
         val owner: Address,
         override val entityId: String,
         override val log: EthereumLog,
+        override val eventTimeMarks: EthereumEventTimeMarks?,
         /**
          * Token URI. Applicable only to pending logs.
          */
@@ -25,7 +27,8 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
         val owner: Address,
         val supply: EthUInt256,
         override val entityId: String,
-        override val log: EthereumLog
+        override val log: EthereumLog,
+        override val eventTimeMarks: EthereumEventTimeMarks?,
     ) : ItemEvent() {
         override fun invert(): ItemMintEvent = ItemEventInverter.invert(this)
     }
@@ -35,7 +38,8 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
         val to: Address,
         val value: EthUInt256,
         override val entityId: String,
-        override val log: EthereumLog
+        override val log: EthereumLog,
+        override val eventTimeMarks: EthereumEventTimeMarks?,
     ) : ItemEvent() {
         override fun invert(): ItemTransferEvent = ItemEventInverter.invert(this)
     }
@@ -43,7 +47,8 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
     data class ItemCreatorsEvent(
         val creators: List<Part>,
         override val entityId: String,
-        override val log: EthereumLog
+        override val log: EthereumLog,
+        override val eventTimeMarks: EthereumEventTimeMarks?,
     ) : ItemEvent() {
         override fun invert(): ItemCreatorsEvent = this
     }
@@ -52,20 +57,23 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
         val from: Address,
         val supply: EthUInt256,
         override val entityId: String,
-        override val log: EthereumLog
+        override val log: EthereumLog,
+        override val eventTimeMarks: EthereumEventTimeMarks?,
     ) : ItemEvent()
 
     data class LazyItemMintEvent(
         val supply: EthUInt256,
         val creators: List<Part>,
         override val entityId: String,
-        override val log: EthereumLog
+        override val log: EthereumLog,
+        override val eventTimeMarks: EthereumEventTimeMarks?,
     ) : ItemEvent()
 
     data class LazyItemBurnEvent(
         val supply: EthUInt256,
         override val entityId: String,
-        override val log: EthereumLog
+        override val log: EthereumLog,
+        override val eventTimeMarks: EthereumEventTimeMarks?,
     ) : ItemEvent()
 
 }
