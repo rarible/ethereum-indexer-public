@@ -80,5 +80,6 @@ data class FixStandardJobProperties(
     val enabled: Boolean = false,
     val batchSize: Int = 10,
     val reduceBatch: Int = 2,
-    val retries: Int = 5
+    val retries: Int = 5,
+    val reindexLimit: Int = 5 // Max number of reindex tasks
 )

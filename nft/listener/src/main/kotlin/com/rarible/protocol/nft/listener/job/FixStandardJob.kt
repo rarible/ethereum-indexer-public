@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.listener.job
 
 import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
@@ -28,11 +27,12 @@ class FixStandardJob(
     private val unfixedCounter = metricsFactory.tokenStandardJobUnfixedCounter
 
     @Scheduled(
-        fixedDelayString = "\${listener.fixStandard.rate:PT15M}",
+        fixedDelayString = "\${listener.fixStandard.rate:PT30M}",
         initialDelayString = "PT1M"
     )
     fun execute() = runBlocking<Unit> {
         logger.info("Starting FixStandardJob")
+        var remains = props.reindexLimit
         if (props.enabled) {
             do {
                 val found = tokenRepository.findNone(props.batchSize, props.retries)
@@ -50,10 +50,11 @@ class FixStandardJob(
                 }
                 if (addresses.isNotEmpty()) {
                     reindexTokenService.createReindexAndReduceTokenTasks(addresses)
+                    remains--
                 } else {
                     logger.info("There are no non-ignorable tokens in the fixed list")
                 }
-            } while (found.isNotEmpty())
+            } while (found.isNotEmpty() && remains > 0)
         }
     }
 
