@@ -1,9 +1,13 @@
 package com.rarible.protocol.nft.core.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.rarible.blockchain.scanner.ethereum.task.EthereumReindexParam
+import com.rarible.blockchain.scanner.reindex.BlockRange
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.misc.splitToRanges
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ReduceTokenItemsDependentTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenRangeTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams
@@ -15,11 +19,14 @@ import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.model.TokenTaskParam
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
+import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Component
@@ -28,8 +35,12 @@ import scalether.domain.Address
 @Component
 class ReindexTokenService(
     private val tokenRegistrationService: TokenRegistrationService,
-    private val taskRepository: TempTaskRepository
+    private val taskRepository: TempTaskRepository,
+    private val nftHistoryRepository: NftHistoryRepository,
+    private val mapper: ObjectMapper
 ) {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun getTokenTasks(): List<Task> {
         return taskRepository.findByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS).toList() +
@@ -161,6 +172,38 @@ class ReindexTokenService(
             }
         }
         return createdTasks
+    }
+
+    suspend fun createReindexAndReduceTokenTasks(tokens: List<Address>, force: Boolean? = null) {
+        val startBlock: Long? = tokens.mapNotNull {
+            val history = nftHistoryRepository.findFirstByCollection(it)
+            history?.blockNumber
+        }.minOrNull()
+        if (startBlock != null) {
+            val reindextask = saveTask(
+                param = mapper.writeValueAsString(EthereumReindexParam(
+                    range = BlockRange(startBlock, null, 250),
+                    topics = emptyList(),
+                    addresses = tokens
+                )),
+                type = "BLOCK_SCANNER_REINDEX_TASK",
+                state = null,
+                force = false
+            )
+            tokens.forEach {
+                saveTask(
+                    param = ReduceTokenItemsDependentTaskParams(
+                        address = it,
+                        dependency = reindextask.id.toHexString()
+                    ).toParamString(),
+                    type = ReduceTokenItemsDependentTaskParams.REDUCE_TOKEN_ITEMS_DEPENDENT,
+                    state = null,
+                    force = false
+                )
+            }
+        } else {
+            logger.warn("Log with block number wasn't found for ${tokens}")
+        }
     }
 
     private suspend fun checkOtherTasksAreNotProcessingTheSameTokens(params: TokenTaskParam, type: String) {

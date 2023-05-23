@@ -151,3 +151,25 @@ data class ReduceTokenRangeTaskParams(
     }
 }
 
+data class ReduceTokenItemsDependentTaskParams(
+    val address: Address,
+    val dependency: String
+) {
+
+    fun toParamString(): String {
+        return mapper.writeValueAsString(this)
+    }
+
+    companion object {
+
+        const val REDUCE_TOKEN_ITEMS_DEPENDENT = "REDUCE_TOKEN_ITEMS_DEPENDENT"
+
+        private val mapper = ObjectMapper()
+            .registerKotlinModule()
+
+        fun parse(param: String): ReduceTokenItemsDependentTaskParams {
+            return mapper.readValue(param, ReduceTokenItemsDependentTaskParams::class.java)
+        }
+
+    }
+}
