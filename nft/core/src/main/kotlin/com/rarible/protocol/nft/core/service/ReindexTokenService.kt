@@ -179,6 +179,7 @@ class ReindexTokenService(
             val history = nftHistoryRepository.findFirstByCollection(it)
             history?.blockNumber
         }.minOrNull()
+        logger.info("Found $startBlock start block for tokens: $tokens")
         if (startBlock != null) {
             val reindextask = saveTask(
                 param = mapper.writeValueAsString(EthereumReindexParam(

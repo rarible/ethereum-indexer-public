@@ -42,6 +42,7 @@ class FixStandardJob(
                     val updated = tokenRegistrationService.update(token.id)
                     val result = if (updated?.standard in setOf(TokenStandard.ERC721, TokenStandard.ERC1155)) {
                         fixedCounter.increment()
+                        logger.info("Token ${token.id} changed standard to ${token.standard}")
                         updated?.id
                     } else {
                         unfixedCounter.increment()
