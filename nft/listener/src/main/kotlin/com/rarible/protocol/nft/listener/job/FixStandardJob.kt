@@ -40,18 +40,19 @@ class FixStandardJob(
                 // we get address of token only if it is changed standard
                 val addresses = found.mapNotNull { token ->
                     val updated = tokenRegistrationService.update(token.id)
-                    val result = if (updated?.standard in setOf(TokenStandard.ERC721, TokenStandard.ERC1155)) {
-                        fixedCounter.increment()
-                        logger.info("Token ${token.id} changed standard to ${token.standard}")
+                    incrementMetric(updated)
+                    incrementRetry(updated ?: token)
+                    if (updated?.standard?.isNotIgnorable() == true) {
                         updated?.id
                     } else {
-                        unfixedCounter.increment()
                         null
                     }
-                    incrementRetry(updated ?: token)
-                    result
                 }
-                reindexTokenService.createReindexAndReduceTokenTasks(addresses)
+                if (addresses.isNotEmpty()) {
+                    reindexTokenService.createReindexAndReduceTokenTasks(addresses)
+                } else {
+                    logger.info("There are no non-ignorable tokens in the fixed list")
+                }
             } while (found.isNotEmpty())
         }
     }
@@ -59,5 +60,14 @@ class FixStandardJob(
     suspend fun incrementRetry(token: Token) {
         val current = token.standardRetries ?: 0
         tokenRepository.save(token.copy(standardRetries = current + 1)).awaitSingle()
+    }
+
+    suspend fun incrementMetric(updated: Token?) {
+        if (updated?.standard?.isNotIgnorable() == true) {
+            fixedCounter.increment()
+            logger.info("Token ${updated?.id} changed standard to ${updated?.standard}")
+        } else {
+            unfixedCounter.increment()
+        }
     }
 }
