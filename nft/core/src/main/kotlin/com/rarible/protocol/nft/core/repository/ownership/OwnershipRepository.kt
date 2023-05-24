@@ -1,13 +1,11 @@
 package com.rarible.protocol.nft.core.repository.ownership
 
-import com.mongodb.client.result.UpdateResult
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.collect
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.find
@@ -15,15 +13,15 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.Update
-import org.springframework.data.mongodb.core.query.UpdateDefinition
 import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import scalether.domain.Address
 
 @Component
 class OwnershipRepository(
@@ -55,9 +53,29 @@ class OwnershipRepository(
             .awaitFirst()
     }
 
-    suspend fun searchAsFlow(query: Query?): Flow<Ownership> {
+    fun searchAsFlow(query: Query?): Flow<Ownership> {
         return mongo.query<Ownership>()
             .matching(query ?: Query())
+            .all()
+            .asFlow()
+    }
+
+    fun findByOwner(owner: Address, fromIdExcluded: OwnershipId? = null): Flow<Ownership> {
+        return mongo.query<Ownership>()
+            .matching(
+                Query.query(
+                    Criteria().andOperator(
+                        listOfNotNull(
+                            Ownership::owner isEqualTo owner,
+                            fromIdExcluded?.let { Ownership::id gt fromIdExcluded }
+                        )
+                    )
+                ).with(
+                    Sort.by(
+                        Sort.Order.asc(Ownership::id.name)
+                    )
+                )
+            )
             .all()
             .asFlow()
     }
