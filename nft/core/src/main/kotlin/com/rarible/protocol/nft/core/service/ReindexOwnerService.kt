@@ -6,11 +6,11 @@ import scalether.domain.Address
 
 @Component
 class ReindexOwnerService(
-    private val taskService: TaskService,
+    private val taskSchedulingService: TaskSchedulingService,
 ) {
 
     suspend fun createReduceOwnerItemsTask(owner: Address, force: Boolean): Task =
-        taskService.saveTask(
+        taskSchedulingService.saveTask(
             param = owner.toString(),
             type = ADMIN_REDUCE_OWNER_ITEMS,
             state = null,

@@ -26,7 +26,7 @@ import scalether.domain.Address
 class ReindexTokenService(
     private val tokenRegistrationService: TokenRegistrationService,
     private val taskRepository: TempTaskRepository,
-    private val taskService: TaskService,
+    private val taskSchedulingService: TaskSchedulingService,
 ) {
 
     suspend fun getTokenTasks(): List<Task> {
@@ -180,7 +180,7 @@ class ReindexTokenService(
         type: String,
         state: Any?,
         force: Boolean
-    ): Task = taskService.saveTask(param = param, type = type, state = state, force = force)
+    ): Task = taskSchedulingService.saveTask(param = param, type = type, state = state, force = force)
 
     private fun formatToString(tokenStandardMap: List<Pair<Address, TokenStandard>>): String {
         return tokenStandardMap.joinToString(",") { "${it.second}:${it.first}" }

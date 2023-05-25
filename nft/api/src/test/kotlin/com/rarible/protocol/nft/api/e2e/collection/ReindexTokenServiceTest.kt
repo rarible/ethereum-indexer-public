@@ -12,7 +12,7 @@ import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.service.ReindexTokenService
-import com.rarible.protocol.nft.core.service.TaskService
+import com.rarible.protocol.nft.core.service.TaskSchedulingService
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -37,9 +37,9 @@ class ReindexTokenServiceTest {
         coEvery { delete(any()) } returns Unit
 
     }
-    private val taskService = TaskService(taskRepository)
+    private val taskSchedulingService = TaskSchedulingService(taskRepository)
 
-    private val service = ReindexTokenService(tokenRegistrationService, taskRepository, taskService)
+    private val service = ReindexTokenService(tokenRegistrationService, taskRepository, taskSchedulingService)
 
     @Test
     fun `should create token reindex task`() = runBlocking<Unit> {

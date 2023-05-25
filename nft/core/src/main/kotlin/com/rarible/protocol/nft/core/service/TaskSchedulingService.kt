@@ -9,7 +9,7 @@ import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Service
 
 @Service
-class TaskService(
+class TaskSchedulingService(
     private val taskRepository: TempTaskRepository
 ) {
     suspend fun saveTask(
