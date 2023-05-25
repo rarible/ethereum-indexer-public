@@ -10,10 +10,11 @@ import com.rarible.protocol.nft.api.dto.TokenDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.model.sorted
 import com.rarible.protocol.nft.api.service.admin.MaintenanceService
-import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.service.ReindexOwnerService
+import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
@@ -39,7 +40,8 @@ class AdminController(
     private val tokenUpdateService: TokenUpdateService,
     private val itemReduceService: ItemReduceService,
     private val maintenanceService: MaintenanceService,
-    private val tokenRegistrationService: TokenRegistrationService
+    private val tokenRegistrationService: TokenRegistrationService,
+    private val reindexOwnerService: ReindexOwnerService,
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -192,6 +194,18 @@ class AdminController(
         @RequestParam(value = "force", required = false) force: Boolean?
     ): ResponseEntity<AdminTaskDto> {
         val task = reindexTokenService.createReduceTokenItemsTask(collection, force ?: false)
+        return ResponseEntity.ok().body(convert(task))
+    }
+
+    @GetMapping(
+        value = ["/admin/nft/owners/tasks/reduceItems"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    suspend fun createReduceOwnerItemsTask(
+        @RequestParam(value = "owner", required = true) owner: Address,
+        @RequestParam(value = "force", required = false) force: Boolean?
+    ): ResponseEntity<AdminTaskDto> {
+        val task = reindexOwnerService.createReduceOwnerItemsTask(owner, force ?: false)
         return ResponseEntity.ok().body(convert(task))
     }
 

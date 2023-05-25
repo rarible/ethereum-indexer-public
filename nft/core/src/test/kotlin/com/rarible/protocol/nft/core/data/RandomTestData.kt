@@ -88,7 +88,7 @@ fun createRandomItemTransfer(): ItemTransfer =
         date = nowMillis(),
         from = randomAddress(),
         value = EthUInt256(randomBigInt())
-)
+    )
 
 fun EthereumLog.withNewValues(
     status: EthereumLogStatus? = null,
@@ -107,7 +107,7 @@ fun EthereumLog.withNewValues(
     index = index ?: this.index,
     minorLogIndex = minorLogIndex ?: this.minorLogIndex,
     address = address ?: this.address,
-    from =  from ?: this.from
+    from = from ?: this.from
 )
 
 fun ItemEvent.ItemMintEvent.withNewValues(
@@ -136,7 +136,17 @@ fun ItemEvent.ItemTransferEvent.withNewValues(
     minorLogIndex: Int? = null,
     from: Address? = null,
     address: Address? = null
-) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, address = address, from = from))
+) = copy(
+    log = log.withNewValues(
+        status,
+        createdAt,
+        blockNumber,
+        logIndex,
+        minorLogIndex,
+        address = address,
+        from = from
+    )
+)
 
 fun ItemEvent.OpenSeaLazyItemMintEvent.withNewValues(
     status: EthereumLogStatus? = null,
@@ -146,7 +156,17 @@ fun ItemEvent.OpenSeaLazyItemMintEvent.withNewValues(
     minorLogIndex: Int? = null,
     from: Address? = null,
     address: Address? = null
-) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, address = address, from = from))
+) = copy(
+    log = log.withNewValues(
+        status,
+        createdAt,
+        blockNumber,
+        logIndex,
+        minorLogIndex,
+        address = address,
+        from = from
+    )
+)
 
 fun ItemEvent.ItemCreatorsEvent.withNewValues(
     status: EthereumLogStatus? = null,
@@ -170,7 +190,6 @@ fun createRandomCreatorsItemEvent(): ItemEvent.ItemCreatorsEvent {
         eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
-
 
 fun createRandomTransferItemEvent(): ItemEvent.ItemTransferEvent {
     val log = createRandomEthereumLog()
@@ -229,6 +248,7 @@ fun createRandomLazyMintItemEvent(): ItemEvent.LazyItemMintEvent {
         eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
+
 fun createRandomLazyBurnItemEvent(): ItemEvent.LazyItemBurnEvent {
     val log = createRandomEthereumLog()
     return ItemEvent.LazyItemBurnEvent(
@@ -264,10 +284,11 @@ fun createRandomOwnershipId(): OwnershipId {
     return OwnershipId(randomAddress(), EthUInt256.of(randomBigInt()), randomAddress())
 }
 
-fun createRandomOwnership(): Ownership {
-    val token = createAddress()
-    val owner = createAddress()
-    val tokenId = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000))
+fun createRandomOwnership(
+    token: Address = createAddress(),
+    owner: Address = createAddress(),
+    tokenId: EthUInt256 = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000))
+): Ownership {
     return Ownership(
         token = token,
         tokenId = tokenId,
@@ -301,6 +322,7 @@ fun createRandomOwnershipChangeLazyValueEvent(): OwnershipEvent.ChangeLazyValueE
         eventTimeMarks = indexerInNftBlockchainTimeMark(log),
     )
 }
+
 fun createRandomOwnershipLazyTransferToEvent(): OwnershipEvent.LazyTransferToEvent {
     val log = createRandomEthereumLog()
     return OwnershipEvent.LazyTransferToEvent(
@@ -384,7 +406,7 @@ fun randomReversedLogRecord(data: EventData, log: EthereumLog): ReversedEthereum
 
 fun createRandomBurnAction(): BurnItemAction {
     return BurnItemAction(
-        token= randomAddress(),
+        token = randomAddress(),
         tokenId = EthUInt256.Companion.of(randomBigInt()),
         createdAt = nowMillis(),
         lastUpdatedAt = nowMillis(),

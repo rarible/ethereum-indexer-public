@@ -4,7 +4,6 @@ import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenRangeTaskParams
@@ -12,6 +11,8 @@ import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam
 import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
+import com.rarible.protocol.nft.core.service.ReindexTokenService
+import com.rarible.protocol.nft.core.service.TaskService
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -36,8 +37,9 @@ class ReindexTokenServiceTest {
         coEvery { delete(any()) } returns Unit
 
     }
+    private val taskService = TaskService(taskRepository)
 
-    private val service = ReindexTokenService(tokenRegistrationService, taskRepository)
+    private val service = ReindexTokenService(tokenRegistrationService, taskRepository, taskService)
 
     @Test
     fun `should create token reindex task`() = runBlocking<Unit> {

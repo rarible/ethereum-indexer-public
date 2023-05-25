@@ -17,18 +17,16 @@ import com.rarible.protocol.nft.core.model.TokenTaskParam
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
-import org.springframework.dao.DuplicateKeyException
-import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
 class ReindexTokenService(
     private val tokenRegistrationService: TokenRegistrationService,
-    private val taskRepository: TempTaskRepository
+    private val taskRepository: TempTaskRepository,
+    private val taskService: TaskService,
 ) {
 
     suspend fun getTokenTasks(): List<Task> {
@@ -182,33 +180,7 @@ class ReindexTokenService(
         type: String,
         state: Any?,
         force: Boolean
-    ): Task {
-        return try {
-            val newTask = if (force) {
-                taskRepository.findByType(type, param).firstOrNull()?.copy(
-                    state = state,
-                    running = false,
-                    lastStatus = TaskStatus.NONE
-                )
-            } else {
-                null
-            } ?: Task(
-                type = type,
-                param = param,
-                state = state,
-                running = false,
-                lastStatus = TaskStatus.NONE
-            )
-            taskRepository.save(newTask)
-        } catch (ex: Exception) {
-            when (ex) {
-                is OptimisticLockingFailureException, is DuplicateKeyException -> {
-                    throw IllegalArgumentException("Reindex task already exists")
-                }
-                else -> throw ex
-            }
-        }
-    }
+    ): Task = taskService.saveTask(param = param, type = type, state = state, force = force)
 
     private fun formatToString(tokenStandardMap: List<Pair<Address, TokenStandard>>): String {
         return tokenStandardMap.joinToString(",") { "${it.second}:${it.first}" }

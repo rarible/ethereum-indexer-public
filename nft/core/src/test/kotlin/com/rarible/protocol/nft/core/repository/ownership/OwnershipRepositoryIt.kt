@@ -13,6 +13,7 @@ import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterAll
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
+import java.math.BigInteger
 import java.time.Duration
 
 @IntegrationTest
@@ -114,5 +116,34 @@ internal class OwnershipRepositoryIt : AbstractIntegrationTest() {
         assertThat(result1).usingRecursiveComparison().ignoringFields("version").isEqualTo(listOf(first, second, third))
         assertThat(result2).usingRecursiveComparison().ignoringFields("version").isEqualTo(listOf(fourth, fifth))
         assertThat(result3).isEmpty()
+    }
+
+    @Test
+    fun findByOwner() = runBlocking<Unit> {
+        val ownership1 = ownershipRepository.save(
+            createRandomOwnership(
+                token = Address.ONE(),
+                tokenId = EthUInt256.of(1),
+                owner = Address.TWO()
+            )
+        ).awaitFirst()
+        val ownership2 = ownershipRepository.save(
+            createRandomOwnership(
+                token = Address.ONE(),
+                tokenId = EthUInt256.of(2),
+                owner = Address.TWO()
+            )
+        ).awaitFirst()
+        val ownership3 = ownershipRepository.save(
+            createRandomOwnership(token = Address.ONE(), tokenId = EthUInt256.of(3), owner = Address.TWO())
+        ).awaitFirst()
+        val ownership4 = ownershipRepository.save(
+            createRandomOwnership(token = Address.ONE(), tokenId = EthUInt256.of(4), owner = Address.THREE())
+        ).awaitFirst()
+
+        val result =
+            ownershipRepository.findByOwner(owner = Address.TWO(), fromIdExcluded = ownership1.id).toList()
+
+        assertThat(result.map { it.id }).containsExactly(ownership2.id, ownership3.id)
     }
 }
