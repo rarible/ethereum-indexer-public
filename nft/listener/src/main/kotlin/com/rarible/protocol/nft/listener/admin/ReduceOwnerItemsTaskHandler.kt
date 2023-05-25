@@ -53,7 +53,7 @@ class ReduceOwnerItemsTaskHandler(
     private suspend fun findOwnersBeingIndexedNow(): List<Address> {
         return taskRepository
             .findByType(ReindexOwnerService.ADMIN_REDUCE_OWNER_ITEMS)
-            .filter { it.lastStatus != TaskStatus.COMPLETED }
+            .filter { it.lastStatus != TaskStatus.COMPLETED && it.running }
             .map { Address.apply(it.param) }
             .toList()
     }
