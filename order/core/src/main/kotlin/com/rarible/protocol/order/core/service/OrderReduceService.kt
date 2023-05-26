@@ -444,11 +444,13 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withBidWithNoExpire(): Order {
-        if (!featureFlags.enableBidWithNoExpiryCancelation) return this
         if (this.isBid().not()) return this
         if (this.platform != Platform.RARIBLE) return this
-        //Bids with no 'end' time must be canceled
-        return if (this.end == null) {
+        //Old bids with no 'end' time must be canceled
+        return if (
+            this.end == null &&
+            (this.createdAt <= indexerProperties.raribleOrderExpiration.fixedExpireDate)
+        ) {
             logger.info("Cancel rarible BID $id cause it has no 'end' time")
             this.copy(
                 status = OrderStatus.CANCELLED,
