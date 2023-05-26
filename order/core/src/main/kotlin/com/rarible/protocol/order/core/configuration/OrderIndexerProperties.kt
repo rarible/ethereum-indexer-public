@@ -139,7 +139,7 @@ data class OrderIndexerProperties(
 
     data class RaribleOrderExpirationProperties(
         val bidExpirePeriod: Duration = Duration.ofDays(60L),
-        val fixedExpireDate: Instant = Instant.parse("2022-04-14T00:00:00.00Z"),
+        val fixedExpireDate: Instant = Instant.parse("2023-05-26T12:33:00.00Z"),
         val delayPeriod: Duration = Duration.ofMinutes(60L),
     )
 
