@@ -451,7 +451,7 @@ class OrderReduceService(
             this.end == null &&
             (this.createdAt <= indexerProperties.raribleOrderExpiration.fixedExpireDate)
         ) {
-            logger.info("Cancel rarible BID $id cause it has no 'end' time")
+            logger.info("Cancel old rarible BID $id cause it has no 'end' time")
             this.copy(
                 status = OrderStatus.CANCELLED,
                 lastUpdateAt = Instant.now(),
