@@ -24,10 +24,7 @@ import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
-import org.springframework.dao.DuplicateKeyException
-import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 

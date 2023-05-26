@@ -41,7 +41,13 @@ class ReindexTokenServiceTest {
     }
     private val taskSchedulingService = TaskSchedulingService(taskRepository)
 
-    private val service = ReindexTokenService(tokenRegistrationService, taskRepository, taskSchedulingService)
+    private val service = ReindexTokenService(
+        tokenRegistrationService,
+        taskRepository,
+        taskSchedulingService,
+        mockk(),
+        ObjectMapper().registerKotlinModule()
+    )
 
     @Test
     fun `should create token reindex task`() = runBlocking<Unit> {
