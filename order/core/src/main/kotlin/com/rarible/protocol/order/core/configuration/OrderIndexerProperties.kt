@@ -134,7 +134,8 @@ data class OrderIndexerProperties(
         val findIgnoredEvent: Boolean = false,
         val removeOpenSeaOrdersInTask: Boolean = false,
         val parseBlurMarketPlaceV2: Boolean = false,
-        val cancelOrderOnGetSignatureError: Boolean = true
+        val cancelOrderOnGetSignatureError: Boolean = true,
+        val enableBidWithNoExpiryCancelation: Boolean = true,
     )
 
     data class RaribleOrderExpirationProperties(
