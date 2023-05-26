@@ -54,7 +54,6 @@ class OrderReduceService(
     private val poolReducer: EventPoolReducer,
     private val poolPriceProvider: PoolPriceProvider,
     private val orderStateRepository: OrderStateRepository,
-    private var featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
 
     private val exchangeContractAddresses = indexerProperties.exchangeContractAddresses
