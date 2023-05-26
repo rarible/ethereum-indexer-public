@@ -23,6 +23,7 @@ data class Token(
 
     @Indexed(background = true)
     val standard: TokenStandard,
+    val standardRetries: Int? = 0,
     @Version
     override val version: Long? = null,
 

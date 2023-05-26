@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.api.e2e.collection
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.core.test.data.randomBigInt

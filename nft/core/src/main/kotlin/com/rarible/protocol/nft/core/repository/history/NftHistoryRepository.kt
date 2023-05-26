@@ -4,6 +4,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.find
@@ -42,6 +43,11 @@ class NftHistoryRepository(
             Criteria()
         }
         return mongo.find(Query(criteria).with(LOG_SORT_ASC), COLLECTION)
+    }
+
+    suspend fun findFirstByCollection(address: Address): LogEvent? {
+        val criteria = Criteria.where("${LogEvent::data.name}._id").`is`(address)
+        return mongo.find<LogEvent>(Query(criteria).with(LOG_SORT_ASC).limit(1), COLLECTION).awaitFirstOrNull()
     }
 
     fun save(logEvent: LogEvent): Mono<LogEvent> = mongo.save(logEvent, COLLECTION)

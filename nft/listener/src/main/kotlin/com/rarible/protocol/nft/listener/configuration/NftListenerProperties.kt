@@ -24,7 +24,8 @@ data class NftListenerProperties(
     val ownershipItemConsistency: OwnershipItemConsistencyProperties = OwnershipItemConsistencyProperties(),
     val inconsistentItemsRepair: InconsistentItemsRepairProperties = InconsistentItemsRepairProperties(),
     val updateSuspiciousItemsHandler: UpdateSuspiciousItemsHandlerProperties = UpdateSuspiciousItemsHandlerProperties(),
-    val ownershipCheckerProperties: OwnershipCheckerProperties = OwnershipCheckerProperties()
+    val ownershipCheckerProperties: OwnershipCheckerProperties = OwnershipCheckerProperties(),
+    val fixStandardJob: FixStandardJobProperties = FixStandardJobProperties()
 )
 
 data class ActionExecuteProperties(
@@ -73,4 +74,12 @@ data class OwnershipCheckerProperties(
     val skipNumberOfBlocks: Long = 20,
     val confirms: Int = 2,
     val updateLastBlock: Duration = Duration.ofSeconds(5)
+)
+
+data class FixStandardJobProperties(
+    val enabled: Boolean = false,
+    val batchSize: Int = 10,
+    val reduceBatch: Int = 2,
+    val retries: Int = 5,
+    val reindexLimit: Int = 5 // Max number of reindex tasks
 )

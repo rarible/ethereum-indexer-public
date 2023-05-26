@@ -107,8 +107,7 @@ class AdminController(
         val token = tokenRegistrationService.update(collectionId)
             ?: throw EntityNotFoundApiException("Collection", collectionId)
         if (reduce && token.standard.isNotIgnorable()) {
-            reindexTokenService.createReduceTokenTask(collectionId, true)
-            reindexTokenService.createReduceTokenItemsTask(collectionId, true)
+            reindexTokenService.createReindexAndReduceTokenTasks(listOf(collectionId))
         }
         return ResponseEntity.ok().body(convert(token))
     }
