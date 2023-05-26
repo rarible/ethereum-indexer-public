@@ -54,6 +54,7 @@ class OrderReduceService(
     private val poolReducer: EventPoolReducer,
     private val poolPriceProvider: PoolPriceProvider,
     private val orderStateRepository: OrderStateRepository,
+    private var featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
 
     private val exchangeContractAddresses = indexerProperties.exchangeContractAddresses
@@ -443,6 +444,7 @@ class OrderReduceService(
     }
 
     private suspend fun Order.withBidWithNoExpire(): Order {
+        if (!featureFlags.enableBidWithNoExpiryCancelation) return this
         if (this.isBid().not()) return this
         if (this.platform != Platform.RARIBLE) return this
         //Bids with no 'end' time must be canceled
