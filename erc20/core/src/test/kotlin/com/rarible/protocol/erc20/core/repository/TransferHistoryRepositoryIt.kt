@@ -2,6 +2,7 @@ package com.rarible.protocol.erc20.core.repository
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.erc20.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.erc20.core.integration.IntegrationTest
 import com.rarible.protocol.erc20.core.model.BalanceId
@@ -168,6 +169,21 @@ class TransferHistoryRepositoryIt : AbstractIntegrationTest(){
 
         assertThat(result).hasSize(1)
         assertThat(result[0].data).isEqualTo(event1)
+    }
+
+    @Test
+    fun `find balance events by owner - only confirmed`() = runBlocking<Unit> {
+        val token = randomAddress()
+        val owner = randomAddress()
+
+        val logEvent1 = randomLogEvent(randomErc20OutcomeTransfer(token, owner), blockNumber = 1).copy(status = LogEventStatus.CONFIRMED)
+        val logEvent2 = randomLogEvent(randomErc20IncomeTransfer(token, owner), blockNumber = 2).copy(status = LogEventStatus.REVERTED)
+
+        saveAll(logEvent1, logEvent2)
+
+        val logs = historyRepository.findOwnerLogEvents(token, owner, null).collectList().awaitFirst()
+
+        assertThat(logs).hasSize(1)
     }
 
     private suspend fun saveAll(token: Address = randomAddress(), vararg histories: Erc20TokenHistory) {

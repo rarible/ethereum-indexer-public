@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.core.repository
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20DepositHistoryLog
@@ -51,7 +52,7 @@ class Erc20TransferHistoryRepository(
                 fromBlockNumber?.let {
                     and(LogEvent::blockNumber).gt(it)
                 } ?: this
-            }
+            }.confirmed()
 
         val query = Query(criteria).with(LOG_SORT_ASC).cursorBatchSize(BATCH_SIZE)
         return template.find(query, LogEvent::class.java, COLLECTION)
@@ -62,7 +63,7 @@ class Erc20TransferHistoryRepository(
             afterOwner?.let {
                 and(LogEvent::data / Erc20TokenHistory::owner).gt(it)
             } ?: this
-        }
+        }.confirmed()
         val query = Query(criteria).with(LOG_SORT_ASC).cursorBatchSize(BATCH_SIZE)
         return template.find(query, LogEvent::class.java, COLLECTION)
     }
@@ -91,7 +92,7 @@ class Erc20TransferHistoryRepository(
             else -> {
                 Criteria()
             }
-        }
+        }.confirmed()
 
         val query = Query(criteria).with(LOG_SORT_ASC).cursorBatchSize(BATCH_SIZE)
         return template
@@ -106,6 +107,8 @@ class Erc20TransferHistoryRepository(
                 }
             }
     }
+
+    fun Criteria.confirmed() = this.and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
 
     companion object {
 
