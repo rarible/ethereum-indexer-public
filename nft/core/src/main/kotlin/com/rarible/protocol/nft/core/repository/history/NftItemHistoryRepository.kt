@@ -24,6 +24,7 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -95,7 +96,13 @@ class NftItemHistoryRepository(
         to: ItemId? = null,
         statuses: List<LogEventStatus>? = null
     ): Flux<HistoryLog> {
-        val criteria = tokenCriteria(token, tokenId, from, to)
+        val criteria = tokenCriteria(token, tokenId, from, to).run {
+            if (!statuses.isNullOrEmpty()) {
+                and(LogEvent::status).inValues(statuses)
+            } else {
+                this
+            }
+        }
         return mongo
             .find(Query(criteria).with(LOG_SORT_ASC), LogEvent::class.java, COLLECTION)
             .map { HistoryLog(it.data as ItemHistory, it) }
