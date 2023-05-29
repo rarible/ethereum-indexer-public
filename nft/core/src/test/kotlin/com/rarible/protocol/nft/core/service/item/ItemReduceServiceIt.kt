@@ -1,6 +1,8 @@
 package com.rarible.protocol.nft.core.service.item
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -31,6 +33,8 @@ import com.rarible.protocol.nft.core.repository.action.NftItemActionEventReposit
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import io.daonomic.rpc.domain.Word
+import io.daonomic.rpc.domain.`Word$`
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -168,6 +172,54 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
         val notUpdatedItem = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
         assertThat(notUpdatedItem.version).isEqualTo(item.version)
+    }
+
+    @Test
+    fun `full reduce only confirmed logs`() = runBlocking<Unit> {
+        val owner = AddressFactory.create()
+        val token = AddressFactory.create()
+        val tokenId1 = EthUInt256.ONE
+        val tokenId2 = EthUInt256.TEN
+        val blockTimestamp = Instant.ofEpochSecond(12)
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
+        )
+        val mintTransfer = ItemTransfer(
+            owner = owner,
+            token = token,
+            tokenId = tokenId1,
+            date = nowMillis(),
+            from = Address.ZERO(),
+            value = EthUInt256.ONE
+        )
+        val revertedMintTransfer = ItemTransfer(
+            owner = owner,
+            token = token,
+            tokenId = tokenId2,
+            date = nowMillis(),
+            from = Address.ZERO(),
+            value = EthUInt256.ONE
+        )
+        saveItemHistory(
+            mintTransfer,
+            logIndex = 0,
+            from = owner,
+            blockTimestamp = blockTimestamp,
+            status = LogEventStatus.CONFIRMED
+        )
+        saveItemHistory(
+            revertedMintTransfer,
+            logIndex = 0,
+            from = owner,
+            blockTimestamp = blockTimestamp,
+            status = LogEventStatus.REVERTED
+        )
+        itemReduceService.update(token = token, tokenId = tokenId1, updateNotChanged = false).awaitFirstOrNull()
+        itemReduceService.update(token = token, tokenId = tokenId2, updateNotChanged = false).awaitFirstOrNull()
+        val item1 = itemRepository.findById(ItemId(token, tokenId1)).awaitFirstOrNull()
+        val item2 = itemRepository.findById(ItemId(token, tokenId2)).awaitFirstOrNull()
+        assertThat(item1).isNotNull
+        assertThat(item2).isNull()
     }
 
     @Test

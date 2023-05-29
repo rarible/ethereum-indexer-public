@@ -66,7 +66,7 @@ class ItemReduceServiceV2(
                 { it.log.logIndex }
             ),
             findLazyItemsHistory(token, tokenId, from, to),
-            historyRepository.findItemsHistory(token, tokenId, from, to)
+            historyRepository.findItemsHistory(token, tokenId, from, to, listOf(LogEventStatus.CONFIRMED))
         ).concatMap {
             logger.info("Item reduce HistoryLog=$it")
             mono {
