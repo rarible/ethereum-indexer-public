@@ -6,6 +6,8 @@ import com.rarible.protocol.erc20.core.model.BalanceReduceSnapshot
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20ReduceEvent
 import com.rarible.protocol.erc20.core.service.reduce.Erc20BalanceFullReduceService
+import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.asFlux
@@ -18,11 +20,17 @@ typealias Erc20BalanceReduceServiceV1 = ReduceService<Erc20ReduceEvent, BalanceR
 @Service
 class Erc20BalanceReduceService(
     private val erc20BalanceReduceEventRepository: Erc20BalanceReduceEventRepository,
-    private val erc20BalanceFullReduceService: Erc20BalanceFullReduceService
+    private val erc20BalanceFullReduceService: Erc20BalanceFullReduceService,
+    ignoredOwnersResolver: IgnoredOwnersResolver
 ) {
+
+    private val ignoredOwners = ignoredOwnersResolver.resolve()
+
     fun update(token: Address?, owner: Address?, from: BalanceId?): Flux<Erc20Balance> {
         val events = erc20BalanceReduceEventRepository.findOwnerLogEvents(token, owner, from = from)
-        return erc20BalanceFullReduceService.reduce(events.asFlow()).asFlux()
+            .asFlow()
+            .filter { it.owner !in ignoredOwners }
+        return erc20BalanceFullReduceService.reduce(events).asFlux()
     }
 
     suspend fun update(token: Address, owner: Address): Erc20Balance? {
