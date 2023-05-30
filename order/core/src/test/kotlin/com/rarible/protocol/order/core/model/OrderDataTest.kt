@@ -13,7 +13,9 @@ import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.createOrderX2Y2DataV1
 import com.rarible.protocol.order.core.misc.MAPPER
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -53,5 +55,11 @@ internal class OrderDataTest {
         val json = MAPPER.writeValueAsString(orderData)
         val deserialized = MAPPER.readValue(json, orderDataClass)
         Assertions.assertThat(deserialized).isEqualTo(orderData)
+    }
+
+    @Test
+    fun `looksrare V2 order data is make filled`() {
+        val orderData: OrderData = createOrderLooksrareDataV2()
+        assertThat(orderData.isMakeFillOrder(sell = true)).isEqualTo(true)
     }
 }
