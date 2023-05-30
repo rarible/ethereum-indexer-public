@@ -39,18 +39,19 @@ class ItemEventConverter(
 
     fun convertToMintEvent(source: OwnershipEvent.TransferToEvent): ItemEvent.ItemMintEvent {
         return OwnershipId.parseId(source.entityId).let {
-            ItemEvent.ItemMintEvent(
+            val event = ItemEvent.ItemMintEvent(
                 supply = source.value,
                 owner = it.owner,
                 entityId = entityId(it.token, it.tokenId),
                 log = source.log,
-                eventTimeMarks = source.eventTimeMarks,
             )
+            event.eventTimeMarks = source.eventTimeMarks
+            event
         }
     }
 
     fun convert(source: ReversedEthereumLogRecord): ItemEvent? {
-        return when (val data = source.data as? ItemHistory) {
+        val event = when (val data = source.data as? ItemHistory) {
             is ItemTransfer -> {
                 when {
                     data.from == Address.ZERO() && data.owner == Address.ZERO() -> null
@@ -62,7 +63,6 @@ class ItemEventConverter(
                             log = source.log,
                             entityId = entityId(data.token, data.tokenId),
                             tokenUri = data.tokenUri,
-                            eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                         )
 
                     data.isBurnTransfer() ->
@@ -71,7 +71,6 @@ class ItemEventConverter(
                             owner = data.from,
                             log = source.log,
                             entityId = entityId(data.token, data.tokenId),
-                            eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                         )
 
                     source.log.address == openSeaLazyMintAddress && isLazyMintTokenAddress(data.tokenId) ->
@@ -80,7 +79,6 @@ class ItemEventConverter(
                             supply = data.value,
                             log = source.log,
                             entityId = entityId(data.token, data.tokenId),
-                            eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                         )
 
                     else -> null
@@ -92,7 +90,6 @@ class ItemEventConverter(
                     creators = data.creators,
                     log = source.log,
                     entityId = entityId(data.token, data.tokenId),
-                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
             }
             is BurnItemLazyMint -> {
@@ -100,7 +97,6 @@ class ItemEventConverter(
                     supply = data.value,
                     log = source.log,
                     entityId = entityId(data.token, data.tokenId),
-                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
             }
             is ItemCreators -> {
@@ -108,10 +104,13 @@ class ItemEventConverter(
                     creators = data.creators,
                     log = source.log,
                     entityId = entityId(data.token, data.tokenId),
-                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
             }
             is ItemRoyalty, null -> null
+        }
+        return event?.let {
+            it.eventTimeMarks = indexerInNftBlockchainTimeMark(source.log)
+            it
         }
     }
 
