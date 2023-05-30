@@ -41,7 +41,7 @@ internal class LooksrareOrderServiceTest {
         coVerify(exactly = 1) {
             looksrareClient.getOrders(
                 match {
-                    it.status == Status.VALID &&
+                    it.status == null &&
                     it.sort == Sort.NEWEST &&
                     it.pagination?.first == properties.loadMaxSize &&
                     it.pagination?.cursor == null
