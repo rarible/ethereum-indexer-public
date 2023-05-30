@@ -114,7 +114,7 @@ class OwnershipBatchCheckerHandler(
         val token = tokenRepository.findById(ownershipId.token).awaitFirstOrNull()
         return when (token?.standard) {
             TokenStandard.ERC721 -> valueOf721Token(ownershipId, blockNumber)
-            TokenStandard.ERC1155 -> valueOf1151Token(ownershipId, blockNumber)
+            TokenStandard.ERC1155 -> valueOf1155Token(ownershipId, blockNumber)
             else -> {
                 logger.warn("Ignoring checking token ownership due to token standard is missed or token doesn't exist: $ownershipId")
                 null
@@ -131,7 +131,7 @@ class OwnershipBatchCheckerHandler(
         }
     }
 
-    private suspend fun valueOf1151Token(ownershipId: OwnershipId, blockNumber: Long): BigInteger {
+    private suspend fun valueOf1155Token(ownershipId: OwnershipId, blockNumber: Long): BigInteger {
         val data = IERC1155.balanceOfSignature().encode(Tuple2.apply(ownershipId.owner, ownershipId.tokenId.value))
         val response = makeRawRequest(data, ownershipId, blockNumber)
         return EthUInt256.of(response).value
