@@ -354,8 +354,9 @@ enum class OrderDataVersion(val ethDataType: Binary? = null) {
  */
 fun OrderData.isMakeFillOrder(sell: Boolean): Boolean {
     val isRaribleMakeFill = (this is OrderRaribleV2DataV3Sell) || (this is OrderRaribleV2DataV2 && this.isMakeFill)
-    val isLooksrareFill = (this is OrderLooksrareDataV1) && sell
-    return isRaribleMakeFill || isLooksrareFill
+    val isLooksrareV1Fill = (this is OrderLooksrareDataV1) && sell
+    val isLooksrareV2Fill = (this is OrderLooksrareDataV2) && sell
+    return isRaribleMakeFill || isLooksrareV1Fill || isLooksrareV2Fill
 }
 
 fun OrderData.isAmmOrder(): Boolean {
