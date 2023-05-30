@@ -23,7 +23,7 @@ class OwnershipEventConverter(
     private val itemUpdateService: ItemUpdateService
 ) {
     suspend fun convert(source: ReversedEthereumLogRecord): List<OwnershipEvent> {
-        return when (val data = source.data as? ItemHistory) {
+        val events = when (val data = source.data as? ItemHistory) {
             is ItemTransfer -> {
                 val transferTo = data.owner.takeUnless { data.isBurnTransfer() }?.let { owner ->
                     OwnershipEvent.TransferToEvent(
@@ -31,7 +31,6 @@ class OwnershipEventConverter(
                         value = data.value,
                         log = source.log,
                         entityId = OwnershipId(data.token, data.tokenId, owner).stringValue,
-                        eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                     )
                 }
                 val transferFrom = data.from.takeUnless { data.isMintTransfer() }?.let { from ->
@@ -40,7 +39,6 @@ class OwnershipEventConverter(
                         value = data.value,
                         log = source.log,
                         entityId = OwnershipId(data.token, data.tokenId, from).stringValue,
-                        eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                     )
                 }
                 //Revertable event for lazy ownership to change value and lazyValue
@@ -53,7 +51,6 @@ class OwnershipEventConverter(
                         value = data.value,
                         log = source.log,
                         entityId = OwnershipId(data.token, data.tokenId, lazyOwner).stringValue,
-                        eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                     )
                 }
                 listOfNotNull(transferTo, transferFrom, changeLazyOwnership)
@@ -63,7 +60,6 @@ class OwnershipEventConverter(
                     value = data.value,
                     log = source.log,
                     entityId = OwnershipId(data.token, data.tokenId, data.owner).stringValue,
-                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
                 listOf(lazyTransferTo)
             }
@@ -73,7 +69,6 @@ class OwnershipEventConverter(
                     value = data.value,
                     log = source.log,
                     entityId = OwnershipId(data.token, data.tokenId, data.from).stringValue,
-                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
                 listOf(lazyBurnEvent)
             }
@@ -81,6 +76,9 @@ class OwnershipEventConverter(
             is ItemRoyalty,
             null -> emptyList()
         }
+        val timeMark = indexerInNftBlockchainTimeMark(source.log)
+        events.forEach { it.eventTimeMarks = timeMark }
+        return events
     }
 
     suspend fun convert(source: LogEvent): List<OwnershipEvent> {

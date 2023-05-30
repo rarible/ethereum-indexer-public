@@ -10,7 +10,7 @@ import com.rarible.protocol.nft.core.model.indexerInNftBlockchainTimeMark
 
 object TokenEventConverter {
     fun convert(source: ReversedEthereumLogRecord): TokenEvent? {
-        return when (val data = source.data as? CollectionEvent) {
+        val event = when (val data = source.data as? CollectionEvent) {
             is CreateCollection -> {
                 TokenEvent.TokenCreateEvent(
                     owner = data.owner,
@@ -18,7 +18,6 @@ object TokenEventConverter {
                     symbol = data.symbol,
                     log = source.log,
                     entityId = data.id.prefixed(),
-                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
             }
             is CollectionOwnershipTransferred -> {
@@ -27,11 +26,12 @@ object TokenEventConverter {
                     previousOwner = data.previousOwner,
                     log = source.log,
                     entityId = data.id.prefixed(),
-                    eventTimeMarks = indexerInNftBlockchainTimeMark(source.log),
                 )
             }
             null -> null
         }
+        event?.let { it.eventTimeMarks = indexerInNftBlockchainTimeMark(source.log) }
+        return event
     }
 
     fun convert(source: LogEvent): TokenEvent? {

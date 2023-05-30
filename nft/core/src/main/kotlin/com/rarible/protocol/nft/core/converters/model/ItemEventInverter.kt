@@ -4,23 +4,25 @@ import com.rarible.protocol.nft.core.model.ItemEvent
 
 object ItemEventInverter {
     fun invert(event: ItemEvent.ItemMintEvent): ItemEvent.ItemBurnEvent {
-        return ItemEvent.ItemBurnEvent(
+        val result = ItemEvent.ItemBurnEvent(
             supply = event.supply,
             owner = event.owner,
             entityId = event.entityId,
             log = event.log,
-            eventTimeMarks = event.eventTimeMarks,
         )
+        result.eventTimeMarks = event.eventTimeMarks
+        return result
     }
 
     fun invert(event: ItemEvent.ItemBurnEvent): ItemEvent.ItemMintEvent {
-        return ItemEvent.ItemMintEvent(
+        val result = ItemEvent.ItemMintEvent(
             supply = event.supply,
             owner = event.owner,
             entityId = event.entityId,
             log = event.log,
-            eventTimeMarks = event.eventTimeMarks,
         )
+        result.eventTimeMarks = event.eventTimeMarks
+        return result
     }
 
     fun invert(event: ItemEvent.ItemTransferEvent): ItemEvent.ItemTransferEvent {
