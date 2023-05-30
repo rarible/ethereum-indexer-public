@@ -31,7 +31,7 @@ class LooksrareOrderService(
         do {
             val request = OrdersRequest(
                 quoteType = QuoteType.ASK,
-                status = Status.VALID,
+                status = null,
                 sort = Sort.NEWEST,
                 pagination = Pagination(first = properties.loadMaxSize, cursor = nextId)
             )
