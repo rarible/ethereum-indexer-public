@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.model
 import com.rarible.core.common.nowMillis
 import com.rarible.core.entity.reducer.model.Entity
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.misc.cleanEventTimeMarks
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
@@ -75,6 +76,10 @@ data class Item(
         } else {
             this
         }
+    }
+
+    fun cleanEventTimeMarks(): Item {
+        return copy(revertableEvents = revertableEvents.map { it.cleanEventTimeMarks() })
     }
 
     companion object {
