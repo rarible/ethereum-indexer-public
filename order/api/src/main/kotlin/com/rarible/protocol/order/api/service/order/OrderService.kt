@@ -8,6 +8,7 @@ import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.api.exceptions.ValidationApiException
@@ -106,6 +107,7 @@ class OrderService(
     }
 
     suspend fun put(form: OrderFormDto): Order {
+        val eventTimeMarks = offchainEventMark("indexer-in_order")
         val orderVersion = convertFormToVersion(form)
         orderValidator.validate(orderVersion)
         val existingOrder = orderRepository.findById(orderVersion.hash)
@@ -113,7 +115,7 @@ class OrderService(
             orderValidator.validate(existingOrder, orderVersion)
         }
         return orderUpdateService
-            .save(orderVersion)
+            .save(orderVersion, eventTimeMarks)
             .also { raribleOrderSaveMetric.increment() }
     }
 
