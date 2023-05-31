@@ -5,7 +5,7 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
-import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
+import com.rarible.protocol.nft.core.service.item.ItemReduceEventListener
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 @Component
 class ItemUpdateService(
     private val itemRepository: ItemRepository,
-    private val eventListenerListener: ReduceEventListenerListener
+    private val eventListenerListener: ItemReduceEventListener
 ) : EntityService<ItemId, Item, ItemEvent> {
 
     override suspend fun get(id: ItemId): Item? {

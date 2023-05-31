@@ -5,7 +5,7 @@ import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
-import com.rarible.protocol.nft.core.service.token.TokenUpdateService
+import com.rarible.protocol.nft.core.service.token.TokenReduceService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
@@ -21,7 +21,7 @@ import scalether.domain.Address
 @Component
 class ReduceTokenTaskHandler(
     private val taskRepository: TempTaskRepository,
-    private val tokenUpdateService: TokenUpdateService
+    private val tokenReduceService: TokenReduceService
 ) : TaskHandler<String> {
 
     override val type: String
@@ -36,7 +36,7 @@ class ReduceTokenTaskHandler(
     override fun runLongTask(from: String?, param: String): Flow<String> {
         val params = ReduceTokenTaskParams.fromParamString(param)
         return flow {
-            tokenUpdateService.update(params.oneToken)
+            tokenReduceService.reduce(params.oneToken)
             emit(params.oneToken.prefixed())
         }
     }

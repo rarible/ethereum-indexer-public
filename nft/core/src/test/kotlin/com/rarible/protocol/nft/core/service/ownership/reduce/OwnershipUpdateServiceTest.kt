@@ -6,7 +6,7 @@ import com.rarible.protocol.nft.core.data.createRandomOwnership
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
-import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
+import com.rarible.protocol.nft.core.service.item.ItemReduceEventListener
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import io.mockk.coEvery
 import io.mockk.coVerifyOrder
@@ -26,7 +26,7 @@ class OwnershipUpdateServiceTest {
 
     private lateinit var ownershipService: OwnershipService
 
-    private lateinit var eventListenerListener: ReduceEventListenerListener
+    private lateinit var eventListenerListener: ItemReduceEventListener
 
     private lateinit var properties: NftIndexerProperties
 

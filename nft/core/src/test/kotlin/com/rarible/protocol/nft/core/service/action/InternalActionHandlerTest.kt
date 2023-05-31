@@ -13,7 +13,7 @@ import com.rarible.protocol.nft.core.model.ActionType
 import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
-import com.rarible.protocol.nft.core.service.item.FeaturedItemReduceService
+import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -30,7 +30,7 @@ internal class InternalActionHandlerTest {
 
     private val nftItemActionEventRepository = mockk<NftItemActionEventRepository>()
     private val registeredCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
-    private val itemReduceService = mockk<FeaturedItemReduceService> {
+    private val itemReduceService = mockk<ItemReduceService> {
         every { update(any(), any()) } returns listOf(
             ItemId.MAX_ID
         ).toFlux()

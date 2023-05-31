@@ -1,12 +1,13 @@
 package com.rarible.protocol.nft.listener.admin
 
 import com.rarible.core.task.TaskHandler
-import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
-import com.rarible.protocol.nft.core.service.token.TokenUpdateService
+import com.rarible.protocol.nft.core.service.ReindexTokenService
+import com.rarible.protocol.nft.core.service.token.TokenProvider
+import com.rarible.protocol.nft.core.service.token.TokenReduceService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
@@ -30,10 +31,11 @@ import java.time.Instant.now
 @Component
 class FixTokenStandardTaskHandler(
     private val mongo: ReactiveMongoOperations,
-    private val tokenRegistrationService: TokenRegistrationService,
+    private val tokenProvider: TokenProvider,
     private val nftHistoryRepository: NftHistoryRepository,
     private val reindexTokenService: ReindexTokenService,
-    private val tokenUpdateService: TokenUpdateService
+    private val tokenService: TokenService,
+    private val tokenReduceService: TokenReduceService
 ) : TaskHandler<Long> {
 
     override val type: String
@@ -59,18 +61,19 @@ class FixTokenStandardTaskHandler(
     }
 
     suspend fun fixToken(address: Address, dry: Boolean) {
-        val standard = tokenRegistrationService.fetchTokenStandard(address)
+        val standard = tokenProvider.fetchTokenStandard(address)
         if (standard.isNotIgnorable()) {
             logger.info("Found token with NONE standard but must be $standard for $address")
             if (!dry) {
-                tokenRegistrationService.update(address)
-                tokenUpdateService.update(address)
+                // TODO 2 events will be emitted (not critical)
+                tokenReduceService.reduce(address)
+                tokenService.update(address)
                 val firstLog = nftHistoryRepository.findAllByCollection(address).awaitFirst()
                 reindexTokenService.createReindexTokenItemsTask(listOf(address), firstLog.blockNumber, false)
                 reindexTokenService.createReduceTokenItemsTask(address, false)
             }
         } else if (standard == TokenStandard.ERC20) {
-            tokenRegistrationService.setTokenStandard(address, standard)
+            tokenService.updateStandard(address, standard)
         }
     }
 

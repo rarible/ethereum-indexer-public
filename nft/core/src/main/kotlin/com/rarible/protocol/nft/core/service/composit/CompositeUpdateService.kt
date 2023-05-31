@@ -66,7 +66,7 @@ sealed class CompositeUpdateService(
         // Otherwise, we check if item has been changed, consider date/version as non-meaningful values
         val safeCompareItem = reducedItemWithExState.copy(
             version = existItem.version,
-            date = existItem.date,
+            date = existItem.date
         ).cleanEventTimeMarks()
 
         val safeExistItem = existItem.cleanEventTimeMarks()

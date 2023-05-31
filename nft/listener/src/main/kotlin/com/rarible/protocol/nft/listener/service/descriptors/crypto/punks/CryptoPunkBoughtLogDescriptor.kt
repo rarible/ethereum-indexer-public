@@ -5,7 +5,7 @@ import com.rarible.protocol.contracts.test.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.test.crypto.punks.TransferEvent
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemTransfer
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -21,10 +21,10 @@ import java.time.Instant
 
 @Service
 class CryptoPunkBoughtLogDescriptor(
-    tokenRegistrationService: TokenRegistrationService,
+    tokenService: TokenService,
     nftIndexerProperties: NftIndexerProperties,
     private val ethereum: MonoEthereum
-) : CryptoPunkLogDescriptorBase(tokenRegistrationService, nftIndexerProperties) {
+) : CryptoPunkLogDescriptorBase(tokenService, nftIndexerProperties) {
 
     private val logger = LoggerFactory.getLogger(CryptoPunkBoughtLogDescriptor::class.java)
 

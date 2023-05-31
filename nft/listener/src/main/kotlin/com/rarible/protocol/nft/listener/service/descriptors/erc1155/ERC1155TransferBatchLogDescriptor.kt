@@ -7,10 +7,11 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.erc1155.TransferBatchEventWithFullData
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEventDescriptor
 import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -25,7 +26,7 @@ import java.time.Instant
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class ERC1155TransferBatchLogDescriptor(
-    private val tokenRegistrationService: TokenRegistrationService,
+    private val tokenService: TokenService,
     ignoredTokenResolver: IgnoredTokenResolver,
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
 
@@ -40,7 +41,7 @@ class ERC1155TransferBatchLogDescriptor(
         if (log.address() in skipContracts) {
             return Mono.empty()
         }
-        return tokenRegistrationService.getTokenStandard(log.address())
+        return mono { tokenService.getTokenStandard(log.address()) }
             .flatMapMany { standard ->
                 if (standard == TokenStandard.ERC1155) {
                     val e = when (log.topics().size()) {

@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.listener.admin
 
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
-import com.rarible.protocol.nft.core.service.token.TokenUpdateService
+import com.rarible.protocol.nft.core.service.token.TokenReduceService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.slf4j.Logger
@@ -12,7 +12,7 @@ import scalether.domain.Address
 
 @Component
 class ReduceTokensTaskHandler(
-    private val tokenUpdateService: TokenUpdateService,
+    private val tokenReduceService: TokenReduceService,
     private val tokenRepository: TokenRepository
 ) : TaskHandler<String> {
 
@@ -22,7 +22,7 @@ class ReduceTokensTaskHandler(
     override fun runLongTask(from: String?, param: String): Flow<String> {
         val params = from?.let { Address.apply(it) }
         return tokenRepository.findAllFrom(params).map { token ->
-            tokenUpdateService.update(token.id)
+            tokenReduceService.reduce(token.id)
             logger.info("Token ${token.id} was reduced")
             token.id.prefixed()
         }

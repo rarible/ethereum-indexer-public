@@ -16,6 +16,15 @@ class ForwardTokenReducer : Reducer<TokenEvent, Token> {
                 val (standard, features) = TokenStandard.CREATE_TOPIC_MAP[event.log.topic]
                     ?: (TokenStandard.NONE to emptySet())
 
+                /*
+                id = address,
+                name = name.orElse(""),
+                symbol = symbol.orNull(),
+                features = features,
+                standard = standard,
+                owner = owner.orNull()
+                 */
+
                 entity.copy(
                     owner = event.owner,
                     name = event.name,

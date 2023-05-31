@@ -107,7 +107,6 @@ class CollectionControllerFt : AbstractIntegrationTest() {
         tokenRepository.save(token).awaitSingle()
 
         val tokenProperties = randomTokenProperties()
-        val imageUrl = tokenProperties.content.imageOriginal!!.url
         val expected = TokenMeta(tokenProperties)
 
         coEvery { mockTokenStandardPropertiesResolver.resolve(eq(token.id)) } returns tokenProperties

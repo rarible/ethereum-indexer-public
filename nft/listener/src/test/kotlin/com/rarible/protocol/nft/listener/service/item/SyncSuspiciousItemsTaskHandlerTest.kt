@@ -5,7 +5,7 @@ import com.rarible.protocol.nft.core.data.randomItemExState
 import com.rarible.protocol.nft.core.repository.data.createItem
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
-import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
+import com.rarible.protocol.nft.core.service.item.ItemReduceEventListener
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono
 class SyncSuspiciousItemsTaskHandlerTest {
     private val itemExStateRepository = mockk<ItemExStateRepository>()
     private val itemRepository = mockk<ItemRepository>()
-    private val eventListener = mockk<ReduceEventListenerListener>()
+    private val eventListener = mockk<ItemReduceEventListener>()
     private val task = SyncSuspiciousItemsTaskHandler(itemExStateRepository, itemRepository, eventListener)
 
     @Test

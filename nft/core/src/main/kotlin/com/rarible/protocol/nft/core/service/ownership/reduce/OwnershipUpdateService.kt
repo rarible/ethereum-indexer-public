@@ -9,7 +9,7 @@ import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
 import com.rarible.protocol.nft.core.model.OwnershipId
-import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
+import com.rarible.protocol.nft.core.service.item.ItemReduceEventListener
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
 @Component
 class OwnershipUpdateService(
     private val ownershipService: OwnershipService,
-    private val eventListenerListener: ReduceEventListenerListener,
+    private val eventListenerListener: ItemReduceEventListener,
     properties: NftIndexerProperties,
 ) : EntityService<OwnershipId, Ownership, OwnershipEvent> {
 

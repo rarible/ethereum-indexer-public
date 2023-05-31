@@ -6,6 +6,7 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.contracts.collection.CreateEvent
+import com.rarible.protocol.contracts.erc20.test.SimpleERC20
 import com.rarible.protocol.contracts.erc721.OwnershipTransferredEvent
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.dto.NftCollectionDto
@@ -17,38 +18,88 @@ import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenEvent
+import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import reactor.kotlin.core.publisher.toMono
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 
 @IntegrationTest
-class TokenReduceServiceTest : AbstractIntegrationTest() {
+class TokenServiceIt : AbstractIntegrationTest() {
 
     @Autowired
-    lateinit var tokenRegistrationService: TokenRegistrationService
+    lateinit var tokenService: TokenService
+
+    @Autowired
+    lateinit var tokenReduceService: TokenReduceService
+
+    @Test
+    fun `should send msg to external topic`() = runBlocking<Unit> {
+
+        val id = randomAddress()
+        val owner = randomAddress()
+
+        tokenHistoryRepository.save(
+            LogEvent(
+                CreateCollection(
+                    id = id,
+                    owner = owner,
+                    name = "Test",
+                    symbol = "TEST"
+                ),
+                address = id,
+                topic = CreateEvent.id(),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 0,
+                minorLogIndex = 0,
+                index = 0
+            )
+        ).awaitFirst()
+
+        tokenReduceService.reduce(id)
+
+        checkCollectionWasPublished(
+            NftCollectionDto(
+                id = id,
+                name = "Test",
+                symbol = "TEST",
+                supportsLazyMint = false,
+                type = NftCollectionDto.Type.ERC721,
+                status = NftCollectionDto.Status.CONFIRMED,
+                owner = owner,
+                features = listOf(
+                    NftCollectionDto.Features.APPROVE_FOR_ALL,
+                    NftCollectionDto.Features.SET_URI_PREFIX,
+                    NftCollectionDto.Features.BURN
+                ),
+                isRaribleContract = true,
+                minters = listOf(owner),
+            )
+        )
+    }
 
     @Test
     fun `change owner for a token registered via service`() = runBlocking<Unit> {
         val id = randomAddress()
         val previousOwner = randomAddress()
         val newOwner = randomAddress()
-        tokenRegistrationService.getOrSaveToken(id) {
+        tokenService.register(id) {
             Token(
                 id = id,
                 owner = previousOwner,
                 name = "Name",
                 symbol = "Symbol",
                 standard = TokenStandard.ERC721
-            ).toMono()
-        }.awaitFirst()
+            )
+        }
 
         tokenHistoryRepository.save(
             LogEvent(
@@ -68,7 +119,7 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
             )
         ).awaitFirst()
 
-        val updated = tokenReduceService.updateToken(id)
+        val updated = tokenReduceService.reduce(id)
         assertThat(updated).isEqualToIgnoringGivenFields(
             Token(
                 id = id,
@@ -94,8 +145,8 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
             symbol = "Symbol",
             standard = TokenStandard.ERC721
         )
-        tokenRegistrationService.getOrSaveToken(id) { token.toMono() }.awaitFirst()
-        val updated = tokenReduceService.updateToken(id)
+        tokenService.register(id) { token }
+        val updated = tokenReduceService.reduce(id)
         assertThat(updated).isEqualTo(updated)
     }
 
@@ -110,13 +161,14 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
                 symbol = "TEST"
             )
         )
-        val token = tokenReduceService.updateToken(collectionId)
-        assertNotNull(token)
+        val token = tokenReduceService.reduce(collectionId)
+        assertThat(token).isNotNull
 
         assertThat(token!!.revertableEvents).hasSize(1)
         assertThat(token.revertableEvents.single()).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
-        val sameToken = tokenReduceService.updateToken(collectionId)
-        assertEquals(token.copy(version = 0), sameToken?.copy(version = 0, dbUpdatedAt = token.dbUpdatedAt))
+
+        val sameToken = tokenReduceService.reduce(collectionId)
+        assertThat(sameToken?.copy(version = 0, dbUpdatedAt = token.dbUpdatedAt)).isEqualTo(token.copy(version = 0))
     }
 
     @Test
@@ -132,8 +184,8 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
             ),
             blockNumber = 1
         )
-        val token = tokenReduceService.updateToken(collectionId)
-        assertNotNull(token)
+        val token = tokenReduceService.reduce(collectionId)
+        assertThat(token).isNotNull
         assertThat(token!!.revertableEvents).hasSize(1)
         assertThat(token.revertableEvents.single()).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
 
@@ -147,12 +199,12 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
             blockNumber = 2
         )
 
-        val withUpdatedOwner = tokenReduceService.updateToken(collectionId)
+        val withUpdatedOwner = tokenReduceService.reduce(collectionId)
         println("NEW $withUpdatedOwner")
         println("OWN $newOwner")
 
-        assertNotNull(withUpdatedOwner)
-        assertEquals(newOwner, withUpdatedOwner!!.owner)
+        assertThat(withUpdatedOwner).isNotNull
+        assertThat(withUpdatedOwner!!.owner).isEqualTo(newOwner)
         assertThat(withUpdatedOwner.revertableEvents).hasSize(2)
         assertThat(withUpdatedOwner.revertableEvents[0]).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
         assertThat(withUpdatedOwner.revertableEvents[1]).isInstanceOf(TokenEvent.TokenChangeOwnershipEvent::class.java)
@@ -160,37 +212,29 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
 
     @Test
     fun `should fix collection with NONE standard`() = runBlocking<Unit> {
-
-        val adminSender = newSender().second
-        val erc721 = ERC721Rarible.deployAndWait(adminSender, poller).awaitFirst()
-        erc721.__ERC721Rarible_init(
-            "Test",
-            "TEST",
-            "baseURI",
-            "contractURI"
-        ).execute().verifySuccess()
+        val (contract, owner) = createContract("Test", "TEST")
 
         // Let's assume we failed to set standard and features for the first time
         val token = createToken().copy(
-            id = erc721.address(),
+            id = contract,
             standard = TokenStandard.NONE,
             features = emptySet(),
             status = ContractStatus.CONFIRMED
         )
         tokenRepository.save(token).awaitFirstOrNull()
 
-        val updated = tokenRegistrationService.update(erc721.address())!!
+        val updated = tokenService.update(contract)!!
         assertThat(updated.standard).isEqualTo(TokenStandard.ERC721)
 
         checkCollectionWasPublished(
             NftCollectionDto(
-                id = erc721.address(),
+                id = contract,
                 name = "Test",
                 symbol = "TEST",
                 supportsLazyMint = true,
                 type = NftCollectionDto.Type.ERC721,
                 status = NftCollectionDto.Status.CONFIRMED,
-                owner = adminSender.from(),
+                owner = owner,
                 features = listOf(
                     NftCollectionDto.Features.APPROVE_FOR_ALL,
                     NftCollectionDto.Features.BURN,
@@ -200,6 +244,74 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
                 minters = emptyList(),
             )
         )
+    }
+
+    @Test
+    fun `register ERC721 token`() = runBlocking<Unit> {
+        val (contract, owner) = createContract("Name", "Symbol")
+        val token = tokenService.register(contract)
+        val expectedToken = Token(
+            id = contract,
+            name = "Name",
+            symbol = "Symbol",
+            owner = owner,
+            status = ContractStatus.CONFIRMED,
+            features = setOf(
+                TokenFeature.APPROVE_FOR_ALL,
+                TokenFeature.BURN,
+                TokenFeature.MINT_AND_TRANSFER
+            ),
+            standard = TokenStandard.ERC721
+        )
+        assertThat(token).isEqualToIgnoringGivenFields(
+            expectedToken,
+            Token::lastEventId.name,
+            Token::version.name,
+            Token::dbUpdatedAt.name
+        )
+    }
+
+    @Test
+    fun `update - keep isRaribleContract flag`() = runBlocking<Unit> {
+        val (contract, owner) = createContract()
+
+        // Let's assume we failed to set standard and features for the first time
+        val token = createToken().copy(
+            id = contract,
+            standard = TokenStandard.NONE,
+            isRaribleContract = true
+        )
+        tokenRepository.save(token).awaitFirstOrNull()
+
+        val result = tokenService.update(contract)!!
+
+        assertThat(result.isRaribleContract).isEqualTo(true)
+        assertThat(result.standard).isEqualTo(TokenStandard.ERC721)
+    }
+
+    private suspend fun createContract(
+        name: String = "Name",
+        symbol: String = "Symbol",
+        baseUri: String = "baseURI",
+        contractUri: String = "contractURI",
+    ): Pair<Address, Address> {
+        val adminSender = newSender().second
+        val erc721 = ERC721Rarible.deployAndWait(adminSender, poller).awaitFirst()
+
+        erc721.__ERC721Rarible_init(name, symbol, baseUri, contractUri)
+            .execute()
+            .verifySuccess()
+
+        return erc721.address() to adminSender.from()
+    }
+
+    @Test
+    fun `register ERC20 token by checking interface`() = runBlocking<Unit> {
+        val adminSender = newSender().second
+        val erc20 = SimpleERC20.deployAndWait(adminSender, poller).awaitFirst()
+
+        val token = tokenService.register(erc20.address())
+        assertThat(token.standard).isEqualTo(TokenStandard.ERC20)
     }
 
     private suspend fun prepareStorage(
@@ -224,4 +336,5 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
             ).awaitFirst()
         }
     }
+
 }

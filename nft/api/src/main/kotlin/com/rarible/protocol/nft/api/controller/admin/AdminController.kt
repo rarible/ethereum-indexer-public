@@ -12,16 +12,14 @@ import com.rarible.protocol.nft.api.model.sorted
 import com.rarible.protocol.nft.api.service.admin.MaintenanceService
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.ReindexOwnerService
 import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
-import com.rarible.protocol.nft.core.service.token.TokenUpdateService
+import com.rarible.protocol.nft.core.service.token.TokenProvider
+import com.rarible.protocol.nft.core.service.token.TokenService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -29,7 +27,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 
@@ -37,10 +34,10 @@ import scalether.domain.Address
 @RestController
 class AdminController(
     private val reindexTokenService: ReindexTokenService,
-    private val tokenUpdateService: TokenUpdateService,
+    private val tokenService: TokenService,
     private val itemReduceService: ItemReduceService,
     private val maintenanceService: MaintenanceService,
-    private val tokenRegistrationService: TokenRegistrationService,
+    private val tokenProvider: TokenProvider,
     private val reindexOwnerService: ReindexOwnerService,
 ) {
 
@@ -90,7 +87,7 @@ class AdminController(
     suspend fun getTokenById(
         @PathVariable("collectionId") collectionId: Address
     ): ResponseEntity<TokenDto> {
-        val token = tokenUpdateService.getToken(collectionId)
+        val token = tokenService.getToken(collectionId)
             ?: throw EntityNotFoundApiException("Collection", collectionId)
         return ResponseEntity.ok().body(convert(token))
     }
@@ -104,7 +101,8 @@ class AdminController(
         @RequestParam(value = "reduce", required = false, defaultValue = "false") reduce: Boolean,
     ): ResponseEntity<TokenDto> {
         logger.info("Attempting to refresh token id=$collectionId reduce=$reduce")
-        val token = tokenRegistrationService.update(collectionId)
+        // Just update in DB, events will be emitted after the reduce
+        val token = tokenService.update(collectionId)
             ?: throw EntityNotFoundApiException("Collection", collectionId)
         if (reduce && token.standard.isNotIgnorable()) {
             reindexTokenService.createReindexAndReduceTokenTasks(listOf(collectionId))
@@ -119,7 +117,7 @@ class AdminController(
     suspend fun deleteTokenById(
         @PathVariable("collectionId") collectionId: Address
     ): ResponseEntity<Void> {
-        tokenUpdateService.removeToken(collectionId)
+        tokenService.removeToken(collectionId)
         return ResponseEntity.noContent().build()
     }
 
@@ -170,18 +168,6 @@ class AdminController(
     ): ResponseEntity<AdminTaskDto> {
         val task = reindexTokenService.createReduceTokenTask(collection, force ?: false)
         return ResponseEntity.ok().body(convert(task))
-    }
-
-    @PostMapping(
-        value = ["/admin/nft/collections/tasks/setTokenStandard"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    suspend fun setTokenStandard(
-        @RequestParam(value = "collection") collection: Address,
-        @RequestParam(value = "standard") standard: TokenStandard
-    ) {
-        tokenUpdateService.setTokenStandard(collection, standard)
     }
 
     @GetMapping(

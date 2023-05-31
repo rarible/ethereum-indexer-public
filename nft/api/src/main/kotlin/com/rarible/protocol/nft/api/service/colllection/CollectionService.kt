@@ -11,12 +11,11 @@ import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenFilter
 import com.rarible.protocol.nft.core.model.TokenMeta
-import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.item.meta.MetaException
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.toList
@@ -36,7 +35,7 @@ import java.time.Duration
 @Component
 class CollectionService(
     private val nftIndexerApiProperties: NftIndexerApiProperties,
-    private val tokenRegistrationService: TokenRegistrationService,
+    private val tokenService: TokenService,
     private val tokenRepository: TokenRepository,
     private val tokenIdRepository: TokenIdRepository,
     private val tokenMetaService: TokenMetaService
@@ -85,8 +84,8 @@ class CollectionService(
     }
 
     suspend fun generateId(collectionId: Address, minter: Address): SignedTokenId {
-        val token = tokenRegistrationService
-            .register(collectionId).awaitFirstOrNull()
+        val token = tokenService
+            .register(collectionId)
             ?: throw EntityNotFoundApiException("Collection", collectionId)
 
         val hasMintAndTransferFeature = token.features.contains(TokenFeature.MINT_AND_TRANSFER)
