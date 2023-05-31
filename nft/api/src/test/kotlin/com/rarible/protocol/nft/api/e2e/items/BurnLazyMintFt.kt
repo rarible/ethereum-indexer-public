@@ -22,7 +22,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.OwnershipId
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -30,7 +29,6 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
-import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV2
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.daonomic.rpc.domain.Binary
@@ -46,8 +44,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -83,9 +79,8 @@ class BurnLazyMintFt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var urlParser: UrlParser
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should burn mint lazy item`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should burn mint lazy item`() = runBlocking<Unit> {
         val privateKey = BigInteger.valueOf(100)
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -134,9 +129,8 @@ class BurnLazyMintFt : AbstractIntegrationTest() {
         assertThat(ownership.deleted).isTrue
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should burn lazy item after minting`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should burn lazy item after minting`() = runBlocking<Unit> {
         val privateKey = BigInteger.valueOf(100)
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -169,8 +163,8 @@ class BurnLazyMintFt : AbstractIntegrationTest() {
         val logMint = LogEvent(
             data = eventMint,
             address = Address.ZERO(),
-            topic = ItemReduceServiceV2.WORD_ZERO,
-            transactionHash = ItemReduceServiceV2.WORD_ZERO,
+            topic = ItemReduceService.WORD_ZERO,
+            transactionHash = ItemReduceService.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 2,
             logIndex = 2,
@@ -187,8 +181,8 @@ class BurnLazyMintFt : AbstractIntegrationTest() {
         val logCreator = LogEvent(
             data = eventCreator,
             address = Address.ZERO(),
-            topic = ItemReduceServiceV2.WORD_ZERO,
-            transactionHash = ItemReduceServiceV2.WORD_ZERO,
+            topic = ItemReduceService.WORD_ZERO,
+            transactionHash = ItemReduceService.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 3,
             logIndex = 1,
@@ -216,8 +210,8 @@ class BurnLazyMintFt : AbstractIntegrationTest() {
         val logBurn = LogEvent(
             data = eventBurn,
             address = Address.ZERO(),
-            topic = ItemReduceServiceV2.WORD_ZERO,
-            transactionHash = ItemReduceServiceV2.WORD_ZERO,
+            topic = ItemReduceService.WORD_ZERO,
+            transactionHash = ItemReduceService.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 4,
             logIndex = Int.MAX_VALUE,

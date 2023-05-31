@@ -13,7 +13,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.model.OwnershipId
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
@@ -39,7 +38,6 @@ class CryptoPunksLogDescriptorIt : AbstractIntegrationTest() {
 
     @BeforeEach
     fun beforeAll() = runBlocking {
-        featureFlags.reduceVersion = ReduceVersion.V2
         market = createMarket()
     }
 

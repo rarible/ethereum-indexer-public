@@ -38,7 +38,6 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
-import com.rarible.protocol.nft.core.service.token.TokenReduceService
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
@@ -125,9 +124,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @Autowired
     protected lateinit var poller: MonoTransactionPoller
-
-    @Autowired
-    protected lateinit var tokenReduceService: TokenReduceService
 
     @Autowired
     protected lateinit var tokenHistoryRepository: NftHistoryRepository

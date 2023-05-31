@@ -5,7 +5,7 @@ import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
-import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
+import com.rarible.protocol.nft.core.service.item.ItemReduceEventListener
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component
 class SyncSuspiciousItemsTaskHandler(
     private val itemExStateRepository: ItemExStateRepository,
     private val itemRepository: ItemRepository,
-    private val eventListener: ReduceEventListenerListener
+    private val eventListener: ItemReduceEventListener
 ) : TaskHandler<String> {
 
     override val type: String

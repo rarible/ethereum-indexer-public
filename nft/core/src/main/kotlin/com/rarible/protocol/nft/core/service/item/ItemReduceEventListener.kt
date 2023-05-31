@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
-class ReduceEventListenerListener(
+class ItemReduceEventListener(
     private val publisher: ProtocolNftEventPublisher
 ) {
 

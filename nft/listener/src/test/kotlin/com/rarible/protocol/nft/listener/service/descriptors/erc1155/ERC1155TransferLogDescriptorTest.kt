@@ -5,27 +5,24 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.data.log
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
-import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
-import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
+import com.rarible.protocol.nft.core.service.token.TokenService
 import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
+import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import io.daonomic.rpc.domain.Word
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 
 internal class ERC1155TransferLogDescriptorTest {
-    private val tokenRegistrationService = mockk<TokenRegistrationService>()
+
+    private val tokenService = mockk<TokenService>()
     private val customMintDetector = mockk<CustomMintDetector>()
-    private val properties = mockk<NftListenerProperties> {
-        every { skipTransferContracts } returns emptyList()
-    }
     private val indexerProperties = mockk<NftIndexerProperties> {
         every { scannerProperties } returns NftIndexerProperties.ScannerProperties()
     }
@@ -33,7 +30,7 @@ internal class ERC1155TransferLogDescriptorTest {
         every { resolve() } returns emptySet()
     }
     private val descriptor = ERC1155TransferLogDescriptor(
-        tokenRegistrationService,
+        tokenService,
         customMintDetector,
         ignoredTokenResolver,
         indexerProperties
@@ -51,7 +48,7 @@ internal class ERC1155TransferLogDescriptorTest {
             "0x00000000000000000000000042cfaae209149007f304c51af1a0c985c292f7400000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a",
             address = token,
         )
-        every { tokenRegistrationService.getTokenStandard(token) } returns Mono.just(TokenStandard.ERC1155)
+        coEvery { tokenService.getTokenStandard(token) } returns TokenStandard.ERC1155
         every { customMintDetector.isErc1155Mint(any(), any()) } returns false
         val transaction = mockk<Transaction>()
         val event = descriptor.convert(log, transaction, 0, 0, 0).awaitSingle()

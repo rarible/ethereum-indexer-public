@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.api.e2e.collection
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.EthCollectionMetaDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
 import com.rarible.protocol.nft.api.e2e.data.createToken
@@ -12,7 +11,7 @@ import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
 import io.mockk.CoFunctionAnswer
 import io.mockk.clearMocks
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
-import reactor.core.publisher.Mono
 import scalether.abi.Uint256Type
 import scalether.domain.Address
 import scalether.domain.AddressFactory
@@ -46,11 +44,11 @@ class CollectionServiceIt {
     }
     private val tokenRepository = mockk<TokenRepository>()
     private val tokenIdRepository = mockk<TokenIdRepository>()
-    private val tokenRegistrationService = mockk<TokenRegistrationService>()
+    private val tokenService = mockk<TokenService>()
     private val tokenMetaService = mockk<TokenMetaService>()
     private val collectionService = CollectionService(
         properties,
-        tokenRegistrationService,
+        tokenService,
         tokenRepository,
         tokenIdRepository,
         tokenMetaService
@@ -71,7 +69,7 @@ class CollectionServiceIt {
         val maker = Address.apply("0x25646b08d9796ceda5fb8ce0105a51820740c049")
 
         coEvery { tokenIdRepository.generateTokenId(eq("$tokenAddress:$maker")) } returns 10L
-        every { tokenRegistrationService.register(eq(tokenAddress)) } returns Mono.just(token)
+        coEvery { tokenService.register(eq(tokenAddress)) } returns token
 
         val result = collectionService.generateId(tokenAddress, maker)
 
@@ -91,7 +89,7 @@ class CollectionServiceIt {
 
         val nextTokenId = BigInteger.valueOf(10)
         coEvery { tokenIdRepository.generateTokenId(eq("$tokenAddress:$maker")) } returns nextTokenId.longValueExact()
-        every { tokenRegistrationService.register(eq(tokenAddress)) } returns Mono.just(token)
+        coEvery { tokenService.register(eq(tokenAddress)) } returns token
 
         val result = collectionService.generateId(tokenAddress, maker)
 
@@ -115,7 +113,7 @@ class CollectionServiceIt {
 
         val nextTokenId = 10L
         coEvery { tokenIdRepository.generateTokenId(eq("$tokenAddress")) } returns nextTokenId
-        every { tokenRegistrationService.register(eq(tokenAddress)) } returns Mono.just(token)
+        coEvery { tokenService.register(eq(tokenAddress)) } returns token
 
         val result = collectionService.generateId(tokenAddress, maker)
 

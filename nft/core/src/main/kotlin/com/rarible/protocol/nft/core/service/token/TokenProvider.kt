@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.token
 
-import com.google.common.cache.CacheBuilder
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc165.IERC165
 import com.rarible.contracts.erc721.IERC721
@@ -12,23 +11,18 @@ import com.rarible.core.common.component3
 import com.rarible.core.common.component4
 import com.rarible.core.common.component5
 import com.rarible.core.common.orNull
-import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.contracts.Signatures
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.model.calculateFunctionId
-import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.token.filter.TokeByteCodeFilter
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
@@ -40,76 +34,11 @@ import java.util.*
 
 @Service
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-class TokenRegistrationService(
-    private val tokenRepository: TokenRepository,
-    private val tokenListener: TokenEventListener,
+class TokenProvider(
     private val sender: MonoTransactionSender,
     private val tokenByteCodeProvider: TokenByteCodeProvider,
-    private val tokeByteCodeFilters: List<TokeByteCodeFilter>,
-    @Value("\${nft.token.cache.max.size:10000}") private val cacheMaxSize: Long,
+    private val tokeByteCodeFilters: List<TokeByteCodeFilter>
 ) {
-    private val cache = CacheBuilder.newBuilder()
-        .maximumSize(cacheMaxSize)
-        .build<Address, TokenStandard>()
-
-    fun getTokenStandard(address: Address): Mono<TokenStandard> {
-        return LoggingUtils.withMarker { marker ->
-            val cached = cache.getIfPresent(address)
-            if (cached != null) {
-                cached.toMono()
-            } else {
-                logger.info(marker, "getTokenStandard $address")
-                register(address)
-                    .map { it.standard }
-                    .doOnNext { cache.put(address, it) }
-            }
-        }
-    }
-
-    fun register(address: Address): Mono<Token> = getOrSaveToken(address, ::fetchToken)
-
-    fun getOrSaveToken(address: Address, fetchToken: (Address) -> Mono<Token>): Mono<Token> =
-        LoggingUtils.withMarker { marker ->
-            tokenRepository.findById(address)
-                .switchIfEmpty {
-                    logger.info(marker, "Token $address not found. fetching")
-                    fetchToken(address).flatMap { saveOrReturn(it) }
-                }
-        }
-
-    private fun saveOrReturn(token: Token): Mono<Token> {
-        return tokenRepository.save(token)
-            .onErrorResume {
-                if (it is DuplicateKeyException) {
-                    Mono.justOrEmpty(token)
-                } else {
-                    Mono.error(it)
-                }
-            }
-    }
-
-    suspend fun setTokenStandard(tokenId: Address, standard: TokenStandard): Token {
-        val token = checkNotNull(tokenRepository.findById(tokenId).awaitFirstOrNull()) {
-            "Token $tokenId is not found"
-        }
-        check(token.standard != standard) { "Token standard is already $standard" }
-        val savedToken = tokenRepository.save(token.copy(standard = standard)).awaitFirst()
-        cache.put(tokenId, standard)
-        return savedToken
-    }
-
-    suspend fun update(address: Address): Token? {
-        val token = tokenRepository.findById(address).awaitFirstOrNull()
-        return if (token != null) {
-            val updatedToken = fetchToken(address).awaitFirstOrNull()
-            if (updatedToken != null && token != updatedToken) {
-                logger.info("Token id=$address was overwritten: $updatedToken")
-                tokenRepository.save(updatedToken.copy(version = token.version)).awaitFirst()
-            } else {
-                updatedToken
-            }
-        } else null
-    }
 
     fun fetchToken(address: Address): Mono<Token> {
         val nft = IERC721(address, sender)
@@ -118,7 +47,7 @@ class TokenRegistrationService(
             nft.name().emptyIfError(),
             nft.symbol().emptyIfError(),
             fetchFeatures(address),
-            fetchStandard(address),
+            mono { fetchTokenStandard(address) },
             ownable.owner().call().emptyIfError()
         ).map { (name, symbol, features, standard, owner) ->
             Token(
@@ -129,22 +58,9 @@ class TokenRegistrationService(
                 standard = standard,
                 owner = owner.orNull()
             )
-        }.flatMap {  token ->
-            detectScam(token)
         }.flatMap { token ->
-            onTokenFetched(token)
+            detectScam(token)
         }.withSpan(name = "fetchToken", labels = listOf("address" to address.toString()))
-    }
-
-    private fun onTokenFetched(token: Token): Mono<Token> = mono {
-        if (token.standard.isNotIgnorable()) tokenListener.onTokenChanged(token)
-        token
-    }
-
-    private fun <T : Any> Mono<T>.emptyIfError(): Mono<Optional<T>> {
-        return this
-            .map { Optional.ofNullable(it) }
-            .onErrorResume { Mono.just(Optional.empty()) }
     }
 
     fun detectScam(token: Token): Mono<Token> = mono {
@@ -160,6 +76,9 @@ class TokenRegistrationService(
         }
     }
 
+    /**
+     * Evaluates token standard by supported interface
+     */
     suspend fun fetchTokenStandard(address: Address): TokenStandard {
         logStandard(address, "started fetching")
         if (address in WELL_KNOWN_TOKENS_WITHOUT_ERC165) {
@@ -186,10 +105,13 @@ class TokenRegistrationService(
                 }
             }
         }
-        return fetchTokenStandardByFunctionSignatures(sender, address)
+        return fetchTokenStandardBySignature(address)
     }
 
-    suspend fun fetchTokenStandardByFunctionSignatures(sender: MonoTransactionSender, address: Address): TokenStandard {
+    /**
+     * Evaluates token standard by function signature
+     */
+    suspend fun fetchTokenStandardBySignature(address: Address): TokenStandard {
         logStandard(address, "determine standard by presence of function signatures")
         val bytecode = getBytecode(address) ?: return TokenStandard.NONE
 
@@ -216,8 +138,6 @@ class TokenRegistrationService(
         }
         return TokenStandard.NONE
     }
-
-    internal fun fetchStandard(address: Address): Mono<TokenStandard> = mono { fetchTokenStandard(address) }
 
     private fun fetchFeatures(address: Address): Mono<Set<TokenFeature>> {
         return Mono.zip(
@@ -262,7 +182,14 @@ class TokenRegistrationService(
 
     private fun getBytecodeWithMono(address: Address): Mono<Binary> = mono { getBytecode(address) }
 
+    private fun <T : Any> Mono<T>.emptyIfError(): Mono<Optional<T>> {
+        return this
+            .map { Optional.ofNullable(it) }
+            .onErrorResume { Mono.just(Optional.empty()) }
+    }
+
     companion object {
+
         val FEATURES = mapOf(
             IERC721.setApprovalForAllSignature().id() to TokenFeature.APPROVE_FOR_ALL,
             Signatures.setTokenURIPrefixSignature().id() to TokenFeature.SET_URI_PREFIX,
@@ -272,7 +199,7 @@ class TokenRegistrationService(
         val WELL_KNOWN_TOKENS_WITHOUT_ERC165 = mapOf<Address, TokenStandard>(
             Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721 // CryptoBots (CBT)
         )
-        private val logger: Logger = LoggerFactory.getLogger(TokenRegistrationService::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(TokenProvider::class.java)
 
         private fun logStandard(address: Address, message: String) {
             logger.info("Token standard of $address: $message")

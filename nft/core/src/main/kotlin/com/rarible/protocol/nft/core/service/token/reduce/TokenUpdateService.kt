@@ -3,29 +3,24 @@ package com.rarible.protocol.nft.core.service.token.reduce
 import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenEvent
-import com.rarible.protocol.nft.core.repository.token.TokenRepository
-import com.rarible.protocol.nft.core.service.token.TokenEventListener
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
+import com.rarible.protocol.nft.core.service.token.TokenService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
 class TokenUpdateService(
-    private val tokenRepository: TokenRepository,
-    private val tokenListener: TokenEventListener
+    private val tokenService: TokenService
 ) : EntityService<Address, Token, TokenEvent> {
 
     override suspend fun get(id: Address): Token? {
-        return tokenRepository.findById(id).awaitFirstOrNull()
+        return tokenService.getToken(id)
     }
 
     override suspend fun update(entity: Token, event: TokenEvent?): Token {
-        val savedToken = tokenRepository.save(entity).awaitFirst()
-        tokenListener.onTokenChanged(savedToken, event)
-        logUpdatedToken(savedToken)
-        return savedToken
+        val result = tokenService.saveToken(entity, event)
+        logUpdatedToken(entity)
+        return result
     }
 
     private fun logUpdatedToken(token: Token) {

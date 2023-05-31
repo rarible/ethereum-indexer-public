@@ -24,7 +24,6 @@ import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
@@ -38,8 +37,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.crypto.Keys
@@ -85,9 +82,8 @@ class LazyMintControllerFt : AbstractIntegrationTest() {
         coEvery { mockItemMetaResolver.resolveItemMeta(any()) } returns null
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should any user mints ERC721`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should any user mints ERC721`() = runBlocking<Unit> {
         val contract = ERC721Rarible.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC721Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()
         val creator = randomAddress()
@@ -112,9 +108,8 @@ class LazyMintControllerFt : AbstractIntegrationTest() {
         })
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should only owner mints ERC721User`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should only owner mints ERC721User`() = runBlocking<Unit> {
         val contract = ERC721RaribleUserMinimal.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC721RaribleUser_init("Test", "TestSymbol", "BASE", "URI", emptyArray()).execute().verifySuccess()
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
@@ -135,9 +130,8 @@ class LazyMintControllerFt : AbstractIntegrationTest() {
         checkOwnershipDto(lazyItemDto, ownershipDto)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `shouldn't random user mints ERC721User`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `shouldn't random user mints ERC721User`() = runBlocking<Unit> {
         val contract = ERC721RaribleUserMinimal.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC721RaribleUser_init("Test", "TestSymbol", "BASE", "URI", emptyArray()).execute().verifySuccess()
         val creator = randomAddress()
@@ -159,9 +153,8 @@ class LazyMintControllerFt : AbstractIntegrationTest() {
         }
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should only owner mints ERC1155User`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should only owner mints ERC1155User`() = runBlocking<Unit> {
         val contract = ERC1155RaribleUser.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC1155RaribleUser_init("Test", "TestSymbol", "BASE", "URI", emptyArray()).execute().verifySuccess()
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
@@ -182,9 +175,8 @@ class LazyMintControllerFt : AbstractIntegrationTest() {
         checkItemDto(lazyItemDto, itemDto)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should any user mints ERC1155`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should any user mints ERC1155`() = runBlocking<Unit> {
         val contract = ERC1155Rarible.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC1155Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()
         val creator = randomAddress()
@@ -279,7 +271,7 @@ class LazyMintControllerFt : AbstractIntegrationTest() {
         //TODO: Fix
         //assertThat(itemDto.royalties.size).isEqualTo(lazyItemDto.royalties.size)
 
-        itemDto?.royalties?.forEachIndexed { index, royaltyDto ->
+        itemDto.royalties?.forEachIndexed { index, royaltyDto ->
             assertThat(royaltyDto.account).isEqualTo(lazyItemDto.royalties[index].account)
             assertThat(royaltyDto.value).isEqualTo(lazyItemDto.royalties[index].value)
         }

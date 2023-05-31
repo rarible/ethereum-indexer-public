@@ -16,6 +16,9 @@ class TokenEventListener(
 ) {
 
     suspend fun onTokenChanged(token: Token, event: TokenEvent? = null) {
+        if (!token.standard.isNotIgnorable()) {
+            return
+        }
         val markName = "indexer-out_nft"
         val marks = event?.eventTimeMarks?.addOut("nft")?.toDto()
             ?: event?.log?.blockTimestamp?.let { blockchainEventMark(markName, it) }

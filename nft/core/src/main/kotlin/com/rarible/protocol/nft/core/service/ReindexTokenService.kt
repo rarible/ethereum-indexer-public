@@ -20,17 +20,16 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.model.TokenTaskParam
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
 class ReindexTokenService(
-    private val tokenRegistrationService: TokenRegistrationService,
+    private val tokenService: TokenService,
     private val taskRepository: TempTaskRepository,
     private val taskSchedulingService: TaskSchedulingService,
     private val nftHistoryRepository: NftHistoryRepository,
@@ -57,7 +56,7 @@ class ReindexTokenService(
     }
 
     suspend fun createReindexTokenItemsTask(tokens: List<Address>, fromBlock: Long?, force: Boolean): Task {
-        val tokenStandardMap = tokens.toSet().map { it to tokenRegistrationService.getTokenStandard(it).awaitFirst() }
+        val tokenStandardMap = tokens.toSet().map { it to tokenService.getTokenStandard(it) }
         val standards = tokenStandardMap.map { it.second }.toSet()
 
         if (standards.size != 1) {

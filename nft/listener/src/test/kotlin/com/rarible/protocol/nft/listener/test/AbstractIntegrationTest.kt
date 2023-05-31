@@ -17,8 +17,9 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.ReindexTokenService
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
-import com.rarible.protocol.nft.core.service.token.TokenUpdateService
+import com.rarible.protocol.nft.core.service.token.TokenProvider
+import com.rarible.protocol.nft.core.service.token.TokenReduceService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
@@ -91,13 +92,16 @@ abstract class AbstractIntegrationTest {
     private lateinit var testActivityHandler: TestKafkaHandler<ActivityDto>
 
     @Autowired
-    protected lateinit var tokenRegistrationService: TokenRegistrationService
+    protected lateinit var tokenProvider: TokenProvider
 
     @Autowired
     protected lateinit var reindexTokenService: ReindexTokenService
 
     @Autowired
-    protected lateinit var tokenUpdateService: TokenUpdateService
+    protected lateinit var tokenService: TokenService
+
+    @Autowired
+    protected lateinit var tokenReduceService: TokenReduceService
 
     @BeforeEach
     fun cleanDatabase() = runBlocking<Unit> {

@@ -4,7 +4,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.test.crypto.punks.AssignEvent
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemTransfer
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -15,9 +15,9 @@ import java.time.Instant
 
 @Service
 class CryptoPunkAssignLogDescriptor(
-    tokenRegistrationService: TokenRegistrationService,
+    tokenService: TokenService,
     nftIndexerProperties: NftIndexerProperties
-) : CryptoPunkLogDescriptorBase(tokenRegistrationService, nftIndexerProperties) {
+) : CryptoPunkLogDescriptorBase(tokenService, nftIndexerProperties) {
 
     override val topic: Word = AssignEvent.id()
 

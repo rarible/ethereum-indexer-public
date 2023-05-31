@@ -57,7 +57,7 @@ internal class FixStandardJobIt : AbstractIntegrationTest() {
         job = FixStandardJob(
             listenerProps = props,
             tokenRepository = tokenRepository,
-            tokenRegistrationService = tokenRegistrationService,
+            tokenService = tokenService,
             reindexTokenService = reindexTokenService,
             metricsFactory = metricsFactory
         )

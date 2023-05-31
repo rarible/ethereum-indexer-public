@@ -9,12 +9,12 @@ import com.rarible.ethereum.listener.log.LogListenService
 import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
 import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import com.rarible.protocol.nft.listener.admin.descriptor.AdminErc1155TransferLogDescriptor
 import com.rarible.protocol.nft.listener.admin.descriptor.AdminErc721TransferLogDescriptor
 import com.rarible.protocol.nft.listener.configuration.EnableOnScannerV1
-import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
+import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -33,7 +33,7 @@ class ReindexTokenItemsTaskHandler(
     private val taskRepository: TaskRepository,
     private val customMintDetector: CustomMintDetector,
     private val logListenService: LogListenService,
-    private val tokenRegistrationService: TokenRegistrationService,
+    private val tokenService: TokenService,
     private val ignoredTokenResolver: IgnoredTokenResolver,
     private val ethereum: MonoEthereum
 ) : TaskHandler<Long> {
@@ -60,10 +60,15 @@ class ReindexTokenItemsTaskHandler(
     private fun reindexTokenItems(params: ReindexTokenItemsTaskParams, from: Long?, end: Long): Flux<LongRange> {
         val descriptor = when (params.standard) {
             TokenStandard.ERC721 -> AdminErc721TransferLogDescriptor(
-                tokenRegistrationService, customMintDetector, ignoredTokenResolver, params.tokens
+                tokenService, customMintDetector, ignoredTokenResolver, params.tokens
             )
             // TODO Maybe we need custom mint detector here too?
-            TokenStandard.ERC1155 -> AdminErc1155TransferLogDescriptor(tokenRegistrationService, ignoredTokenResolver, params.tokens)
+            TokenStandard.ERC1155 -> AdminErc1155TransferLogDescriptor(
+                tokenService,
+                ignoredTokenResolver,
+                params.tokens
+            )
+
             else -> return Flux.empty()
         }
         return logListenService.reindexWithDescriptor(descriptor, from ?: 1, end)

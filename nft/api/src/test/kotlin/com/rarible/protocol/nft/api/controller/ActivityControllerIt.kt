@@ -211,7 +211,7 @@ class ActivityControllerIt : AbstractIntegrationTest() {
         val deadAddress = Address.apply("0x000000000000000000000000000000000000dead")
         val zeroAddressBurn = historyRepository.save(createItemTransfer(owner = Address.ZERO())).awaitFirst()
         val deadAddressBurn = historyRepository.save(createItemTransfer(owner = deadAddress)).awaitFirst()
-        val transfer = historyRepository.save(createItemTransfer()).awaitFirst()
+        historyRepository.save(createItemTransfer()).awaitFirst()
 
         val result = activityController.getNftActivities(
             NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.BURN)),

@@ -15,14 +15,13 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.service.TaskSchedulingService
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.reactor.mono
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -33,7 +32,7 @@ import java.math.BigInteger
 
 class ReindexTokenServiceTest {
 
-    private val tokenRegistrationService = mockk<TokenRegistrationService>()
+    private val tokenService = mockk<TokenService>()
     private val taskRepository = mockk<TempTaskRepository>() {
         coEvery { save(any()) } coAnswers { firstArg() }
         coEvery { delete(any()) } returns Unit
@@ -42,7 +41,7 @@ class ReindexTokenServiceTest {
     private val taskSchedulingService = TaskSchedulingService(taskRepository)
 
     private val service = ReindexTokenService(
-        tokenRegistrationService,
+        tokenService,
         taskRepository,
         taskSchedulingService,
         mockk(),
@@ -54,8 +53,8 @@ class ReindexTokenServiceTest {
         val token1 = AddressFactory.create()
         val token2 = AddressFactory.create()
 
-        mockTokenRegistrationService(token1, TokenStandard.ERC721)
-        mockTokenRegistrationService(token2, TokenStandard.ERC721)
+        mockGetTokenStandard(token1, TokenStandard.ERC721)
+        mockGetTokenStandard(token2, TokenStandard.ERC721)
         mockTaskRepositoryFindNothingByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS)
 
         val task = service.createReindexTokenItemsTask(listOf(token1, token2), 100, false)
@@ -157,8 +156,8 @@ class ReindexTokenServiceTest {
         val targetToken = AddressFactory.create()
         val existToken = AddressFactory.create()
 
-        mockTokenRegistrationService(targetToken, TokenStandard.ERC1155)
-        mockTokenRegistrationService(existToken, TokenStandard.ERC1155)
+        mockGetTokenStandard(targetToken, TokenStandard.ERC1155)
+        mockGetTokenStandard(existToken, TokenStandard.ERC1155)
 
         mockTaskRepositoryFindTask(
             ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS,
@@ -251,8 +250,8 @@ class ReindexTokenServiceTest {
         coVerify(exactly = 1) { taskRepository.delete(exists.id) }
     }
 
-    private fun mockTokenRegistrationService(token: Address, standard: TokenStandard) {
-        coEvery { tokenRegistrationService.getTokenStandard(eq(token)) } returns mono { standard }
+    private fun mockGetTokenStandard(token: Address, standard: TokenStandard) {
+        coEvery { tokenService.getTokenStandard(eq(token)) } returns standard
     }
 
     private fun mockTaskRepositoryFindNothingByType(type: String) {

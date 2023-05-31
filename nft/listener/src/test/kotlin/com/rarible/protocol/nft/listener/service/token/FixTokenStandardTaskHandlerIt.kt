@@ -27,7 +27,6 @@ import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant.now
 
-
 // This test could be flaky because of listening registration of token
 @Disabled
 @IntegrationTest
@@ -52,10 +51,13 @@ class FixTokenStandardTaskHandlerIt : AbstractIntegrationTest() {
             assertThat(token).isNotNull
             // set NONE standard
             token?.let {
-                tokenRepository.save(it.copy(
-                    standard = TokenStandard.NONE,
-                    dbUpdatedAt = now().minusSeconds(60),
-                    features = emptySet())).awaitSingle()
+                tokenRepository.save(
+                    it.copy(
+                        standard = TokenStandard.NONE,
+                        dbUpdatedAt = now().minusSeconds(60),
+                        features = emptySet()
+                    )
+                ).awaitSingle()
             }
         }
 
@@ -66,7 +68,12 @@ class FixTokenStandardTaskHandlerIt : AbstractIntegrationTest() {
         // run job to fix
         Wait.waitAssert(timeout = Duration.ofDays(1)) {
             val findNonParseableLogEntriesTaskHandler = FixTokenStandardTaskHandler(
-                mongo, tokenRegistrationService, nftHistoryRepository, reindexTokenService, tokenUpdateService
+                mongo,
+                tokenProvider,
+                nftHistoryRepository,
+                reindexTokenService,
+                tokenService,
+                tokenReduceService
             )
             val processed = findNonParseableLogEntriesTaskHandler.runLongTask(null, "false").firstOrNull()
             assertThat(processed).isNotNull()

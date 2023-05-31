@@ -1,11 +1,7 @@
 package com.rarible.protocol.nft.core.service.token
 
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import io.daonomic.rpc.mono.WebClientTransport
-import io.mockk.coEvery
-import io.mockk.mockk
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -16,14 +12,11 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
 import java.time.Duration
 
 @Disabled
-class TokenRegistrationServiceMainNetTest {
-    private val tokenRepository = mockk<TokenRepository>()
-    private val listener = mockk<TokenEventListener> {
-        coEvery { onTokenChanged(any()) } returns Unit
-    }
+class TokenProviderMainNetTest {
+
     private val sender = createSender()
     private val tokenByteCodeProvider = TokenByteCodeProvider(sender, 3, 5, 1, Duration.ofMinutes(1))
-    private val service = TokenRegistrationService(tokenRepository, listener, sender, tokenByteCodeProvider, emptyList(), 1)
+    private val service = TokenProvider(sender, tokenByteCodeProvider, emptyList())
 
     private fun createSender() = ReadOnlyMonoTransactionSender(
         MonoEthereum(
@@ -62,7 +55,7 @@ class TokenRegistrationServiceMainNetTest {
         for ((address, expectedStandard) in expectedStandards) {
             println("Processing $address (https://etherscan.io/token/$address)")
             val token = Address.apply(address)
-            val standard = service.fetchStandard(token).awaitFirst()
+            val standard = service.fetchTokenStandard(token)
             if (standard != expectedStandard) {
                 println("Invalid standard of $token: $standard instead of $expectedStandard")
                 errors += token to standard

@@ -15,7 +15,6 @@ import com.rarible.protocol.nft.api.client.NftTransactionControllerApi
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.HistoryTopics
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
@@ -24,7 +23,6 @@ import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
 import io.mockk.coEvery
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -51,7 +49,6 @@ import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 import java.net.URI
 import javax.annotation.PostConstruct
-import kotlin.coroutines.EmptyCoroutineContext
 
 abstract class AbstractIntegrationTest {
     init {
@@ -181,16 +178,6 @@ abstract class AbstractIntegrationTest {
             "traces: ${result.result().get()}"
         }
         return receipt
-    }
-
-    fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
-        val previousReduceVersion = featureFlags.reduceVersion
-        featureFlags.reduceVersion = version
-        try {
-            runBlocking(EmptyCoroutineContext, block)
-        } finally {
-            featureFlags.reduceVersion = previousReduceVersion
-        }
     }
 
     private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
