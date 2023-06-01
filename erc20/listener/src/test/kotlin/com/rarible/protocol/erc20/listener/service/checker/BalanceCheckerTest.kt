@@ -23,7 +23,7 @@ import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Instant
 import java.time.Instant.now
-import java.util.*
+import java.util.UUID
 
 internal class BalanceCheckerTest {
 
@@ -47,7 +47,7 @@ internal class BalanceCheckerTest {
 
     @Test
     fun `consume first event - ok`() = runBlocking<Unit> {
-        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L,TextNode("5")))
+        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("5")))
 
         balanceBatchCheckerHandler.handle(listOf(erc20Event(91, 5)))
         balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
@@ -58,12 +58,21 @@ internal class BalanceCheckerTest {
 
     @Test
     fun `deduplicate event - ok`() = runBlocking<Unit> {
-        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L,TextNode("15")))
+        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("15")))
 
         val event = erc20Event(91, 5)
         balanceBatchCheckerHandler.handle(listOf(event))
-        balanceBatchCheckerHandler.handle(listOf(event.copy(balanceId = event.balanceId,
-            balance = event.balance.copy(lastUpdatedAt = event.balance.lastUpdatedAt?.minusSeconds(100), balance = 15.toBigInteger()))))
+        balanceBatchCheckerHandler.handle(
+            listOf(
+                event.copy(
+                    balanceId = event.balanceId,
+                    balance = event.balance.copy(
+                        lastUpdatedAt = event.balance.lastUpdatedAt?.minusSeconds(100),
+                        balance = 15.toBigInteger()
+                    )
+                )
+            )
+        )
         balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
         balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
 
@@ -72,7 +81,7 @@ internal class BalanceCheckerTest {
 
     @Test
     fun `check order - ok`() = runBlocking<Unit> {
-        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L,TextNode("3")))
+        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("3")))
 
         balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
         balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
@@ -83,7 +92,7 @@ internal class BalanceCheckerTest {
 
     @Test
     fun `check invalid - ok`() = runBlocking<Unit> {
-        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L,TextNode("3")))
+        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("3")))
 
         balanceBatchCheckerHandler.handle(listOf(erc20Event(91, 5)))
         balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
@@ -101,7 +110,7 @@ internal class BalanceCheckerTest {
 
     @Test
     fun `check releasing buffer - ok`() = runBlocking<Unit> {
-        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L,TextNode("1")))
+        every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("1")))
         val events = (80..90).map { erc20Event(it) }
         balanceBatchCheckerHandler.handle(events)
 
@@ -111,13 +120,14 @@ internal class BalanceCheckerTest {
     private fun erc20Event(blockNumber: Int, value: Int = 1, updated: Instant = now()) = Erc20BalanceUpdateEventDto(
         eventId = UUID.randomUUID().toString(),
         balanceId = BalanceId(AddressFactory.create(), AddressFactory.create()).toString(),
-        balance =  Erc20BalanceDto(
+        balance = Erc20BalanceDto(
             contract = Address.apply(props.tokens.first()),
             owner = AddressFactory.create(),
             balance = value.toBigInteger(),
             lastUpdatedAt = updated,
             blockNumber = blockNumber.toLong()
-        )
+        ),
+        eventTimeMarks = null
     )
 
     private fun checkMetrics(incoming: Int, check: Int, invalid: Int) {

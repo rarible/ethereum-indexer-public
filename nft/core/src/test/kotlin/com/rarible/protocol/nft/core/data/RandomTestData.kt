@@ -3,6 +3,8 @@ package com.rarible.protocol.nft.core.data
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.core.common.EventTimeMark
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
@@ -31,7 +33,6 @@ import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
-import com.rarible.protocol.nft.core.model.indexerInNftBlockchainTimeMark
 import com.rarible.protocol.nft.core.repository.data.createAddress
 import com.rarible.protocol.nft.core.repository.data.createItemHistory
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
@@ -515,4 +516,17 @@ fun randomItemExState(id: ItemId = createRandomItemId()): ItemExState {
         id = id
     )
 }
+
+fun indexerInNftBlockchainTimeMark(log: EthereumLog) = EventTimeMarks(
+    source = "blockchain",
+    marks = listOfNotNull(
+        log.blockTimestamp?.let {
+            EventTimeMark(
+                name = "source",
+                date = Instant.ofEpochSecond(it)
+            )
+        },
+        EventTimeMark("indexer-in_nft", Instant.now()),
+    )
+)
 

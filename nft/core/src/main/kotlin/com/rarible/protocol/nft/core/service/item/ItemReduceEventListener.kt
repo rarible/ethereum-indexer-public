@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.protocol.nft.core.converters.dto.ItemEventDtoConverter
-import com.rarible.protocol.nft.core.converters.dto.OwnershipEventDtoFromOwnershipConverter
+import com.rarible.protocol.nft.core.converters.dto.OwnershipEventDtoConverter
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.Ownership
@@ -22,7 +22,7 @@ class ItemReduceEventListener(
     }.then()
 
     fun onOwnershipChanged(ownership: Ownership, event: OwnershipEvent? = null): Mono<Void> = mono {
-        val eventDto = OwnershipEventDtoFromOwnershipConverter.convert(ownership, event)
+        val eventDto = OwnershipEventDtoConverter.convert(ownership, event)
         publisher.publish(eventDto)
     }.then()
 

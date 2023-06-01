@@ -2,15 +2,17 @@ package com.rarible.protocol.nft.core.model
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumEntityEvent
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.converters.model.ItemEventInverter
 import org.springframework.data.annotation.Transient
 import scalether.domain.Address
 
 sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
+
     @Volatile
     @Transient
-    var eventTimeMarks: EthereumEventTimeMarks? = null
+    var eventTimeMarks: EventTimeMarks? = null
 
     data class ItemMintEvent(
         val supply: EthUInt256,

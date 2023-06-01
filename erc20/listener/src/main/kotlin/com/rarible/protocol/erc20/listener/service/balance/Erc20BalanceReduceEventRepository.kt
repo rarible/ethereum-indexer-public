@@ -3,7 +3,7 @@ package com.rarible.protocol.erc20.listener.service.balance
 import com.rarible.core.reduce.repository.ReduceEventRepository
 import com.rarible.protocol.erc20.core.converters.LogEventToReversedEthereumLogRecordConverter
 import com.rarible.protocol.erc20.core.model.BalanceId
-import com.rarible.protocol.erc20.core.model.Erc20Event
+import com.rarible.protocol.erc20.core.model.Erc20MarkedEvent
 import com.rarible.protocol.erc20.core.model.Erc20ReduceEvent
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
 import com.rarible.protocol.erc20.core.service.reduce.Erc20EventConverter
@@ -26,7 +26,7 @@ class Erc20BalanceReduceEventRepository(
             .asFlow()
     }
 
-    fun findOwnerLogEvents(token: Address?, owner: Address?, from: BalanceId?): Flux<Erc20Event> {
+    fun findOwnerLogEvents(token: Address?, owner: Address?, from: BalanceId?): Flux<Erc20MarkedEvent> {
         return erc20TransferHistoryRepository.findOwnerLogEvents(token = token, owner = owner, from = from)
             .map { LogEventToReversedEthereumLogRecordConverter.convert(it.log) }
             .mapNotNull { erc20EventConverter.convert(it) }

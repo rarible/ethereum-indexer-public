@@ -6,6 +6,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
+import com.rarible.protocol.nft.core.misc.nftOffchainEventMarks
 import com.rarible.protocol.nft.core.misc.wrapWithEthereumLogRecord
 import com.rarible.protocol.nft.core.model.BurnItemLazyMint
 import com.rarible.protocol.nft.core.model.Item
@@ -35,8 +36,9 @@ class MintService(
         val savedItemHistory = lazyNftItemHistoryRepository.save(lazyItemHistory).awaitSingle()
         val itemId = ItemId(savedItemHistory.token, savedItemHistory.tokenId)
         val logRecord = savedItemHistory.wrapWithEthereumLogRecord()
-        val itemEvent = itemEventConverter.convert(logRecord)
-        val ownershipEvents = ownershipEventConverter.convert(logRecord)
+        val eventTimeMarks = nftOffchainEventMarks()
+        val itemEvent = itemEventConverter.convert(logRecord, eventTimeMarks)
+        val ownershipEvents = ownershipEventConverter.convert(logRecord, eventTimeMarks)
         ownershipReduceService.reduce(ownershipEvents)
         itemReduceService.reduce(listOf(requireNotNull(itemEvent)))
         return itemRepository.findById(itemId).awaitSingle()
@@ -55,8 +57,9 @@ class MintService(
             )
         ).awaitFirst()
         val logRecord = savedItemHistory.wrapWithEthereumLogRecord()
-        val itemEvent = itemEventConverter.convert(logRecord)
-        val ownershipEvents = ownershipEventConverter.convert(logRecord)
+        val eventTimeMarks = nftOffchainEventMarks()
+        val itemEvent = itemEventConverter.convert(logRecord, eventTimeMarks)
+        val ownershipEvents = ownershipEventConverter.convert(logRecord, eventTimeMarks)
         ownershipReduceService.reduce(ownershipEvents)
         itemReduceService.reduce(listOf(requireNotNull(itemEvent)))
     }

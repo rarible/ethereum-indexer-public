@@ -9,7 +9,7 @@ import org.assertj.core.data.TemporalUnitLessThanOffset
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 
-class OwnershipEventDtoFromOwnershipConverterTest {
+class OwnershipEventDtoConverterTest {
 
     private val timeDelta = TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS)
 
@@ -18,7 +18,7 @@ class OwnershipEventDtoFromOwnershipConverterTest {
         val ownership = createRandomOwnership()
         val transfer = createRandomOwnershipTransferFromEvent()
 
-        val dto = OwnershipEventDtoFromOwnershipConverter.convert(ownership, transfer) as NftOwnershipUpdateEventDto
+        val dto = OwnershipEventDtoConverter.convert(ownership, transfer) as NftOwnershipUpdateEventDto
         val timeMarks = dto.eventTimeMarks!!
 
         assertThat(dto.ownership).isEqualTo(OwnershipDtoConverter.convert(ownership))
@@ -36,13 +36,16 @@ class OwnershipEventDtoFromOwnershipConverterTest {
     fun `convert - ok, without event`() {
         val ownership = createRandomOwnership()
 
-        val dto = OwnershipEventDtoFromOwnershipConverter.convert(ownership, null) as NftOwnershipUpdateEventDto
+        val dto = OwnershipEventDtoConverter.convert(ownership, null) as NftOwnershipUpdateEventDto
         val timeMarks = dto.eventTimeMarks!!
 
         assertThat(dto.ownership).isEqualTo(OwnershipDtoConverter.convert(ownership))
 
         assertThat(timeMarks.source).isEqualTo("offchain")
-        assertThat(timeMarks.marks[0].name).isEqualTo("indexer-out_nft")
+        assertThat(timeMarks.marks[0].name).isEqualTo("source")
         assertThat(timeMarks.marks[0].date).isCloseTo(nowMillis(), timeDelta)
+
+        assertThat(timeMarks.marks[1].name).isEqualTo("indexer-in_nft")
+        assertThat(timeMarks.marks[1].date).isCloseTo(nowMillis(), timeDelta)
     }
 }

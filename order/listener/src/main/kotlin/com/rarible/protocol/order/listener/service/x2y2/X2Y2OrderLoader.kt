@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
-import com.rarible.protocol.dto.integrationEventMark
+import com.rarible.protocol.order.core.misc.orderIntegrationEventMarks
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -57,7 +57,7 @@ class X2Y2OrderLoader(
                         chunk.map {
                             async {
                                 if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
-                                    val eventTimeMarks = integrationEventMark("indexer-in_order", it.createdAt)
+                                    val eventTimeMarks = orderIntegrationEventMarks(it.createdAt)
                                     // TODO 2 events will be emitted here - is it fine?
                                     orderUpdateService.save(it, eventTimeMarks).also {
                                         orderUpdateService.updateMakeStock(it, null, eventTimeMarks)

@@ -1,11 +1,12 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.EventTimeMarksDto
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
-import com.rarible.protocol.dto.add
-import com.rarible.protocol.dto.offchainEventMark
+import com.rarible.protocol.dto.toModel
+import com.rarible.protocol.order.core.misc.addIn
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -22,20 +23,23 @@ class OrderItemService(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun onItemChanged(event: NftItemUpdateEventDto) {
-        onItemChanged(event.item, event.eventTimeMarks)
+        val eventTimeMarks = event.eventTimeMarks?.toModel()?.addIn() ?: run {
+            logger.warn("EventTimeMarks not found in NftItemUpdateEventDto")
+            orderOffchainEventMarks()
+        }
+        onItemChanged(event.item, eventTimeMarks)
     }
 
     suspend fun onItemChanged(
         item: NftItemDto,
-        eventTimeMarks: EventTimeMarksDto? = null
+        eventTimeMarks: EventTimeMarks
     ) {
         if (item.isSuspiciousOnOS == true) {
-            val marks = "indexer-in_order".let { eventTimeMarks?.add(it) ?: offchainEventMark(it) }
-            onOsSuspiciousItem(ItemId(item.contract, item.tokenId), marks)
+            onOsSuspiciousItem(ItemId(item.contract, item.tokenId), eventTimeMarks)
         }
     }
 
-    private suspend fun onOsSuspiciousItem(itemId: ItemId, eventTimeMarks: EventTimeMarksDto) {
+    private suspend fun onOsSuspiciousItem(itemId: ItemId, eventTimeMarks: EventTimeMarks) {
         orderRepository.findSellOrdersNotCancelledByItemId(
             Platform.OPEN_SEA,
             itemId.contract,

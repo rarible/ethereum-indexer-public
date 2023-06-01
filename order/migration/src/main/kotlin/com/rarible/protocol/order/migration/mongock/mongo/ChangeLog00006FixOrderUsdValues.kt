@@ -5,8 +5,9 @@ import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.toDto
 import com.rarible.protocol.order.core.model.OrderUsdValue
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
@@ -20,7 +21,7 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import java.util.*
+import java.util.UUID
 
 @ChangeLog(order = "00007")
 class ChangeLog00006FixOrderUsdValues {
@@ -79,7 +80,7 @@ class ChangeLog00006FixOrderUsdValues {
                     eventId = UUID.randomUUID().toString(),
                     orderId = order.id.toString(),
                     order = orderDtoConverter.convert(order),
-                    eventTimeMarks = offchainEventMark("indexer-out_order")
+                    eventTimeMarks = orderOffchainEventMarks().toDto()
                 )
                 publisher.publish(updateEvent)
 

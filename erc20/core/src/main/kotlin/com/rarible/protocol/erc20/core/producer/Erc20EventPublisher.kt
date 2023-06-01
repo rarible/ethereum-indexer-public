@@ -5,7 +5,7 @@ import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceEventTopicProvider
 
-class ProtocolEventPublisher(
+class Erc20EventPublisher(
     private val erc20EventProducer: RaribleKafkaProducer<Erc20BalanceEventDto>
 ) {
 

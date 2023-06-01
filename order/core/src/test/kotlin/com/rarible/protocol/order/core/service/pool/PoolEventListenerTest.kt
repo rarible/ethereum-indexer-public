@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
@@ -71,7 +72,7 @@ internal class PoolEventListenerTest {
         coEvery { orderRepository.findById(poolHistory.hash) } returns if (poolHistory.isPoolCreate()) null else order
         coEvery { orderPublisher.publish(any<OrderEventDto>()) } returns Unit
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, orderOffchainEventMarks())
 
         coVerify { orderPublisher.publish(withArg<OrderEventDto> { eventDto ->
             eventDto as AmmOrderNftUpdateEventDto
@@ -95,7 +96,7 @@ internal class PoolEventListenerTest {
         coEvery { orderRepository.findById(event.hash) } returns createSellOrder()
         coEvery { orderPublisher.publish(any<OrderEventDto>()) } returns Unit
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, orderOffchainEventMarks())
 
         coVerify { orderPublisher.publish(withArg<OrderEventDto> { eventDto ->
             eventDto as AmmOrderNftUpdateEventDto
@@ -112,7 +113,7 @@ internal class PoolEventListenerTest {
 
         coEvery { orderRepository.findById(event.hash) } returns order
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, orderOffchainEventMarks())
 
         coVerify( exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
     }
@@ -125,7 +126,7 @@ internal class PoolEventListenerTest {
 
         coEvery { orderRepository.findById(event.hash) } returns order
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, orderOffchainEventMarks())
 
         coVerify( exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
     }
@@ -138,7 +139,7 @@ internal class PoolEventListenerTest {
 
         coEvery { orderRepository.findById(event.hash) } returns order
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, orderOffchainEventMarks())
 
         coVerify( exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
     }

@@ -3,8 +3,8 @@ package com.rarible.protocol.erc20.core.configuration
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.Erc20BalanceEventDto
+import com.rarible.protocol.erc20.core.producer.Erc20EventPublisher
 import com.rarible.protocol.erc20.core.producer.ProducerFactory
-import com.rarible.protocol.erc20.core.producer.ProtocolEventPublisher
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -32,7 +32,7 @@ class ProducerConfiguration(
     }
 
     @Bean
-    fun protocolEventPublisher(producer: RaribleKafkaProducer<Erc20BalanceEventDto>): ProtocolEventPublisher {
-        return ProtocolEventPublisher(producer)
+    fun protocolEventPublisher(producer: RaribleKafkaProducer<Erc20BalanceEventDto>): Erc20EventPublisher {
+        return Erc20EventPublisher(producer)
     }
 }

@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.service
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.event.OrderVersionListener
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -46,7 +47,7 @@ internal class OrderUpdateServiceTest {
         coEvery { orderReduceService.updateOrder(eq(hash)) } returns updatedOrder
         coEvery { orderListener.onOrder(eq(updatedOrder), any()) } returns Unit
 
-        orderUpdateService.update(hash)
+        orderUpdateService.update(hash, orderOffchainEventMarks())
 
         coVerify { orderListener.onOrder(eq(updatedOrder), any()) }
     }

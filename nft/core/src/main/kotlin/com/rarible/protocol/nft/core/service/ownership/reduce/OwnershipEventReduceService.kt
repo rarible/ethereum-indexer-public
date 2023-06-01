@@ -8,10 +8,13 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
+import com.rarible.protocol.nft.core.misc.addIn
 import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
+import com.rarible.protocol.nft.core.misc.nftOffchainEventMarks
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -24,6 +27,8 @@ class OwnershipEventReduceService(
     private val itemEventConverter: ItemEventConverter,
     properties: NftIndexerProperties
 ) : EntityEventsSubscriber {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private val skipTransferContractTokens =
         properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
@@ -43,7 +48,13 @@ class OwnershipEventReduceService(
             )
         ) {
             events
-                .flatMap { eventConverter.convert(it.record.asEthereumLogRecord()) }
+                .flatMap {
+                    val eventTimeMarks = it.eventTimeMarks?.addIn() ?: run {
+                        logger.warn("EventTimeMarks not found in OwnershipEvent")
+                        nftOffchainEventMarks()
+                    }
+                    eventConverter.convert(it.record.asEthereumLogRecord(), eventTimeMarks)
+                }
                 .filter { event ->
                     OwnershipId.parseId(event.entityId)
                         .let { ItemId(it.token, it.tokenId) } !in skipTransferContractTokens

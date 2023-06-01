@@ -1,7 +1,7 @@
 package com.rarible.protocol.erc20.listener.consumer
 
 import com.rarible.blockchain.scanner.configuration.KafkaProperties
-import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogRecordEvent
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.util.getLogTopicPrefix
@@ -12,6 +12,7 @@ import com.rarible.core.daemon.sequential.ConsumerBatchWorker
 import com.rarible.core.daemon.sequential.ConsumerWorkerHolder
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
+import com.rarible.protocol.erc20.core.misc.addIn
 import io.micrometer.core.instrument.MeterRegistry
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import scalether.domain.Address
@@ -81,14 +82,11 @@ class KafkaEntityEventConsumer(
             entityEventListener.onEntityEvents(filteredEvents.map {
                 LogRecordEvent(
                     record = it.record,
-                    reverted = it.reverted
+                    reverted = it.reverted,
+                    eventTimeMarks = it.eventTimeMarks?.addIn()
                 )
             })
         }
     }
 
-    private data class EthereumLogRecordEvent(
-        val record: ReversedEthereumLogRecord,
-        val reverted: Boolean
-    )
 }

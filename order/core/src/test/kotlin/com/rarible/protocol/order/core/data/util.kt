@@ -34,7 +34,8 @@ import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.dto.SeaportOrderTypeDto
 import com.rarible.protocol.dto.SeaportV1OrderDto
 import com.rarible.protocol.dto.X2Y2OrderDto
-import com.rarible.protocol.dto.offchainEventMark
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.toDto
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.Asset
@@ -692,7 +693,7 @@ fun randomOrderEventDto(order: OrderDto = createOrderDto()): OrderUpdateEventDto
         eventId = randomString(),
         order = order,
         orderId = randomWord(),
-        eventTimeMarks = offchainEventMark("indexer-out_order")
+        eventTimeMarks = orderOffchainEventMarks().toDto()
     )
 }
 

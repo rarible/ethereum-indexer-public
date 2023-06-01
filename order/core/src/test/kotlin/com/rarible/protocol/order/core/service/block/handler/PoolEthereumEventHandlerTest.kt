@@ -44,10 +44,10 @@ internal class PoolEthereumEventHandlerTest {
             createLogRecordEvent(randomApproveHistory())
         )
         coEvery {
-            poolOrderEventListener.onPoolEvent(event1.record.asEthereumLogRecord())
-            poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord())
-            poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord())
-            poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event1.record.asEthereumLogRecord(), any())
+            poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord(), any())
+            poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord(), any())
+            poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord(), any())
             orderUpdateService.update(eq(hash1), any())
             orderUpdateService.update(eq(hash2), any())
         } returns Unit
@@ -57,10 +57,10 @@ internal class PoolEthereumEventHandlerTest {
         handler.handle(listOf(event1, event2, event3, event4) + others)
 
         coVerify(exactly = 1) {
-            poolOrderEventListener.onPoolEvent(event1.record.asEthereumLogRecord())
-            poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord())
-            poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord())
-            poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event1.record.asEthereumLogRecord(), any())
+            poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord(), any())
+            poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord(), any())
+            poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord(), any())
         }
         coVerify(exactly = 1) {
             orderUpdateService.update(eq(hash1), any())
@@ -68,13 +68,13 @@ internal class PoolEthereumEventHandlerTest {
         }
         coVerifyOrder {
             orderUpdateService.update(eq(hash1), any())
-            poolOrderEventListener.onPoolEvent(event1.record.asEthereumLogRecord())
-            poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event1.record.asEthereumLogRecord(), any())
+            poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord(), any())
         }
         coVerifyOrder {
             orderUpdateService.update(eq(hash2), any())
-            poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord())
-            poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord())
+            poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord(), any())
+            poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord(), any())
         }
     }
 }

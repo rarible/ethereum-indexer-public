@@ -3,7 +3,7 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.core.common.mapAsync
 import com.rarible.opensea.client.model.v2.SeaportOrder
 import com.rarible.opensea.client.model.v2.SeaportOrders
-import com.rarible.protocol.dto.integrationEventMark
+import com.rarible.protocol.order.core.misc.orderIntegrationEventMarks
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -80,7 +80,7 @@ class SeaportOrderLoader(
             return
         }
 
-        val eventTimeMarks = integrationEventMark("indexer-in_order", order.createdAt)
+        val eventTimeMarks = orderIntegrationEventMarks(order.createdAt)
         // TODO 2 events will be emitted here - is it fine?
         val saved = orderUpdateService.save(order, eventTimeMarks).run {
             orderUpdateService.updateMakeStock(this, null, eventTimeMarks).first

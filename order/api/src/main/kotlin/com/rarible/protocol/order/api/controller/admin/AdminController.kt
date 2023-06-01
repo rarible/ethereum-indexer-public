@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderStateDto
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
 import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.repository.order.OrderStateRepository
@@ -34,13 +35,14 @@ class AdminController(
         @RequestBody orderStateDto: OrderStateDto
     ): ResponseEntity<OrderDto> {
         val order = orderService.get(hash.toOrderId().hash)
+        val eventTimeMarks = orderOffchainEventMarks()
         return optimisticLock {
             val state = orderStateRepository.getById(order.hash)
                 ?.withCanceled(orderStateDto.canceled)
                 ?: OrderState.toState(order.hash, orderStateDto)
 
             orderStateRepository.save(state)
-            orderUpdateService.update(order.hash)
+            orderUpdateService.update(order.hash, orderOffchainEventMarks())
             orderService.get(Word.apply(hash))
         }.let { ResponseEntity.ok(orderDtoConverter.convert(it)) }
     }

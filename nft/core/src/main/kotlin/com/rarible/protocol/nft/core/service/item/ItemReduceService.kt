@@ -5,6 +5,7 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
+import com.rarible.protocol.nft.core.misc.nftOffchainEventMarks
 import com.rarible.protocol.nft.core.model.CompositeEvent
 import com.rarible.protocol.nft.core.model.HistoryLog
 import com.rarible.protocol.nft.core.model.ItemHistory
@@ -57,6 +58,7 @@ class ItemReduceService(
         updateNotChanged: Boolean = true
     ): Flux<ItemId> = flux {
         logger.info("Update token=$token, tokenId=$tokenId from=$from to=$to")
+        val eventTimeMarks = nftOffchainEventMarks()
         val events = Flux.mergeComparing(
             compareBy<HistoryLog>(
                 { it.item.token.toString() },
@@ -70,8 +72,8 @@ class ItemReduceService(
             logger.info("Item reduce HistoryLog=$it")
             mono {
                 CompositeEvent(
-                    itemEvent = itemEventConverter.convert(it.log),
-                    ownershipEvents = ownershipEventConverter.convert(it.log)
+                    itemEvent = itemEventConverter.convert(it.log, eventTimeMarks),
+                    ownershipEvents = ownershipEventConverter.convert(it.log, eventTimeMarks)
                 )
             }
         }.filter {

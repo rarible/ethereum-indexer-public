@@ -8,7 +8,6 @@ import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.PartDto
-import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.api.exceptions.ValidationApiException
@@ -19,6 +18,7 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Erc1155AssetType
@@ -107,7 +107,7 @@ class OrderService(
     }
 
     suspend fun put(form: OrderFormDto): Order {
-        val eventTimeMarks = offchainEventMark("indexer-in_order")
+        val eventTimeMarks = orderOffchainEventMarks()
         val orderVersion = convertFormToVersion(form)
         orderValidator.validate(orderVersion)
         val existingOrder = orderRepository.findById(orderVersion.hash)
@@ -125,6 +125,7 @@ class OrderService(
     }
 
     suspend fun validateAndGet(hash: Word): Order {
+        val eventTimeMarks = orderOffchainEventMarks()
         val order = orderRepository.findById(hash)
             ?: throw EntityNotFoundApiException("Order", hash)
 
@@ -134,14 +135,14 @@ class OrderService(
 
         if (order.status !== OrderStatus.ACTIVE) {
             logger.warn("Order validation error: hash=$hash, status=${order.status}")
-            orderUpdateService.update(hash)
+            orderUpdateService.update(hash, eventTimeMarks)
             throw ValidationApiException("order is not active")
         }
         if (!approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) ||
             !approveService.checkOnChainErc20Allowance(order.maker, order.make)
         ) {
             logger.warn("Order validation error: hash=$hash, approved=false")
-            orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = null)
+            orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = eventTimeMarks)
             throw ValidationApiException("order is not approved")
         }
         if (order.platform == Platform.OPEN_SEA && order.data.version == OrderDataVersion.BASIC_SEAPORT_DATA_V1) {

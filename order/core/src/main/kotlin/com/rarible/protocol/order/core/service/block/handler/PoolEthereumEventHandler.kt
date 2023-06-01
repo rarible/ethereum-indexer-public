@@ -1,15 +1,15 @@
 package com.rarible.protocol.order.core.service.block.handler
 
-import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
-import com.rarible.core.common.nowMillis
-import com.rarible.protocol.dto.blockchainEventMark
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.addIn
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.pool.listener.PoolOrderEventListener
 import io.daonomic.rpc.domain.Word
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -19,27 +19,31 @@ class PoolEthereumEventHandler(
     properties: OrderIndexerProperties.PoolEventHandleProperties
 ) : AbstractEthereumEventHandler<LogRecordEvent, PoolEthereumEventHandler.PoolEvent>(properties) {
 
-    override suspend fun handleSingle(event: PoolEvent) {
-        val markName = "indexer-in_order"
-        val eventEpochSeconds = event.events.lastOrNull()?.blockTimestamp ?: nowMillis().epochSecond
-        val marks = blockchainEventMark(markName, eventEpochSeconds)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
-        orderUpdateService.update(event.hash, marks)
+    override suspend fun handleSingle(event: PoolEvent) {
+        val eventTimeMarks = event.events.firstNotNullOfOrNull { it.eventTimeMarks } ?: orderOffchainEventMarks()
+        orderUpdateService.update(event.hash, eventTimeMarks)
+
         event.events.forEach {
-            poolOrderEventListener.onPoolEvent(it)
+            val ammEventTimeMarks = it.eventTimeMarks?.addIn() ?: run {
+                logger.warn("EventTimeMarks not found in Pool event")
+                orderOffchainEventMarks()
+            }
+            poolOrderEventListener.onPoolEvent(it.record.asEthereumLogRecord(), ammEventTimeMarks)
         }
     }
 
     override fun map(events: List<LogRecordEvent>): List<PoolEvent> {
         return events
-            .map { record -> record.record.asEthereumLogRecord() }
-            .filter { log -> log.data is PoolHistory }
-            .groupBy { log -> (log.data as PoolHistory).hash }
+            .asSequence()
+            .filter { log -> log.record.asEthereumLogRecord().data is PoolHistory }
+            .groupBy { log -> (log.record.asEthereumLogRecord().data as PoolHistory).hash }
             .map { entity -> PoolEvent(entity.key, entity.value) }
     }
 
     data class PoolEvent(
         val hash: Word,
-        val events: List<ReversedEthereumLogRecord>
+        val events: List<LogRecordEvent>
     )
 }

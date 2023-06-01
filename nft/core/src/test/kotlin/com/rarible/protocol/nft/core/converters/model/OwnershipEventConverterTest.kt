@@ -1,9 +1,10 @@
 package com.rarible.protocol.nft.core.converters.model
 
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.data.createRandomItemTransfer
 import com.rarible.protocol.nft.core.data.createRandomReversedEthereumLogRecord
-import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.misc.addIn
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.OwnershipEvent
@@ -12,18 +13,17 @@ import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.AbstractInstantAssert
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.TemporalUnitLessThanOffset
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import scalether.domain.Address
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.stream.Stream
 
 internal class OwnershipEventConverterTest {
+
     private val itemUpdateService = mockk<ItemUpdateService> {
         coEvery { get(any<ItemId>()) } returns null
     }
@@ -31,6 +31,7 @@ internal class OwnershipEventConverterTest {
     private val timeDelta = TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS)
 
     private companion object {
+
         @JvmStatic
         fun mint(): Stream<ItemTransfer> = Stream.of(
             createRandomItemTransfer().copy(
@@ -58,15 +59,7 @@ internal class OwnershipEventConverterTest {
             assertThat(from).isEqualTo(transfer.from)
             assertThat(value).isEqualTo(transfer.value)
             assertThat(entityId).isEqualTo(OwnershipId(transfer.token, transfer.tokenId, transfer.owner).stringValue)
-            verifyEventTimeMarks()
         }
-    }
-
-    private fun OwnershipEvent.verifyEventTimeMarks(): AbstractInstantAssert<*>? {
-        assertThat(eventTimeMarks!!.marks[0].name).isEqualTo("source")
-        assertThat(eventTimeMarks!!.marks[0].date).isEqualTo(Instant.ofEpochSecond(log.blockTimestamp!!))
-        assertThat(eventTimeMarks!!.marks[1].name).isEqualTo("indexer-in_nft")
-        return assertThat(eventTimeMarks!!.marks[1].date).isCloseTo(nowMillis(), timeDelta)
     }
 
     @Test
@@ -85,8 +78,24 @@ internal class OwnershipEventConverterTest {
             assertThat(to).isEqualTo(transfer.owner)
             assertThat(value).isEqualTo(transfer.value)
             assertThat(entityId).isEqualTo(OwnershipId(transfer.token, transfer.tokenId, transfer.from).stringValue)
-            verifyEventTimeMarks()
         }
+    }
+
+    @Test
+    fun `convert - with time marks`() = runBlocking<Unit> {
+        val blockchainDate = nowMillis().minusSeconds(1000)
+        val transfer = createRandomItemTransfer().copy(owner = Address.ZERO())
+        val marks = EventTimeMarks("blockchain")
+            .add("source", blockchainDate)
+            .addIn()
+
+        val logRecord = log(transfer)
+        val eventTimeMarks = converter.convert(logRecord, marks)[0].eventTimeMarks!!
+
+        assertThat(eventTimeMarks.marks[0].name).isEqualTo("source")
+        assertThat(eventTimeMarks.marks[0].date).isEqualTo(blockchainDate)
+        assertThat(eventTimeMarks.marks[1].name).isEqualTo("indexer-in_nft")
+        assertThat(eventTimeMarks.marks[1].date).isCloseTo(nowMillis(), timeDelta)
     }
 
     @Test
@@ -103,13 +112,11 @@ internal class OwnershipEventConverterTest {
             assertThat(to).isEqualTo(transfer.owner)
             assertThat(value).isEqualTo(transfer.value)
             assertThat(entityId).isEqualTo(OwnershipId(transfer.token, transfer.tokenId, transfer.from).stringValue)
-            verifyEventTimeMarks()
         }
         with(transferToEvent as OwnershipEvent.TransferToEvent) {
             assertThat(from).isEqualTo(transfer.from)
             assertThat(value).isEqualTo(transfer.value)
             assertThat(entityId).isEqualTo(OwnershipId(transfer.token, transfer.tokenId, transfer.owner).stringValue)
-            verifyEventTimeMarks()
         }
     }
 
