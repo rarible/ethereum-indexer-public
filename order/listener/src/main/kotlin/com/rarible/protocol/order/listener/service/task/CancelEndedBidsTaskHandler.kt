@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.task
 
 import com.rarible.core.task.TaskHandler
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -33,10 +34,11 @@ class CancelEndedBidsTaskHandler(
         val before = from?.let { Instant.ofEpochSecond(it) } ?: Instant.now()
         return orderRepository.findAllLiveBidsHashesLastUpdatedBefore(before)
             .map {
+                val eventTimeMarks = orderOffchainEventMarks()
                 fixOrder(it)
                 val order = orderRepository.findById(it) ?: error("Can't get order $it")
                 if (order.isEndedBid()) {
-                    orderUpdateService.update(it)
+                    orderUpdateService.update(it, eventTimeMarks)
                     logger.info("Cancel expired ended bid $it")
                 }
                 order.lastUpdateAt.epochSecond

@@ -58,8 +58,8 @@ internal class X2Y2CancelListLoaderTest {
 
         coEvery { orderStateRepository.save(any()) } returns mockk()
 
-        coEvery { orderUpdateService.update(offChainEvent1.order.itemHash) } returns Unit
-        coEvery { orderUpdateService.update(offChainEvent2.order.itemHash) } returns Unit
+        coEvery { orderUpdateService.update(offChainEvent1.order.itemHash, any()) } returns Unit
+        coEvery { orderUpdateService.update(offChainEvent2.order.itemHash, any()) } returns Unit
 
         handler.load(null)
 
@@ -74,10 +74,10 @@ internal class X2Y2CancelListLoaderTest {
             })
         }
         coVerify(exactly = 1) {
-            orderUpdateService.update(offChainEvent1.order.itemHash)
-            orderUpdateService.update(offChainEvent2.order.itemHash)
+            orderUpdateService.update(offChainEvent1.order.itemHash, any())
+            orderUpdateService.update(offChainEvent2.order.itemHash, any())
         }
         coVerify(exactly = 2) { orderStateRepository.save(any()) }
-        coVerify(exactly = 2) { orderUpdateService.update(any()) }
+        coVerify(exactly = 2) { orderUpdateService.update(any(), any()) }
     }
 }

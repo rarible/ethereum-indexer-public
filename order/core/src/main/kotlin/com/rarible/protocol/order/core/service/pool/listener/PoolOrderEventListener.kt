@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.core.service.pool.listener
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogRecord
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.AmmOrderNftUpdateEventDto
+import com.rarible.protocol.order.core.misc.toDto
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.PoolDataUpdate
@@ -26,7 +26,7 @@ class PoolOrderEventListener(
     private val orderPublisher: ProtocolOrderPublisher,
 ) : PoolEventListener {
 
-    override suspend fun onPoolEvent(event: ReversedEthereumLogRecord) {
+    override suspend fun onPoolEvent(event: ReversedEthereumLogRecord, eventTimeMarks: EventTimeMarks) {
         val reverted = event.status == EthereumLogStatus.REVERTED
         val poolHistory = event.data as PoolHistory
         val hash = poolHistory.hash
@@ -66,7 +66,8 @@ class PoolOrderEventListener(
                     eventId = event.id,
                     orderId = hash.toString(),
                     inNft = nftDelta.getInNft(collection, reverted),
-                    outNft = nftDelta.getOutNft(collection, reverted)
+                    outNft = nftDelta.getOutNft(collection, reverted),
+                    eventTimeMarks = eventTimeMarks.toDto()
                 )
             )
         }

@@ -29,7 +29,7 @@ class Erc20BalanceReduceService(
     fun update(token: Address?, owner: Address?, from: BalanceId?): Flux<Erc20Balance> {
         val events = erc20BalanceReduceEventRepository.findOwnerLogEvents(token, owner, from = from)
             .asFlow()
-            .filter { it.owner !in ignoredOwners }
+            .filter { it.event.owner !in ignoredOwners }
         return erc20BalanceFullReduceService.reduce(events).asFlux()
     }
 

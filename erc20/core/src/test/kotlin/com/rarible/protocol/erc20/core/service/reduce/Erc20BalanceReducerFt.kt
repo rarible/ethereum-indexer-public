@@ -7,6 +7,7 @@ import com.rarible.protocol.erc20.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.erc20.core.integration.IntegrationTest
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20Event
+import com.rarible.protocol.erc20.core.model.Erc20MarkedEvent
 import com.rarible.protocol.erc20.core.randomDepositEvent
 import com.rarible.protocol.erc20.core.randomIncomeTransferEvent
 import com.rarible.protocol.erc20.core.randomOutcomeTransferEvent
@@ -142,7 +143,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
 
     private suspend fun reduce(item: Erc20Balance, vararg events: Erc20Event): Erc20Balance {
         return events.fold(item) { entity, event ->
-            erc20BalaReducer.reduce(entity, event)
+            erc20BalaReducer.reduce(entity, Erc20MarkedEvent(event))
         }
     }
 }

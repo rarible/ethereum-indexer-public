@@ -1,6 +1,8 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
@@ -34,6 +36,7 @@ class OrderX2Y2StatusTaskHandler(
     }
 
     override suspend fun handleOrder(order: Order) {
+        val eventTimeMarks = orderOffchainEventMarks()
         val data = order.data as? OrderX2Y2DataV1 ?: run {
             logger.error("Invalid order data (not x2y2 data): hash={}", order.hash)
             return
@@ -62,17 +65,17 @@ class OrderX2Y2StatusTaskHandler(
             logger.info(
                 "Detected not active x2y2 order ${order.hash}, collection=${order.token}, tokeId=${tokenId}"
             )
-            cancelX2Y2(order)
+            cancelX2Y2(order, eventTimeMarks)
         }
     }
 
-    private suspend fun cancelX2Y2(order: Order) {
+    private suspend fun cancelX2Y2(order: Order, eventTimeMarks: EventTimeMarks) {
         val inactiveOrder = order.withMakeBalance(EthUInt256.ZERO, EthUInt256.ZERO)
         require(inactiveOrder.status == OrderStatus.INACTIVE) { "Not INACTIVE status for order: $inactiveOrder" }
         require(inactiveOrder.platform == Platform.X2Y2) { "Not X2Y2 order: $inactiveOrder" }
 
         cancelInactiveOrderUpdater.update(inactiveOrder)
-        orderUpdateService.update(inactiveOrder.hash)
+        orderUpdateService.update(inactiveOrder.hash, eventTimeMarks)
 
         val updated = orderRepository.findById(inactiveOrder.hash)
         logger.info("X2Y2 order status was updated: hash={}, status={}", updated?.hash, updated?.status)

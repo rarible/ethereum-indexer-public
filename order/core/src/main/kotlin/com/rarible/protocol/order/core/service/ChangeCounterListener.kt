@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.protocol.dto.blockchainEventMark
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import org.slf4j.Logger
@@ -16,16 +16,20 @@ class ChangeCounterListener(
     private val orderUpdateService: OrderUpdateService
 ) {
 
-    suspend fun onNewMakerNonce(platform: Platform, maker: Address, newNonce: BigInteger, ts: Instant) {
+    suspend fun onNewMakerNonce(
+        platform: Platform,
+        maker: Address,
+        newNonce: BigInteger,
+        ts: Instant,
+        eventTimeMarks: EventTimeMarks
+    ) {
         require(newNonce > BigInteger.ZERO) {
             "Maker $maker nonce is less then zero $newNonce"
         }
         logger.info("New $platform counter $newNonce detected for maker $maker")
         orderRepository
             .findNotCanceledByMakerAndCounterLtThen(platform, maker, newNonce)
-            .collect { hash ->
-                orderUpdateService.update(hash, blockchainEventMark("indexer-in_order", ts))
-            }
+            .collect { hash -> orderUpdateService.update(hash, eventTimeMarks) }
     }
 
     private companion object {

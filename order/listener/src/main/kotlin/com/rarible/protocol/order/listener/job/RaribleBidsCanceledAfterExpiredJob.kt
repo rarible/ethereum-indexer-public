@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.job
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -32,8 +33,9 @@ class RaribleBidsCanceledAfterExpiredJob(
     override suspend fun handle() {
         val before = Instant.now() - bidExpirePeriod
         orderRepository.findAllLiveBidsHashesLastUpdatedBefore(before).collect {
+            val eventTimeMarks = orderOffchainEventMarks()
             fixOrder(it)
-            orderUpdateService.update(it)
+            orderUpdateService.update(it, eventTimeMarks)
             logger.info("Found expire bid $it after $before, bid is cancelled.")
         }
         delay(delayPeriod)

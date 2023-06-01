@@ -15,7 +15,7 @@ import com.rarible.protocol.erc20.core.configuration.ProducerConfiguration
 import com.rarible.protocol.erc20.core.listener.KafkaErc20BalanceEventListener
 import com.rarible.protocol.erc20.core.metric.CheckerMetrics
 import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
-import com.rarible.protocol.erc20.core.producer.ProtocolEventPublisher
+import com.rarible.protocol.erc20.core.producer.Erc20EventPublisher
 import com.rarible.protocol.erc20.core.repository.BalanceSnapshotRepository
 import com.rarible.protocol.erc20.listener.service.balance.BalanceReducer
 import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceEventRepository
@@ -100,7 +100,7 @@ class Erc20ListenerConfiguration(
 
     @Bean
     fun kafkaErc20BalanceEventListener(
-        protocolEventPublisher: ProtocolEventPublisher
+        protocolEventPublisher: Erc20EventPublisher
     ): KafkaErc20BalanceEventListener {
         return KafkaErc20BalanceEventListener(protocolEventPublisher)
     }

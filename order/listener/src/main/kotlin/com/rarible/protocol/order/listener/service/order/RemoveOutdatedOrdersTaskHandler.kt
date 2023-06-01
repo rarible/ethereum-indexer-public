@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.task.TaskHandler
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataVersion
 import com.rarible.protocol.order.core.model.OrderStatus
@@ -9,7 +10,6 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderCancelService
-import com.rarible.protocol.order.core.service.OrderUpdateService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -46,7 +46,7 @@ class RemoveOutdatedOrdersTaskHandler(
 
     private suspend fun updateOrder(order: Order): String {
         logger.info("Canceling order: ${order.id}")
-        orderCancelService.cancelOrder(order.hash)
+        orderCancelService.cancelOrder(order.hash, orderOffchainEventMarks())
         return order.id.toString()
     }
 

@@ -6,6 +6,7 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.data.isEqualToOrder
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
@@ -241,7 +242,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
         exchangeHistoryRepository.findLogEvents(orderHash, null).asFlow().collect { logEvent ->
             exchangeHistoryRepository.save(logEvent.copy(status = LogEventStatus.REVERTED)).awaitFirst()
         }
-        orderUpdateService.update(orderHash)
+        orderUpdateService.update(orderHash, orderOffchainEventMarks())
         assertThat(orderVersionRepository.findAllByHash(orderHash).count()).isEqualTo(0)
         assertThat(orderRepository.findById(orderHash)).isNull()
     }

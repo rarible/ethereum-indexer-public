@@ -2,10 +2,10 @@ package com.rarible.protocol.order.listener.service.task
 
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.order.core.misc.div
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderStatus.Companion.ALL_EXCEPT_CANCELLED
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
@@ -19,13 +19,11 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
-import java.time.Instant
 
 @Component
 class CancelBidsWithoutExpiredTimeTaskHandler(
@@ -49,8 +47,9 @@ class CancelBidsWithoutExpiredTimeTaskHandler(
 
         return orderRepository.searchAll(Query(criteria))
             .map {
+                val eventTimeMarks = orderOffchainEventMarks()
                 fixOrder(it.hash)
-                orderUpdateService.update(it.hash)
+                orderUpdateService.update(it.hash, eventTimeMarks)
                 it.createdAt.epochSecond
             }
     }

@@ -4,9 +4,10 @@ import com.rarible.core.apm.withTransaction
 import com.rarible.core.daemon.job.JobHandler
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.toDto
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -17,7 +18,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Component
 @ExperimentalCoroutinesApi
@@ -45,6 +46,7 @@ class OrderStartEndCheckerHandler(
         )
             .filter { order -> order.isNoLegacyOpenSea() }
             .collect { order ->
+                val eventTimeMarks = orderOffchainEventMarks()
                 val saved = orderRepository.save(
                     order
                         .cancelEndedBid()
@@ -56,7 +58,7 @@ class OrderStartEndCheckerHandler(
                     eventId = UUID.randomUUID().toString(),
                     orderId = saved.id.toString(),
                     order = orderDtoConverter.convert(saved),
-                    eventTimeMarks = offchainEventMark("indexer-out_order")
+                    eventTimeMarks = eventTimeMarks.toDto()
                 )
                 publisher.publish(updateEvent)
             }

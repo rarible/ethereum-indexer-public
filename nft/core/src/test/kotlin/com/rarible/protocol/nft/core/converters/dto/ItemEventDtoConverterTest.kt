@@ -43,8 +43,11 @@ class ItemEventDtoConverterTest {
         assertThat(dto.item).isEqualTo(ItemDtoConverter.convert(item))
 
         assertThat(timeMarks.source).isEqualTo("offchain")
-        assertThat(timeMarks.marks[0].name).isEqualTo("indexer-out_nft")
+        assertThat(timeMarks.marks[0].name).isEqualTo("source")
         assertThat(timeMarks.marks[0].date).isCloseTo(nowMillis(), timeDelta)
+
+        assertThat(timeMarks.marks[1].name).isEqualTo("indexer-in_nft")
+        assertThat(timeMarks.marks[1].date).isCloseTo(nowMillis(), timeDelta)
     }
 
 }

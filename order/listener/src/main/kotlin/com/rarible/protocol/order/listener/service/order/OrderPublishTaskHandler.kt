@@ -2,8 +2,9 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.toDto
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
@@ -12,7 +13,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.time.delay
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 @Component
 class OrderPublishTaskHandler(
@@ -36,7 +38,7 @@ class OrderPublishTaskHandler(
                     eventId = UUID.randomUUID().toString(),
                     orderId = order.id.toString(),
                     order = orderDtoConverter.convert(order),
-                    eventTimeMarks = offchainEventMark("indexer-out_order")
+                    eventTimeMarks = orderOffchainEventMarks().toDto()
                 )
                 publisher.publish(updateEvent)
                 delay(Duration.ofMillis(properties.publishTaskDelayMs))

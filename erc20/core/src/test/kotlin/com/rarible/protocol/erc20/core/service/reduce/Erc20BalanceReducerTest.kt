@@ -1,5 +1,6 @@
 package com.rarible.protocol.erc20.core.service.reduce
 
+import com.rarible.protocol.erc20.core.model.Erc20MarkedEvent
 import com.rarible.protocol.erc20.core.randomDepositEvent
 import com.rarible.protocol.erc20.core.randomIncomeTransferEvent
 import com.rarible.protocol.erc20.core.randomOutcomeTransferEvent
@@ -36,7 +37,7 @@ internal class Erc20BalanceReducerTest {
 
                 coEvery { erc20BalanceMetricReducer.reduce(entity, event) } returns entity
                 coEvery { eventStatusErc20BalanceReducer.reduce(entity, event) } returns entity
-                erc20BalaReducer.reduce(entity, event)
+                erc20BalaReducer.reduce(entity, Erc20MarkedEvent(event))
 
                 coVerify(exactly = 1) { erc20BalanceMetricReducer.reduce(entity, event) }
                 coVerify(exactly = 1) { eventStatusErc20BalanceReducer.reduce(entity, event) }

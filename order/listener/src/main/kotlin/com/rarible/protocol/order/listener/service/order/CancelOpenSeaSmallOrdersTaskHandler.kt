@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
 import com.rarible.protocol.order.core.model.OrderStatus
@@ -44,7 +45,7 @@ class CancelOpenSeaSmallOrdersTaskHandler(
 
     private suspend fun updateOrder(order: Order): String {
         logger.info("Cancel order ${order.id} as Seaport with small price by job")
-        orderUpdateService.update(order.hash)
+        orderUpdateService.update(order.hash, orderOffchainEventMarks())
         return order.id.toString()
     }
 }

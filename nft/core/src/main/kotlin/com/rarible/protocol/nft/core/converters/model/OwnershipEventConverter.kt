@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.converters.model
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.nft.core.model.BurnItemLazyMint
@@ -13,7 +14,6 @@ import com.rarible.protocol.nft.core.model.ItemRoyalty
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
-import com.rarible.protocol.nft.core.model.indexerInNftBlockchainTimeMark
 import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -22,7 +22,11 @@ import scalether.domain.Address
 class OwnershipEventConverter(
     private val itemUpdateService: ItemUpdateService
 ) {
-    suspend fun convert(source: ReversedEthereumLogRecord): List<OwnershipEvent> {
+
+    suspend fun convert(
+        source: ReversedEthereumLogRecord,
+        eventTimeMarks: EventTimeMarks? = null
+    ): List<OwnershipEvent> {
         val events = when (val data = source.data as? ItemHistory) {
             is ItemTransfer -> {
                 val transferTo = data.owner.takeUnless { data.isBurnTransfer() }?.let { owner ->
@@ -72,17 +76,17 @@ class OwnershipEventConverter(
                 )
                 listOf(lazyBurnEvent)
             }
+
             is ItemCreators,
             is ItemRoyalty,
             null -> emptyList()
         }
-        val timeMark = indexerInNftBlockchainTimeMark(source.log)
-        events.forEach { it.eventTimeMarks = timeMark }
+        events.forEach { it.eventTimeMarks = eventTimeMarks }
         return events
     }
 
-    suspend fun convert(source: LogEvent): List<OwnershipEvent> {
-        return convert(LogEventToReversedEthereumLogRecordConverter.convert(source))
+    suspend fun convert(source: LogEvent, eventTimeMarks: EventTimeMarks? = null): List<OwnershipEvent> {
+        return convert(LogEventToReversedEthereumLogRecordConverter.convert(source), eventTimeMarks)
     }
 
     private suspend fun getItem(token: Address, tokenId: EthUInt256): Item? {

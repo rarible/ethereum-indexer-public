@@ -13,10 +13,11 @@ import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.metric.ExecutionError
 import com.rarible.protocol.order.core.metric.OrderMetrics
-import com.rarible.protocol.order.core.model.OrderSeaportDataV1
-import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.misc.Retry
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderCancelService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -101,7 +102,8 @@ class OrderSignatureResolver(
 
     private suspend fun cancelOrder(hash: Word, result: OperationResult.Fail<OpenSeaError>) {
         if (featureFlags.cancelOrderOnGetSignatureError) {
-            orderCancelService.cancelOrder(hash)
+            val eventTimeMarks = orderOffchainEventMarks()
+            orderCancelService.cancelOrder(hash, eventTimeMarks)
             logger.warn("Cancel order $hash because of error: ${result.error.code}: ${result.error.message}")
         }
     }

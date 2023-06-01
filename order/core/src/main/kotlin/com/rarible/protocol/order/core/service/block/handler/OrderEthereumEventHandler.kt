@@ -1,13 +1,15 @@
 package com.rarible.protocol.order.core.service.block.handler
 
-import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
-import com.rarible.protocol.dto.blockchainEventMark
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.addIn
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.block.filter.EthereumEventFilter
+import io.daonomic.rpc.domain.Word
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
@@ -16,26 +18,43 @@ class OrderEthereumEventHandler(
     private val orderUpdateService: OrderUpdateService,
     @Qualifier("order-event-handler") private val eventFilters: List<EthereumEventFilter>,
     properties: OrderIndexerProperties.OrderEventHandleProperties
-) : AbstractEthereumEventHandler<LogRecordEvent, OrderExchangeHistory>(properties) {
+) : AbstractEthereumEventHandler<LogRecordEvent, OrderEthereumEventHandler.OrderExchangeHistoryWrapper>(properties) {
 
-    override suspend fun handleSingle(event: OrderExchangeHistory) {
-        val sourceEventTimeMark = blockchainEventMark("indexer-in_order", event.date)
-        orderUpdateService.update(event.hash, sourceEventTimeMark)
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    override suspend fun handleSingle(event: OrderExchangeHistoryWrapper) {
+        val eventTimeMarks = event.source.eventTimeMarks?.addIn() ?: run {
+            logger.warn("EventTimeMarks not found in NftItemUpdateEventDto")
+            orderOffchainEventMarks()
+        }
+        orderUpdateService.update(event.hash, eventTimeMarks)
     }
 
-    override fun map(events: List<LogRecordEvent>): List<OrderExchangeHistory> {
+    override fun map(events: List<LogRecordEvent>): List<OrderExchangeHistoryWrapper> {
         return events
             .asSequence()
-            .map { record -> record.record.asEthereumLogRecord() }
-            .filter { filter(it) }
-            .map { log -> log.data }
-            .filterIsInstance<OrderExchangeHistory>()
+            .mapNotNull { mapOrNull(it) }
             .distinctBy { it.hash }
             .toList()
     }
 
-    private fun filter(event: ReversedEthereumLogRecord): Boolean {
-        return eventFilters.all { it.filter(event) }
+    private fun mapOrNull(event: LogRecordEvent): OrderExchangeHistoryWrapper? {
+        val record = event.record.asEthereumLogRecord()
+        if (!eventFilters.all { it.filter(record) }) {
+            return null
+        }
+
+        val history = record.data as? OrderExchangeHistory ?: return null
+        return OrderExchangeHistoryWrapper(
+            hash = history.hash,
+            event
+        )
     }
+
+    data class OrderExchangeHistoryWrapper(
+        val hash: Word,
+        val source: LogRecordEvent
+    )
+
 }
 

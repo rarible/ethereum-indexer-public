@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
 import com.rarible.protocol.order.core.data.randomPoolSpotPriceUpdate
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import com.rarible.protocol.order.core.model.PoolActivityResult
 import com.rarible.protocol.order.core.model.PoolHistory
@@ -58,7 +59,7 @@ internal class PoolActivityListenerTest {
         coEvery { orderActivityConverter.convert(PoolActivityResult.History(logEvent), reverted) } returns activityDto
         coEvery { orderPublisher.publish(activityDto) } returns Unit
 
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, orderOffchainEventMarks())
 
         coVerify { orderActivityConverter.convert(PoolActivityResult.History(logEvent), reverted) }
         coVerify { orderPublisher.publish(activityDto) }
@@ -68,7 +69,7 @@ internal class PoolActivityListenerTest {
     @MethodSource("otherEvents")
     fun `should not publish events`(event: PoolHistory) = runBlocking<Unit> {
         val logEvent = createLogEvent(event)
-        listener.onPoolEvent(logEvent)
+        listener.onPoolEvent(logEvent, orderOffchainEventMarks())
 
         coVerify(exactly = 0) { orderActivityConverter.convert(any(), any()) }
         coVerify(exactly = 0) { orderPublisher.publish(any<OrderActivityDto>()) }

@@ -1,20 +1,20 @@
 package com.rarible.protocol.nft.core.converters.model
 
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomEthereumLog
 import com.rarible.protocol.nft.core.data.createRandomItemTransfer
-import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferFromEvent
 import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferToEvent
 import com.rarible.protocol.nft.core.data.createRandomReversedEthereumLogRecord
+import com.rarible.protocol.nft.core.misc.addIn
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import io.mockk.every
 import io.mockk.mockk
-import org.assertj.core.api.AbstractInstantAssert
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.TemporalUnitLessThanOffset
 import org.junit.jupiter.api.Test
@@ -27,6 +27,7 @@ import java.time.temporal.ChronoUnit
 import java.util.stream.Stream
 
 internal class ItemEventConverterTest {
+
     private val openSeaLazy = randomAddress()
     private val timeDelta = TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS)
 
@@ -37,6 +38,7 @@ internal class ItemEventConverterTest {
     )
 
     private companion object {
+
         @JvmStatic
         fun mint(): Stream<ItemTransfer> = Stream.of(
             createRandomItemTransfer().copy(
@@ -60,15 +62,7 @@ internal class ItemEventConverterTest {
             assertThat(supply).isEqualTo(transfer.value)
             assertThat(owner).isEqualTo(transfer.owner)
             assertThat(entityId).isEqualTo(ItemId(transfer.token, transfer.tokenId).stringValue)
-            verifyEventTimeMarks()
         }
-    }
-
-    private fun ItemEvent.verifyEventTimeMarks(): AbstractInstantAssert<*>? {
-        assertThat(eventTimeMarks!!.marks[0].name).isEqualTo("source")
-        assertThat(eventTimeMarks!!.marks[0].date).isEqualTo(Instant.ofEpochSecond(log.blockTimestamp!!))
-        assertThat(eventTimeMarks!!.marks[1].name).isEqualTo("indexer-in_nft")
-        return assertThat(eventTimeMarks!!.marks[1].date).isCloseTo(nowMillis(), timeDelta)
     }
 
     @Test
@@ -83,7 +77,6 @@ internal class ItemEventConverterTest {
             assertThat(supply).isEqualTo(transfer.value)
             assertThat(owner).isEqualTo(transfer.from)
             assertThat(entityId).isEqualTo(ItemId(transfer.token, transfer.tokenId).stringValue)
-            verifyEventTimeMarks()
         }
     }
 
@@ -122,7 +115,6 @@ internal class ItemEventConverterTest {
             assertThat(supply).isEqualTo(transfer.value)
             assertThat(from).isEqualTo(transfer.from)
             assertThat(entityId).isEqualTo(ItemId(transfer.token, transfer.tokenId).stringValue)
-            verifyEventTimeMarks()
         }
     }
 
@@ -155,5 +147,23 @@ internal class ItemEventConverterTest {
         assertThat(mintEvent.supply).isEqualTo(ownershipEvent.value)
         assertThat(mintEvent.log).isEqualTo(ownershipEvent.log)
         assertThat(mintEvent.entityId).isEqualTo(ItemId(token, tokenId).stringValue)
+    }
+
+    @Test
+    fun `convert - with time marks`() {
+        val ownershipEvent = createRandomOwnershipTransferToEvent()
+        val marks = EventTimeMarks("blockchain")
+            .add("source", Instant.ofEpochSecond(ownershipEvent.log.blockTimestamp!!))
+            .addIn()
+
+        ownershipEvent.eventTimeMarks = marks
+
+        val eventTimeMarks = converter.convertToMintEvent(ownershipEvent).eventTimeMarks!!
+
+        assertThat(eventTimeMarks.marks[0].name).isEqualTo("source")
+        assertThat(eventTimeMarks.marks[0].date).isEqualTo(Instant.ofEpochSecond(ownershipEvent.log.blockTimestamp!!))
+        assertThat(eventTimeMarks.marks[1].name).isEqualTo("indexer-in_nft")
+        assertThat(eventTimeMarks.marks[1].date).isCloseTo(nowMillis(), timeDelta)
+
     }
 }

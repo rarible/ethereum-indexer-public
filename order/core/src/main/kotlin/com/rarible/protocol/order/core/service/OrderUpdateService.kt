@@ -2,9 +2,9 @@ package com.rarible.protocol.order.core.service
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.EventTimeMarksDto
 import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.model.MakeBalanceState
@@ -52,7 +52,7 @@ class OrderUpdateService(
      */
     suspend fun save(
         orderVersion: OrderVersion,
-        eventTimeMarks: EventTimeMarksDto? = null
+        eventTimeMarks: EventTimeMarks? = null
     ): Order {
         orderVersionRepository.save(orderVersion).awaitFirst()
         val order = optimisticLock {
@@ -66,7 +66,7 @@ class OrderUpdateService(
 
     suspend fun update(
         hash: Word,
-        eventTimeMarks: EventTimeMarksDto? = null
+        eventTimeMarks: EventTimeMarks
     ) {
         val updatedOrder = optimisticLock {
             orderReduceService.updateOrder(hash)
@@ -79,7 +79,7 @@ class OrderUpdateService(
     suspend fun updateApproval(
         order: Order,
         approved: Boolean,
-        eventTimeMarks: EventTimeMarksDto?
+        eventTimeMarks: EventTimeMarks
     ) {
         val updated = order.withApproved(approved)
         val result = customUpdaters.fold(updated) { updatedOrder, updater -> updater.update(updatedOrder) }
@@ -89,13 +89,13 @@ class OrderUpdateService(
     suspend fun updateMakeStock(
         hash: Word,
         makeBalanceState: MakeBalanceState?,
-        eventTimeMarks: EventTimeMarksDto?
+        eventTimeMarks: EventTimeMarks?
     ): Order? = updateMakeStockFull(hash, makeBalanceState, eventTimeMarks).first
 
     suspend fun updateMakeStockFull(
         hash: Word,
         makeBalanceState: MakeBalanceState?,
-        eventTimeMarks: EventTimeMarksDto?
+        eventTimeMarks: EventTimeMarks?
     ): Pair<Order?, Boolean> {
         val order = orderRepository.findById(hash) ?: return null to false
         return updateMakeStock(order, makeBalanceState, eventTimeMarks)
@@ -107,7 +107,7 @@ class OrderUpdateService(
     suspend fun updateMakeStock(
         order: Order,
         makeBalanceState: MakeBalanceState?,
-        eventTimeMarks: EventTimeMarksDto?
+        eventTimeMarks: EventTimeMarks?
     ): Pair<Order, Boolean> = optimisticLock {
         val makeBalance = makeBalanceState ?: assetMakeBalanceProvider.getMakeBalance(order)
         val knownMakeBalance = makeBalance.value
@@ -148,7 +148,7 @@ class OrderUpdateService(
         }
     }
 
-    private suspend fun updateOrder(updated: Order, eventTimeMarks: EventTimeMarksDto?): Order {
+    private suspend fun updateOrder(updated: Order, eventTimeMarks: EventTimeMarks?): Order {
         val result = customUpdaters.fold(updated) { order, updater -> updater.update(order) }
         val savedOrder = orderRepository.save(result)
         orderListener.onOrder(savedOrder, eventTimeMarks)

@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.rarible.core.common.EventTimeMarks
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.token
@@ -30,6 +32,7 @@ class OrderUpdateApprovalTaskHandler(
 
     override suspend fun handleOrder(order: Order) {
         if (order.make.type.nft.not()) return
+        val eventTimeMarks = orderOffchainEventMarks()
         logger.info("Checking approve: hash={}, platform={}, lastUpdated={}",
             order.hash, order.platform, order.lastUpdateAt
         )
@@ -43,12 +46,12 @@ class OrderUpdateApprovalTaskHandler(
                 order.hash, order.maker, order.make.type.token
             )
             if (properties.fixApproval) {
-                updateApprove(order, onChainApprove)
+                updateApprove(order, onChainApprove, eventTimeMarks)
             }
         }
     }
 
-    private suspend fun updateApprove(order: Order, approve: Boolean) {
+    private suspend fun updateApprove(order: Order, approve: Boolean, eventTimeMarks: EventTimeMarks) {
         val hash = order.hash
         val versions = mutableListOf<OrderVersion>()
         orderVersionRepository.findAllByHash(hash).toList(versions)
@@ -57,7 +60,7 @@ class OrderUpdateApprovalTaskHandler(
             return
         }
         orderVersionRepository.save(latestVersion.copy(approved = approve)).awaitFirst()
-        orderUpdateService.updateApproval(order, approve, null)
+        orderUpdateService.updateApproval(order, approve, eventTimeMarks)
         val updated = orderRepository.findById(hash)
         logger.info("Order approved was updated: hash={}, status={}", updated?.hash, updated?.status)
     }

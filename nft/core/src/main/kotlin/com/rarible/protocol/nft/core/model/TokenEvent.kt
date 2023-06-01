@@ -2,13 +2,15 @@ package com.rarible.protocol.nft.core.model
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumEntityEvent
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
+import com.rarible.core.common.EventTimeMarks
 import org.springframework.data.annotation.Transient
 import scalether.domain.Address
 
 sealed class TokenEvent : EthereumEntityEvent<TokenEvent>() {
+
     @Volatile
     @Transient
-    var eventTimeMarks: EthereumEventTimeMarks? = null
+    var eventTimeMarks: EventTimeMarks? = null
 
     data class TokenCreateEvent(
         val owner: Address,

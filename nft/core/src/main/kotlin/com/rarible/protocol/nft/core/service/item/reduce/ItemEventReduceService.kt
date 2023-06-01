@@ -7,7 +7,9 @@ import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
+import com.rarible.protocol.nft.core.misc.addIn
 import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
+import com.rarible.protocol.nft.core.misc.nftOffchainEventMarks
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import org.slf4j.LoggerFactory
@@ -42,7 +44,13 @@ class ItemEventReduceService(
             try {
                 events
                     .onEach { onNftItemLogEventListener.onLogEvent(it) }
-                    .mapNotNull { itemEventConverter.convert(it.record.asEthereumLogRecord()) }
+                    .mapNotNull {
+                        val eventTimeMarks = it.eventTimeMarks?.addIn() ?: run {
+                            logger.warn("EventTimeMarks not found in ItemEvent")
+                            nftOffchainEventMarks()
+                        }
+                        itemEventConverter.convert(it.record.asEthereumLogRecord(), eventTimeMarks)
+                    }
                     .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
                     .let { delegate.reduceAll(it) }
             } catch (ex: Exception) {

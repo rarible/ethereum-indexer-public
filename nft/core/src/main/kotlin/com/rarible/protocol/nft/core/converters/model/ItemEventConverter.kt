@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.converters.model
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -14,7 +15,6 @@ import com.rarible.protocol.nft.core.model.ItemRoyalty
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
-import com.rarible.protocol.nft.core.model.indexerInNftBlockchainTimeMark
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigInteger
@@ -50,7 +50,7 @@ class ItemEventConverter(
         }
     }
 
-    fun convert(source: ReversedEthereumLogRecord): ItemEvent? {
+    fun convert(source: ReversedEthereumLogRecord, eventTimeMarks: EventTimeMarks? = null): ItemEvent? {
         val event = when (val data = source.data as? ItemHistory) {
             is ItemTransfer -> {
                 when {
@@ -106,16 +106,17 @@ class ItemEventConverter(
                     entityId = entityId(data.token, data.tokenId),
                 )
             }
+
             is ItemRoyalty, null -> null
         }
         return event?.let {
-            it.eventTimeMarks = indexerInNftBlockchainTimeMark(source.log)
+            it.eventTimeMarks = eventTimeMarks
             it
         }
     }
 
-    fun convert(source: LogEvent): ItemEvent? {
-        return convert(LogEventToReversedEthereumLogRecordConverter.convert(source))
+    fun convert(source: LogEvent, eventTimeMarks: EventTimeMarks? = null): ItemEvent? {
+        return convert(LogEventToReversedEthereumLogRecordConverter.convert(source), eventTimeMarks)
     }
 
     private fun isLazyMintTokenAddress(tokenId: EthUInt256): Boolean {

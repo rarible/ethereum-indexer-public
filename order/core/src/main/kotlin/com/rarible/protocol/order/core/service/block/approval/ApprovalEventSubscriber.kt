@@ -3,10 +3,11 @@ package com.rarible.protocol.order.core.service.block.approval
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
-import com.rarible.core.common.nowMillis
-import com.rarible.protocol.dto.blockchainEventMark
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.addIn
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -26,15 +27,15 @@ class ApprovalEventSubscriber(
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
         for (event in events) {
-            reduceOrders(event.record.asEthereumLogRecord())
+            val eventTimeMarks = event.eventTimeMarks?.addIn() ?: run {
+                logger.warn("EventTimeMarks not found in Approval event")
+                orderOffchainEventMarks()
+            }
+            reduceOrders(event.record.asEthereumLogRecord(), eventTimeMarks)
         }
     }
 
-    private suspend fun reduceOrders(logEvent: ReversedEthereumLogRecord) {
-        val mark = blockchainEventMark(
-            "indexer-in_order",
-            logEvent.blockTimestamp ?: nowMillis().epochSecond
-        )
+    private suspend fun reduceOrders(logEvent: ReversedEthereumLogRecord, eventTimeMarks: EventTimeMarks) {
         val history = logEvent.data as ApprovalHistory
         val blockNumber = logEvent.blockNumber ?: error("blockTimestamp can't be null")
         if (properties.handleApprovalAfterBlock > blockNumber) {
@@ -68,7 +69,7 @@ class ApprovalEventSubscriber(
                 )
         }
         orders.collect {
-            orderUpdateService.updateApproval(it, history.approved, mark)
+            orderUpdateService.updateApproval(it, history.approved, eventTimeMarks)
         }
     }
 }

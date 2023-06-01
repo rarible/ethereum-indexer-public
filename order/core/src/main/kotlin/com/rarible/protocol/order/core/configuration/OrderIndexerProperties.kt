@@ -124,7 +124,7 @@ data class OrderIndexerProperties(
         val searchSudoSwapErc1155Transfer: Boolean = false,
         val checkMinimalBidPrice: Boolean = false,
         val checkMinimalCollectionBidPriceOnly: Boolean = false,
-        val scannerVersion: ScannerVersion = ScannerVersion.V1,
+        val scannerVersion: ScannerVersion = ScannerVersion.V2,
         val enableAuction: Boolean = false,
         val skipEventsIfNoTraceFound: Boolean = false,
         val getPoolInfoFromChain: Boolean = true,

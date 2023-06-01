@@ -95,7 +95,7 @@ internal class OrderServiceTest {
             end = Instant.now().minusSeconds(100).epochSecond
         )
         coEvery { orderRepository.findById(order.hash) } returns order
-        coEvery { orderUpdateService.update(order.hash) } returns Unit
+        coEvery { orderUpdateService.update(order.hash, any()) } returns Unit
 
         assertThatExceptionOfType(ValidationApiException::class.java).isThrownBy {
             runBlocking {
@@ -103,7 +103,7 @@ internal class OrderServiceTest {
             }
         }.withMessage("order is not active")
 
-        coVerify { orderUpdateService.update(order.hash) }
+        coVerify { orderUpdateService.update(order.hash, any()) }
     }
 
     @Test
@@ -114,7 +114,7 @@ internal class OrderServiceTest {
             orderUpdateService.updateApproval(
                 order = order,
                 approved = false,
-                eventTimeMarks = null
+                eventTimeMarks = any()
             )
         } returns Unit
         coEvery { approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) } returns false
@@ -126,7 +126,7 @@ internal class OrderServiceTest {
             }
         }.withMessage("order is not approved")
 
-        coVerify { orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = null) }
+        coVerify { orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = any()) }
     }
 
     @Test
@@ -137,7 +137,7 @@ internal class OrderServiceTest {
             orderUpdateService.updateApproval(
                 order = order,
                 approved = false,
-                eventTimeMarks = null
+                eventTimeMarks = any()
             )
         } returns Unit
         coEvery { approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) } returns true
@@ -149,7 +149,7 @@ internal class OrderServiceTest {
             }
         }.withMessage("order is not approved")
 
-        coVerify { orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = null) }
+        coVerify { orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = any()) }
     }
 
     @Test

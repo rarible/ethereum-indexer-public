@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
+import com.rarible.protocol.order.core.misc.orderIntegrationEventMarks
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderStateRepository
@@ -27,16 +29,17 @@ class X2Y2CancelListEventLoader(
         val result = safeGetNextEvents(EventType.CANCEL_LISTING, cursor)
         result.data
             .filter { it.tx == null }
-            .map { it.order.itemHash }
-            .filter { orderStateRepository.getById(it) == null }
+            .filter { orderStateRepository.getById(it.order.itemHash) == null }
             .forEach {
+                val hash = it.order.itemHash
+                val eventTimeMarks = orderIntegrationEventMarks(it.createdAt)
                 val cancelState = OrderState(
-                    id = it,
+                    id = hash,
                     canceled = true
                 )
-                logger.x2y2Info("OffChain order cancel $it")
+                logger.x2y2Info("OffChain order cancel $hash")
                 orderStateRepository.save(cancelState)
-                orderUpdateService.update(it)
+                orderUpdateService.update(hash, orderOffchainEventMarks())
                 metrics.onOrderEventHandled(Platform.X2Y2, "cancel_offchain")
             }
 
