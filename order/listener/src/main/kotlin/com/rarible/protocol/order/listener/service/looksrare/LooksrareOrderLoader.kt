@@ -86,7 +86,7 @@ class LooksrareOrderLoader(
             buildString {
                 append("Fetched ${orders.size}, ")
                 append("createdAfter=$createdAfter (${createdAfter.epochSecond}), ")
-                append("minCreatedAt: ${orders.minByOrNull { it.createdAt }}, ")
+                append("minCreatedAt: ${orders.minOfOrNull { it.createdAt }}, ")
                 append("maxCreatedAt: ${orders.maxOfOrNull { it.createdAt }}, ")
                 append("newOrders: ${orders.joinToString { it.hash.toString() }}")
             }
@@ -97,9 +97,11 @@ class LooksrareOrderLoader(
     private fun LooksrareV2Cursor.next(orders: List<LooksrareOrder>): LooksrareV2Cursor {
         val max = orders.maxByOrNull { it.createdAt } ?: return this
         val min = orders.minByOrNull { it.createdAt } ?: return this
-        return if (min.createdAt > this.createdAfter) {
+        return if (min.createdAt > createdAfter) {
+            logger.looksrareInfo("Still go deep, min createdAfter=${min.createdAt}")
             LooksrareV2Cursor(createdAfter, min.id)
         } else {
+            logger.looksrareInfo("Load all , max createdAfter=${max.createdAt}")
             LooksrareV2Cursor(max.createdAt)
         }
     }
