@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.core.telemetry.metrics.RegisteredGauge
+import com.rarible.looksrare.client.model.v2.Status
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Platform
@@ -45,8 +46,8 @@ internal class LooksrareOrderLoaderTest {
     @Test
     fun `should convert and save a new looksrare order`() = runBlocking<Unit> {
         properties.saveEnabled = true
-        val looksrareOrder1 = randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(10))
-        val looksrareOrder2 = randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(5))
+        val looksrareOrder1 = randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(10), status = Status.VALID)
+        val looksrareOrder2 = randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(5), status = Status.VALID)
         val orderVersion1 = createOrderVersion().copy(hash = looksrareOrder1.hash)
         val orderVersion2 = createOrderVersion().copy(hash = looksrareOrder2.hash)
         val order1 = createOrder().copy(id = Order.Id(looksrareOrder1.hash), hash = looksrareOrder1.hash)

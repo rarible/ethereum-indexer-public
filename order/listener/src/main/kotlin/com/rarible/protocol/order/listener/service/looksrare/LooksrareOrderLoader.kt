@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.looksrare.client.model.v2.LooksrareOrder
+import com.rarible.looksrare.client.model.v2.Status
 import com.rarible.protocol.dto.integrationEventMark
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.core.model.Platform
@@ -33,6 +34,7 @@ class LooksrareOrderLoader(
         logOrderLoad(orders, cursor.createdAfter)
         return coroutineScope {
             val saved = orders
+                .filter { it.status == Status.VALID }
                 .chunked(properties.saveBatchSize)
                 .map { chunk ->
                     chunk.map {
@@ -56,6 +58,7 @@ class LooksrareOrderLoader(
                 }
                 .flatten()
                 .filterNotNull()
+                .toList()
                 .also { logger.looksrareInfo("Saved ${it.size}") }
 
             Result(
