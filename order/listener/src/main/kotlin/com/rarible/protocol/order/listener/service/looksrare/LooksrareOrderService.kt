@@ -35,16 +35,15 @@ class LooksrareOrderService(
                 sort = Sort.NEWEST,
                 pagination = Pagination(first = properties.loadMaxSize, cursor = nextId)
             )
-            logger.looksrareInfo(
-                "Load next: createdAfter=$createdAfter, cursor=${request.pagination?.cursor}"
-            )
             val result = getOrders(request)
             loadOrders.addAll(result.data)
 
             val lastLoadOrder = result.data.lastOrNull()
-            logger.looksrareInfo("Last load order created time ${lastLoadOrder?.createdAt}, deep $deep")
+            logger.looksrareInfo(
+                "Load next: createdAfter=$createdAfter, cursor=$nextId, last=${lastLoadOrder?.createdAt}, deep=$deep"
+            )
             nextId = lastLoadOrder?.id
-            deep =+ 1
+            deep += 1
         } while (lastLoadOrder != null && lastLoadOrder.createdAt > createdAfter && deep < properties.loadMaxDeep)
 
         return loadOrders.toList()
