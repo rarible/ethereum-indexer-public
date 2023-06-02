@@ -72,6 +72,7 @@ data class LooksrareLoadProperties(
     val loadMaxSize: Int = 150,
     val retry: Int = 5,
     val saveBatchSize: Int = 50,
+    val loadMaxDeep: Int = 5,
     val retryDelay: Duration = Duration.ofMillis(500),
     val pollingPeriod: Duration = Duration.ofSeconds(60),
     val errorDelay: Duration = Duration.ofSeconds(1)

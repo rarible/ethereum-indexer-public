@@ -22,6 +22,9 @@ import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.token.filter.TokeByteCodeFilter
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
@@ -168,25 +171,30 @@ class TokenRegistrationService(
             return standard
         }
         val contract = IERC165(address, sender)
-        for (standard in TokenStandard.values()) {
-            if (standard.interfaceId != null) {
-                try {
-                    val isSupported = contract.supportsInterface(standard.interfaceId.bytes()).awaitFirst()
-                    if (isSupported) {
-                        return standard
-                    }
-                } catch (e: Exception) {
-                    if (e is RpcCodeException || e is IllegalArgumentException) {
-                        logStandard(address, "unable to call supportsInterface: ${e.message}")
-                        // Not supported or does not have 'supportsInterface' declared at all.
-                        continue
-                    }
+        suspend fun checkStandard(standard: TokenStandard): TokenStandard? {
+            return try {
+                val isSupported = contract.supportsInterface(standard.interfaceId!!.bytes()).awaitFirst()
+                if (isSupported) standard else null
+            } catch (e: Exception) {
+                if (e is RpcCodeException || e is IllegalArgumentException) {
+                    logStandard(address, "unable to call supportsInterface: ${e.message}")
+                    // Not supported or does not have 'supportsInterface' declared at all.
+                    null
+                } else {
                     // Could not determine for sure (probably we failed to connect to the node).
                     throw e
                 }
             }
         }
-        return fetchTokenStandardByFunctionSignatures(sender, address)
+        return coroutineScope {
+            TokenStandard
+                .values()
+                .filter { it.interfaceId != null }
+                .map { async { checkStandard(it) } }
+                .awaitAll()
+                .filterNotNull()
+                .firstOrNull()
+        } ?: fetchTokenStandardByFunctionSignatures(sender, address)
     }
 
     suspend fun fetchTokenStandardByFunctionSignatures(sender: MonoTransactionSender, address: Address): TokenStandard {

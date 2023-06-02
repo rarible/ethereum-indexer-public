@@ -28,6 +28,7 @@ class LooksrareOrderService(
     suspend fun getNextSellOrders(createdAfter: Instant): List<LooksrareOrder> {
         val loadOrders = mutableSetOf<LooksrareOrder>()
         var nextId: String? = null
+        var deep = 0
         do {
             val request = OrdersRequest(
                 quoteType = QuoteType.ASK,
@@ -45,7 +46,8 @@ class LooksrareOrderService(
             val lastLoadOrder = result.data.lastOrNull()
             logger.looksrareInfo("Last load order created time ${lastLoadOrder?.createdAt}")
             nextId = lastLoadOrder?.id
-        } while (lastLoadOrder != null && lastLoadOrder.createdAt > createdAfter)
+            deep =+ 1
+        } while (lastLoadOrder != null && lastLoadOrder.createdAt > createdAfter && deep < properties.loadMaxDeep)
 
         return loadOrders.toList().filter { it.status == Status.VALID }
     }
