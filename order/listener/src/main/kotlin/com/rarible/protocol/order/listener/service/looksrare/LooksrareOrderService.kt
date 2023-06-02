@@ -42,7 +42,7 @@ class LooksrareOrderService(
             loadOrders.addAll(result.data)
 
             val lastLoadOrder = result.data.lastOrNull()
-            logger.looksrareInfo("Last load order created time ${lastLoadOrder?.createdAt}")
+            logger.looksrareInfo("Last load order created time ${lastLoadOrder?.createdAt}, deep $deep")
             nextId = lastLoadOrder?.id
             deep =+ 1
         } while (lastLoadOrder != null && lastLoadOrder.createdAt > createdAfter && deep < properties.loadMaxDeep)
