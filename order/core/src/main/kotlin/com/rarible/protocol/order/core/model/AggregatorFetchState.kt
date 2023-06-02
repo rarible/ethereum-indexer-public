@@ -58,12 +58,14 @@ data class LooksrareV2FetchState(
     override val id: String = ID
 ) : AggregatorFetchState {
 
-    @get:Transient
-    val createdAfter: Instant
-        get() = Instant.ofEpochSecond(cursor.toLong())
+    constructor(cursor: LooksrareV2Cursor): this(cursor.toString())
 
-    fun withCreatedAfter(createdAfter: Instant): LooksrareV2FetchState {
-        return withCursor(createdAfter.epochSecond.toString())
+    @get:Transient
+    val looksrareV2Cursor: LooksrareV2Cursor
+        get() = LooksrareV2Cursor.parser(cursor)
+
+    fun withCursor(cursor: LooksrareV2Cursor): LooksrareV2FetchState {
+        return withCursor(cursor.toString())
     }
 
     override fun withCursor(cursor: String): LooksrareV2FetchState {
@@ -71,10 +73,6 @@ data class LooksrareV2FetchState(
     }
 
     companion object {
-        fun withCreatedAfter(createdAfter: Instant): LooksrareV2FetchState {
-            return LooksrareV2FetchState(cursor = createdAfter.epochSecond.toString())
-        }
-
         const val ID = "looksrare-v2-order-fetch"
     }
 }

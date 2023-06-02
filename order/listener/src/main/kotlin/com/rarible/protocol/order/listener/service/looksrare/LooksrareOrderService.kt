@@ -9,14 +9,12 @@ import com.rarible.looksrare.client.model.v2.OrdersRequest
 import com.rarible.looksrare.client.model.v2.Pagination
 import com.rarible.looksrare.client.model.v2.QuoteType
 import com.rarible.looksrare.client.model.v2.Sort
-import com.rarible.looksrare.client.model.v2.Status
+import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
-import com.rarible.protocol.order.listener.misc.LOOKSRARE_LOG
 import com.rarible.protocol.order.listener.misc.looksrareInfo
 import kotlinx.coroutines.time.delay
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.time.Instant
 
 @Component
 class LooksrareOrderService(
@@ -25,9 +23,10 @@ class LooksrareOrderService(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun getNextSellOrders(createdAfter: Instant): List<LooksrareOrder> {
+    suspend fun getNextSellOrders(cursor: LooksrareV2Cursor): List<LooksrareOrder> {
         val loadOrders = mutableSetOf<LooksrareOrder>()
-        var nextId: String? = null
+        val createdAfter = cursor.createdAfter
+        var nextId: String? = cursor.nextId
         var deep = 0
         do {
             val request = OrdersRequest(
@@ -40,7 +39,6 @@ class LooksrareOrderService(
                 "Load next: createdAfter=$createdAfter, cursor=${request.pagination?.cursor}"
             )
             val result = getOrders(request)
-            if (result.success.not()) throw IllegalStateException("$LOOKSRARE_LOG Can't load orders: ${result.message}")
             loadOrders.addAll(result.data)
 
             val lastLoadOrder = result.data.lastOrNull()
@@ -49,7 +47,7 @@ class LooksrareOrderService(
             deep =+ 1
         } while (lastLoadOrder != null && lastLoadOrder.createdAt > createdAfter && deep < properties.loadMaxDeep)
 
-        return loadOrders.toList().filter { it.status == Status.VALID }
+        return loadOrders.toList()
     }
 
     private suspend fun getOrders(request: OrdersRequest): LooksrareOrders {

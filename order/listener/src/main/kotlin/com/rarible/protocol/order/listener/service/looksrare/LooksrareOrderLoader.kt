@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.looksrare.client.model.v2.LooksrareOrder
 import com.rarible.protocol.dto.integrationEventMark
+import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -27,9 +28,9 @@ class LooksrareOrderLoader(
     private val metrics: ForeignOrderMetrics
 ) {
 
-    suspend fun load(createdAfter: Instant): Result {
-        val orders = safeGetNextSellOrders(createdAfter)
-        logOrderLoad(orders, createdAfter)
+    suspend fun load(cursor: LooksrareV2Cursor): Result {
+        val orders = safeGetNextSellOrders(cursor)
+        logOrderLoad(orders, cursor.createdAfter)
         return coroutineScope {
             val saved = orders
                 .chunked(properties.saveBatchSize)
@@ -58,19 +59,19 @@ class LooksrareOrderLoader(
                 .also { logger.looksrareInfo("Saved ${it.size}") }
 
             Result(
-                latestCreatedAt = orders.maxOfOrNull { it.createdAt },
+                cursor = cursor.next(orders),
                 saved = saved.size.toLong()
             )
         }
     }
 
-    private suspend fun safeGetNextSellOrders(createdAfter: Instant): List<LooksrareOrder> {
+    private suspend fun safeGetNextSellOrders(cursor: LooksrareV2Cursor): List<LooksrareOrder> {
         return try {
-            val orders = looksrareOrderService.getNextSellOrders(createdAfter)
+            val orders = looksrareOrderService.getNextSellOrders(cursor)
             orders.forEach { metrics.onOrderReceived(Platform.LOOKSRARE, it.startTime) }
             orders
         } catch (ex: Throwable) {
-            logger.looksrareError("Can't get next orders with createdAfter=${createdAfter.epochSecond}", ex)
+            logger.looksrareError("Can't get next orders with createdAfter=${cursor.createdAfter.epochSecond}", ex)
             throw ex
         }
     }
@@ -90,8 +91,18 @@ class LooksrareOrderLoader(
         logger.looksrareInfo(logMessage)
     }
 
+    private fun LooksrareV2Cursor.next(orders: List<LooksrareOrder>): LooksrareV2Cursor {
+        val max = orders.maxByOrNull { it.createdAt } ?: return this
+        val min = orders.minByOrNull { it.createdAt } ?: return this
+        return if (min.createdAt > this.createdAfter) {
+            LooksrareV2Cursor(createdAfter, min.id)
+        } else {
+            LooksrareV2Cursor(max.createdAt)
+        }
+    }
+
     data class Result(
-        val latestCreatedAt: Instant?,
+        val cursor: LooksrareV2Cursor?,
         val saved: Long
     )
 
