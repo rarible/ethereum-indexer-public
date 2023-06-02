@@ -46,7 +46,7 @@ class TempTaskRepository(
     suspend fun countRunningTasks(type: String): Long {
         val criteria = Criteria().andOperator(
             Task::type isEqualTo type,
-            Task::lastStatus ne TaskStatus.COMPLETED
+            Task::running isEqualTo true
         )
         return template.count<Task>(Query.query(criteria)).awaitFirst()
     }
