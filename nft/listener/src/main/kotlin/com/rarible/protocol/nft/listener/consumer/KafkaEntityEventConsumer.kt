@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.listener.consumer
 
 import com.rarible.blockchain.scanner.configuration.KafkaProperties
-import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogRecordEvent
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.util.getLogTopicPrefix
@@ -81,14 +81,10 @@ class KafkaEntityEventConsumer(
             entityEventListener.onEntityEvents(filteredEvents.map {
                 LogRecordEvent(
                     record = it.record,
-                    reverted = it.reverted
+                    reverted = it.reverted,
+                    eventTimeMarks = it.eventTimeMarks
                 )
             })
         }
     }
-
-    private data class EthereumLogRecordEvent(
-        val record: ReversedEthereumLogRecord,
-        val reverted: Boolean
-    )
 }
