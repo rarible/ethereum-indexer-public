@@ -2,7 +2,7 @@ common:
   chain-id: 200500
   exchange-contract-addresses:
     v1: "0x0000000000000000000000000000000000000000"
-    v2: "0x6aABb267a1c440CfB5C200Ebcd078Efa9249492A"
+    v2: "0xC5696e98bE223E58D992Fd17225b37DF0FEFbEDf"
     openSeaV1: "0x0000000000000000000000000000000000000000"
     openSeaV2: "0x0000000000000000000000000000000000000000"
     seaportV1: "0x0000000000000000000000000000000000000000"
@@ -13,13 +13,13 @@ common:
   auction-contract-addresses:
     v1: "0x0000000000000000000000000000000000000000"
   transfer-proxy-addresses:
-    transfer-proxy: "0xc6f33b62A94939E52E1b074c4aC1A801B869fDB2"
-    erc20-transfer-proxy: "0x3586d3E6CDaE98d5F0eEaB737977Bc78406Da2BD"
-    erc721-lazy-transfer-proxy: "0xeC47DA9591FC24F5a5F401e8D275526Cc5eE5d37"
-    erc1155-lazy-transfer-proxy: "0x8812cFb55853da0968a02AaaEA84CD93EC4b42A1"
+    transfer-proxy: "0xdB4eDB8BEDD9C3017909aEB38F66707F8A19681B"
+    erc20-transfer-proxy: "0xD032fB7da01b16E181AaA59962C95f5b0e6e8381"
+    erc721-lazy-transfer-proxy: "0x3fB287d1Da10a10A87b613dED57230964e546719"
+    erc1155-lazy-transfer-proxy: "0x02c640F479ebCb92B078F51A4D8417fb1F3e10D7"
     crypto-punks-transfer-proxy: "0x0000000000000000000000000000000000000000"
   currency-contract-addresses:
-    weth: "0x8618444D5916c52Ef2BA9a64dDE5fE04249F6001"
+    weth: "0xecd2728000E21aA49aA1F823242dc8C8bc5BB4aB"
   feature-flags:
     skipEventsIfNoTraceFound: true
     scanner-version: V2
