@@ -5,6 +5,7 @@ import com.rarible.looksrare.client.model.LooksrareResult
 import com.rarible.looksrare.client.model.v2.LooksrareOrders
 import com.rarible.looksrare.client.model.v2.Sort
 import com.rarible.looksrare.client.model.v2.Status
+import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
 import io.mockk.coEvery
@@ -27,10 +28,10 @@ internal class LooksrareOrderServiceTest {
 
     @Test
     fun `should get all order in one iteration`() = runBlocking<Unit> {
-        val createdAfter = Instant.now() - Duration.ofHours(1)
+        val createdAfter = LooksrareV2Cursor(Instant.now() - Duration.ofHours(1))
 
-        val order1 = randomLooksrareOrder().copy(createdAt = createdAfter, status = Status.VALID)
-        val order2 = randomLooksrareOrder().copy(createdAt = createdAfter - Duration.ofHours(2), status = Status.VALID)
+        val order1 = randomLooksrareOrder().copy(createdAt = createdAfter.createdAfter, status = Status.VALID)
+        val order2 = randomLooksrareOrder().copy(createdAt = createdAfter.createdAfter - Duration.ofHours(2), status = Status.VALID)
 
         val result = LooksrareOrders(success = true, message = "", data = listOf(order1, order2))
         coEvery { looksrareClient.getOrders(any()) } returns LooksrareResult.success(result)
@@ -53,7 +54,7 @@ internal class LooksrareOrderServiceTest {
     @Test
     fun `should get all order in two iterations`() = runBlocking<Unit> {
         val now = Instant.now()
-        val createdAfter = now - Duration.ofSeconds(10)
+        val createdAfter = LooksrareV2Cursor(now - Duration.ofSeconds(10))
 
         val order1 = randomLooksrareOrder().copy(status = Status.VALID, createdAt = now)
         val order2 = randomLooksrareOrder().copy(status = Status.VALID, createdAt = now - Duration.ofSeconds(1))

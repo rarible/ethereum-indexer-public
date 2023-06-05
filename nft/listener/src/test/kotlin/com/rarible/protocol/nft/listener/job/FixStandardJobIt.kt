@@ -1,9 +1,11 @@
 package com.rarible.protocol.nft.listener.job
 
+import com.mongodb.assertions.Assertions.assertFalse
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
+import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.admin.ReduceTokenItemsDependentTaskHandler
 import com.rarible.protocol.nft.listener.configuration.FixStandardJobProperties
@@ -29,6 +31,7 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
+import scalether.domain.AddressFactory
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
@@ -83,10 +86,13 @@ internal class FixStandardJobIt : AbstractIntegrationTest() {
 
         // set NONE standard
         val token = tokenRepository.findById(erc721.address()).awaitFirst()
-        tokenRepository.save(token.copy(
-            standard = TokenStandard.NONE,
-            dbUpdatedAt = Instant.now().minusSeconds(60),
-            features = emptySet())).awaitSingle()
+        tokenRepository.save(
+            token.copy(
+                standard = TokenStandard.NONE,
+                dbUpdatedAt = Instant.now().minusSeconds(60),
+                features = emptySet()
+            )
+        ).awaitSingle()
 
         // fire fixing job
         job.execute()
@@ -114,9 +120,56 @@ internal class FixStandardJobIt : AbstractIntegrationTest() {
         }
     }
 
+    @Test
+    fun `increment retry - ok`() = runBlocking<Unit> {
+        val tokenAddress = AddressFactory.create()
+
+        tokenRepository.save(
+            Token(
+                id = tokenAddress,
+                name = tokenAddress.toString(),
+                standard = TokenStandard.NONE,
+                standardRetries = null
+            )
+        ).awaitSingle()
+
+        job.execute()
+
+        Wait.waitAssert {
+            val token = tokenRepository.findById(tokenAddress).awaitFirst()
+            assertThat(token.standardRetries).isEqualTo(1)
+            assertFalse(existTask("BLOCK_SCANNER_REINDEX_TASK"))
+        }
+    }
+
+    @Test
+    fun `do not start after retry - ok`() = runBlocking<Unit> {
+        val tokenAddress = AddressFactory.create()
+
+        tokenRepository.save(
+            Token(
+                id = tokenAddress,
+                name = tokenAddress.toString(),
+                standard = TokenStandard.NONE,
+                standardRetries = 5
+            )
+        ).awaitSingle()
+
+        job.execute()
+
+        Wait.waitAssert {
+            assertFalse(existTask("BLOCK_SCANNER_REINDEX_TASK"))
+        }
+    }
+
     private suspend fun findTask(name: String): Task {
         val criteria = (Task::type isEqualTo name)
         return mongo.find<Task>(Query.query(criteria), "task").awaitSingle()
+    }
+
+    private suspend fun existTask(name: String): Boolean {
+        val criteria = (Task::type isEqualTo name)
+        return mongo.find<Task>(Query.query(criteria), "task").awaitFirstOrNull() != null
     }
 
     private suspend fun finishIndexing() {

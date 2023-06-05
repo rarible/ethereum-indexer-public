@@ -10,13 +10,12 @@ import com.rarible.looksrare.client.model.v2.Pagination
 import com.rarible.looksrare.client.model.v2.QuoteType
 import com.rarible.looksrare.client.model.v2.Sort
 import com.rarible.looksrare.client.model.v2.Status
+import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
-import com.rarible.protocol.order.listener.misc.LOOKSRARE_LOG
 import com.rarible.protocol.order.listener.misc.looksrareInfo
 import kotlinx.coroutines.time.delay
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.time.Instant
 
 @Component
 class LooksrareOrderService(
@@ -25,29 +24,30 @@ class LooksrareOrderService(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun getNextSellOrders(createdAfter: Instant): List<LooksrareOrder> {
+    suspend fun getNextSellOrders(cursor: LooksrareV2Cursor): List<LooksrareOrder> {
         val loadOrders = mutableSetOf<LooksrareOrder>()
-        var nextId: String? = null
+        val createdAfter = cursor.createdAfter
+        var nextId: String? = cursor.nextId
+        var deep = 0
         do {
             val request = OrdersRequest(
                 quoteType = QuoteType.ASK,
-                status = null,
+                status = Status.VALID,
                 sort = Sort.NEWEST,
                 pagination = Pagination(first = properties.loadMaxSize, cursor = nextId)
             )
-            logger.looksrareInfo(
-                "Load next: createdAfter=$createdAfter, cursor=${request.pagination?.cursor}"
-            )
             val result = getOrders(request)
-            if (result.success.not()) throw IllegalStateException("$LOOKSRARE_LOG Can't load orders: ${result.message}")
             loadOrders.addAll(result.data)
 
             val lastLoadOrder = result.data.lastOrNull()
-            logger.looksrareInfo("Last load order created time ${lastLoadOrder?.createdAt}")
+            logger.looksrareInfo(
+                "Load next: createdAfter=$createdAfter, cursor=$nextId, last=${lastLoadOrder?.createdAt}, deep=$deep"
+            )
             nextId = lastLoadOrder?.id
-        } while (lastLoadOrder != null && lastLoadOrder.createdAt > createdAfter)
+            deep += 1
+        } while (lastLoadOrder != null && lastLoadOrder.createdAt > createdAfter && deep < properties.loadMaxDeep)
 
-        return loadOrders.toList().filter { it.status == Status.VALID }
+        return loadOrders.toList()
     }
 
     private suspend fun getOrders(request: OrdersRequest): LooksrareOrders {

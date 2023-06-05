@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.core.common.nowMillis
+import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.core.model.LooksrareV2FetchState
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
@@ -30,7 +31,7 @@ internal class LooksrareOrderLoadHandlerTest {
     @Test
     fun `should get orders with init state`() = runBlocking<Unit> {
         val now = nowMillis().truncatedTo(ChronoUnit.SECONDS)
-        val next = now - Duration.ofHours(1)
+        val next = LooksrareV2Cursor(now - Duration.ofHours(1))
 
         mockkStatic(Instant::class) {
             every{ Instant.now() } returns now
@@ -47,7 +48,7 @@ internal class LooksrareOrderLoadHandlerTest {
             }
             coVerify {
                 aggregatorStateRepository.save(
-                    withArg { assertThat(it.cursor).isEqualTo(next.epochSecond.toString()) }
+                    withArg { assertThat(it.cursor).isEqualTo(next.toString()) }
                 )
             }
         }
@@ -55,10 +56,10 @@ internal class LooksrareOrderLoadHandlerTest {
 
     @Test
     fun `should get orders with saved state`() = runBlocking<Unit> {
-        val expectedCreatedAfter = nowMillis().truncatedTo(ChronoUnit.SECONDS) - Duration.ofDays(1)
-        val next = Instant.now() - Duration.ofHours(1)
+        val expectedCreatedAfter = LooksrareV2Cursor(nowMillis().truncatedTo(ChronoUnit.SECONDS) - Duration.ofDays(1))
+        val next = LooksrareV2Cursor(Instant.now() - Duration.ofHours(1))
 
-        coEvery { aggregatorStateRepository.getLooksrareV2State() } returns LooksrareV2FetchState.withCreatedAfter(expectedCreatedAfter)
+        coEvery { aggregatorStateRepository.getLooksrareV2State() } returns LooksrareV2FetchState(expectedCreatedAfter)
         coEvery { aggregatorStateRepository.save(any()) } returns Unit
         coEvery { looksrareOrderLoader.load(any()) } returns LooksrareOrderLoader.Result(next, 0)
 
@@ -71,7 +72,7 @@ internal class LooksrareOrderLoadHandlerTest {
         }
         coVerify {
             aggregatorStateRepository.save(
-                withArg { assertThat(it.cursor).isEqualTo(next.epochSecond.toString()) }
+                withArg { assertThat(it.cursor).isEqualTo(next.toString()) }
             )
         }
     }

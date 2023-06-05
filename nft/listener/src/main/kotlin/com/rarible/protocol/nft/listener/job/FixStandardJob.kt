@@ -32,29 +32,25 @@ class FixStandardJob(
     )
     fun execute() = runBlocking<Unit> {
         logger.info("Starting FixStandardJob")
-        var remains = props.reindexLimit
         if (props.enabled) {
-            do {
-                val found = tokenRepository.findNone(props.batchSize, props.retries)
-                logger.info("Found ${found.size} tokens with NONE standard")
-                // we get address of token only if it is changed standard
-                val addresses = found.mapNotNull { token ->
-                    val updated = tokenService.update(token.id)
-                    incrementMetric(updated)
-                    incrementRetry(updated ?: token)
-                    if (updated?.standard?.isNotIgnorable() == true) {
-                        updated.id
-                    } else {
-                        null
-                    }
-                }
-                if (addresses.isNotEmpty()) {
-                    reindexTokenService.createReindexAndReduceTokenTasks(addresses)
-                    remains--
+            val found = tokenRepository.findNone(props.batchSize, props.retries)
+            logger.info("Found ${found.size} tokens with NONE standard")
+            // we get address of token only if it is changed standard
+            val addresses = found.mapNotNull { token ->
+                val updated = tokenService.update(token.id)
+                incrementMetric(updated)
+                incrementRetry(updated ?: token)
+                if (updated?.standard?.isNotIgnorable() == true) {
+                    updated.id
                 } else {
-                    logger.info("There are no non-ignorable tokens in the fixed list")
+                    null
                 }
-            } while (found.isNotEmpty() && remains > 0)
+            }
+            if (addresses.isNotEmpty()) {
+                reindexTokenService.createReindexAndReduceTokenTasks(addresses)
+            } else {
+                logger.info("There are no non-ignorable tokens in the fixed list")
+            }
         }
     }
 

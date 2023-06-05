@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.core.daemon.job.JobHandler
+import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.core.model.LooksrareV2FetchState
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
@@ -18,19 +19,19 @@ class LooksrareOrderLoadHandler(
 
     override suspend fun handle() {
         val state = aggregatorStateRepository.getLooksrareV2State() ?: getDefaultFetchState()
-        val createdAfter = state.createdAfter
-        val result = looksrareOrderLoader.load(createdAfter = createdAfter)
-        if (result.latestCreatedAt != null) {
-            aggregatorStateRepository.save(state.withCreatedAfter(result.latestCreatedAt))
+        val cursor = state.looksrareV2Cursor
+        val result = looksrareOrderLoader.load(cursor)
+        if (result.cursor != null) {
+            aggregatorStateRepository.save(state.withCursor(result.cursor))
         }
-        if (result.saved == 0L) {
+        if (result.saved == 0L && result.cursor?.nextId == null) {
             delay(properties.pollingPeriod)
         }
     }
 
     private fun getDefaultFetchState(): LooksrareV2FetchState {
-        return LooksrareV2FetchState.withCreatedAfter(
-            createdAfter = Instant.now() - Duration.ofHours(1)
+        return LooksrareV2FetchState(
+           LooksrareV2Cursor(Instant.now() - Duration.ofHours(1))
         )
     }
 }
