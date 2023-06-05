@@ -9,6 +9,7 @@ import com.rarible.looksrare.client.model.v2.OrdersRequest
 import com.rarible.looksrare.client.model.v2.Pagination
 import com.rarible.looksrare.client.model.v2.QuoteType
 import com.rarible.looksrare.client.model.v2.Sort
+import com.rarible.looksrare.client.model.v2.Status
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.listener.misc.looksrareInfo
@@ -31,7 +32,7 @@ class LooksrareOrderService(
         do {
             val request = OrdersRequest(
                 quoteType = QuoteType.ASK,
-                status = null,
+                status = Status.VALID,
                 sort = Sort.NEWEST,
                 pagination = Pagination(first = properties.loadMaxSize, cursor = nextId)
             )
