@@ -27,7 +27,7 @@ class FixStandardJob(
     private val unfixedCounter = metricsFactory.tokenStandardJobUnfixedCounter
 
     @Scheduled(
-        fixedDelayString = "\${listener.fixStandard.rate:PT30M}",
+        fixedDelayString = "\${listener.fixStandardJob.rate:PT30M}",
         initialDelayString = "PT1M"
     )
     fun execute() = runBlocking<Unit> {
