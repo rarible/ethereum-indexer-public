@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderStateRepository
@@ -8,10 +9,12 @@ import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.x2y2Error
 import com.rarible.protocol.order.listener.misc.x2y2Info
 import com.rarible.x2y2.client.model.ApiListResponse
+import com.rarible.x2y2.client.model.EVENTS_MAX_LIMIT
 import com.rarible.x2y2.client.model.Event
 import com.rarible.x2y2.client.model.EventType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.math.BigInteger
 
 @Component
 class X2Y2CancelListEventLoader(
@@ -22,6 +25,10 @@ class X2Y2CancelListEventLoader(
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    private val seenEvents = Caffeine.newBuilder()
+        .maximumSize(EVENTS_MAX_LIMIT.toLong())
+        .build<BigInteger, Boolean>()
 
     suspend fun load(cursor: String?): ApiListResponse<Event> {
         val result = safeGetNextEvents(EventType.CANCEL_LISTING, cursor)
@@ -46,14 +53,20 @@ class X2Y2CancelListEventLoader(
     private suspend fun safeGetNextEvents(type: EventType, cursor: String?): ApiListResponse<Event> {
         return try {
             val events = x2y2Service.getNextEvents(type, cursor)
-            val metricType = "order_event"
-            val platform = Platform.X2Y2
-            events.data.forEach { metrics.onOrderReceived(platform, it.createdAt, metricType) }
-            events.data.maxByOrNull { it.createdAt }?.let { metrics.onLatestOrder(platform, it.createdAt, metricType) }
+            recordMetrics(events)
             events
         } catch (ex: Throwable) {
             logger.x2y2Error("Can't get next events with cursor $cursor", ex)
             throw ex
         }
+    }
+
+    private fun recordMetrics(events: ApiListResponse<Event>) {
+        events.data
+            .filter { seenEvents.getIfPresent(it.id) == null }
+            .forEach {
+                metrics.onOrderReceived(Platform.X2Y2, it.createdAt, "order_event")
+                seenEvents.put(it.id, true)
+            }
     }
 }

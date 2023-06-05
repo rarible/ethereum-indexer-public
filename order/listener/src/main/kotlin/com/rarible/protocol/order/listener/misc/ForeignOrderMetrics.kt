@@ -66,25 +66,6 @@ class ForeignOrderMetrics(
         ).record(Duration.between(date, Instant.now()))
     }
 
-    /**
-     * Record of "delay" between 'now' and latest order's date
-     */
-    fun onLatestOrder(
-        platform: Platform,
-        date: Instant,
-        type: String = "order"
-    ) {
-        meterRegistry.gauge(
-            FOREIGN_LATEST_ORDER,
-            listOf(
-                tag(blockchain),
-                tag(platform),
-                type(type.lowercase())
-            ),
-            Instant.now().epochSecond - date.epochSecond
-        )
-    }
-
     private fun onDownloadedOrderHandled(
         platform: Platform,
         status: String,
@@ -124,7 +105,6 @@ class ForeignOrderMetrics(
         const val FOREIGN_ORDER_DOWNLOAD = "foreign_order_download"
         const val FOREIGN_ORDER_DOWNLOAD_DELAY = "foreign_order_download_delay"
         const val FOREIGN_ORDER_EVENT = "foreign_order_event"
-        const val FOREIGN_LATEST_ORDER = "foreign_latest_order"
     }
 
 }

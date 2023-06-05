@@ -25,7 +25,6 @@ internal class X2Y2CancelListLoaderTest {
         every { onOrderEventHandled(Platform.X2Y2, "cancel_offchain") } returns Unit
         every { onOrderReceived(Platform.X2Y2, any()) } returns Unit
         every { onOrderReceived(Platform.X2Y2, any(), any()) } returns Unit
-        every { onLatestOrder(Platform.X2Y2, any(), any()) } returns Unit
     }
 
     private val handler = X2Y2CancelListEventLoader(
