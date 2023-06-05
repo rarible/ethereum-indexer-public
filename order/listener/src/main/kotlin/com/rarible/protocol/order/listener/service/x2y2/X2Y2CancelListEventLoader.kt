@@ -46,7 +46,10 @@ class X2Y2CancelListEventLoader(
     private suspend fun safeGetNextEvents(type: EventType, cursor: String?): ApiListResponse<Event> {
         return try {
             val events = x2y2Service.getNextEvents(type, cursor)
-            events.data.forEach { metrics.onOrderReceived(Platform.X2Y2, it.createdAt, "order_event") }
+            val metricType = "order_event"
+            val platform = Platform.X2Y2
+            events.data.forEach { metrics.onOrderReceived(platform, it.createdAt, metricType) }
+            events.data.maxByOrNull { it.createdAt }?.let { metrics.onLatestOrder(platform, it.createdAt, metricType) }
             events
         } catch (ex: Throwable) {
             logger.x2y2Error("Can't get next events with cursor $cursor", ex)
