@@ -24,7 +24,7 @@ class LooksrareOrderLoadHandler(
         if (result.cursor != null) {
             aggregatorStateRepository.save(state.withCursor(result.cursor))
         }
-        if (result.saved == 0L) {
+        if (result.saved == 0L && result.cursor?.nextId == null) {
             delay(properties.pollingPeriod)
         }
     }
