@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
 import com.rarible.core.test.data.randomString
-import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -42,8 +41,6 @@ internal class X2Y2CancelListLoaderTest {
         val offChainEvent3 = randomX2Y2Event().copy(tx = null)
         val onChainEvent1 = randomX2Y2Event().copy(tx = randomString())
         val onChainEvent2 = randomX2Y2Event().copy(tx = randomString())
-        val expectedState1 = OrderState(id = offChainEvent1.order.itemHash, canceled = true)
-        val expectedState2 = OrderState(id = offChainEvent2.order.itemHash, canceled = true)
 
         val x2y2Event = ApiListResponse(
             next = "next",
