@@ -249,15 +249,15 @@ class SeaportEventConverter(
         return offererItem.withAmount(totalValue).toAsset()
     }
 
-    private suspend fun getMethodInput(log: Log, transaction: Transaction, methodId: Binary): List<Binary> {
-        return if (methodId == transaction.input().methodSignatureId()) {
+    override suspend fun getMethodInput(log: Log, transaction: Transaction, vararg methodId: Binary): List<Binary> {
+        return if (transaction.input().methodSignatureId() in methodId) {
             listOf(transaction.input())
         } else {
             traceCallService.safeFindAllRequiredCallInputs(
                 txHash = transaction.hash(),
                 txInput = transaction.input(),
                 to = log.address(),
-                ids = arrayOf(methodId)
+                ids = methodId
             )
         }
     }

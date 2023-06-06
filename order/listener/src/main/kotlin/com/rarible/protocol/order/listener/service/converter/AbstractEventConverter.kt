@@ -11,7 +11,7 @@ abstract class AbstractEventConverter(
     protected val traceCallService: TraceCallService,
     protected val featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
-    protected suspend fun getMethodInput(log: Log, transaction: Transaction, vararg methodId: Binary): List<Binary> {
+    protected open suspend fun getMethodInput(log: Log, transaction: Transaction, vararg methodId: Binary): List<Binary> {
         return if (transaction.input().methodSignatureId() in methodId) {
             listOf(transaction.input())
         } else {
