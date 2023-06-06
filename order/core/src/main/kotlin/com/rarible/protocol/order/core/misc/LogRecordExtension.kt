@@ -59,6 +59,12 @@ fun LogEvent.toReversedEthereumLogRecord(): ReversedEthereumLogRecord {
     )
 }
 
+fun LogEvent.toLogRecordEvent(): LogRecordEvent = LogRecordEvent(
+    record = toReversedEthereumLogRecord(),
+    reverted = status == LogEventStatus.REVERTED,
+    eventTimeMarks = EventTimeMarks("blockchain")
+)
+
 internal fun EthereumLogStatus.toLogEventStatus(): LogEventStatus {
     return when (this) {
         EthereumLogStatus.CONFIRMED -> LogEventStatus.CONFIRMED
