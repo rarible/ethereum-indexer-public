@@ -89,6 +89,7 @@ internal class FixStandardJobIt : AbstractIntegrationTest() {
         tokenRepository.save(
             token.copy(
                 standard = TokenStandard.NONE,
+                standardRetries = null,
                 dbUpdatedAt = Instant.now().minusSeconds(60),
                 features = emptySet()
             )

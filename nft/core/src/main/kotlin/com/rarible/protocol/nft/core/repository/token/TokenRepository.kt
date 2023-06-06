@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.count
@@ -15,6 +16,7 @@ import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.exists
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -63,6 +65,13 @@ class TokenRepository(
             .limit(limit)
 
         return mongo.find(query, Token::class.java).collectList().awaitFirst()
+    }
+
+    suspend fun incrementRetry(id: Address) {
+        mongo.findAndModify(
+            Query(Criteria.where(ID).isEqualTo(id)),
+            Update().inc(Token::standardRetries.name, 1),
+            Token::class.java).awaitSingle()
     }
 
     fun count(): Mono<Long> {
