@@ -128,6 +128,7 @@ class SeaportEventConverter(
         val advancedOrders = getMethodInput(
             event.log(),
             transaction,
+            getTrace = false,
             MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1,
             MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1_4,
         ).map { SeaportOrderParser.parseAdvancedOrders(it) }.flatten()
@@ -181,7 +182,7 @@ class SeaportEventConverter(
         totalLogs: Int,
         date: Instant
     ): List<OrderCancel> {
-        val inputs = getMethodInput(event.log(), transaction, CANCEL_SIGNATURE_ID)
+        val inputs = getMethodInput(event.log(), transaction, getTrace = true, CANCEL_SIGNATURE_ID)
         val orderHash = Word.apply(event.orderHash())
         val assets = if (inputs.isNotEmpty()) {
             val components = inputs.map { CANCEL_SIGNATURE.`in`().decode(it, 4).value().toList() }.flatten()
@@ -249,17 +250,22 @@ class SeaportEventConverter(
         return offererItem.withAmount(totalValue).toAsset()
     }
 
-    override suspend fun getMethodInput(log: Log, transaction: Transaction, vararg methodId: Binary): List<Binary> {
+    suspend fun getMethodInput(
+        log: Log,
+        transaction: Transaction,
+        getTrace: Boolean,
+        vararg methodId: Binary
+    ): List<Binary> {
         return if (transaction.input().methodSignatureId() in methodId) {
             listOf(transaction.input())
-        } else {
+        } else if (getTrace) {
             traceCallService.safeFindAllRequiredCallInputs(
                 txHash = transaction.hash(),
                 txInput = transaction.input(),
                 to = log.address(),
                 ids = methodId
             )
-        }
+        } else emptyList()
     }
 
     private data class OrderAssets(val make: Asset, val take: Asset)
