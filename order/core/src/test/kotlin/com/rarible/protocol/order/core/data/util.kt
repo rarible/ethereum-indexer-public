@@ -4,6 +4,7 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
@@ -867,7 +868,8 @@ fun createLogRecordEvent(data: ScannerEventData): LogRecordEvent {
     val record = createLogRecord(data)
     return LogRecordEvent(
         record = record,
-        reverted = record.status == EthereumLogStatus.REVERTED
+        reverted = record.status == EthereumLogStatus.REVERTED,
+        eventTimeMarks = EventTimeMarks("test")
     )
 }
 

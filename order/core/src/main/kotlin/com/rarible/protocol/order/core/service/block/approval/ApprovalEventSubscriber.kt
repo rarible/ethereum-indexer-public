@@ -27,10 +27,7 @@ class ApprovalEventSubscriber(
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
         for (event in events) {
-            val eventTimeMarks = event.eventTimeMarks?.addIn() ?: run {
-                logger.warn("EventTimeMarks not found in Approval event")
-                orderOffchainEventMarks()
-            }
+            val eventTimeMarks = event.eventTimeMarks.addIn()
             reduceOrders(event.record.asEthereumLogRecord(), eventTimeMarks)
         }
     }

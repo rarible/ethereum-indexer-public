@@ -42,10 +42,7 @@ class NonceEventSubscriber(
         nonceHistories.forEach { pair ->
             val history = pair.first
             val event = pair.second
-            val eventTimeMarks = event.eventTimeMarks?.addIn() ?: run {
-                logger.warn("EventTimeMarks not found in ChangeNonceHistory event")
-                orderOffchainEventMarks()
-            }
+            val eventTimeMarks = event.eventTimeMarks.addIn()
             changeNonceListener.onNewMakerNonce(
                 history.source.toPlatform(),
                 history.maker,

@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.service.item.reduce
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.contracts.erc721.TransferEvent
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.dto.NftActivityConverter
@@ -33,7 +34,7 @@ class OnNftItemLogEventListenerTest {
         val record = randomReversedLogRecord(createItemHistory())
             .copy(topic = TransferEvent.id())
 
-        listener.onLogEvent(LogRecordEvent(record, false))
+        listener.onLogEvent(LogRecordEvent(record, false, EventTimeMarks("test")))
 
         coVerify(exactly = 1) { publisher.publish(any<NftActivityDto>()) }
     }
@@ -45,7 +46,7 @@ class OnNftItemLogEventListenerTest {
             topic = TransferEvent.id()
         )
 
-        val event = LogRecordEvent(record, false)
+        val event = LogRecordEvent(record, false, EventTimeMarks("test"))
 
         listener.onLogEvent(event)
 
@@ -57,7 +58,7 @@ class OnNftItemLogEventListenerTest {
         val record = randomReversedLogRecord(createItemHistory())
             .copy(topic = TransferEvent.id())
 
-        listener.onLogEvent(LogRecordEvent(record, true))
+        listener.onLogEvent(LogRecordEvent(record, true, EventTimeMarks("test")))
 
         coVerify(exactly = 1) { publisher.publish(any<NftActivityDto>()) }
     }
@@ -66,7 +67,7 @@ class OnNftItemLogEventListenerTest {
     fun `on log event - not in topic set`() = runBlocking<Unit> {
         val record = randomReversedLogRecord(createItemHistory())
 
-        listener.onLogEvent(LogRecordEvent(record, true))
+        listener.onLogEvent(LogRecordEvent(record, true, EventTimeMarks("test")))
 
         coVerify(exactly = 0) { publisher.publish(any<NftActivityDto>()) }
     }

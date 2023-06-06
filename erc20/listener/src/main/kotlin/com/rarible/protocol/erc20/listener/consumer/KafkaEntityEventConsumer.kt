@@ -83,7 +83,7 @@ class KafkaEntityEventConsumer(
                 LogRecordEvent(
                     record = it.record,
                     reverted = it.reverted,
-                    eventTimeMarks = it.eventTimeMarks?.addIn()
+                    eventTimeMarks = it.eventTimeMarks.addIn()
                 )
             })
         }

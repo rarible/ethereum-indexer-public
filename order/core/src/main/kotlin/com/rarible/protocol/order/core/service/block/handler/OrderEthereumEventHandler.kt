@@ -23,10 +23,7 @@ class OrderEthereumEventHandler(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override suspend fun handleSingle(event: OrderExchangeHistoryWrapper) {
-        val eventTimeMarks = event.source.eventTimeMarks?.addIn() ?: run {
-            logger.warn("EventTimeMarks not found in NftItemUpdateEventDto")
-            orderOffchainEventMarks()
-        }
+        val eventTimeMarks = event.source.eventTimeMarks.addIn()
         orderUpdateService.update(event.hash, eventTimeMarks)
     }
 

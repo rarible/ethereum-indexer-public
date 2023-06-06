@@ -1,10 +1,13 @@
 package com.rarible.protocol.order.core.service.block.order
 
+import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.log.LogEventsListener
-import com.rarible.protocol.order.core.misc.toLogRecordEvent
+import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import com.rarible.protocol.order.core.service.block.handler.OrderEthereumEventHandler
 import com.rarible.protocol.order.core.service.block.handler.PoolEthereumEventHandler
 import kotlinx.coroutines.reactor.mono
@@ -17,7 +20,7 @@ import reactor.core.publisher.Mono
 @Deprecated("Should be removed after switch to the new scanner")
 class OrderBlockProcessor(
     private val orderEthereumEventHandler: OrderEthereumEventHandler,
-    private val poolEthereumEventHandler: PoolEthereumEventHandler
+    private val poolEthereumEventHandler: PoolEthereumEventHandler,
 ) : LogEventsListener {
 
     override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> {
@@ -26,7 +29,13 @@ class OrderBlockProcessor(
 
         return LoggingUtils.withMarker { marker ->
             mono {
-                val recordEvents = logs.map { log -> log.toLogRecordEvent() }
+                val recordEvents = logs.map { log ->
+                    LogRecordEvent(
+                        record = log.toReversedEthereumLogRecord(),
+                        reverted = log.status == LogEventStatus.REVERTED,
+                        eventTimeMarks = EventTimeMarks("blockchain")
+                    )
+                }
                 orderEthereumEventHandler.handle(recordEvents)
                 poolEthereumEventHandler.handle(recordEvents)
             }

@@ -34,10 +34,7 @@ class CryptoPunkOnChainOrderEventSubscriber(
         val onChainOrder = record.data as? OnChainOrder ?: return
         val type = onChainOrder.make.type as? CryptoPunksAssetType ?: return
 
-        val eventTimeMarks = event.eventTimeMarks?.addIn() ?: run {
-            logger.warn("EventTimeMarks not found in CryptoPunkOnChainOrder event")
-            orderOffchainEventMarks()
-        }
+        val eventTimeMarks = event.eventTimeMarks.addIn()
 
         val token = type.token
         val tokenId = type.tokenId

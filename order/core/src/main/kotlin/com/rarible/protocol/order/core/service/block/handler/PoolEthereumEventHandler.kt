@@ -26,10 +26,7 @@ class PoolEthereumEventHandler(
         orderUpdateService.update(event.hash, eventTimeMarks)
 
         event.events.forEach {
-            val ammEventTimeMarks = it.eventTimeMarks?.addIn() ?: run {
-                logger.warn("EventTimeMarks not found in Pool event")
-                orderOffchainEventMarks()
-            }
+            val ammEventTimeMarks = it.eventTimeMarks.addIn()
             poolOrderEventListener.onPoolEvent(it.record.asEthereumLogRecord(), ammEventTimeMarks)
         }
     }
