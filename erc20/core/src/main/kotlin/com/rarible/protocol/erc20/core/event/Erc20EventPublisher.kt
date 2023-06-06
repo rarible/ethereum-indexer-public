@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.core.producer
+package com.rarible.protocol.erc20.core.event
 
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer

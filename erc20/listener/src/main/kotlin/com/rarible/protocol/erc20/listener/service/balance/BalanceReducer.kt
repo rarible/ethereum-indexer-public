@@ -1,8 +1,8 @@
 package com.rarible.protocol.erc20.listener.service.balance
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.reduce.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.BalanceReduceSnapshot
 import com.rarible.protocol.erc20.core.model.Erc20Balance
@@ -30,7 +30,7 @@ class BalanceReducer(
         val currentData = current.data
         val currentBalance = currentData.balance
 
-        if (logEvent.status != LogEventStatus.CONFIRMED) {
+        if (logEvent.status != EthereumLogStatus.CONFIRMED) {
             return current.copy(mark = event.mark)
         }
 

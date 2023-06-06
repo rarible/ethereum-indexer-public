@@ -17,16 +17,16 @@ import org.springframework.context.annotation.Configuration
 import scalether.domain.Address
 
 @Configuration
-@EnableOnScannerV2
 @EnableEthereumScanner
-class BlockchainScannerV2Configuration(
+class BlockchainScannerConfiguration(
     private val erc20IndexerProperties: Erc20IndexerProperties,
     private val erc20ListenerProperties: Erc20ListenerProperties,
     private val ethereumScannerProperties: EthereumScannerProperties,
     private val meterRegistry: MeterRegistry,
     private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
-    private val logger = LoggerFactory.getLogger(BlockchainScannerV2Configuration::class.java)
+
+    private val logger = LoggerFactory.getLogger(BlockchainScannerConfiguration::class.java)
 
     @Bean
     @ConditionalOnMissingBean(KafkaEntityEventConsumer::class)

@@ -1,8 +1,8 @@
 package com.rarible.protocol.erc20.listener.admin
 
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
@@ -87,7 +87,7 @@ class ReduceErc20BalanceTaskHandlerIt : AbstractIntegrationTest() {
         assertThat(balance2.balance).isEqualTo(EthUInt256.of(9))
     }
 
-    private suspend fun saveAll(vararg logs: LogEvent) {
+    private suspend fun saveAll(vararg logs: ReversedEthereumLogRecord) {
         logs.forEach { log ->
             historyRepository.save(log).awaitFirst()
         }

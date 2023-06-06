@@ -16,13 +16,14 @@ import org.testcontainers.junit.jupiter.Testcontainers
     properties = [
         "application.environment = e2e",
         "listener.blockchain = ethereum",
-            "rarible.blockchain.monitoring = ethereum",
-            "spring.cloud.service-registry.auto-registration.enabled = false",
-            "spring.cloud.discovery.enabled = false",
-            "rarible.common.jms-brokerUrls = localhost:\${random.int(5000,5100)}",
-            "rarible.common.jms-eventTopic = protocol",
-            "spring.cloud.consul.config.enabled = false",
-            "logging.logstash.tcp-socket.enabled = false"
+        "rarible.blockchain.monitoring = ethereum",
+        "spring.cloud.service-registry.auto-registration.enabled = false",
+        "spring.cloud.discovery.enabled = false",
+        "rarible.common.jms-brokerUrls = localhost:\${random.int(5000,5100)}",
+        "rarible.common.jms-eventTopic = protocol",
+        "spring.cloud.consul.config.enabled = false",
+        "logging.logstash.tcp-socket.enabled = false",
+        "logging.logjson.enabled = false"
     ]
 )
 @ActiveProfiles("integration")

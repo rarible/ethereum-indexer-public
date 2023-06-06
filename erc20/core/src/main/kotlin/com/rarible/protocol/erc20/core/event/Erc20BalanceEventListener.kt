@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.core.listener
+package com.rarible.protocol.erc20.core.event
 
 import com.rarible.protocol.erc20.core.model.Erc20UpdateEvent
 

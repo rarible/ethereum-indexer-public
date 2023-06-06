@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.descriptors.erc20
+package com.rarible.protocol.erc20.listener.service.subscriber
 
 import com.rarible.contracts.test.erc20.TestERC20
 import com.rarible.core.test.data.randomAddress

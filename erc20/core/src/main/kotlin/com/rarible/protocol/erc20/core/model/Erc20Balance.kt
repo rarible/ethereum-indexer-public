@@ -1,8 +1,9 @@
 package com.rarible.protocol.erc20.core.model
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
+import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.core.entity.reducer.model.Entity
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
@@ -53,4 +54,8 @@ data class Erc20Balance(
     }
 
     fun versionLess() = copy(version = null)
+
+    override fun getKey(log: EthereumLog): String {
+        TODO("Not yet implemented")
+    }
 }

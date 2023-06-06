@@ -1,12 +1,13 @@
 package com.rarible.protocol.erc20.core.repository.data
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
@@ -26,13 +27,14 @@ fun randomLogEvent(
     logIndex: Int = 0,
     minorLogIndex: Int = 0,
     index: Int = 0
-): LogEvent {
-    return LogEvent(
+): ReversedEthereumLogRecord {
+    return ReversedEthereumLogRecord(
+        id = randomString(),
         data = history,
         address = history.token,
         topic = Word.apply(randomWord()),
-        transactionHash = Word.apply(randomWord()),
-        status = LogEventStatus.CONFIRMED,
+        transactionHash = randomWord(),
+        status = EthereumLogStatus.CONFIRMED,
         blockNumber = blockNumber,
         logIndex = logIndex,
         minorLogIndex = minorLogIndex,

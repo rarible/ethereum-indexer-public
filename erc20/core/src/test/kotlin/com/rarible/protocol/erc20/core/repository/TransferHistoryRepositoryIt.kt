@@ -1,8 +1,8 @@
 package com.rarible.protocol.erc20.core.repository
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.erc20.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.erc20.core.integration.IntegrationTest
 import com.rarible.protocol.erc20.core.model.BalanceId
@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 
 @IntegrationTest
-class TransferHistoryRepositoryIt : AbstractIntegrationTest(){
+class TransferHistoryRepositoryIt : AbstractIntegrationTest() {
 
     @Autowired
     lateinit var historyRepository: Erc20TransferHistoryRepository
@@ -176,8 +176,14 @@ class TransferHistoryRepositoryIt : AbstractIntegrationTest(){
         val token = randomAddress()
         val owner = randomAddress()
 
-        val logEvent1 = randomLogEvent(randomErc20OutcomeTransfer(token, owner), blockNumber = 1).copy(status = LogEventStatus.CONFIRMED)
-        val logEvent2 = randomLogEvent(randomErc20IncomeTransfer(token, owner), blockNumber = 2).copy(status = LogEventStatus.REVERTED)
+        val logEvent1 = randomLogEvent(
+            randomErc20OutcomeTransfer(token, owner),
+            blockNumber = 1
+        ).copy(status = EthereumLogStatus.CONFIRMED)
+        val logEvent2 = randomLogEvent(
+            randomErc20IncomeTransfer(token, owner),
+            blockNumber = 2
+        ).copy(status = EthereumLogStatus.REVERTED)
 
         saveAll(logEvent1, logEvent2)
 
@@ -192,7 +198,7 @@ class TransferHistoryRepositoryIt : AbstractIntegrationTest(){
         }
     }
 
-    private suspend fun saveAll(vararg logs: LogEvent) {
+    private suspend fun saveAll(vararg logs: ReversedEthereumLogRecord) {
         logs.forEach { log ->
             historyRepository.save(log).awaitFirst()
         }
