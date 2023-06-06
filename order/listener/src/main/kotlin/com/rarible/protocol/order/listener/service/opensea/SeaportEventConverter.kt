@@ -55,6 +55,12 @@ class SeaportEventConverter(
     ): List<OrderSideMatch> {
         val spentItems = SeaportOrderParser.convert(event.offer())
         val receivedItems = SeaportOrderParser.convert(event.consideration())
+        logger.info(
+            "Event ${event.log().logIndex()}" +
+                " in tx=${event.log().transactionHash()}" +
+                " for order ${Word.apply(event.orderHash())}" +
+                " contains spentItems: ${spentItems} and receivedItems: ${receivedItems}"
+        )
         val make = convertSpentItems(spentItems) ?: return emptyList()
         val take = convertReceivedItems(receivedItems) ?: return emptyList()
         val maker = event.offerer()
