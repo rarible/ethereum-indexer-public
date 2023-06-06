@@ -62,11 +62,20 @@ class X2Y2CancelListEventLoader(
     }
 
     private fun recordMetrics(events: ApiListResponse<Event>) {
-        events.data
-            .filter { seenEvents.getIfPresent(it.id) == null }
-            .forEach {
-                metrics.onOrderReceived(Platform.X2Y2, it.createdAt, "order_event")
+        fun recordEvent(event: Event) {
+            metrics.onOrderReceived(Platform.X2Y2, event.createdAt, "order_event")
+        }
+        val records = events.data
+            .filter {
+                seenEvents.getIfPresent(it.id) == null
+            }.map {
+                recordEvent(it)
                 seenEvents.put(it.id, true)
+                it
             }
+
+        if (records.isEmpty()) {
+            events.data.maxByOrNull { it.createdAt }?.let { recordEvent(it) }
+        }
     }
 }
