@@ -9,7 +9,7 @@ import com.rarible.protocol.nft.core.data.createRandomEthereumLog
 import com.rarible.protocol.nft.core.data.createRandomItemTransfer
 import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferToEvent
 import com.rarible.protocol.nft.core.data.createRandomReversedEthereumLogRecord
-import com.rarible.protocol.nft.core.misc.addIn
+import com.rarible.protocol.nft.core.misc.addIndexerIn
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
@@ -154,7 +154,7 @@ internal class ItemEventConverterTest {
         val ownershipEvent = createRandomOwnershipTransferToEvent()
         val marks = EventTimeMarks("blockchain")
             .add("source", Instant.ofEpochSecond(ownershipEvent.log.blockTimestamp!!))
-            .addIn()
+            .addIndexerIn()
 
         ownershipEvent.eventTimeMarks = marks
 

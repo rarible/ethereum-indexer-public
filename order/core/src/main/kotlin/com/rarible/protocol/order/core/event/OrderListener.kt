@@ -3,7 +3,7 @@ package com.rarible.protocol.order.core.event
 import com.rarible.core.common.EventTimeMarks
 import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
-import com.rarible.protocol.order.core.misc.addOut
+import com.rarible.protocol.order.core.misc.addIndexerOut
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.misc.toDto
 import com.rarible.protocol.order.core.model.Order
@@ -22,7 +22,7 @@ class OrderListener(
             eventId = order.lastEventId ?: UUID.randomUUID().toString(),
             orderId = order.id.toString(),
             order = orderDtoConverter.convert(order),
-            eventTimeMarks = (eventTimeMarks ?: orderOffchainEventMarks()).addOut().toDto()
+            eventTimeMarks = (eventTimeMarks ?: orderOffchainEventMarks()).addIndexerOut().toDto()
         )
         eventPublisher.publish(updateEvent)
     }

@@ -10,7 +10,7 @@ import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.dto.toModel
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.misc.addIn
+import com.rarible.protocol.order.core.misc.addIndexerIn
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
@@ -33,7 +33,7 @@ class OrderBalanceService(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun handle(event: Erc20BalanceEventDto) {
-        val eventTimeMarks = event.eventTimeMarks?.toModel()?.addIn() ?: run {
+        val eventTimeMarks = event.eventTimeMarks?.toModel()?.addIndexerIn() ?: run {
             logger.warn("EventTimeMarks not found in Erc20BalanceEventDto")
             orderOffchainEventMarks()
         }
@@ -58,7 +58,7 @@ class OrderBalanceService(
     }
 
     suspend fun handle(event: NftOwnershipEventDto) {
-        val eventTimeMarks = event.eventTimeMarks?.toModel()?.addIn() ?: run {
+        val eventTimeMarks = event.eventTimeMarks?.toModel()?.addIndexerIn() ?: run {
             logger.warn("EventTimeMarks not found in NftOwnershipEventDto")
             orderOffchainEventMarks()
         }

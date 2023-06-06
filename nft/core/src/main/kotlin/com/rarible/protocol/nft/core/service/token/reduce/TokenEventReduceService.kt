@@ -8,7 +8,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.TokenEventConverter
-import com.rarible.protocol.nft.core.misc.addIn
+import com.rarible.protocol.nft.core.misc.addIndexerIn
 import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
 import com.rarible.protocol.nft.core.model.EntityEventListeners
 import com.rarible.protocol.nft.core.model.SubscriberGroup
@@ -37,7 +37,7 @@ class TokenEventReduceService(
                 .mapNotNull {
                     TokenEventConverter.convert(
                         it.record.asEthereumLogRecord(),
-                        it.eventTimeMarks?.addIn(now)
+                        it.eventTimeMarks?.addIndexerIn(now)
                     )
                 }
                 .let { delegate.reduceAll(it) }

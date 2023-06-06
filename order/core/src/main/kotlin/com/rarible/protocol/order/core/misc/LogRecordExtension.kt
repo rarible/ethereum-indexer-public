@@ -4,6 +4,7 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.framework.model.LogRecord
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.model.EventData
@@ -12,7 +13,7 @@ import io.daonomic.rpc.domain.Word
 fun LogRecord.asEthereumLogRecord() = this as ReversedEthereumLogRecord
 
 fun LogRecord.toLogEvent(): LogEvent {
-    return asEthereumLogRecord().let {  record ->
+    return asEthereumLogRecord().let { record ->
         LogEvent(
             data = record.data as EventData,
             address = record.address,
@@ -58,12 +59,11 @@ fun LogEvent.toReversedEthereumLogRecord(): ReversedEthereumLogRecord {
     )
 }
 
-fun LogEvent.toLogRecordEvent(): LogRecordEvent {
-    return LogRecordEvent(
-        record = this.toReversedEthereumLogRecord(),
-        reverted = this.status == LogEventStatus.REVERTED
-    )
-}
+fun LogEvent.toLogRecordEvent(): LogRecordEvent = LogRecordEvent(
+    record = toReversedEthereumLogRecord(),
+    reverted = status == LogEventStatus.REVERTED,
+    eventTimeMarks = EventTimeMarks("blockchain")
+)
 
 internal fun EthereumLogStatus.toLogEventStatus(): LogEventStatus {
     return when (this) {

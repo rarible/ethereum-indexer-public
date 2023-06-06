@@ -6,8 +6,7 @@ import com.rarible.core.apm.withSpan
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
-import com.rarible.protocol.erc20.core.misc.addIn
-import com.rarible.protocol.erc20.core.misc.erc20OffchainEventMarks
+import com.rarible.protocol.erc20.core.misc.addIndexerIn
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.EntityEventListeners
 import com.rarible.protocol.erc20.core.model.Erc20Balance
@@ -57,15 +56,15 @@ class Erc20EventReduceService(
             try {
                 events
                     .mapNotNull {
-                        val eventTimeMarks = it.eventTimeMarks?.addIn() ?: run {
-                            logger.warn("EventTimeMarks not found in Erc20Event")
-                            erc20OffchainEventMarks()
-                        }
-                        erc20EventConverter.convert(it.record.asEthereumLogRecord(), eventTimeMarks)
+                        erc20EventConverter.convert(
+                            it.record.asEthereumLogRecord(),
+                            it.eventTimeMarks.addIndexerIn()
+                        )
                     }
                     .let { delegate.reduceAll(it) }
             } catch (ex: Exception) {
-                val locations = events.map { it.record.asEthereumLogRecord() }.map { "${it.transactionHash}:${it.logIndex}:${it.minorLogIndex}" }
+                val locations = events.map { it.record.asEthereumLogRecord() }
+                    .map { "${it.transactionHash}:${it.logIndex}:${it.minorLogIndex}" }
                 logger.error("Error on entity events: $locations", ex)
                 if (properties.featureFlags.skipBsonMaximumSize && ex is BsonMaximumSizeExceededException) {
                     logger.warn("Skipped BsonMaximumSizeExceededException", ex)

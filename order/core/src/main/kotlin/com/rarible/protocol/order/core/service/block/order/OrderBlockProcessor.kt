@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono
 @Deprecated("Should be removed after switch to the new scanner")
 class OrderBlockProcessor(
     private val orderEthereumEventHandler: OrderEthereumEventHandler,
-    private val poolEthereumEventHandler: PoolEthereumEventHandler
+    private val poolEthereumEventHandler: PoolEthereumEventHandler,
 ) : LogEventsListener {
 
     override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> {

@@ -1,6 +1,7 @@
 package com.rarible.protocol.erc20.listener.service.reconciliation
 
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.test.data.randomBoolean
 import com.rarible.protocol.erc20.core.randomReversedEthereumLogRecord
 import com.rarible.protocol.erc20.core.repository.data.randomBalance
@@ -33,7 +34,7 @@ class FullReduceReconciliationListenerTest {
 
         listener.onLogRecordEvent(
             groupId = "test",
-            logRecordEvents = listOf(event1, event2, event3, event4).map { LogRecordEvent(it, randomBoolean()) }
+            logRecordEvents = listOf(event1, event2, event3, event4).map { LogRecordEvent(it, randomBoolean(), EventTimeMarks("test")) }
         )
         coVerify(exactly = 1) {
             reducer.update(balanceEvent1.token, balanceEvent1.owner)

@@ -2,7 +2,7 @@ package com.rarible.protocol.order.core.service.block.handler
 
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.misc.addIn
+import com.rarible.protocol.order.core.misc.addIndexerIn
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.PoolHistory
@@ -26,10 +26,7 @@ class PoolEthereumEventHandler(
         orderUpdateService.update(event.hash, eventTimeMarks)
 
         event.events.forEach {
-            val ammEventTimeMarks = it.eventTimeMarks?.addIn() ?: run {
-                logger.warn("EventTimeMarks not found in Pool event")
-                orderOffchainEventMarks()
-            }
+            val ammEventTimeMarks = it.eventTimeMarks.addIndexerIn()
             poolOrderEventListener.onPoolEvent(it.record.asEthereumLogRecord(), ammEventTimeMarks)
         }
     }

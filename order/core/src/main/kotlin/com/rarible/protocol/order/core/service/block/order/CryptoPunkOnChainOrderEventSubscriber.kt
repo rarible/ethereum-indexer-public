@@ -3,9 +3,8 @@ package com.rarible.protocol.order.core.service.block.order
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.misc.addIn
+import com.rarible.protocol.order.core.misc.addIndexerIn
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
 import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OnChainOrder
@@ -34,10 +33,7 @@ class CryptoPunkOnChainOrderEventSubscriber(
         val onChainOrder = record.data as? OnChainOrder ?: return
         val type = onChainOrder.make.type as? CryptoPunksAssetType ?: return
 
-        val eventTimeMarks = event.eventTimeMarks?.addIn() ?: run {
-            logger.warn("EventTimeMarks not found in CryptoPunkOnChainOrder event")
-            orderOffchainEventMarks()
-        }
+        val eventTimeMarks = event.eventTimeMarks.addIndexerIn()
 
         val token = type.token
         val tokenId = type.tokenId
