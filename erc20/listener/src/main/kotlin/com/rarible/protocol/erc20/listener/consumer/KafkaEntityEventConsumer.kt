@@ -12,7 +12,7 @@ import com.rarible.core.daemon.sequential.ConsumerBatchWorker
 import com.rarible.core.daemon.sequential.ConsumerWorkerHolder
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
-import com.rarible.protocol.erc20.core.misc.addIn
+import com.rarible.protocol.erc20.core.misc.addIndexerIn
 import io.micrometer.core.instrument.MeterRegistry
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import scalether.domain.Address
@@ -83,7 +83,7 @@ class KafkaEntityEventConsumer(
                 LogRecordEvent(
                     record = it.record,
                     reverted = it.reverted,
-                    eventTimeMarks = it.eventTimeMarks.addIn()
+                    eventTimeMarks = it.eventTimeMarks.addIndexerIn()
                 )
             })
         }

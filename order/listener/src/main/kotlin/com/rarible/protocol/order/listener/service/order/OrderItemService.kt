@@ -5,7 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.toModel
-import com.rarible.protocol.order.core.misc.addIn
+import com.rarible.protocol.order.core.misc.addIndexerIn
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.Platform
@@ -23,7 +23,7 @@ class OrderItemService(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun onItemChanged(event: NftItemUpdateEventDto) {
-        val eventTimeMarks = event.eventTimeMarks?.toModel()?.addIn() ?: run {
+        val eventTimeMarks = event.eventTimeMarks?.toModel()?.addIndexerIn() ?: run {
             logger.warn("EventTimeMarks not found in NftItemUpdateEventDto")
             orderOffchainEventMarks()
         }

@@ -2,9 +2,8 @@ package com.rarible.protocol.order.core.service.block.nonce
 
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
-import com.rarible.protocol.order.core.misc.addIn
+import com.rarible.protocol.order.core.misc.addIndexerIn
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.service.ChangeCounterListener
 import com.rarible.protocol.order.core.service.ContractsProvider
@@ -42,7 +41,7 @@ class NonceEventSubscriber(
         nonceHistories.forEach { pair ->
             val history = pair.first
             val event = pair.second
-            val eventTimeMarks = event.eventTimeMarks.addIn()
+            val eventTimeMarks = event.eventTimeMarks.addIndexerIn()
             changeNonceListener.onNewMakerNonce(
                 history.source.toPlatform(),
                 history.maker,

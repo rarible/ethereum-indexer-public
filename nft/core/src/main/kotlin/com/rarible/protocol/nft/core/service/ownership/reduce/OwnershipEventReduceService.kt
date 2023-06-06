@@ -8,7 +8,7 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
-import com.rarible.protocol.nft.core.misc.addIn
+import com.rarible.protocol.nft.core.misc.addIndexerIn
 import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipEvent
@@ -47,7 +47,7 @@ class OwnershipEventReduceService(
             )
         ) {
             events
-                .flatMap { eventConverter.convert(it.record.asEthereumLogRecord(), it.eventTimeMarks.addIn()) }
+                .flatMap { eventConverter.convert(it.record.asEthereumLogRecord(), it.eventTimeMarks.addIndexerIn()) }
                 .filter { event ->
                     OwnershipId.parseId(event.entityId)
                         .let { ItemId(it.token, it.tokenId) } !in skipTransferContractTokens

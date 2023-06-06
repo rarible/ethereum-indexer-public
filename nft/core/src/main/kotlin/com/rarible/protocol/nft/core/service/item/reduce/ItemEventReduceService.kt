@@ -7,7 +7,7 @@ import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
-import com.rarible.protocol.nft.core.misc.addIn
+import com.rarible.protocol.nft.core.misc.addIndexerIn
 import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
@@ -46,7 +46,7 @@ class ItemEventReduceService(
                     .mapNotNull {
                         itemEventConverter.convert(
                             it.record.asEthereumLogRecord(),
-                            it.eventTimeMarks.addIn()
+                            it.eventTimeMarks.addIndexerIn()
                         )
                     }
                     .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }

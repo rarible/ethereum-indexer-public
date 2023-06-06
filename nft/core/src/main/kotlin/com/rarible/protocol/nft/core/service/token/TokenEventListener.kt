@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.core.service.token
 
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.nft.core.converters.dto.CollectionDtoConverter
-import com.rarible.protocol.nft.core.misc.addOut
+import com.rarible.protocol.nft.core.misc.addIndexerOut
 import com.rarible.protocol.nft.core.misc.nftOffchainEventMarks
 import com.rarible.protocol.nft.core.misc.toDto
 import com.rarible.protocol.nft.core.model.Token
@@ -25,7 +25,7 @@ class TokenEventListener(
             eventId = token.lastEventId ?: UUID.randomUUID().toString(),
             id = token.id,
             collection = CollectionDtoConverter.convert(token),
-            eventTimeMarks = (event?.eventTimeMarks ?: nftOffchainEventMarks()).addOut().toDto()
+            eventTimeMarks = (event?.eventTimeMarks ?: nftOffchainEventMarks()).addIndexerOut().toDto()
         )
         eventPublisher.publish(updateEvent)
     }
