@@ -145,6 +145,7 @@ class SeaportEventConverter(
                 found = isTargetOrder && advancedOrder.signature == Binary.empty()
                 if (found) break
             }
+            logger.info("Search order hash result $found, tx=$txHash, logIndex=${logIndex}, totalLogs=$totalLogs, index=$index")
             found
         }
     }
