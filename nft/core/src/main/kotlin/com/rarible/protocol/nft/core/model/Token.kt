@@ -42,6 +42,15 @@ data class Token(
         return copy(dbUpdatedAt = Instant.now())
     }
 
+    fun hasChanges(token: Token): Boolean {
+        return standard != token.standard
+                || name != token.name
+                || symbol != token.symbol
+                || features != token.features
+                || owner != token.owner
+                || scam != token.scam
+    }
+
     companion object {
         fun empty() = Token(
             id = Address.ZERO(),

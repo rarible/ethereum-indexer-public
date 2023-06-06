@@ -105,9 +105,16 @@ class TokenRegistrationService(
         val token = tokenRepository.findById(address).awaitFirstOrNull()
         return if (token != null) {
             val updatedToken = fetchToken(address).awaitFirstOrNull()
-            if (updatedToken != null && token != updatedToken) {
+            if (updatedToken != null && token.hasChanges(updatedToken)) {
                 logger.info("Token id=$address was overwritten: $updatedToken")
-                tokenRepository.save(updatedToken.copy(version = token.version)).awaitFirst()
+                tokenRepository.save(token.copy(
+                    standard = updatedToken.standard,
+                    name = updatedToken.name,
+                    symbol = updatedToken.symbol,
+                    features = updatedToken.features,
+                    owner = updatedToken.owner,
+                    scam = updatedToken.scam
+                )).awaitFirst()
             } else {
                 updatedToken
             }
