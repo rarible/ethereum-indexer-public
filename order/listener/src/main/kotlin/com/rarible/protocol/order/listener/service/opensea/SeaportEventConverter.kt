@@ -4,6 +4,7 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.common.keccak256
 import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.seaport.v1.SeaportV1
+import com.rarible.protocol.contracts.exchange.seaport.v1_4.SeaportV1_4
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
@@ -127,7 +128,8 @@ class SeaportEventConverter(
         val advancedOrders = getMethodInput(
             event.log(),
             transaction,
-            MATCH_ADVANCED_ORDERS_SIGNATURE_ID
+            MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1,
+            MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1_4,
         ).map { SeaportOrderParser.parseAdvancedOrders(it) }.flatten()
 
         return if (advancedOrders.size == totalLogs) {
@@ -271,10 +273,16 @@ class SeaportEventConverter(
         val CANCEL_SIGNATURE_ID = CANCEL_SIGNATURE.id()
 
         @Suppress("HasPlatformType")
-        val MATCH_ADVANCED_ORDERS_SIGNATURE = SeaportV1.matchAdvancedOrdersSignature()
+        val MATCH_ADVANCED_ORDERS_SIGNATURE_V1 = SeaportV1.matchAdvancedOrdersSignature()
 
         @Suppress("HasPlatformType")
-        val MATCH_ADVANCED_ORDERS_SIGNATURE_ID = MATCH_ADVANCED_ORDERS_SIGNATURE.id()
+        val MATCH_ADVANCED_ORDERS_SIGNATURE_V1_4 = SeaportV1_4.matchAdvancedOrdersSignature()
+
+        @Suppress("HasPlatformType")
+        val MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1 = MATCH_ADVANCED_ORDERS_SIGNATURE_V1.id()
+
+        @Suppress("HasPlatformType")
+        val MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1_4 = MATCH_ADVANCED_ORDERS_SIGNATURE_V1_4.id()
     }
 
 }
