@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.service.block.nonce
 
-import com.rarible.blockchain.scanner.ethereum.reduce.CompositeEntityEventListener
-import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
+import com.rarible.blockchain.scanner.framework.listener.AbstractLogRecordEventListener
+import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.EntityEventListeners
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component
 @Component
 class NonceEntityEventListener(
     @Qualifier("nonce-event-subscriber")
-    nonceEventSubscribers: List<EntityEventsSubscriber>,
+    nonceEventSubscribers: List<LogRecordEventSubscriber>,
     properties: OrderIndexerProperties,
     environmentInfo: ApplicationEnvironmentInfo
-) : CompositeEntityEventListener(
-    entityEventsSubscribers = nonceEventSubscribers,
+) : AbstractLogRecordEventListener(
+    subscribers = nonceEventSubscribers,
     id = EntityEventListeners.orderHistoryListenerId(environmentInfo.name, properties.blockchain),
-    subscriberGroup = SubscriberGroups.NONCE_HISTORY
+    groupId = SubscriberGroups.NONCE_HISTORY
 )

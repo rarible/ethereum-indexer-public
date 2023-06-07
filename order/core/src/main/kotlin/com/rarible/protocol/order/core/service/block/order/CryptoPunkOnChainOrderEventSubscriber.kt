@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.service.block.order
 
-import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.addIndexerIn
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
@@ -20,11 +20,11 @@ import org.springframework.stereotype.Component
 class CryptoPunkOnChainOrderEventSubscriber(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
-) : EntityEventsSubscriber {
+) : LogRecordEventSubscriber {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+    override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
         events.asSequence().forEach { handleEvent(it) }
     }
 

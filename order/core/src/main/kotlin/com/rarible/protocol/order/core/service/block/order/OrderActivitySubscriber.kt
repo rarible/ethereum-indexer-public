@@ -1,8 +1,8 @@
 package com.rarible.protocol.order.core.service.block.order
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
@@ -21,10 +21,10 @@ import org.springframework.stereotype.Component
 class OrderActivitySubscriber(
     private val eventPublisher: ProtocolOrderPublisher,
     private val orderActivityConverter: OrderActivityConverter
-) : EntityEventsSubscriber {
+) : LogRecordEventSubscriber {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+    override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
         events.forEach { onEvent(it.record.asEthereumLogRecord(), it.reverted) }
     }
 

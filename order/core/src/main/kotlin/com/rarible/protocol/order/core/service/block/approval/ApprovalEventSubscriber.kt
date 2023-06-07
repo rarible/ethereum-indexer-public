@@ -1,8 +1,8 @@
 package com.rarible.protocol.order.core.service.block.approval
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
 import com.rarible.core.common.EventTimeMarks
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.addIndexerIn
@@ -22,9 +22,9 @@ class ApprovalEventSubscriber(
     private val orderUpdateService: OrderUpdateService,
     private val approveService: ApproveService,
     private val properties: OrderIndexerProperties
-) : EntityEventsSubscriber {
+) : LogRecordEventSubscriber {
 
-    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+    override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
         for (event in events) {
             val eventTimeMarks = event.eventTimeMarks.addIndexerIn()
             reduceOrders(event.record.asEthereumLogRecord(), eventTimeMarks)

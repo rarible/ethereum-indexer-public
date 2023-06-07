@@ -2,8 +2,8 @@ package com.rarible.protocol.order.core.service.block.auction
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
 import com.rarible.protocol.order.core.converters.dto.AuctionActivityConverter
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.AuctionHistory
@@ -21,11 +21,11 @@ class AuctionEventSubscriber(
     private val auctionReduceService: AuctionReduceService,
     private val eventPublisher: ProtocolAuctionPublisher,
     private val auctionActivityConverter: AuctionActivityConverter
-) : EntityEventsSubscriber {
+) : LogRecordEventSubscriber {
 
     val logger: Logger = LoggerFactory.getLogger(javaClass)
 
-    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+    override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
         val auctionEvents = events
             .map { event -> event.record.asEthereumLogRecord() }
             .filter { log -> log.data is AuctionHistory }
