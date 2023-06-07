@@ -10,7 +10,7 @@ import com.rarible.protocol.erc20.core.repository.data.randomErc20Deposit
 import com.rarible.protocol.erc20.core.repository.data.randomErc20IncomeTransfer
 import com.rarible.protocol.erc20.core.repository.data.randomErc20OutcomeTransfer
 import com.rarible.protocol.erc20.core.repository.data.randomLogEvent
-import com.rarible.protocol.erc20.listener.service.balance.BalanceReduceState
+import com.rarible.protocol.erc20.listener.service.balance.BalanceReduceTaskHandler
 import com.rarible.protocol.erc20.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.erc20.listener.test.IntegrationTest
 import kotlinx.coroutines.flow.collect
@@ -32,7 +32,7 @@ class ReduceErc20BalanceTaskHandlerIt : AbstractIntegrationTest() {
     lateinit var balanceRepository: Erc20BalanceRepository
 
     @Autowired
-    lateinit var handler: ReduceErc20BalanceTaskHandler
+    lateinit var handler: BalanceReduceTaskHandler
 
     @Test
     fun `reduce token balances - from beginning`() = runBlocking<Unit> {
@@ -78,7 +78,7 @@ class ReduceErc20BalanceTaskHandlerIt : AbstractIntegrationTest() {
 
         saveAll(logEvent1, logEvent2, logEvent3, logEvent4)
 
-        handler.runLongTask(BalanceReduceState(token, owner1), token.prefixed()).collect()
+        handler.runLongTask(BalanceId(token, owner1), token.prefixed()).collect()
 
         val balance1 = balanceRepository.get(BalanceId(token, owner1))
         val balance2 = balanceRepository.get(BalanceId(token, owner2))!!

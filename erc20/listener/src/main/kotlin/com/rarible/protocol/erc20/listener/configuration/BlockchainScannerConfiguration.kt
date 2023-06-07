@@ -5,8 +5,6 @@ import com.rarible.blockchain.scanner.ethereum.EnableEthereumScanner
 import com.rarible.blockchain.scanner.ethereum.configuration.EthereumScannerProperties
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.ethereum.listener.log.LogEventDescriptor
-import com.rarible.ethereum.listener.log.LogEventDescriptorHolder
 import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
 import com.rarible.protocol.erc20.listener.consumer.KafkaEntityEventConsumer
 import io.micrometer.core.instrument.MeterRegistry
@@ -49,10 +47,4 @@ class BlockchainScannerConfiguration(
         ).apply { start(entityEventListener) }
     }
 
-    //TODO: Remove this workaround after full migrate to blockchain scanner v2
-    @Bean
-    @ConditionalOnMissingBean(LogEventDescriptorHolder::class)
-    fun logEventDescriptorHolder(list: List<LogEventDescriptor<*>>): LogEventDescriptorHolder {
-        return LogEventDescriptorHolder(list)
-    }
 }

@@ -9,7 +9,6 @@ import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
 import com.rarible.protocol.erc20.core.misc.addIn
 import com.rarible.protocol.erc20.core.misc.erc20OffchainEventMarks
 import com.rarible.protocol.erc20.core.model.BalanceId
-import com.rarible.protocol.erc20.core.model.EntityEventListeners
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20MarkedEvent
 import com.rarible.protocol.erc20.core.model.SubscriberGroup
@@ -29,7 +28,9 @@ class Erc20EventReduceService(
     private val properties: Erc20IndexerProperties,
     environmentInfo: ApplicationEnvironmentInfo,
 ) : EntityEventListener {
+
     private val logger = LoggerFactory.getLogger(javaClass)
+    private val env = environmentInfo.name
 
     private val delegate = object : EventReduceService<BalanceId, Erc20MarkedEvent, Erc20Balance>(
         erc20BalanceService,
@@ -42,7 +43,7 @@ class Erc20EventReduceService(
         }
     }
 
-    override val id: String = EntityEventListeners.erc20HistoryListenerId(environmentInfo.name, properties.blockchain)
+    override val id: String = "${env}.protocol.${properties.blockchain.value}.erc20.token.history.listener"
 
     override val subscriberGroup: SubscriberGroup = SubscriberGroups.ERC20_HISTORY
 
