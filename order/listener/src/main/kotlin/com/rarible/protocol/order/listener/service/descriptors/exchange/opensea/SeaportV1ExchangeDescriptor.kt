@@ -52,6 +52,7 @@ class SeaportV1ExchangeDescriptor(
         transaction: Transaction
     ): List<OrderSideMatch> {
         val adhoc = seaportEventConverter.isAdhocOrderEvent(event, index, totalLogs, transaction)
+        logger.info("Event ${event.log().logIndex()} in tx=${event.log().transactionHash()} is adhoc: $adhoc")
         return if (adhoc) {
             if (featureFlags.markIgnoredEvent) sideMatched.map { it.copy(ignoredEvent = true) } else emptyList()
         } else sideMatched
