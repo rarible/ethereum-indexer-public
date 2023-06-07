@@ -81,7 +81,9 @@ internal class FixStandardJobIt : AbstractIntegrationTest() {
         erc721.__ERC721Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()
 
         Wait.waitAssert {
-            assertThat(tokenRepository.findById(erc721.address()).awaitFirstOrNull()).isNotNull
+            val token = tokenRepository.findById(erc721.address()).awaitFirstOrNull()
+            assertThat(token).isNotNull
+            assertThat(token?.version).isEqualTo(1)
         }
 
         // set NONE standard
@@ -89,6 +91,7 @@ internal class FixStandardJobIt : AbstractIntegrationTest() {
         tokenRepository.save(
             token.copy(
                 standard = TokenStandard.NONE,
+                standardRetries = null,
                 dbUpdatedAt = Instant.now().minusSeconds(60),
                 features = emptySet()
             )

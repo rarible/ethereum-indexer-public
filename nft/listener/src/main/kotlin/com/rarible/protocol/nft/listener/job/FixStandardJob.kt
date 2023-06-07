@@ -39,7 +39,7 @@ class FixStandardJob(
             val addresses = found.mapNotNull { token ->
                 val updated = tokenService.update(token.id)
                 incrementMetric(updated)
-                incrementRetry(updated ?: token)
+                tokenRepository.incrementRetry(token.id)
                 if (updated?.standard?.isNotIgnorable() == true) {
                     updated.id
                 } else {
@@ -52,11 +52,6 @@ class FixStandardJob(
                 logger.info("There are no non-ignorable tokens in the fixed list")
             }
         }
-    }
-
-    suspend fun incrementRetry(token: Token) {
-        val current = token.standardRetries ?: 0
-        tokenRepository.save(token.copy(standardRetries = current + 1)).awaitSingle()
     }
 
     suspend fun incrementMetric(updated: Token?) {

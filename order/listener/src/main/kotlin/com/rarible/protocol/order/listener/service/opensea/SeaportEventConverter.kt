@@ -4,6 +4,7 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.common.keccak256
 import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.seaport.v1.SeaportV1
+import com.rarible.protocol.contracts.exchange.seaport.v1_4.SeaportV1_4
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
@@ -54,6 +55,12 @@ class SeaportEventConverter(
     ): List<OrderSideMatch> {
         val spentItems = SeaportOrderParser.convert(event.offer())
         val receivedItems = SeaportOrderParser.convert(event.consideration())
+        logger.info(
+            "Event ${event.log().logIndex()}" +
+                " in tx=${event.log().transactionHash()}" +
+                " for order ${Word.apply(event.orderHash())}" +
+                " contains spentItems: ${spentItems} and receivedItems: ${receivedItems}"
+        )
         val make = convertSpentItems(spentItems) ?: return emptyList()
         val take = convertReceivedItems(receivedItems) ?: return emptyList()
         val maker = event.offerer()
@@ -127,7 +134,9 @@ class SeaportEventConverter(
         val advancedOrders = getMethodInput(
             event.log(),
             transaction,
-            MATCH_ADVANCED_ORDERS_SIGNATURE_ID
+            getTrace = false,
+            MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1,
+            MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1_4,
         ).map { SeaportOrderParser.parseAdvancedOrders(it) }.flatten()
 
         return if (advancedOrders.size == totalLogs) {
@@ -145,6 +154,7 @@ class SeaportEventConverter(
                 found = isTargetOrder && advancedOrder.signature == Binary.empty()
                 if (found) break
             }
+            logger.info("Search order hash result $found, tx=$txHash, logIndex=${logIndex}, totalLogs=$totalLogs, index=$index")
             found
         }
     }
@@ -178,7 +188,7 @@ class SeaportEventConverter(
         totalLogs: Int,
         date: Instant
     ): List<OrderCancel> {
-        val inputs = getMethodInput(event.log(), transaction, CANCEL_SIGNATURE_ID)
+        val inputs = getMethodInput(event.log(), transaction, getTrace = true, CANCEL_SIGNATURE_ID)
         val orderHash = Word.apply(event.orderHash())
         val assets = if (inputs.isNotEmpty()) {
             val components = inputs.map { CANCEL_SIGNATURE.`in`().decode(it, 4).value().toList() }.flatten()
@@ -246,17 +256,22 @@ class SeaportEventConverter(
         return offererItem.withAmount(totalValue).toAsset()
     }
 
-    private suspend fun getMethodInput(log: Log, transaction: Transaction, methodId: Binary): List<Binary> {
-        return if (methodId == transaction.input().methodSignatureId()) {
+    suspend fun getMethodInput(
+        log: Log,
+        transaction: Transaction,
+        getTrace: Boolean,
+        vararg methodId: Binary
+    ): List<Binary> {
+        return if (transaction.input().methodSignatureId() in methodId) {
             listOf(transaction.input())
-        } else {
+        } else if (getTrace) {
             traceCallService.safeFindAllRequiredCallInputs(
                 txHash = transaction.hash(),
                 txInput = transaction.input(),
                 to = log.address(),
-                ids = arrayOf(methodId)
+                ids = methodId
             )
-        }
+        } else emptyList()
     }
 
     private data class OrderAssets(val make: Asset, val take: Asset)
@@ -270,10 +285,16 @@ class SeaportEventConverter(
         val CANCEL_SIGNATURE_ID = CANCEL_SIGNATURE.id()
 
         @Suppress("HasPlatformType")
-        val MATCH_ADVANCED_ORDERS_SIGNATURE = SeaportV1.matchAdvancedOrdersSignature()
+        val MATCH_ADVANCED_ORDERS_SIGNATURE_V1 = SeaportV1.matchAdvancedOrdersSignature()
 
         @Suppress("HasPlatformType")
-        val MATCH_ADVANCED_ORDERS_SIGNATURE_ID = MATCH_ADVANCED_ORDERS_SIGNATURE.id()
+        val MATCH_ADVANCED_ORDERS_SIGNATURE_V1_4 = SeaportV1_4.matchAdvancedOrdersSignature()
+
+        @Suppress("HasPlatformType")
+        val MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1 = MATCH_ADVANCED_ORDERS_SIGNATURE_V1.id()
+
+        @Suppress("HasPlatformType")
+        val MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1_4 = MATCH_ADVANCED_ORDERS_SIGNATURE_V1_4.id()
     }
 
 }

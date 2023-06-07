@@ -42,7 +42,6 @@ class TokenProvider(
     private val tokenByteCodeProvider: TokenByteCodeProvider,
     private val tokeByteCodeFilters: List<TokeByteCodeFilter>
 ) {
-
     fun fetchToken(address: Address): Mono<Token> {
         val nft = IERC721(address, sender)
         val ownable = Ownable(address, sender)
