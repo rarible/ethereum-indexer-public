@@ -68,8 +68,6 @@ internal class SeaportExchangeDescriptorTest {
             .returns(BigDecimal("11"))
         coEvery { prizeNormalizer.normalize(any()) }
             .returns(BigDecimal("12"))
-        coEvery { featureFlags.findIgnoredEvent }
-            .returns(false)
     }
 
     @Test
