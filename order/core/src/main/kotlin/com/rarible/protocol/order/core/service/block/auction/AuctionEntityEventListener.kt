@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.service.block.auction
 
-import com.rarible.blockchain.scanner.ethereum.reduce.CompositeEntityEventListener
-import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
+import com.rarible.blockchain.scanner.framework.listener.AbstractLogRecordEventListener
+import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.protocol.order.core.configuration.EnableAuction
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -14,11 +14,11 @@ import org.springframework.stereotype.Component
 @EnableAuction
 class AuctionEntityEventListener(
     @Qualifier("auction-event-subscriber")
-    auctionEventSubscribers: List<EntityEventsSubscriber>,
+    auctionEventSubscribers: List<LogRecordEventSubscriber>,
     properties: OrderIndexerProperties,
     environmentInfo: ApplicationEnvironmentInfo
-) : CompositeEntityEventListener(
-    entityEventsSubscribers = auctionEventSubscribers,
+) : AbstractLogRecordEventListener(
+    subscribers = auctionEventSubscribers,
     id = EntityEventListeners.orderHistoryListenerId(environmentInfo.name, properties.blockchain),
-    subscriberGroup = SubscriberGroups.AUCTION_HISTORY
+    groupId = SubscriberGroups.AUCTION_HISTORY
 )

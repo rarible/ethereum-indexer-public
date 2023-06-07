@@ -1,12 +1,14 @@
 package com.rarible.protocol.order.listener.configuration
 
 import com.rarible.blockchain.scanner.configuration.KafkaProperties
+import com.rarible.blockchain.scanner.consumer.LogRecordConsumerWorkerFactory
+import com.rarible.blockchain.scanner.consumer.kafka.KafkaLogRecordConsumerWorkerFactory
+import com.rarible.blockchain.scanner.consumer.kafka.KafkaLogRecordEventConsumer
 import com.rarible.blockchain.scanner.ethereum.EnableEthereumScanner
 import com.rarible.blockchain.scanner.ethereum.configuration.EthereumScannerProperties
-import com.rarible.blockchain.scanner.ethereum.consumer.KafkaEntityEventConsumer
-import com.rarible.blockchain.scanner.ethereum.consumer.factory.ConsumerWorkerFactory
-import com.rarible.blockchain.scanner.ethereum.consumer.factory.DefaultConsumerWorkerFactory
-import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
+import com.rarible.blockchain.scanner.ethereum.consumer.EthereumLogRecordMapper
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogRecordEvent
+import com.rarible.blockchain.scanner.framework.listener.LogRecordEventListener
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.ethereum.listener.log.LogEventDescriptorHolder
@@ -27,29 +29,35 @@ class BlockchainScannerV2Configuration(
     private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
     @Bean
-    fun consumerWorkerFactory(): ConsumerWorkerFactory {
-        return DefaultConsumerWorkerFactory(
+    fun consumerWorkerFactory(): LogRecordConsumerWorkerFactory {
+        return KafkaLogRecordConsumerWorkerFactory(
             properties = KafkaProperties(
                 brokerReplicaSet = commonProperties.kafkaReplicaSet,
             ),
             daemonProperties = listenerProperties.eventConsumerWorker,
             meterRegistry = meterRegistry,
-            ignoreContracts = emptySet(),
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name,
             blockchain = commonProperties.blockchain.value,
             service = ethereumScannerProperties.service,
-            workerCount = listenerProperties.logConsumeWorkerCount
         )
     }
 
     @Bean
-    @ConditionalOnMissingBean(KafkaEntityEventConsumer::class)
+    @ConditionalOnMissingBean(KafkaLogRecordConsumerWorkerFactory::class)
     fun entityEventConsumer(
-        entityEventListener: List<EntityEventListener>,
-        consumerWorkerFactory: ConsumerWorkerFactory
-    ): KafkaEntityEventConsumer {
-        return KafkaEntityEventConsumer(consumerWorkerFactory).apply { start(entityEventListener) }
+        logRecordEventListeners: List<LogRecordEventListener>,
+        consumerWorkerFactory: LogRecordConsumerWorkerFactory
+    ): KafkaLogRecordEventConsumer {
+        return KafkaLogRecordEventConsumer(consumerWorkerFactory).apply {
+            start(
+                logRecordListeners = logRecordEventListeners,
+                logRecordType = EthereumLogRecordEvent::class.java,
+                logRecordMapper = EthereumLogRecordMapper,
+                logRecordFilters = emptyList(),
+                workerCount = listenerProperties.logConsumeWorkerCount,
+            )
+        }
     }
 
     //TODO: Remove this workaround after full migrate to blockchain scanner v2
