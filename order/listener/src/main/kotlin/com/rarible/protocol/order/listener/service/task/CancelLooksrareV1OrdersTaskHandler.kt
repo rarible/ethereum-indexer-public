@@ -4,6 +4,7 @@ import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.dto.offchainEventMark
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderState
@@ -65,7 +66,8 @@ class CancelLooksrareV1OrdersTaskHandler(
             .forEach {
                 orderStateRepository.save(OrderState(id = it.hash, canceled = true))
                 cleanOrderVersionSignature(it.hash)
-                orderUpdateService.update(it.hash)
+                val eventTimeMarks = offchainEventMark("indexer-out_order")
+                orderUpdateService.update(it.hash, eventTimeMarks)
                 val updatedOrder = orderRepository.findById(it.hash)
                 logger.info("Canceled LookRare order ${updatedOrder?.hash}, status=${updatedOrder?.status}), signature=${updatedOrder?.signature}")
             }
