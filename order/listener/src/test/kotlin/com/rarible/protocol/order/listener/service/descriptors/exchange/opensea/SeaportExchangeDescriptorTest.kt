@@ -1,9 +1,13 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.OrderUsdValue
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
@@ -20,11 +24,9 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.response.Transaction
 import java.math.BigDecimal
 import java.time.Instant
@@ -110,8 +112,23 @@ internal class SeaportExchangeDescriptorTest {
             ),
             data = data
         )
-        val matches = descriptor.convert(log, transaction, date.epochSecond, 1, 3).toFlux().collectList().awaitSingle()
-        println(matches)
+
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
+            timestamp = date.epochSecond,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
+            index = 1,
+            total = 3,
+        )
+        descriptor
+            .getEthereumEventRecords(ethBlock, ethLog)
+            .map { it.asEthereumLogRecord().data as OrderSideMatch }
         verify(exactly = 1) { metrics.onOrderEventHandled(Platform.OPEN_SEA, "match") }
 
     }

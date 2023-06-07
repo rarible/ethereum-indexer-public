@@ -1,9 +1,13 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswap
 
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.PoolDeltaUpdate
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
@@ -11,11 +15,9 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
@@ -48,7 +50,24 @@ internal class SudoSwapDeltaUpdatePairDescriptorTest {
             ),
             "0000000000000000000000000000000000000000000000000e30a65522d64000"
         )
-        val update = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
+            timestamp = date.epochSecond,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
+            index = 0,
+            total = 1,
+        )
+        val update = descriptor
+            .getEthereumEventRecords(ethBlock, ethLog)
+            .map { it.asEthereumLogRecord().data as PoolDeltaUpdate }
+            .single()
+
         Assertions.assertThat(update.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(log.address()))
         Assertions.assertThat(update.newDelta).isEqualTo(BigInteger("1022500000000000000"))
         Assertions.assertThat(update.date).isEqualTo(date)

@@ -63,7 +63,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                     is TokenStandard.ERC721 -> Erc721AssetType(event.collection, event.tokenId)
                     is TokenStandard.ERC1155 -> Erc1155AssetType(event.collection, event.tokenId)
                     null -> {
-                        logger.looksrareError("Can't determine collection standard $collection, tx=${transaction.hash()}")
+                        logger.looksrareError("Can't determine collection standard ${event.collection}, tx=${transaction.hash()}")
                         if (event.amount == EthUInt256.ONE) Erc721AssetType(event.collection, event.tokenId)
                         else Erc1155AssetType(event.collection, event.tokenId)
                     }
