@@ -2,7 +2,7 @@ package com.rarible.protocol.erc20.listener.mongock.mongo
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
-import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.repository.Erc20ApprovalHistoryRepository
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
@@ -27,18 +27,18 @@ class ChangeLog00002HistoryIndexes {
             val indexOps = template.indexOps(it)
             indexOps.ensureIndex(
                 Index()
-                    .on("${LogEvent::data.name}.${Erc20TokenHistory::token.name}", Sort.Direction.ASC)
-                    .on("${LogEvent::data.name}.${Erc20TokenHistory::owner.name}", Sort.Direction.ASC)
-                    .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
-                    .on(LogEvent::logIndex.name, Sort.Direction.ASC)
-                    .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
+                    .on("${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::token.name}", Sort.Direction.ASC)
+                    .on("${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::owner.name}", Sort.Direction.ASC)
+                    .on(ReversedEthereumLogRecord::blockNumber.name, Sort.Direction.ASC)
+                    .on(ReversedEthereumLogRecord::logIndex.name, Sort.Direction.ASC)
+                    .on(ReversedEthereumLogRecord::minorLogIndex.name, Sort.Direction.ASC)
             )
             indexOps.ensureIndex(
                 Index()
-                    .on("${LogEvent::data.name}.${Erc20TokenHistory::token.name}", Sort.Direction.ASC)
-                    .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
-                    .on(LogEvent::logIndex.name, Sort.Direction.ASC)
-                    .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
+                    .on("${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::token.name}", Sort.Direction.ASC)
+                    .on(ReversedEthereumLogRecord::blockNumber.name, Sort.Direction.ASC)
+                    .on(ReversedEthereumLogRecord::logIndex.name, Sort.Direction.ASC)
+                    .on(ReversedEthereumLogRecord::minorLogIndex.name, Sort.Direction.ASC)
             )
             indexOps.ensureIndex(
                 Index()

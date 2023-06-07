@@ -1,10 +1,12 @@
 package com.rarible.protocol.erc20.listener.service.balance
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomString
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
 import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
@@ -78,7 +80,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
 
         prepareStorage(
             walletToken,
-            Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date =  Date(), value = EthUInt256.of(3)),
+            Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = Date(), value = EthUInt256.of(3)),
         )
 
         balanceReduceService.update(walletToken, walletOwner)
@@ -90,10 +92,17 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
     private suspend fun prepareStorage(token: Address, vararg histories: Erc20TokenHistory) {
         histories.forEachIndexed { index, history ->
             historyRepository.save(
-                LogEvent(
-                    data = history, address = token, topic = word(), transactionHash = word(),
-                    status = LogEventStatus.CONFIRMED, blockNumber = 1,
-                    logIndex = 0, minorLogIndex = index, index = 0
+                ReversedEthereumLogRecord(
+                    id = randomString(),
+                    data = history,
+                    address = token,
+                    topic = word(),
+                    transactionHash = randomWord(),
+                    status = EthereumLogStatus.CONFIRMED,
+                    blockNumber = 1,
+                    logIndex = 0,
+                    minorLogIndex = index,
+                    index = 0
                 )
             ).awaitFirst()
         }

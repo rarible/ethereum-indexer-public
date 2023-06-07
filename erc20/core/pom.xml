@@ -37,10 +37,6 @@
         <!-- =============== Rarible-core ================ -->
         <dependency>
             <groupId>com.rarible.core</groupId>
-            <artifactId>rarible-core-reduce</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-kafka</artifactId>
         </dependency>
         <dependency>
@@ -62,14 +58,6 @@
         <dependency>
             <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-converters</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.rarible.ethereum</groupId>
-            <artifactId>rarible-ethereum-listener-log</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.rarible.ethereum</groupId>
-            <artifactId>rarible-ethereum-listener-log-domain</artifactId>
         </dependency>
         <dependency>
             <groupId>com.rarible.core</groupId>

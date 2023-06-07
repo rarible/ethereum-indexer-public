@@ -1,9 +1,9 @@
 package com.rarible.protocol.erc20.core.repository
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.mongo.util.div
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20DepositHistoryLog
@@ -33,39 +33,39 @@ class Erc20TransferHistoryRepository(
     private val template: ReactiveMongoTemplate
 ) {
 
-    fun save(event: LogEvent): Mono<LogEvent> {
+    fun save(event: ReversedEthereumLogRecord): Mono<ReversedEthereumLogRecord> {
         return template.save(event, COLLECTION)
     }
 
     fun findBalanceLogEvents(
         balanceId: BalanceId?,
         fromBlockNumber: Long?
-    ): Flux<LogEvent> {
+    ): Flux<ReversedEthereumLogRecord> {
         val criteria = Criteria()
             .run {
                 balanceId?.let {
-                    and(LogEvent::data / Erc20TokenHistory::token).isEqualTo(it.token)
-                        .and(LogEvent::data / Erc20TokenHistory::owner).isEqualTo(it.owner)
+                    and(ReversedEthereumLogRecord::data / Erc20TokenHistory::token).isEqualTo(it.token)
+                        .and(ReversedEthereumLogRecord::data / Erc20TokenHistory::owner).isEqualTo(it.owner)
                 } ?: this
             }
             .run {
                 fromBlockNumber?.let {
-                    and(LogEvent::blockNumber).gt(it)
+                    and(ReversedEthereumLogRecord::blockNumber).gt(it)
                 } ?: this
             }.confirmed()
 
         val query = Query(criteria).with(LOG_SORT_ASC).cursorBatchSize(BATCH_SIZE)
-        return template.find(query, LogEvent::class.java, COLLECTION)
+        return template.find(query, ReversedEthereumLogRecord::class.java, COLLECTION)
     }
 
-    fun findBalanceLogEventsForToken(token: Address, afterOwner: Address?): Flux<LogEvent> {
-        val criteria = where(LogEvent::data / Erc20TokenHistory::token).isEqualTo(token).run {
+    fun findBalanceLogEventsForToken(token: Address, afterOwner: Address?): Flux<ReversedEthereumLogRecord> {
+        val criteria = where(ReversedEthereumLogRecord::data / Erc20TokenHistory::token).isEqualTo(token).run {
             afterOwner?.let {
-                and(LogEvent::data / Erc20TokenHistory::owner).gt(it)
+                and(ReversedEthereumLogRecord::data / Erc20TokenHistory::owner).gt(it)
             } ?: this
         }.confirmed()
         val query = Query(criteria).with(LOG_SORT_ASC).cursorBatchSize(BATCH_SIZE)
-        return template.find(query, LogEvent::class.java, COLLECTION)
+        return template.find(query, ReversedEthereumLogRecord::class.java, COLLECTION)
     }
 
     fun findOwnerLogEvents(
@@ -96,7 +96,7 @@ class Erc20TransferHistoryRepository(
 
         val query = Query(criteria).with(LOG_SORT_ASC).cursorBatchSize(BATCH_SIZE)
         return template
-            .find(query, LogEvent::class.java, COLLECTION)
+            .find(query, ReversedEthereumLogRecord::class.java, COLLECTION)
             .mapNotNull {
                 when (val logData = it.data) {
                     is Erc20IncomeTransfer -> Erc20IncomeTransferHistoryLog(it, logData)
@@ -108,7 +108,7 @@ class Erc20TransferHistoryRepository(
             }
     }
 
-    fun Criteria.confirmed() = this.and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
+    fun Criteria.confirmed() = this.and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
 
     companion object {
 
@@ -117,16 +117,16 @@ class Erc20TransferHistoryRepository(
         // Default batch = 32, it's better to use bigger size to get all records in single query from cursor
         const val BATCH_SIZE = 100_000
 
-        val DATA_TOKEN = "${LogEvent::data.name}.${Erc20TokenHistory::token.name}"
-        val DATA_OWNER = "${LogEvent::data.name}.${Erc20TokenHistory::owner.name}"
+        val DATA_TOKEN = "${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::token.name}"
+        val DATA_OWNER = "${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::owner.name}"
 
         val LOG_SORT_ASC: Sort = Sort
             .by(
                 DATA_TOKEN,
                 DATA_OWNER,
-                LogEvent::blockNumber.name,
-                LogEvent::logIndex.name,
-                LogEvent::minorLogIndex.name
+                ReversedEthereumLogRecord::blockNumber.name,
+                ReversedEthereumLogRecord::logIndex.name,
+                ReversedEthereumLogRecord::minorLogIndex.name
             )
     }
 }

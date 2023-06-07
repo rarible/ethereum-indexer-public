@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.core.model
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
+import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.ethereum.domain.EthUInt256
 import scalether.domain.Address
 import java.util.Date
