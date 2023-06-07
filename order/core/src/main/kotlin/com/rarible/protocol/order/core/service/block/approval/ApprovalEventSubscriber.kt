@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.service.block.approval
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
 import com.rarible.core.common.EventTimeMarks

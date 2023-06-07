@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.integration
 
-import com.rarible.blockchain.scanner.ethereum.consumer.KafkaEntityEventConsumer
+import com.rarible.blockchain.scanner.consumer.kafka.KafkaLogRecordEventConsumer
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.cache.CacheableMonoEthereum
 import com.rarible.ethereum.sign.service.ERC1271SignService
@@ -86,7 +86,7 @@ class TestPropertiesConfiguration {
 
     @Bean
     @Primary
-    fun testEntityEventConsumer(): KafkaEntityEventConsumer = mockk()
+    fun testEntityEventConsumer(): KafkaLogRecordEventConsumer = mockk()
 
     companion object {
 
