@@ -90,10 +90,6 @@
         </dependency>
         <dependency>
             <groupId>com.rarible.ethereum</groupId>
-            <artifactId>rarible-ethereum-listener-log</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-contract</artifactId>
         </dependency>
 

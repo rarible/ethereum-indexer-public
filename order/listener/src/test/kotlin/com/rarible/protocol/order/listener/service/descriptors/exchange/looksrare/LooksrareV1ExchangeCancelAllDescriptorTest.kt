@@ -2,21 +2,20 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.looksra
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.misc.convert
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
-import scalether.domain.response.Transaction
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
@@ -35,7 +34,6 @@ internal class LooksrareV1ExchangeCancelAllDescriptorTest {
 
     @Test
     fun `should convert cancelAll event`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction>()
         val data = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val log = log(
             listOf(
@@ -44,7 +42,8 @@ internal class LooksrareV1ExchangeCancelAllDescriptorTest {
             ),
             "0000000000000000000000000000000000000000000000000000000000000003"
         )
-        val cancels = descriptor.convert(log, transaction, data.epochSecond, 0, 0).toFlux().collectList().awaitFirst()
+        val cancels = descriptor.convert<ChangeNonceHistory>(log, Instant.now().epochSecond, 0, 1)
+
         assertThat(cancels).hasSize(1)
         assertThat(cancels.single().maker).isEqualTo(Address.apply("0x47921676a46ccfe3d80b161c7b4ddc8ed9e716b6"))
         assertThat(cancels.single().newNonce).isEqualTo(EthUInt256.of(3))

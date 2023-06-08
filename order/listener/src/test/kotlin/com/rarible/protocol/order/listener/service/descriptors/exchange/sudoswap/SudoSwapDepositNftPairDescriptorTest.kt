@@ -1,10 +1,14 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswap
 
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.PoolNftDeposit
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.core.service.ContractsProvider
@@ -13,11 +17,9 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.math.BigInteger
@@ -54,7 +56,24 @@ internal class SudoSwapDepositNftPairDescriptorTest {
             ),
             "0x000000000000000000000000b4d6af08afb69fe9d190731ab4fbaf9f899ee46f"
         )
-        val deposit = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
+            timestamp = date.epochSecond,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
+            index = 0,
+            total = 1,
+        )
+        val deposit = descriptor
+            .getEthereumEventRecords(ethBlock, ethLog)
+            .map { it.asEthereumLogRecord().data as PoolNftDeposit }
+            .single()
+
         Assertions.assertThat(deposit.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(Address.apply("0xB4d6af08Afb69FE9D190731aB4FbAF9F899Ee46f")))
         Assertions.assertThat(deposit.collection).isEqualTo(Address.apply("0x1895C2da9155d7720a7957dA06Ce898A6a29d0A7"))
         Assertions.assertThat(deposit.tokenIds).containsExactlyInAnyOrder(

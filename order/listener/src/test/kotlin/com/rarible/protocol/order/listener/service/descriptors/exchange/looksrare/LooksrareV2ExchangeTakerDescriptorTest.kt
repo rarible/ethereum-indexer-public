@@ -1,12 +1,16 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.looksrare
 
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.contract.model.Erc20Token
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.randomBidOrderUsdValue
 import com.rarible.protocol.order.core.data.randomSellOrderUsdValue
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
@@ -22,6 +26,7 @@ import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.misc.convert
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -29,11 +34,9 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.math.BigDecimal
@@ -79,7 +82,6 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
 
     @Test
     fun `should convert sell event`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
         val data = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val bidOrderUsd = randomBidOrderUsdValue()
         val sellOrderUsd = randomSellOrderUsdValue()
@@ -131,8 +133,7 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         coEvery { tokenStandardProvider.getTokenStandard(nftAssetType.token) } returns TokenStandard.ERC721
         coEvery { orderRepository.findByMakeAndByCounters(any(), any(), any()) } returns emptyFlow()
 
-        val matches = descriptorBid.convert(log, transaction, data.epochSecond, 0, 0).toFlux().collectList()
-            .awaitFirst()
+        val matches = descriptorBid.convert<OrderSideMatch>(log, data.epochSecond, 0, 1)
 
         assertThat(matches).hasSize(2)
         val left = matches[0] as OrderSideMatch
@@ -175,7 +176,6 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
 
     @Test
     fun `should convert bid event`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
         val data = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val bidOrderUsd = randomBidOrderUsdValue()
         val sellOrderUsd = randomSellOrderUsdValue()
@@ -230,9 +230,7 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         coEvery { tokenStandardProvider.getTokenStandard(nftAssetType.token) } returns TokenStandard.ERC721
         coEvery { orderRepository.findByMakeAndByCounters(any(), any(), any()) } returns emptyFlow()
 
-        val matches = descriptorAsk
-            .convert(log, transaction, data.epochSecond, 0, 0).toFlux().collectList()
-            .awaitFirst()
+        val matches = descriptorAsk.convert<OrderSideMatch>(log, data.epochSecond, 1, 0)
 
         assertThat(matches).hasSize(2)
         val left = matches[0] as OrderSideMatch

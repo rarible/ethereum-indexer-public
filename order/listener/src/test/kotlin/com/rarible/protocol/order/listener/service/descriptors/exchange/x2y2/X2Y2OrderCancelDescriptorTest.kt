@@ -1,21 +1,21 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.x2y2
 
 import com.rarible.core.test.data.randomAddress
+import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.misc.convert
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import reactor.kotlin.core.publisher.toFlux
 import java.time.Instant
 
 class X2Y2OrderCancelDescriptorTest {
@@ -54,7 +54,11 @@ class X2Y2OrderCancelDescriptorTest {
                 data = "0x"
             )
             val date = Instant.ofEpochSecond(1L)
-            val actual = descriptor.convert(log, mockk(), 1L, 1, 1).toFlux().awaitSingle()
+
+            val actual = descriptor
+                .convert<OrderCancel>(log, date.epochSecond, 1, 1)
+                .single()
+
             assertThat(actual).isNotNull
             assertThat(actual.make).isNotNull
             assertThat(actual.take).isNotNull
@@ -75,7 +79,11 @@ class X2Y2OrderCancelDescriptorTest {
                 data = "0x"
             )
             val date = Instant.ofEpochSecond(1L)
-            val actual = descriptor.convert(log, mockk(), 1L, 1, 1).toFlux().awaitSingle()
+
+            val actual = descriptor
+                .convert<OrderCancel>(log, date.epochSecond, 1, 1)
+                .single()
+
             assertThat(actual).isNotNull
             assertThat(actual.make).isNull()
             assertThat(actual.take).isNull()

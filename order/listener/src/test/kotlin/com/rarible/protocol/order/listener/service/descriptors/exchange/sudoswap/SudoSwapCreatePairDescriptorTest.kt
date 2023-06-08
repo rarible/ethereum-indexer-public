@@ -1,14 +1,18 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswap
 
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
@@ -22,11 +26,9 @@ import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.math.BigDecimal
@@ -86,7 +88,24 @@ internal class SudoSwapCreatePairDescriptorTest {
 
         coEvery { priceUpdateService.getAssetUsdValue(expectedNftAsset.type, expectedPrice, date) } returns BigDecimal.valueOf(3)
 
-        val onChainAmmOrder = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
+            timestamp = date.epochSecond,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
+            index = 0,
+            total = 1,
+        )
+        val onChainAmmOrder = descriptor
+            .getEthereumEventRecords(ethBlock, ethLog)
+            .map { it.asEthereumLogRecord().data as PoolCreate }
+            .single()
+
         assertThat(onChainAmmOrder.data.poolAddress).isEqualTo(Address.apply("0x23a46b04d72d9ad624e99fb432c5a9ce212ac2f7"))
         assertThat(onChainAmmOrder.collection).isEqualTo(expectedCollection)
         assertThat(onChainAmmOrder.nftAsset()).isEqualTo(expectedNftAsset)
@@ -135,7 +154,24 @@ internal class SudoSwapCreatePairDescriptorTest {
 
         coEvery { priceUpdateService.getAssetUsdValue(expectedNftAsset.type, expectedPrice, date) } returns randomBigDecimal()
 
-        val onChainAmmOrder = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
+            timestamp = date.epochSecond,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
+            index = 0,
+            total = 1,
+        )
+        val onChainAmmOrder = descriptor
+            .getEthereumEventRecords(ethBlock, ethLog)
+            .map { it.asEthereumLogRecord().data as PoolCreate }
+            .single()
+
         assertThat(onChainAmmOrder.data.poolAddress).isEqualTo(Address.apply("0x56b69cbcbac832a3a1c8c4f195654a610f96777b"))
         assertThat(onChainAmmOrder.collection).isEqualTo(expectedCollection)
         assertThat(onChainAmmOrder.nftAsset()).isEqualTo(expectedNftAsset)

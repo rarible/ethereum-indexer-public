@@ -1,9 +1,15 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.zero.ex
 
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomLong
+import com.rarible.core.test.data.randomString
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.zero.ex.FillEvent
 import com.rarible.protocol.order.core.data.randomErc20
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
@@ -19,7 +25,6 @@ import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -117,14 +122,22 @@ class ZeroExExchangeOrderMatchDescriptorTest {
         val date = Instant.now().epochSecond
         val index = 1
         val totalLogs = 21
-        val result = zeroExExchangeOrderMatchDescriptor.convert(
-            log = log,
-            transaction = transaction,
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
             timestamp = date,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
             index = index,
-            totalLogs = totalLogs
-        ).awaitSingle()
-        assertThat(result).isEqualTo(orderSideMatchFromConverter)
+            total = totalLogs,
+        )
+        val result = zeroExExchangeOrderMatchDescriptor.getEthereumEventRecords(ethBlock, ethLog).single()
+
+        assertThat(result.asEthereumLogRecord().data as OrderSideMatch).isEqualTo(orderSideMatchFromConverter)
         coVerify {
             zeroExOrderParser.parseMatchOrdersData(
                 txHash = transaction.hash(),
@@ -268,16 +281,28 @@ class ZeroExExchangeOrderMatchDescriptorTest {
         assertThat(FillEventSimple(event))
             .isEqualTo(FillEventSimple(fillEvent))
         val date = Instant.now().epochSecond
+
+        val block = EthereumBlockchainBlock(
+            number = randomLong(),
+            hash = randomString(),
+            parentHash = randomString(),
+            timestamp = date,
+            ethBlock = mockk()
+        )
         val index = 1
         val totalLogs = 21
-        val result = zeroExExchangeOrderMatchDescriptor.convert(
-            log = log,
-            transaction = transaction,
-            timestamp = date,
+
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
             index = index,
-            totalLogs = totalLogs
-        ).awaitSingle()
-        assertThat(result).isEqualTo(orderSideMatchFromConverter)
+            total = totalLogs,
+        )
+        val result = zeroExExchangeOrderMatchDescriptor.getEventRecords(
+            log = ethLog,
+            block = block
+        ).single()
+        assertThat(result.asEthereumLogRecord().data as OrderSideMatch).isEqualTo(orderSideMatchFromConverter)
         coVerify {
             zeroExOrderParser.parseMatchOrdersData(
                 txHash = transaction.hash(),
@@ -432,18 +457,24 @@ class ZeroExExchangeOrderMatchDescriptorTest {
         )
         assertThat(FillEventSimple(event))
             .isEqualTo(FillEventSimple(fillEvent))
-
         val date = Instant.now().epochSecond
         val index = 1
         val totalLogs = 21
-        val result = zeroExExchangeOrderMatchDescriptor.convert(
-            log = log,
-            transaction = transaction,
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
             timestamp = date,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
             index = index,
-            totalLogs = totalLogs
-        ).awaitSingle()
-        assertThat(result).isEqualTo(orderSideMatchFromConverter)
+            total = totalLogs,
+        )
+        val result = zeroExExchangeOrderMatchDescriptor.getEthereumEventRecords(ethBlock, ethLog).single()
+        assertThat(result.asEthereumLogRecord().data as OrderSideMatch).isEqualTo(orderSideMatchFromConverter)
         coVerify {
             zeroExOrderParser.parseMatchOrdersData(
                 txHash = transaction.hash(),
@@ -589,14 +620,21 @@ class ZeroExExchangeOrderMatchDescriptorTest {
         val date = Instant.now().epochSecond
         val index = 1
         val totalLogs = 21
-        val result = zeroExExchangeOrderMatchDescriptor.convert(
-            log = log,
-            transaction = transaction,
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
             timestamp = date,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
             index = index,
-            totalLogs = totalLogs
-        ).awaitSingle()
-        assertThat(result).isEqualTo(orderSideMatchFromConverter)
+            total = totalLogs,
+        )
+        val result = zeroExExchangeOrderMatchDescriptor.getEthereumEventRecords(ethBlock, ethLog).single().asEthereumLogRecord()
+        assertThat(result.data).isEqualTo(orderSideMatchFromConverter)
         coVerify {
             zeroExOrderParser.parseMatchOrdersData(
                 txHash = transaction.hash(),

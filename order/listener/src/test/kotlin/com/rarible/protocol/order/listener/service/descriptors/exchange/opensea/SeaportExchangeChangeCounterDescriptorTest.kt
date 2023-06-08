@@ -1,20 +1,24 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
+import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.misc.convert
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.time.Instant
@@ -34,7 +38,6 @@ internal class SeaportExchangeChangeCounterDescriptorTest {
 
     @Test
     fun `should convert SeaportExchangeChangeCounterDescriptor to event`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction>()
         val date = Instant.ofEpochSecond(1)
         val log = log(
             topics = listOf(
@@ -43,7 +46,8 @@ internal class SeaportExchangeChangeCounterDescriptorTest {
             ),
             data = "0x0000000000000000000000000000000000000000000000000000000000000001"
         )
-        val events = descriptor.convert(log, transaction, date.epochSecond, 1, 1).toFlux().collectList().awaitSingle()
+        val events = descriptor.convert<ChangeNonceHistory>(log, date.epochSecond, 1, 1)
+
         assertThat(events).hasSize(1)
         assertThat(events.single().date).isEqualTo(date)
         assertThat(events.single().newNonce).isEqualTo(EthUInt256.ONE)
