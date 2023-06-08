@@ -23,7 +23,7 @@ import kotlin.random.Random.Default.nextLong
 class BalanceBatchCheckerHandler(
     private val ethereum: MonoEthereum,
     private val checkerMetrics: CheckerMetrics,
-    private val commonProps: Erc20ListenerProperties
+    commonProps: Erc20ListenerProperties
 ) : ConsumerBatchEventHandler<Erc20BalanceEventDto> {
 
     private val logger = LoggerFactory.getLogger(javaClass)

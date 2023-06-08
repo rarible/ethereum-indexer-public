@@ -21,8 +21,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import scalether.core.MonoEthereum
-import scalether.domain.Address
-import scalether.transaction.ReadOnlyMonoTransactionSender
 
 @EnableMongock
 @Configuration
@@ -39,11 +37,6 @@ class Erc20ListenerConfiguration(
 
     private val erc20BalanceConsumerGroup =
         "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.erc20.indexer.erc20-balance"
-
-    @Bean
-    fun sender(ethereum: MonoEthereum): ReadOnlyMonoTransactionSender {
-        return ReadOnlyMonoTransactionSender(ethereum, Address.ZERO())
-    }
 
     @Bean
     fun blockchain(): Blockchain {

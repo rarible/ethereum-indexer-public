@@ -50,6 +50,21 @@ class AdminController(
         return ResponseEntity.ok(convert(task))
     }
 
+    @PostMapping(
+        value = ["/admin/logs/deduplicate"],
+        produces = ["application/json"]
+    )
+    suspend fun deduplicateLogs(
+        @RequestParam(name = "update", required = false) update: Boolean?,
+        @RequestParam(name = "force", required = false) force: Boolean?,
+    ): ResponseEntity<AdminTaskDto> {
+        val task = erc20TaskService.createDeduplicateTask(
+            update = update ?: false,
+            force = force ?: false
+        )
+        return ResponseEntity.ok(convert(task))
+    }
+
     private fun convert(task: Task): AdminTaskDto {
         return AdminTaskDto(
             id = task.id.toHexString(),

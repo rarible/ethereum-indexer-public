@@ -7,6 +7,7 @@ import com.rarible.blockchain.scanner.reindex.BlockRange
 import com.rarible.core.task.TaskStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomLong
+import com.rarible.protocol.erc20.core.admin.model.Erc20DuplicatedLogRecordsTaskParam
 import com.rarible.protocol.erc20.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.erc20.core.integration.IntegrationTest
 import kotlinx.coroutines.flow.firstOrNull
@@ -78,6 +79,18 @@ class Erc20TaskServiceIt : AbstractIntegrationTest() {
 
     }
 
+    @Test
+    fun `deduplicate erc20 logs - create task`() = runBlocking<Unit> {
+        erc20TaskService.createDeduplicateTask(update = false, force = true)
+
+        val saved = taskRepository.findByTypeAndParam(
+            Erc20DuplicatedLogRecordsTaskParam.ERC20_DUPLICATED_LOG_RECORDS_TASK,
+            mapper.writeValueAsString(Erc20DuplicatedLogRecordsTaskParam(update = false))
+        ).firstOrNull()
+
+        assertThat(saved!!.lastStatus).isEqualTo(TaskStatus.NONE)
+    }
+
     private suspend fun assertReindexErc20TokenTask(
         tokens: List<Address>,
         fromBlock: Long
@@ -97,5 +110,4 @@ class Erc20TaskServiceIt : AbstractIntegrationTest() {
         assertThat(task[0].lastStatus).isEqualTo(TaskStatus.NONE)
         assertThat(task[0].state).isEqualTo(fromBlock)
     }
-
 }
