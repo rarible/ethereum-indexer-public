@@ -1,7 +1,7 @@
 package com.rarible.protocol.erc20.core.service
 
 import com.rarible.core.entity.reducer.service.EntityService
-import com.rarible.protocol.erc20.core.listener.Erc20BalanceEventListener
+import com.rarible.protocol.erc20.core.event.Erc20BalanceEventListener
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20MarkedEvent

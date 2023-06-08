@@ -2,7 +2,7 @@ package com.rarible.protocol.erc20.api.controller.admin
 
 import com.rarible.core.task.Task
 import com.rarible.protocol.erc20.api.dto.AdminTaskDto
-import com.rarible.protocol.erc20.core.admin.service.Erc20TaskService
+import com.rarible.protocol.erc20.core.admin.Erc20TaskService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -21,14 +21,16 @@ class AdminController(
     suspend fun reindexErc20Token(
         @RequestParam(name = "token", required = true) tokens: List<String>,
         @RequestParam(name = "fromBlock", required = false) fromBlock: Long?,
+        @RequestParam(name = "toBlock", required = false) toBlock: Long?,
         @RequestParam(name = "force", required = false) force: Boolean?
-    ): ResponseEntity<List<AdminTaskDto>> {
-        val tasks = erc20TaskService.createReindexErc20TokenTasks(
-            tokens.map { Address.apply(it) },
-            fromBlock,
-            force ?: false
+    ): ResponseEntity<AdminTaskDto> {
+        val task = erc20TaskService.createReindexTask(
+            tokens = tokens.map { Address.apply(it) },
+            fromBlock = fromBlock ?: 0L,
+            toBlock = toBlock,
+            force = force ?: false
         )
-        return ResponseEntity.ok(tasks.map { convert(it) })
+        return ResponseEntity.ok(convert(task))
     }
 
     @PostMapping(
@@ -37,11 +39,13 @@ class AdminController(
     )
     suspend fun reduceErc20Token(
         @RequestParam(name = "token", required = true) token: String,
+        @RequestParam(name = "owner", required = false) owner: String?,
         @RequestParam(name = "force", required = false) force: Boolean?
     ): ResponseEntity<AdminTaskDto> {
-        val task = erc20TaskService.createReduceErc20BalanceTask(
-            Address.apply(token),
-            force ?: false
+        val task = erc20TaskService.createReduceTask(
+            token = Address.apply(token),
+            owner = owner?.let { Address.apply(it) },
+            force = force ?: false
         )
         return ResponseEntity.ok(convert(task))
     }

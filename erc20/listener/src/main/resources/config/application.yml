@@ -22,7 +22,7 @@ spring:
     web-application-type: reactive
 mongock:
   change-logs-scan-package:
-    - com.rarible.ethereum.listener.log.mongock
+    - com.rarible.blockchain.scanner.ethereum.migration
     - com.rarible.protocol.erc20.listener.mongock.mongo
 
 rarible:
@@ -42,9 +42,6 @@ rarible:
 common:
   metric-root-path: "protocol.erc20.indexer"
   blockchain: ${listener.blockchain}
-  feature-flags:
-    scanner-version: V2
-    reduce-version: V2
 
 ethereumMaxFrameSize: 104857600
 ethereumBlockBatchSize: 50
