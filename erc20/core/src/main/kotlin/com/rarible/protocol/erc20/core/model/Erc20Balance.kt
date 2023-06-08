@@ -1,7 +1,5 @@
 package com.rarible.protocol.erc20.core.model
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
-import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.core.entity.reducer.model.Entity
 import com.rarible.ethereum.domain.EthUInt256
 import org.springframework.data.annotation.AccessType
@@ -30,7 +28,7 @@ data class Erc20Balance(
 
     override val revertableEvents: List<Erc20Event> = emptyList(),
 
-    ) : EventData, Entity<BalanceId, Erc20Event, Erc20Balance> {
+    ) : Entity<BalanceId, Erc20Event, Erc20Balance> {
 
     @Transient
     private val _id: BalanceId = BalanceId(token, owner)
@@ -43,19 +41,5 @@ data class Erc20Balance(
 
     override fun withRevertableEvents(events: List<Erc20Event>): Erc20Balance {
         return copy(revertableEvents = events)
-    }
-
-    fun withBalanceAndLastUpdatedAt(balance: EthUInt256, lastUpdatedAt: Instant?): Erc20Balance {
-        return copy(balance = balance, lastUpdatedAt = lastUpdatedAt)
-    }
-
-    fun withBlockNumber(blockNumber: Long?): Erc20Balance {
-        return copy(blockNumber = blockNumber)
-    }
-
-    fun versionLess() = copy(version = null)
-
-    override fun getKey(log: EthereumLog): String {
-        TODO("Not yet implemented")
     }
 }

@@ -7,7 +7,11 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.remove
 import org.springframework.stereotype.Component
+import scalether.domain.Address
 
 @Component
 @CaptureSpan(type = "db", subtype = "erc20-balance")
@@ -20,5 +24,10 @@ class Erc20BalanceRepository(
 
     suspend fun get(balanceId: BalanceId): Erc20Balance? {
         return template.findById<Erc20Balance>(balanceId).awaitFirstOrNull()
+    }
+
+    suspend fun deleteByOwner(owner: Address): Long {
+        val criteria = Erc20Balance::owner isEqualTo owner
+        return template.remove<Erc20Balance>(Query.query(criteria)).awaitFirst().deletedCount
     }
 }

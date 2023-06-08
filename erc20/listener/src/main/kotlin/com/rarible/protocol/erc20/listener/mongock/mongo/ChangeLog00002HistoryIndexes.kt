@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.listener.mongock.mongo
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.repository.Erc20ApprovalHistoryRepository
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
@@ -45,13 +46,34 @@ class ChangeLog00002HistoryIndexes {
                     .on("blockNumber", Sort.Direction.ASC)
                     .on("logIndex", Sort.Direction.ASC)
             )
+            indexOps.ensureIndex(
+                Index()
+                    .on("${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::owner.name}", Sort.Direction.ASC)
+            )
         }
     }
 
     @ChangeSet(id = "ChangeLog00002HistoryIndexes.dropIndexes", order = "2", author = "protocol", runAlways = true)
     fun dropUnneededIndexes(@NonLockGuarded template: ReactiveMongoOperations) = runBlocking {
         dropIndex(template, Erc20TransferHistoryRepository.COLLECTION, "data.token_1_blockNumber_1_logIndex_1")
-        dropIndex(template, Erc20TransferHistoryRepository.COLLECTION, "data.token_1_data.owner_1_blockNumber_1_logIndex_1")
+        dropIndex(
+            template,
+            Erc20TransferHistoryRepository.COLLECTION,
+            "data.token_1_data.owner_1_blockNumber_1_logIndex_1"
+        )
+    }
+
+    @ChangeSet(
+        id = "ChangeLog00002HistoryIndexes.createBalanceIndexes",
+        order = "3",
+        author = "protocol",
+        runAlways = true
+    )
+    fun createBalanceIndexes(@NonLockGuarded template: ReactiveMongoOperations) = runBlocking {
+        template.indexOps("erc20_balance").ensureIndex(
+            Index()
+                .on(Erc20Balance::owner.name, Sort.Direction.ASC)
+        )
     }
 
     private suspend fun dropIndex(template: ReactiveMongoOperations, collection: String, indexName: String) {
