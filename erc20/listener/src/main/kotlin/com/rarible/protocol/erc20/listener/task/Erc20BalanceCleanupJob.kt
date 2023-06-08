@@ -63,7 +63,7 @@ class Erc20IgnoredOwnerBalanceCleaner(
             val approvals = erc20ApprovalHistoryRepository.deleteByOwner(it)
             val transfers = erc20TransferHistoryRepository.deleteByOwner(it)
             val balances = erc20BalanceRepository.deleteByOwner(it)
-            if (approvals > 0 && transfers > 0 && balances > 0) {
+            if (approvals > 0 || transfers > 0 || balances > 0) {
                 logger.info(
                     "Cleaned up {} approvals, {} transfers and {} balances for owner {}",
                     approvals, transfers, balances, it
