@@ -45,13 +45,34 @@ class ChangeLog00002HistoryIndexes {
                     .on("blockNumber", Sort.Direction.ASC)
                     .on("logIndex", Sort.Direction.ASC)
             )
+            indexOps.ensureIndex(
+                Index()
+                    .on("${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::owner.name}", Sort.Direction.ASC)
+            )
         }
     }
 
     @ChangeSet(id = "ChangeLog00002HistoryIndexes.dropIndexes", order = "2", author = "protocol", runAlways = true)
     fun dropUnneededIndexes(@NonLockGuarded template: ReactiveMongoOperations) = runBlocking {
         dropIndex(template, Erc20TransferHistoryRepository.COLLECTION, "data.token_1_blockNumber_1_logIndex_1")
-        dropIndex(template, Erc20TransferHistoryRepository.COLLECTION, "data.token_1_data.owner_1_blockNumber_1_logIndex_1")
+        dropIndex(
+            template,
+            Erc20TransferHistoryRepository.COLLECTION,
+            "data.token_1_data.owner_1_blockNumber_1_logIndex_1"
+        )
+    }
+
+    @ChangeSet(
+        id = "ChangeLog00002HistoryIndexes.createBalanceIndexes",
+        order = "3",
+        author = "protocol",
+        runAlways = true
+    )
+    fun createBalanceIndexes(@NonLockGuarded template: ReactiveMongoOperations) = runBlocking {
+        template.indexOps("erc20_balance").ensureIndex(
+            Index()
+                .on("${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::owner.name}", Sort.Direction.ASC)
+        )
     }
 
     private suspend fun dropIndex(template: ReactiveMongoOperations, collection: String, indexName: String) {

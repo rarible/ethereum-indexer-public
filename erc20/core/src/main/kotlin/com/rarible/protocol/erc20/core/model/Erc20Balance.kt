@@ -56,6 +56,6 @@ data class Erc20Balance(
     fun versionLess() = copy(version = null)
 
     override fun getKey(log: EthereumLog): String {
-        TODO("Not yet implemented")
+        return log.address.hex()
     }
 }
