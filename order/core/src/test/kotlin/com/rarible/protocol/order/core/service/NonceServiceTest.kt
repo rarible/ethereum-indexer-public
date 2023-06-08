@@ -1,12 +1,12 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,7 +53,7 @@ internal class NonceServiceTest : AbstractIntegrationTest() {
             val makerNonce = nonceService.getLatestMakerNonce(maker, logEvent2.address)
             assertThat(makerNonce.nonce).isEqualTo(nonce2.newNonce)
             assertThat(makerNonce.timestamp).isEqualTo(nonce2.date)
-            assertThat(makerNonce.historyId).isEqualTo(logEvent2.id.toHexString())
+            assertThat(makerNonce.historyId).isEqualTo(logEvent2.id)
         }
     }
 
@@ -61,14 +62,15 @@ internal class NonceServiceTest : AbstractIntegrationTest() {
         blockNumber: Long,
         logIndex: Int,
         minorLogIndex: Int
-    ) : LogEvent {
+    ) : ReversedEthereumLogRecord {
         return nonceHistoryRepository.save(
-            LogEvent(
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = history,
                 address = randomAddress(),
                 topic = Word.apply(ByteArray(32)),
-                transactionHash = Word.apply(randomWord()),
-                status = LogEventStatus.CONFIRMED,
+                transactionHash = randomWord(),
+                status = EthereumLogStatus.CONFIRMED,
                 blockNumber = blockNumber,
                 logIndex = logIndex,
                 minorLogIndex = minorLogIndex,

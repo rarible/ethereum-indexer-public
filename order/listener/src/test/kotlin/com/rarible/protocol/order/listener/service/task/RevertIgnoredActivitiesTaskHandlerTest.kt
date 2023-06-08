@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.listener.service.task
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.test.data.randomString
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.core.data.createLogEvent
@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 
@@ -55,7 +54,7 @@ class RevertIgnoredActivitiesTaskHandlerTest {
             } returns activities[index]
 
             coEvery {
-                exchangeHistoryRepository.save(event.copy(status = LogEventStatus.REVERTED))
+                exchangeHistoryRepository.save(event.copy(status = EthereumLogStatus.REVERTED))
             } returns Mono.just(event)
         }
         every {
@@ -64,7 +63,7 @@ class RevertIgnoredActivitiesTaskHandlerTest {
 
         val states = handler.runLongTask(from, source.name).toList()
         assertThat(states).hasSize(2)
-        assertThat(states[0]).isEqualTo(events[0].id.toHexString())
-        assertThat(states[1]).isEqualTo(events[1].id.toHexString())
+        assertThat(states[0]).isEqualTo(events[0].id)
+        assertThat(states[1]).isEqualTo(events[1].id)
     }
 }

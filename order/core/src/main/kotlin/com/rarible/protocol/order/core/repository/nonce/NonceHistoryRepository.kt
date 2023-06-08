@@ -1,10 +1,10 @@
 package com.rarible.protocol.order.core.repository.nonce
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.mongo.util.div
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository.Indexes.ALL_INDEXES
 import kotlinx.coroutines.flow.Flow
@@ -35,30 +35,30 @@ class NonceHistoryRepository(
         }
     }
 
-    suspend fun save(logEvent: LogEvent): LogEvent {
-        return template.save(logEvent, COLLECTION).awaitFirst()
+    suspend fun save(reversedEthereumLogRecord: ReversedEthereumLogRecord): ReversedEthereumLogRecord {
+        return template.save(reversedEthereumLogRecord, COLLECTION).awaitFirst()
     }
 
-    suspend fun findLatestNonceHistoryByMaker(maker: Address, address: Address): LogEvent? {
-        val criteria = (LogEvent::data / ChangeNonceHistory::maker isEqualTo  maker)
-            .and(LogEvent::address).isEqualTo(address)
-            .and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
+    suspend fun findLatestNonceHistoryByMaker(maker: Address, address: Address): ReversedEthereumLogRecord? {
+        val criteria = (ReversedEthereumLogRecord::data / ChangeNonceHistory::maker isEqualTo  maker)
+            .and(ReversedEthereumLogRecord::address).isEqualTo(address)
+            .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
 
         val query = Query(criteria).with(LOG_SORT_DESC)
-        return template.findOne(query, LogEvent::class.java, COLLECTION).awaitFirstOrNull()
+        return template.findOne(query, ReversedEthereumLogRecord::class.java, COLLECTION).awaitFirstOrNull()
     }
 
-    fun findAll(): Flow<LogEvent> {
-        return template.findAll<LogEvent>(COLLECTION).asFlow()
+    fun findAll(): Flow<ReversedEthereumLogRecord> {
+        return template.findAll<ReversedEthereumLogRecord>(COLLECTION).asFlow()
     }
 
     object Indexes {
         private val MAKER_DEFINITION: Index = Index()
-            .on(LogEvent::status.name, Sort.Direction.ASC)
-            .on("${LogEvent::data.name}.${ChangeNonceHistory::maker.name}", Sort.Direction.ASC)
-            .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
-            .on(LogEvent::logIndex.name, Sort.Direction.ASC)
-            .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
+            .on(ReversedEthereumLogRecord::status.name, Sort.Direction.ASC)
+            .on("${ReversedEthereumLogRecord::data.name}.${ChangeNonceHistory::maker.name}", Sort.Direction.ASC)
+            .on(ReversedEthereumLogRecord::blockNumber.name, Sort.Direction.ASC)
+            .on(ReversedEthereumLogRecord::logIndex.name, Sort.Direction.ASC)
+            .on(ReversedEthereumLogRecord::minorLogIndex.name, Sort.Direction.ASC)
             .background()
 
         val ALL_INDEXES = listOf(
@@ -72,10 +72,10 @@ class NonceHistoryRepository(
         val LOG_SORT_DESC: Sort = Sort
             .by(
                 Sort.Direction.DESC,
-                "${LogEvent::data.name}.${ChangeNonceHistory::maker.name}",
-                LogEvent::blockNumber.name,
-                LogEvent::logIndex.name,
-                LogEvent::minorLogIndex.name
+                "${ReversedEthereumLogRecord::data.name}.${ChangeNonceHistory::maker.name}",
+                ReversedEthereumLogRecord::blockNumber.name,
+                ReversedEthereumLogRecord::logIndex.name,
+                ReversedEthereumLogRecord::minorLogIndex.name
             )
 
         val logger: Logger = LoggerFactory.getLogger(NonceHistoryRepository::class.java)

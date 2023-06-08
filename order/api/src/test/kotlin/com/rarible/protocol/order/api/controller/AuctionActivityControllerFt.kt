@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.AuctionActivityDto
@@ -50,7 +50,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                 Arguments.of(
                     listOf(auction),
                     listOf(createAuctionLogEvent(randomAuctionCreated(auction.contract, auction.auctionId))),
-                    emptyList<LogEvent>(),
+                    emptyList<ReversedEthereumLogRecord>(),
                     AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.CREATED)),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -60,7 +60,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                 Arguments.of(
                     listOf(auction),
                     listOf(createAuctionLogEvent(data)),
-                    emptyList<LogEvent>(),
+                    emptyList<ReversedEthereumLogRecord>(),
                     AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.BID)),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -70,7 +70,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                 Arguments.of(
                     listOf(auction),
                     listOf(createAuctionLogEvent(data)),
-                    emptyList<LogEvent>(),
+                    emptyList<ReversedEthereumLogRecord>(),
                     AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.CANCEL)),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -80,7 +80,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                 Arguments.of(
                     listOf(auction),
                     listOf(createAuctionLogEvent(data)),
-                    emptyList<LogEvent>(),
+                    emptyList<ReversedEthereumLogRecord>(),
                     AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.FINISHED)),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -111,7 +111,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                         ),
                         createAuctionLogEvent(randomFinished(auction.contract, auction.auctionId))
                     ),
-                    emptyList<LogEvent>(),
+                    emptyList<ReversedEthereumLogRecord>(),
                     AuctionActivityFilterAllDto(
                         listOf(
                             AuctionActivityFilterAllDto.Types.CREATED,
@@ -149,7 +149,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                         ),
                         createAuctionLogEvent(randomFinished(auction.contract, auction.auctionId))
                     ).asReversed(),
-                    emptyList<LogEvent>(),
+                    emptyList<ReversedEthereumLogRecord>(),
                     AuctionActivityFilterAllDto(
                         listOf(
                             AuctionActivityFilterAllDto.Types.CREATED,
@@ -766,8 +766,8 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
     @MethodSource("activityFilterData")
     fun `should find all auction activity`(
         auctions: List<Auction>,
-        logs: List<LogEvent>,
-        otherLogs: List<LogEvent>,
+        logs: List<ReversedEthereumLogRecord>,
+        otherLogs: List<ReversedEthereumLogRecord>,
         filter: AuctionActivityFilterDto,
         sort: ActivitySortDto
     ) = runBlocking<Unit> {
@@ -806,8 +806,8 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
     @MethodSource("activityFilterData")
     fun `should find auction activity by pagination`(
         auctions: List<Auction>,
-        logs: List<LogEvent>,
-        otherLogs: List<LogEvent>,
+        logs: List<ReversedEthereumLogRecord>,
+        otherLogs: List<ReversedEthereumLogRecord>,
         filter: AuctionActivityFilterDto,
         sort: ActivitySortDto
     ) = runBlocking {
@@ -881,16 +881,16 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
         saveAuction(onchainAuction)
 
         val result = auctionActivityClient.getAuctionActivitiesById(
-            ActivitiesByIdRequestDto(listOf(offchainStarted.id, onchainCreated.id.toHexString()))
+            ActivitiesByIdRequestDto(listOf(offchainStarted.id, onchainCreated.id))
         ).awaitFirst()
 
         assertThat(result.items.map { it.id })
             .contains(offchainStarted.id)
-            .contains(onchainCreated.id.toHexString())
+            .contains(onchainCreated.id)
             .doesNotContain(offchainFinished.id)
     }
 
-    private fun checkAuctionActivityDto(auctionActivityDto: AuctionActivityDto, history: LogEvent) {
+    private fun checkAuctionActivityDto(auctionActivityDto: AuctionActivityDto, history: ReversedEthereumLogRecord) {
         assertThat(auctionActivityDto.id).isEqualTo(history.id.toString())
         assertThat(auctionActivityDto.date.toEpochMilli()).isEqualTo((history.data as AuctionHistory).date.toEpochMilli())
     }
@@ -900,7 +900,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
         assertThat(auctionActivityDto.date.toEpochMilli()).isEqualTo(history.date.toEpochMilli())
     }
 
-    private suspend fun saveHistory(vararg history: LogEvent) {
+    private suspend fun saveHistory(vararg history: ReversedEthereumLogRecord) {
         history.forEach { auctionHistoryRepository.save(it).awaitFirst() }
     }
 

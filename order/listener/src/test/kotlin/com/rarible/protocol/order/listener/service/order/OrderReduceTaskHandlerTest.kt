@@ -1,10 +1,11 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.task.TaskService
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.toLogEventKey
 import com.rarible.protocol.order.core.model.toOnChainOrder
@@ -18,6 +19,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,14 +35,15 @@ class OrderReduceTaskHandlerTest : AbstractIntegrationTest() {
     @Test
     internal fun `should insert OrderVersion and reduce on-chain order`() = runBlocking<Unit> {
         val onChainOrder = createOrderVersion().toOnChainOrder()
-        val logEvent = LogEvent(
+        val logEvent = ReversedEthereumLogRecord(
+            id = ObjectId().toHexString(),
             data = onChainOrder,
             address = randomAddress(),
             topic = Word.apply(RandomUtils.nextBytes(32)),
-            transactionHash = Word.apply(RandomUtils.nextBytes(32)),
+            transactionHash = randomWord(),
             index = RandomUtils.nextInt(),
             minorLogIndex = 0,
-            status = LogEventStatus.CONFIRMED
+            status = EthereumLogStatus.CONFIRMED
         )
         exchangeHistoryRepository.save(logEvent).awaitFirst()
 

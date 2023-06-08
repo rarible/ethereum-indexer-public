@@ -1,9 +1,10 @@
 package com.rarible.protocol.order.core.repository.approval
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogRecord
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import kotlinx.coroutines.flow.Flow
@@ -29,28 +30,28 @@ class ApprovalHistoryRepository(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun save(logEvent: LogEvent): LogEvent {
+    suspend fun save(logEvent: ReversedEthereumLogRecord): EthereumLogRecord {
         return template.save(logEvent, COLLECTION).awaitSingle()
     }
 
-    fun findAll(): Flow<LogEvent> {
-        return template.findAll(LogEvent::class.java, COLLECTION).asFlow()
+    fun findAll(): Flow<ReversedEthereumLogRecord> {
+        return template.findAll(ReversedEthereumLogRecord::class.java, COLLECTION).asFlow()
     }
 
-    suspend fun lastApprovalLogEvent(collection: Address, owner: Address, operator: Address): LogEvent? {
-        val criteria: Criteria = where(LogEvent::data / ApprovalHistory::collection).isEqualTo(collection)
-            .and(LogEvent::data / ApprovalHistory::owner).isEqualTo(owner)
-            .and(LogEvent::data / ApprovalHistory::operator).isEqualTo(operator)
-            .and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
+    suspend fun lastApprovalLogEvent(collection: Address, owner: Address, operator: Address): ReversedEthereumLogRecord? {
+        val criteria: Criteria = where(ReversedEthereumLogRecord::data / ApprovalHistory::collection).isEqualTo(collection)
+            .and(ReversedEthereumLogRecord::data / ApprovalHistory::owner).isEqualTo(owner)
+            .and(ReversedEthereumLogRecord::data / ApprovalHistory::operator).isEqualTo(operator)
+            .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
 
         val query = Query.query(criteria)
         query.with(Sort.by(
             Sort.Direction.DESC,
-            LogEvent::blockNumber.name,
-            LogEvent::logIndex.name,
-            LogEvent::minorLogIndex.name
+            ReversedEthereumLogRecord::blockNumber.name,
+            ReversedEthereumLogRecord::logIndex.name,
+            ReversedEthereumLogRecord::minorLogIndex.name
         ))
-        return template.findOne<LogEvent>(query, COLLECTION).awaitFirstOrNull()
+        return template.findOne<ReversedEthereumLogRecord>(query, COLLECTION).awaitFirstOrNull()
     }
 
     companion object {

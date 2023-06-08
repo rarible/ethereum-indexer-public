@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.data
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.common.EventTimeMarks
@@ -16,9 +17,6 @@ import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.AssetDto
 import com.rarible.protocol.dto.Erc20AssetTypeDto
 import com.rarible.protocol.dto.LooksRareOrderDto
@@ -104,6 +102,7 @@ import com.rarible.protocol.order.core.model.SudoSwapSellInfo
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
+import org.bson.types.ObjectId
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
@@ -562,14 +561,15 @@ fun createOnChainOrder(): OnChainOrder {
 
 fun createLogEvent(
     data: EventData,
-    status: LogEventStatus = LogEventStatus.CONFIRMED,
+    status: EthereumLogStatus = EthereumLogStatus.CONFIRMED,
     blockNumber: Long = 0
-): LogEvent {
-    return LogEvent(
+): ReversedEthereumLogRecord {
+    return ReversedEthereumLogRecord(
+        id = ObjectId().toHexString(),
         data = data,
         address = randomAddress(),
         topic = Word.apply(randomWord()),
-        transactionHash = Word.apply(randomWord()),
+        transactionHash = randomWord(),
         status = status,
         blockNumber = blockNumber,
         index = 0,

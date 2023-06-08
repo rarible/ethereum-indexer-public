@@ -1,12 +1,12 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EventData
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PlatformToHistorySourceConverter
 import com.rarible.protocol.order.core.misc.toWord
@@ -68,13 +68,13 @@ class OrderReduceService(
             orderUpdateComparator,
             orderVersionRepository.findAllByHash(orderHash, fromOrderHash, platforms)
                 .map { OrderUpdate.ByOrderVersion(it) },
-            exchangeHistoryRepository.findLogEvents(
+            exchangeHistoryRepository.findReversedEthereumLogRecords(
                 orderHash,
                 fromOrderHash,
                 platforms?.map(PlatformToHistorySourceConverter::convert)
             )
                 .map { OrderUpdate.ByExchangeLogEvent(it) },
-            poolHistoryRepository.findLogEvents(
+            poolHistoryRepository.findReversedEthereumLogRecords(
                 orderHash,
                 fromOrderHash,
                 platforms?.map(PlatformToHistorySourceConverter::convert)
@@ -97,21 +97,21 @@ class OrderReduceService(
     private sealed class OrderUpdate {
 
         abstract val orderHash: Word
-        abstract val eventId: ObjectId
+        abstract val eventId: String
 
         data class ByOrderVersion(val orderVersion: OrderVersion) : OrderUpdate() {
 
             override val orderHash get() = orderVersion.hash
-            override val eventId get() = orderVersion.id
+            override val eventId get() = orderVersion.id.toHexString()
         }
 
-        data class ByExchangeLogEvent(val logEvent: LogEvent) : OrderUpdate() {
+        data class ByExchangeLogEvent(val logEvent: ReversedEthereumLogRecord) : OrderUpdate() {
 
             override val orderHash get() = logEvent.data.toExchangeHistory().hash
             override val eventId get() = logEvent.id
         }
 
-        data class ByPoolLogEvent(val logEvent: LogEvent) : OrderUpdate() {
+        data class ByPoolLogEvent(val logEvent: ReversedEthereumLogRecord) : OrderUpdate() {
 
             override val orderHash get() = logEvent.data.toPoolHistory().hash
             override val eventId get() = logEvent.id
@@ -132,26 +132,26 @@ class OrderReduceService(
                         // On-chain order versions are processed via the OnChainOrder LogEvent-s in the next when-branch.
                         order
                     } else {
-                        order.updateWith(update.orderVersion, update.eventId.toHexString())
+                        order.updateWith(update.orderVersion, update.eventId)
                     }
                 }
 
                 is OrderUpdate.ByExchangeLogEvent -> {
                     val exchangeHistory = update.logEvent.data.toExchangeHistory()
 
-                    if (exchangeHistory.isOnChainOrder() && update.logEvent.status != LogEventStatus.CONFIRMED) {
+                    if (exchangeHistory.isOnChainOrder() && update.logEvent.status != EthereumLogStatus.CONFIRMED) {
                         seenRevertedOnChainOrder = true
                     }
-                    order.updateWith(update.logEvent, exchangeHistory, update.eventId.toHexString())
+                    order.updateWith(update.logEvent, exchangeHistory, update.eventId)
                 }
 
                 is OrderUpdate.ByPoolLogEvent -> {
                     val poolHistory = update.logEvent.data.toPoolHistory()
 
-                    if (poolHistory.isOnChainAmmOrder() && update.logEvent.status != LogEventStatus.CONFIRMED) {
+                    if (poolHistory.isOnChainAmmOrder() && update.logEvent.status != EthereumLogStatus.CONFIRMED) {
                         seenRevertedOnChainOrder = true
                     }
-                    order.updateWith(update.logEvent, poolHistory, update.eventId.toHexString())
+                    order.updateWith(update.logEvent, poolHistory, update.eventId)
                 }
             }
         }
@@ -183,7 +183,7 @@ class OrderReduceService(
     }
 
     private suspend fun Order.updateWith(
-        logEvent: LogEvent,
+        logEvent: ReversedEthereumLogRecord,
         orderExchangeHistory: OrderExchangeHistory,
         eventId: String
     ): Order {
@@ -192,7 +192,7 @@ class OrderReduceService(
         }
         @Suppress("KotlinConstantConditions")
         return when (logEvent.status) {
-            LogEventStatus.CONFIRMED -> when (orderExchangeHistory) {
+            EthereumLogStatus.CONFIRMED -> when (orderExchangeHistory) {
                 is OrderSideMatch -> {
                     if (orderExchangeHistory.adhoc == true && type == OrderType.CRYPTO_PUNKS) {
                         /*
@@ -231,12 +231,12 @@ class OrderReduceService(
     }
 
     private suspend fun Order.updateWith(
-        logEvent: LogEvent,
+        logEvent: ReversedEthereumLogRecord,
         poolHistory: PoolHistory,
         eventId: String
     ): Order {
         return when (logEvent.status) {
-            LogEventStatus.CONFIRMED -> {
+            EthereumLogStatus.CONFIRMED -> {
                 poolReducer.reduce(this, poolHistory).copy(
                     lastEventId = accumulateEventId(lastEventId, eventId),
                     lastUpdateAt = maxOf(lastUpdateAt, poolHistory.date),
@@ -248,12 +248,12 @@ class OrderReduceService(
     }
 
     private suspend fun Order.updateWithOnChainOrder(
-        logEvent: LogEvent,
+        logEvent: ReversedEthereumLogRecord,
         onChainOrder: OnChainOrder,
         eventId: String
     ): Order {
         val onChainOrderKey = logEvent.toLogEventKey()
-        return if (logEvent.status == LogEventStatus.CONFIRMED) {
+        return if (logEvent.status == EthereumLogStatus.CONFIRMED) {
             val orderVersion = onChainOrder.toOrderVersion()
                 .copy(onChainOrderKey = onChainOrderKey)
                 .let { priceUpdateService.withUpdatedAllPrices(it) }
@@ -577,7 +577,7 @@ class OrderReduceService(
             return@r 1
         }
 
-        private val logEventComparator = compareBy<LogEvent> { it.blockNumber ?: 0 } then
+        private val logEventComparator = compareBy<ReversedEthereumLogRecord> { it.blockNumber ?: 0 } then
             compareBy { it.logIndex ?: 0 } then
             compareBy { it.minorLogIndex }
 

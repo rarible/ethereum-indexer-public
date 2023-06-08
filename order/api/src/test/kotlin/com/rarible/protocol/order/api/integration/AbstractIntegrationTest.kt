@@ -1,6 +1,8 @@
 package com.rarible.protocol.order.api.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.common.NewKeys
@@ -42,6 +44,7 @@ import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -158,7 +161,8 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
 
     protected suspend fun cancelOrder(orderHash: Word) {
         exchangeHistoryRepository.save(
-            LogEvent(
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = OrderCancel(
                     hash = orderHash,
                     date = nowMillis(),
@@ -171,8 +175,8 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
                 ),
                 address = Address.ZERO(),
                 topic = Word.apply(randomWord()),
-                transactionHash = Word.apply(randomWord()),
-                status = LogEventStatus.CONFIRMED,
+                transactionHash = randomWord(),
+                status = EthereumLogStatus.CONFIRMED,
                 index = 0,
                 logIndex = 0,
                 minorLogIndex = 0

@@ -1,15 +1,14 @@
 package com.rarible.protocol.order.core.converters
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.AssetDto
 import com.rarible.protocol.dto.Erc721AssetTypeDto
 import com.rarible.protocol.dto.EthAssetTypeDto
 import com.rarible.protocol.dto.OrderActivityMatchDto
-import com.rarible.protocol.dto.OrderActivityMatchSideDto
 import com.rarible.protocol.dto.OrderActivityMatchSideDto.Type
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
@@ -17,7 +16,6 @@ import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
-import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
@@ -25,7 +23,6 @@ import com.rarible.protocol.order.core.model.OrderActivityResult
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.PoolActivityResult
-import com.rarible.protocol.order.core.model.toLogEventKey
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -36,6 +33,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -74,14 +72,15 @@ internal class OrderActivityConverterTest {
                 makeValue = null,
                 takeValue = null
             )
-            val event = LogEvent(
+            val event = ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = sideMatch,
                 address = randomAddress(),
                 topic = Word.apply(RandomUtils.nextBytes(32)),
-                transactionHash = Word.apply(RandomUtils.nextBytes(32)),
+                transactionHash = randomWord(),
                 index = RandomUtils.nextInt(),
                 minorLogIndex = 0,
-                status = LogEventStatus.CONFIRMED
+                status = EthereumLogStatus.CONFIRMED
             )
             Stream.of(
                 Arguments.of(
@@ -117,7 +116,7 @@ internal class OrderActivityConverterTest {
     @ParameterizedTest
     @MethodSource("logEvents")
     fun `should decode order match transaction input`(
-        logEvent: LogEvent,
+        logEvent: ReversedEthereumLogRecord,
         type: OrderActivityMatchDto.Type,
         leftType: Type,
         rightType: Type,
@@ -136,7 +135,7 @@ internal class OrderActivityConverterTest {
     fun `should convert pool nft in event`() = runBlocking<Unit> {
         val pool = randomSellOnChainAmmOrder().copy(currency = Address.ZERO())
         val event = randomPoolTargetNftIn()
-        val logEvent = createLogEvent(event).toReversedEthereumLogRecord()
+        val logEvent = createLogEvent(event)
         val expectedCurrency = AssetDto(EthAssetTypeDto(), event.inputValue.value)
         val expectedNft = AssetDto(Erc721AssetTypeDto(event.collection, event.tokenIds.first().value), BigInteger.ONE)
 
@@ -171,7 +170,7 @@ internal class OrderActivityConverterTest {
     fun `should convert pool nft out event`() = runBlocking<Unit> {
         val pool = randomSellOnChainAmmOrder().copy(currency = Address.ZERO())
         val event = randomPoolTargetNftOut()
-        val logEvent = createLogEvent(event).toReversedEthereumLogRecord()
+        val logEvent = createLogEvent(event)
         val expectedCurrency = AssetDto(EthAssetTypeDto(), event.outputValue.value)
         val expectedNft = AssetDto(Erc721AssetTypeDto(event.collection, event.tokenIds.first().value), BigInteger.ONE)
 

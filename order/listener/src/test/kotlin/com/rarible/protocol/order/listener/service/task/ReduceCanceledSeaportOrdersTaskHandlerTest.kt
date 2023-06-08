@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.listener.service.task
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderVersion
@@ -26,6 +26,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -67,12 +68,13 @@ class ReduceCanceledSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             take = null,
             source = HistorySource.OPEN_SEA
         )
-        val logEvent = LogEvent(
+        val logEvent = ReversedEthereumLogRecord(
+            id = ObjectId().toHexString(),
             data = cancel,
             address = randomAddress(),
             topic = Word.apply(ByteArray(32)),
-            transactionHash = Word.apply(randomWord()),
-            status = LogEventStatus.CONFIRMED,
+            transactionHash = randomWord(),
+            status = EthereumLogStatus.CONFIRMED,
             index = 0,
             logIndex = 0,
             minorLogIndex = 0

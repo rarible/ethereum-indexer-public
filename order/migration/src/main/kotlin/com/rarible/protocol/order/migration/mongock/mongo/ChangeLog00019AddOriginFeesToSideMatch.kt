@@ -2,7 +2,7 @@ package com.rarible.protocol.order.migration.mongock.mongo
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
-import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
@@ -20,8 +20,8 @@ class ChangeLog00019AddOriginFeesToSideMatch {
     fun addOriginFeesToSideMatch(
         @NonLockGuarded template: ReactiveMongoTemplate
     ) = runBlocking<Unit> {
-        val originFeesField = "${LogEvent::data.name}.${OrderSideMatch::originFees.name}"
-        val dataOriginFeesField = "${LogEvent::data.name}.${OrderSideMatch::data.name}.${OrderRaribleV2DataV1::originFees.name}"
+        val originFeesField = "${ReversedEthereumLogRecord::data.name}.${OrderSideMatch::originFees.name}"
+        val dataOriginFeesField = "${ReversedEthereumLogRecord::data.name}.${OrderSideMatch::data.name}.${OrderRaribleV2DataV1::originFees.name}"
 
         val criteria = Criteria().andOperator(
             Criteria.where(dataOriginFeesField).exists(true),

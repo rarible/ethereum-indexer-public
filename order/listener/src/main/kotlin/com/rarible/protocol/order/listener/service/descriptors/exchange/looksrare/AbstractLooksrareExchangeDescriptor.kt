@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.looksrare
 
-import com.rarible.ethereum.listener.log.domain.EventData
+import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel

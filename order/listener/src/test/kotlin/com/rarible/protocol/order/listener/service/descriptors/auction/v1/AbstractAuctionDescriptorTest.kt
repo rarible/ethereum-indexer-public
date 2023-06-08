@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.contracts.test.erc20.TestERC20
 import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.RaribleKafkaConsumer
@@ -8,7 +9,6 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.ext.KafkaTestExtension
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.contracts.auction.v1.AuctionHouse
 import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.common.erc721.TestERC721
@@ -189,7 +189,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
 
         }
 
-        var events: List<LogEvent> = emptyList()
+        var events: List<ReversedEthereumLogRecord> = emptyList()
         Wait.waitAssert {
             events = auctionHistoryRepository.findByType(AuctionHistoryType.ON_CHAIN_AUCTION).collectList().awaitFirst()
             Assertions.assertThat(events).hasSize(1)

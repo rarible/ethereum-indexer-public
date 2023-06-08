@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.data.createLogEvent
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
@@ -52,6 +52,7 @@ import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
 import scalether.domain.AddressFactory
@@ -247,12 +248,13 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             source = HistorySource.OPEN_SEA
         )
         nonceHistoryRepository.save(
-            LogEvent(
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = nonce,
                 address = data.exchange,
                 topic = Word.apply(randomWord()),
-                transactionHash = Word.apply(randomWord()),
-                status = LogEventStatus.CONFIRMED,
+                transactionHash = randomWord(),
+                status = EthereumLogStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
@@ -288,12 +290,13 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             source = HistorySource.OPEN_SEA
         )
         nonceHistoryRepository.save(
-            LogEvent(
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = nonce,
                 address = data.protocol,
                 topic = Word.apply(randomWord()),
-                transactionHash = Word.apply(randomWord()),
-                status = LogEventStatus.CONFIRMED,
+                transactionHash = randomWord(),
+                status = EthereumLogStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
@@ -327,12 +330,13 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             source = HistorySource.OPEN_SEA
         )
         nonceHistoryRepository.save(
-            LogEvent(
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = nonce,
                 address = data.exchange,
                 topic = Word.apply(randomWord()),
-                transactionHash = Word.apply(randomWord()),
-                status = LogEventStatus.CONFIRMED,
+                transactionHash = randomWord(),
+                status = EthereumLogStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
@@ -368,12 +372,13 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             source = HistorySource.OPEN_SEA
         )
         nonceHistoryRepository.save(
-            LogEvent(
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = nonce,
                 address = data.protocol,
                 topic = Word.apply(randomWord()),
-                transactionHash = Word.apply(randomWord()),
-                status = LogEventStatus.CONFIRMED,
+                transactionHash = randomWord(),
+                status = EthereumLogStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
@@ -410,12 +415,13 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             source = HistorySource.OPEN_SEA
         )
         nonceHistoryRepository.save(
-            LogEvent(
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = nonce,
                 address = data.protocol,
                 topic = Word.apply(randomWord()),
-                transactionHash = Word.apply(randomWord()),
-                status = LogEventStatus.CONFIRMED,
+                transactionHash = randomWord(),
+                status = EthereumLogStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
@@ -587,7 +593,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     fun `should remove amm order if history reverted`() = runBlocking<Unit> {
         val onChainAmmOrder = randomSellOnChainAmmOrder()
         orderRepository.save(createOrder().copy(id = Order.Id(onChainAmmOrder.hash), hash = onChainAmmOrder.hash))
-        prepareStorage(LogEventStatus.REVERTED, onChainAmmOrder)
+        prepareStorage(EthereumLogStatus.REVERTED, onChainAmmOrder)
 
         val result = orderReduceService.updateOrder(onChainAmmOrder.hash)!!
 
@@ -666,34 +672,36 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(updated?.status).isEqualTo(OrderStatus.ACTIVE)
     }
 
-    private suspend fun prepareStorage(status: LogEventStatus, vararg histories: OrderExchangeHistory) {
+    private suspend fun prepareStorage(status: EthereumLogStatus, vararg histories: OrderExchangeHistory) {
         histories.forEachIndexed { index, history ->
             exchangeHistoryRepository.save(
-                LogEvent(
-                    data = history,
+                ReversedEthereumLogRecord(
+                    id = ObjectId().toHexString(),
                     address = AddressFactory.create(),
                     topic = Word.apply(randomWord()),
-                    transactionHash = Word.apply(randomWord()),
+                    transactionHash = randomWord(),
                     status = status,
                     blockNumber = 1,
                     logIndex = 0,
                     minorLogIndex = 0,
                     index = index,
                     createdAt = history.date,
-                    updatedAt = history.date
+                    updatedAt = history.date,
+                    data = history,
                 )
             ).awaitFirst()
         }
     }
 
-    private suspend fun prepareStorage(status: LogEventStatus, vararg histories: PoolHistory) {
+    private suspend fun prepareStorage(status: EthereumLogStatus, vararg histories: PoolHistory) {
         histories.forEachIndexed { index, history ->
             poolHistoryRepository.save(
-                LogEvent(
+                ReversedEthereumLogRecord(
+                    id = ObjectId().toHexString(),
                     data = history,
                     address = AddressFactory.create(),
                     topic = Word.apply(randomWord()),
-                    transactionHash = Word.apply(randomWord()),
+                    transactionHash = randomWord(),
                     status = status,
                     blockNumber = index.toLong(),
                     logIndex = 0,
@@ -707,11 +715,11 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     }
 
     private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {
-        prepareStorage(LogEventStatus.CONFIRMED, *histories)
+        prepareStorage(EthereumLogStatus.CONFIRMED, *histories)
     }
 
     private suspend fun prepareStorage(vararg histories: PoolHistory) {
-        prepareStorage(LogEventStatus.CONFIRMED, *histories)
+        prepareStorage(EthereumLogStatus.CONFIRMED, *histories)
     }
 
     private suspend fun prepareStorage(vararg orderVersions: OrderVersion) {

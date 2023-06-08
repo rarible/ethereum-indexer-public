@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.core.service.pool
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.AmmOrderNftUpdateEventDto
 import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.order.core.data.createSellOrder
@@ -29,6 +29,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -77,7 +78,7 @@ internal class PoolEventListenerTest {
         coVerify { orderPublisher.publish(withArg<OrderEventDto> { eventDto ->
             eventDto as AmmOrderNftUpdateEventDto
             assertThat(eventDto.orderId).isEqualTo(poolHistory.hash.toString())
-            assertThat(eventDto.eventId).isEqualTo(logEvent.id.toHexString())
+            assertThat(eventDto.eventId).isEqualTo(logEvent.id)
             if (inNft) {
                 assertThat(eventDto.inNft).isEqualTo(expectedItemIds)
                 assertThat(eventDto.outNft).isEmpty()
@@ -91,7 +92,7 @@ internal class PoolEventListenerTest {
     @Test
     fun `should publish on reverted OnChainAmmOrder`() = runBlocking<Unit> {
         val event = randomSellOnChainAmmOrder()
-        val logEvent = logEvent(event).copy(status = LogEventStatus.REVERTED)
+        val logEvent = logEvent(event).copy(status = EthereumLogStatus.REVERTED)
 
         coEvery { orderRepository.findById(event.hash) } returns createSellOrder()
         coEvery { orderPublisher.publish(any<OrderEventDto>()) } returns Unit
@@ -144,13 +145,14 @@ internal class PoolEventListenerTest {
         coVerify( exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
     }
 
-    private fun logEvent(data: PoolHistory): LogEvent {
-        return LogEvent(
+    private fun logEvent(data: PoolHistory): ReversedEthereumLogRecord {
+        return ReversedEthereumLogRecord(
+            id = ObjectId().toHexString(),
             data = data,
             address = randomAddress(),
             topic = Word.apply(randomWord()),
-            transactionHash = Word.apply(randomWord()),
-            status = LogEventStatus.CONFIRMED,
+            transactionHash = randomWord(),
+            status = EthereumLogStatus.CONFIRMED,
             index = 0,
             logIndex = 0,
             minorLogIndex = 0

@@ -1,7 +1,10 @@
 package com.rarible.protocol.order.api.data
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -16,6 +19,7 @@ import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
+import org.bson.types.ObjectId
 import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Instant
@@ -190,12 +194,13 @@ fun orderErc721BidCancel(): OrderCancel {
 
 fun createLogEvent(
     data: OrderExchangeHistory,
-    status: LogEventStatus = LogEventStatus.CONFIRMED
-) = LogEvent(
+    status: EthereumLogStatus = EthereumLogStatus.CONFIRMED
+) = ReversedEthereumLogRecord(
+    id = ObjectId().toHexString(),
     data = data,
     address = randomAddress(),
     topic = Word.apply(RandomUtils.nextBytes(32)),
-    transactionHash = Word.apply(RandomUtils.nextBytes(32)),
+    transactionHash = randomWord(),
     index = RandomUtils.nextInt(),
     minorLogIndex = 0,
     status = status

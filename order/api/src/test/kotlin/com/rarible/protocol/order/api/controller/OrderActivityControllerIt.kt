@@ -42,7 +42,7 @@ class OrderActivityControllerIt : AbstractIntegrationTest() {
         Assertions.assertThat(orderList).hasSize(2)
 
         Assertions.assertThat(orderList?.map { it.id })
-            .containsExactlyInAnyOrder(activity1.id.toHexString(), activity3.id.toHexString())
+            .containsExactlyInAnyOrder(activity1.id, activity3.id)
     }
 
     @Test
@@ -60,7 +60,7 @@ class OrderActivityControllerIt : AbstractIntegrationTest() {
 
         Assertions.assertThat(idsList).hasSize(2)
 
-        Assertions.assertThat(idsList).containsExactlyInAnyOrder(activity2.id.toHexString(),activity3.id.toHexString())
+        Assertions.assertThat(idsList).containsExactlyInAnyOrder(activity2.id ,activity3.id)
     }
 
     @Test

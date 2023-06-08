@@ -1,12 +1,12 @@
 package com.rarible.protocol.order.core.repository.nonce
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
@@ -75,7 +76,7 @@ internal class NonceHistoryRepositoryTest : AbstractIntegrationTest() {
             date = nowMillis(),
             source = HistorySource.OPEN_SEA
         )
-        saveLog(nonce0, address1, blockNumber = 100, logIndex = 100, minorLogIndex = 100, status = LogEventStatus.REVERTED)
+        saveLog(nonce0, address1, blockNumber = 100, logIndex = 100, minorLogIndex = 100, status = EthereumLogStatus.REVERTED)
         saveLog(nonce1, address1, blockNumber = 10, logIndex = 2, minorLogIndex = 2)
         saveLog(nonce2, address1, blockNumber = 10, logIndex = 2, minorLogIndex = 1)
         saveLog(nonce3, address1, blockNumber = 10, logIndex = 1, minorLogIndex = 2)
@@ -98,14 +99,15 @@ internal class NonceHistoryRepositoryTest : AbstractIntegrationTest() {
         blockNumber: Long,
         logIndex: Int,
         minorLogIndex: Int,
-        status: LogEventStatus = LogEventStatus.CONFIRMED
+        status: EthereumLogStatus = EthereumLogStatus.CONFIRMED
     ) {
         nonceHistoryRepository.save(
-            LogEvent(
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = history,
                 address = address,
                 topic = Word.apply(ByteArray(32)),
-                transactionHash = Word.apply(randomWord()),
+                transactionHash = randomWord(),
                 status = status,
                 blockNumber = blockNumber,
                 logIndex = logIndex,

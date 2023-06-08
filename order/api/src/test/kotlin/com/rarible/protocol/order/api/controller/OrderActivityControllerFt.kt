@@ -1,9 +1,9 @@
 package com.rarible.protocol.order.api.controller
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
@@ -1072,7 +1072,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(7, ChronoUnit.MINUTES))),
                         createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(8, ChronoUnit.MINUTES)))
                     ),
-                    emptyList<LogEvent>(),
+                    emptyList<ReversedEthereumLogRecord>(),
                     emptyList<OrderVersion>(),
                     OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.MATCH)),
                     ActivitySortDto.EARLIEST_FIRST
@@ -1163,7 +1163,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(2, ChronoUnit.MINUTES))),
                         createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(1, ChronoUnit.MINUTES)))
                     ),
-                    emptyList<LogEvent>(),
+                    emptyList<ReversedEthereumLogRecord>(),
                     emptyList<OrderVersion>(),
                     OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.MATCH)),
                     ActivitySortDto.LATEST_FIRST
@@ -1228,8 +1228,8 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
     @ParameterizedTest
     @MethodSource("activityHistoryFilterData")
     fun `should find history activity by pagination`(
-        logs: List<LogEvent>,
-        otherLogs: List<LogEvent>,
+        logs: List<ReversedEthereumLogRecord>,
+        otherLogs: List<ReversedEthereumLogRecord>,
         otherVersions: List<OrderVersion>,
         filter: OrderActivityFilterDto,
         sort: ActivitySortDto
@@ -1259,8 +1259,8 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
     @ParameterizedTest
     @MethodSource("activityHistoryFilterData")
     fun `should find all history activity`(
-        logs: List<LogEvent>,
-        otherLogs: List<LogEvent>,
+        logs: List<ReversedEthereumLogRecord>,
+        otherLogs: List<ReversedEthereumLogRecord>,
         otherVersions: List<OrderVersion>,
         filter: OrderActivityFilterDto,
         sort: ActivitySortDto
@@ -1296,19 +1296,19 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
     @Test
     fun `should sync all reverted history activity`() = runBlocking<Unit> {
         val reverted = listOf(
-            createLogEvent(orderErc721BidCancel(), status = LogEventStatus.REVERTED),
-            createLogEvent(orderErc721SellSideMatch(), status = LogEventStatus.REVERTED),
-            createLogEvent(orderErc721SellCancel(), status = LogEventStatus.REVERTED)
+            createLogEvent(orderErc721BidCancel(), status = EthereumLogStatus.REVERTED),
+            createLogEvent(orderErc721SellSideMatch(), status = EthereumLogStatus.REVERTED),
+            createLogEvent(orderErc721SellCancel(), status = EthereumLogStatus.REVERTED)
         )
         val confirmed = listOf(
-            createLogEvent(orderErc721BidCancel(), status = LogEventStatus.CONFIRMED),
-            createLogEvent(orderErc721SellSideMatch(), status = LogEventStatus.CONFIRMED),
-            createLogEvent(orderErc721SellCancel(), status = LogEventStatus.CONFIRMED)
+            createLogEvent(orderErc721BidCancel(), status = EthereumLogStatus.CONFIRMED),
+            createLogEvent(orderErc721SellSideMatch(), status = EthereumLogStatus.CONFIRMED),
+            createLogEvent(orderErc721SellCancel(), status = EthereumLogStatus.CONFIRMED)
         )
         saveHistory(*(reverted + confirmed).shuffled().toTypedArray())
 
         val revertedActivities = orderActivityClient.getOrderRevertedActivitiesSync(null, null, null).awaitFirst()
-        assertThat(revertedActivities.items.map { it.id }).containsExactlyInAnyOrderElementsOf(reverted.map { it.id.toHexString() })
+        assertThat(revertedActivities.items.map { it.id }).containsExactlyInAnyOrderElementsOf(reverted.map { it.id })
     }
 
     fun prepareNftClient(filter: OrderActivityFilterDto, orderVersions: List<OrderVersion>) {
@@ -1354,12 +1354,12 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
         assertThat(orderActivityDto.date).isEqualTo(version.createdAt)
     }
 
-    private fun checkOrderActivityDto(orderActivityDto: OrderActivityDto, history: LogEvent) {
+    private fun checkOrderActivityDto(orderActivityDto: OrderActivityDto, history: ReversedEthereumLogRecord) {
         assertThat(orderActivityDto.id).isEqualTo(history.id.toString())
         assertThat(orderActivityDto.date).isEqualTo((history.data as OrderExchangeHistory).date)
     }
 
-    private suspend fun saveHistory(vararg history: LogEvent) {
+    private suspend fun saveHistory(vararg history: ReversedEthereumLogRecord) {
         history.forEach { exchangeHistoryRepository.save(it).awaitFirst() }
     }
 

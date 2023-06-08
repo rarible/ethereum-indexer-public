@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.integration
 
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
@@ -20,6 +20,7 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -137,15 +138,16 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         token: Address = AddressFactory.create(),
         transactionHash: Word = WordFactory.create(),
         logIndex: Int? = null,
-        status: LogEventStatus = LogEventStatus.CONFIRMED
+        status: EthereumLogStatus = EthereumLogStatus.CONFIRMED
     ): T {
         if (data is OrderExchangeHistory) {
             val log = exchangeHistoryRepository.save(
-                LogEvent(
+                ReversedEthereumLogRecord(
+                    id = ObjectId().toHexString(),
                     data = data,
                     address = token,
                     topic = WordFactory.create(),
-                    transactionHash = transactionHash,
+                    transactionHash = transactionHash.prefixed(),
                     status = status,
                     index = 0,
                     logIndex = logIndex,

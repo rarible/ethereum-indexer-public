@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.model
 
-import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 
@@ -31,9 +31,9 @@ data class LogEventKey(
     }
 }
 
-fun LogEvent.toLogEventKey() = LogEventKey(
+fun ReversedEthereumLogRecord.toLogEventKey() = LogEventKey(
     blockNumber = blockNumber,
-    transactionHash = transactionHash,
+    transactionHash = Word.apply(transactionHash),
     topic = topic,
     address = address,
     index = index,
