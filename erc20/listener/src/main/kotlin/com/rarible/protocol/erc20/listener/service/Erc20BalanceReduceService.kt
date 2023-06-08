@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.balance
+package com.rarible.protocol.erc20.listener.service
 
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Balance
@@ -6,7 +6,6 @@ import com.rarible.protocol.erc20.core.model.Erc20MarkedEvent
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
 import com.rarible.protocol.erc20.core.service.reduce.Erc20BalanceFullReduceService
 import com.rarible.protocol.erc20.core.service.reduce.Erc20EventConverter
-import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull

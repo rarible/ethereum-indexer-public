@@ -14,7 +14,7 @@ import com.rarible.protocol.erc20.core.event.Erc20EventPublisher
 import com.rarible.protocol.erc20.core.event.KafkaErc20BalanceEventListener
 import com.rarible.protocol.erc20.core.metric.CheckerMetrics
 import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
-import com.rarible.protocol.erc20.listener.service.checker.BalanceBatchCheckerHandler
+import com.rarible.protocol.erc20.listener.scanner.BalanceBatchCheckerHandler
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean

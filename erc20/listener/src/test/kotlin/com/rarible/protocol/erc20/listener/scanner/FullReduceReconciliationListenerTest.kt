@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.reconciliation
+package com.rarible.protocol.erc20.listener.scanner
 
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.common.EventTimeMarks
@@ -7,7 +7,7 @@ import com.rarible.protocol.erc20.core.randomReversedEthereumLogRecord
 import com.rarible.protocol.erc20.core.repository.data.randomBalance
 import com.rarible.protocol.erc20.core.repository.data.randomErc20IncomeTransfer
 import com.rarible.protocol.erc20.core.repository.data.randomErc20TokenApproval
-import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceService
+import com.rarible.protocol.erc20.listener.service.Erc20BalanceReduceService
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

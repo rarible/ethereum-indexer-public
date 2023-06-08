@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.balance
+package com.rarible.protocol.erc20.listener.task
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper

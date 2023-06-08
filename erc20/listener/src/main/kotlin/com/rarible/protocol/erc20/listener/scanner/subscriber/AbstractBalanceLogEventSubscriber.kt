@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.subscriber
+package com.rarible.protocol.erc20.listener.scanner.subscriber
 
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
@@ -9,7 +9,7 @@ import com.rarible.blockchain.scanner.ethereum.subscriber.EthereumLogEventSubscr
 import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.model.SubscriberGroup
-import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
+import com.rarible.protocol.erc20.listener.service.IgnoredOwnersResolver
 import io.daonomic.rpc.domain.Word
 import org.bson.types.ObjectId
 import scalether.domain.response.Log

@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.checker
+package com.rarible.protocol.erc20.listener.scanner
 
 import com.rarible.contracts.erc20.IERC20
 import com.rarible.core.daemon.sequential.ConsumerBatchEventHandler

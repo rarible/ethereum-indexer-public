@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.checker
+package com.rarible.protocol.erc20.listener.scanner
 
 import com.fasterxml.jackson.databind.node.TextNode
 import com.rarible.ethereum.domain.Blockchain
@@ -25,7 +25,7 @@ import java.time.Instant
 import java.time.Instant.now
 import java.util.UUID
 
-internal class BalanceCheckerTest {
+internal class BalanceBatchCheckerTest {
 
     private val registry = SimpleMeterRegistry()
     private val ethereum: MonoEthereum = mockk()

@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.subscriber
+package com.rarible.protocol.erc20.listener.scanner.subscriber
 
 import com.rarible.contracts.interfaces.weth9.TransferEvent
 import com.rarible.ethereum.domain.EthUInt256
@@ -9,8 +9,8 @@ import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.model.SubscriberGroups
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
-import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
-import com.rarible.protocol.erc20.listener.service.token.Erc20RegistrationService
+import com.rarible.protocol.erc20.listener.service.Erc20RegistrationService
+import com.rarible.protocol.erc20.listener.service.IgnoredOwnersResolver
 import io.daonomic.rpc.domain.Binary
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

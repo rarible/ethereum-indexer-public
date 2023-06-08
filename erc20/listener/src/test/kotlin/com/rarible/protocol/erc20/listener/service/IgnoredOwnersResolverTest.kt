@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.owners
+package com.rarible.protocol.erc20.listener.service
 
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
