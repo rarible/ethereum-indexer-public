@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.listener.mongock.mongo
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.repository.Erc20ApprovalHistoryRepository
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
@@ -71,7 +72,7 @@ class ChangeLog00002HistoryIndexes {
     fun createBalanceIndexes(@NonLockGuarded template: ReactiveMongoOperations) = runBlocking {
         template.indexOps("erc20_balance").ensureIndex(
             Index()
-                .on("${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::owner.name}", Sort.Direction.ASC)
+                .on(Erc20Balance::owner.name, Sort.Direction.ASC)
         )
     }
 
