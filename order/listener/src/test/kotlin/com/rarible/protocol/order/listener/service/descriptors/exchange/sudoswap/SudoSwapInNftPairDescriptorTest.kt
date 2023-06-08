@@ -121,7 +121,7 @@ internal class SudoSwapInNftPairDescriptorTest {
             number = 1,
             hash = randomWord(),
             parentHash = randomWord(),
-            timestamp = date.epochSecond,
+            timestamp = Instant.now().epochSecond,
             ethBlock = mockk()
         )
         val ethLog = EthereumBlockchainLog(

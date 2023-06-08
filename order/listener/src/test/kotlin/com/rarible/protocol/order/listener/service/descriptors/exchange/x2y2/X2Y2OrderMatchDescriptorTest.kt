@@ -11,27 +11,25 @@ import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.misc.convert
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
-import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
-import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 import java.util.stream.Stream
@@ -72,8 +70,9 @@ class X2Y2OrderMatchDescriptorTest {
         runBlocking {
             val expectedDate = Instant.ofEpochSecond(1)
             val expectedCounterHash = keccak256(expectedHash)
-            val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
-            val actual = descriptor.convert(log, transaction, expectedDate.epochSecond, 1, 1).toFlux().collectList().awaitSingle()
+
+            val actual = descriptor.convert<OrderSideMatch>(log, expectedDate.epochSecond, 1, 1)
+
             assertThat(actual).isNotEmpty
             assertThat(actual.size).isEqualTo(2)
 
@@ -122,9 +121,10 @@ class X2Y2OrderMatchDescriptorTest {
         expectedBuyer: Address,
     ) {
         runBlocking {
-            val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
             coEvery { contractService.get(expectedCurrency) } returns Erc20Token(decimals = 18, name = "1", symbol = "2", id = Address.ZERO())
-            val actual = descriptor.convert(log, transaction, nowMillis().epochSecond, 1, 1).toFlux().collectList().awaitSingle()
+
+            val actual = descriptor.convert<OrderSideMatch>(log, nowMillis().epochSecond, 1, 1)
+
             assertThat(actual).isNotEmpty
             assertThat(actual.size).isEqualTo(2)
 

@@ -1,10 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.looksrare
 
-import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
-import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.test.data.randomAddress
-import com.rarible.core.test.data.randomWord
-import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.Platform
@@ -13,6 +9,7 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.misc.convert
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
@@ -22,7 +19,6 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
-import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -44,7 +40,6 @@ internal class LooksrareV1ExchangeCancelDescriptorTest {
 
     @Test
     fun `should convert event to OrderCancel`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction>()
         val data = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val order = createOrder().copy(maker = Address.apply("0x47921676a46ccfe3d80b161c7b4ddc8ed9e716b6"))
         val log = log(
@@ -60,22 +55,7 @@ internal class LooksrareV1ExchangeCancelDescriptorTest {
             )
         } returns flow { emit(order) }
 
-        val ethBlock = EthereumBlockchainBlock(
-            number = 1,
-            hash = randomWord(),
-            parentHash = randomWord(),
-            timestamp = data.epochSecond,
-            ethBlock = mockk()
-        )
-        val ethLog = EthereumBlockchainLog(
-            ethLog = log,
-            ethTransaction = transaction,
-            index = 0,
-            total = 1,
-        )
-        val cancels = descriptor
-            .getEthereumEventRecords(ethBlock, ethLog)
-            .map { it.asEthereumLogRecord().data as OrderCancel }
+        val cancels = descriptor.convert<OrderCancel>(log, data.epochSecond, 0, 1)
 
         assertThat(cancels).hasSize(1)
         assertThat(cancels.single().hash).isEqualTo(order.hash)

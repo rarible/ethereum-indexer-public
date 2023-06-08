@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswap
 
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
@@ -8,6 +10,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.randomPoolInfo
 import com.rarible.protocol.order.core.data.randomSudoSwapPurchaseValue
+import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -23,12 +26,9 @@ import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.math.BigDecimal
@@ -94,7 +94,24 @@ internal class SudoSwapOutNftPairDescriptorTest {
             )
         } returns listOf(purchaseValue)
 
-        val nftOut = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
+            timestamp = date.epochSecond,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
+            index = 0,
+            total = 1,
+        )
+        val nftOut = descriptor
+            .getEthereumEventRecords(ethBlock, ethLog)
+            .map { it.asEthereumLogRecord().data }
+            .firstOrNull()
+
         assertThat(nftOut).isInstanceOf(PoolTargetNftOut::class.java)
         nftOut as PoolTargetNftOut
 
@@ -144,7 +161,23 @@ internal class SudoSwapOutNftPairDescriptorTest {
             )
         } returns listOf(purchaseValue)
 
-        val nftOut = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
+            timestamp = date.epochSecond,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
+            index = 0,
+            total = 1,
+        )
+        val nftOut = descriptor
+            .getEthereumEventRecords(ethBlock, ethLog)
+            .map { it.asEthereumLogRecord().data }
+            .firstOrNull()
 
         assertThat(nftOut).isInstanceOf(PoolTargetNftOut::class.java)
         nftOut as PoolTargetNftOut
@@ -162,7 +195,25 @@ internal class SudoSwapOutNftPairDescriptorTest {
         val transaction = mockk<Transaction>()
         val log = log()
         every { sudoSwapLoad.ignorePairs } returns setOf(log.address())
-        val nftOut = descriptor.convert(log, transaction, Instant.now().epochSecond, 0, 1).toFlux().awaitFirstOrNull()
+
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
+            timestamp = Instant.now().epochSecond,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
+            index = 0,
+            total = 1,
+        )
+        val nftOut = descriptor
+            .getEthereumEventRecords(ethBlock, ethLog)
+            .map { it.asEthereumLogRecord().data }
+            .firstOrNull()
+
         assertThat(nftOut).isNull()
     }
 }

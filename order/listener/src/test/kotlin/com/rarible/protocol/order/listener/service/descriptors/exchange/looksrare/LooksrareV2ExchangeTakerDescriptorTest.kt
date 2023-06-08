@@ -26,6 +26,7 @@ import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.misc.convert
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -81,7 +82,6 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
 
     @Test
     fun `should convert sell event`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
         val data = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val bidOrderUsd = randomBidOrderUsdValue()
         val sellOrderUsd = randomSellOrderUsdValue()
@@ -133,22 +133,7 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         coEvery { tokenStandardProvider.getTokenStandard(nftAssetType.token) } returns TokenStandard.ERC721
         coEvery { orderRepository.findByMakeAndByCounters(any(), any(), any()) } returns emptyFlow()
 
-        val ethBlock = EthereumBlockchainBlock(
-            number = 1,
-            hash = randomWord(),
-            parentHash = randomWord(),
-            timestamp = data.epochSecond,
-            ethBlock = mockk()
-        )
-        val ethLog = EthereumBlockchainLog(
-            ethLog = log,
-            ethTransaction = transaction,
-            index = 0,
-            total = 1,
-        )
-        val matches = descriptorBid
-            .getEthereumEventRecords(ethBlock, ethLog)
-            .map { it.asEthereumLogRecord().data as OrderSideMatch }
+        val matches = descriptorBid.convert<OrderSideMatch>(log, data.epochSecond, 0, 1)
 
         assertThat(matches).hasSize(2)
         val left = matches[0] as OrderSideMatch
@@ -191,7 +176,6 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
 
     @Test
     fun `should convert bid event`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
         val data = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val bidOrderUsd = randomBidOrderUsdValue()
         val sellOrderUsd = randomSellOrderUsdValue()
@@ -246,22 +230,7 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         coEvery { tokenStandardProvider.getTokenStandard(nftAssetType.token) } returns TokenStandard.ERC721
         coEvery { orderRepository.findByMakeAndByCounters(any(), any(), any()) } returns emptyFlow()
 
-        val ethBlock = EthereumBlockchainBlock(
-            number = 1,
-            hash = randomWord(),
-            parentHash = randomWord(),
-            timestamp = data.epochSecond,
-            ethBlock = mockk()
-        )
-        val ethLog = EthereumBlockchainLog(
-            ethLog = log,
-            ethTransaction = transaction,
-            index = 0,
-            total = 1,
-        )
-        val matches = descriptorBid
-            .getEthereumEventRecords(ethBlock, ethLog)
-            .map { it.asEthereumLogRecord().data as OrderSideMatch }
+        val matches = descriptorAsk.convert<OrderSideMatch>(log, data.epochSecond, 1, 0)
 
         assertThat(matches).hasSize(2)
         val left = matches[0] as OrderSideMatch

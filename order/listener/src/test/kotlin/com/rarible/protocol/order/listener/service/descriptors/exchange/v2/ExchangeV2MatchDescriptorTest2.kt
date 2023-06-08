@@ -4,6 +4,7 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.randomSimpleTrace
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -11,15 +12,14 @@ import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.misc.convert
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.math.BigDecimal
@@ -60,6 +60,7 @@ class ExchangeV2MatchDescriptorTest2 {
             )
         )
         coEvery { transaction.from() }.returns(Address.FOUR())
+        coEvery { transaction.to() }.returns(Address.ONE())
         coEvery {
             transactionTraceProvider.traceAndFindAllCallsTo(
                 eq(transaction.hash()),
@@ -80,7 +81,7 @@ class ExchangeV2MatchDescriptorTest2 {
             ),
             "0xf765978d32c80537ba009141cc0e96bec3e0292b33cade67bb6ba373b03e129e4a6b3ac393ff1b19d7fe895a75c03af2e27ea92117ea8eaec291957bbe0a9773000000000000000000000000000000000000000000000000002386f26fc100000000000000000000000000000000000000000000000000000000000000000001"
         )
-        val matches = descriptor.convert(log, transaction, data.epochSecond, 0, 0).toFlux().collectList().awaitFirst()
+        val matches = descriptor.convert<OrderSideMatch>(log, transaction, data.epochSecond, 0, 1)
         println(matches)
     }
 }

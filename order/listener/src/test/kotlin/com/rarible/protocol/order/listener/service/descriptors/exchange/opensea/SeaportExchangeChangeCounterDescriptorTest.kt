@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.misc.convert
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
@@ -37,7 +38,6 @@ internal class SeaportExchangeChangeCounterDescriptorTest {
 
     @Test
     fun `should convert SeaportExchangeChangeCounterDescriptor to event`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction>()
         val date = Instant.ofEpochSecond(1)
         val log = log(
             topics = listOf(
@@ -46,22 +46,7 @@ internal class SeaportExchangeChangeCounterDescriptorTest {
             ),
             data = "0x0000000000000000000000000000000000000000000000000000000000000001"
         )
-        val ethBlock = EthereumBlockchainBlock(
-            number = 1,
-            hash = randomWord(),
-            parentHash = randomWord(),
-            timestamp = date.epochSecond,
-            ethBlock = mockk()
-        )
-        val ethLog = EthereumBlockchainLog(
-            ethLog = log,
-            ethTransaction = transaction,
-            index = 1,
-            total = 1,
-        )
-        val events = descriptor
-            .getEthereumEventRecords(ethBlock, ethLog)
-            .map { it.asEthereumLogRecord().data as ChangeNonceHistory }
+        val events = descriptor.convert<ChangeNonceHistory>(log, date.epochSecond, 1, 1)
 
         assertThat(events).hasSize(1)
         assertThat(events.single().date).isEqualTo(date)
