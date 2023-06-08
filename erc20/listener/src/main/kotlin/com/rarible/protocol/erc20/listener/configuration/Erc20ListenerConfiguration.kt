@@ -51,6 +51,9 @@ class Erc20ListenerConfiguration(
     }
 
     @Bean
+    fun erc20BalanceCleanupJobProperties() = commonProperties.job.balanceCleanup
+
+    @Bean
     fun checkerMetrics(blockchain: Blockchain, meterRegistry: MeterRegistry): CheckerMetrics {
         return CheckerMetrics(blockchain, meterRegistry)
     }

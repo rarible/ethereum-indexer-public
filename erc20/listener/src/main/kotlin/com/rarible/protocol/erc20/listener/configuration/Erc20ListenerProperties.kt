@@ -19,7 +19,8 @@ data class Erc20ListenerProperties(
     val logConsumeWorkerCount: Int = 10,
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val skipTransferContracts: List<String> = emptyList(),
-    val balanceCheckerProperties: BalanceCheckerProperties = BalanceCheckerProperties()
+    val balanceCheckerProperties: BalanceCheckerProperties = BalanceCheckerProperties(),
+    val job: Erc20JobProperties = Erc20JobProperties()
 )
 
 data class BalanceCheckerProperties(
@@ -27,4 +28,14 @@ data class BalanceCheckerProperties(
     val confirms: Int = 2,
     val updateLastBlock: Duration = Duration.ofSeconds(5),
     val checkUpdatedAt: Boolean = false
+)
+
+data class Erc20JobProperties(
+    val balanceCleanup: Erc20BalanceCleanupJobProperties = Erc20BalanceCleanupJobProperties()
+)
+
+data class Erc20BalanceCleanupJobProperties(
+    val enabled: Boolean = false,
+    val pollingPeriod: Duration = Duration.ofMinutes(1),
+    val errorDelay: Duration = Duration.ofMinutes(1)
 )

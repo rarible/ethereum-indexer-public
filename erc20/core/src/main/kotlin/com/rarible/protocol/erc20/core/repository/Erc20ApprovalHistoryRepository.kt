@@ -2,10 +2,12 @@ package com.rarible.protocol.erc20.core.repository
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.mongo.util.div
 import com.rarible.protocol.erc20.core.model.Erc20HistoryLog
 import com.rarible.protocol.erc20.core.model.Erc20TokenApproval
 import com.rarible.protocol.erc20.core.model.Erc20TokenApprovalHistoryLog
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
+import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
@@ -46,6 +48,11 @@ class Erc20ApprovalHistoryRepository(
                     else -> null
                 }
             }
+    }
+
+    suspend fun deleteByOwner(owner: Address): Long {
+        val criteria = (ReversedEthereumLogRecord::data / Erc20TokenApproval::owner).isEqualTo(owner)
+        return template.remove(Query.query(criteria), COLLECTION).awaitFirst().deletedCount
     }
 
     companion object {

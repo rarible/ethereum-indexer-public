@@ -11,6 +11,7 @@ import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
@@ -132,6 +133,11 @@ class Erc20TransferHistoryRepository(
         logs.forEach {
             template.remove(it).awaitFirstOrNull()
         }
+    }
+
+    suspend fun deleteByOwner(owner: Address): Long {
+        val criteria = Criteria(DATA_OWNER).isEqualTo(owner)
+        return template.remove(Query.query(criteria), COLLECTION).awaitFirst().deletedCount
     }
 
     companion object {
