@@ -1,8 +1,6 @@
 package com.rarible.protocol.order.core.model
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.order.core.misc.toReversedEthereumLogRecord
 import java.time.Instant
 
 sealed class ActivityResult {
@@ -31,7 +29,6 @@ sealed class ActivityResult {
 sealed class OrderActivityResult: ActivityResult() {
 
     data class History(val value: ReversedEthereumLogRecord): OrderActivityResult() {
-        constructor(value: LogEvent): this(value.toReversedEthereumLogRecord())
 
         override fun getId(): String = this.value.id
         override fun getDate(): Instant = when (this.value.data) {
@@ -63,8 +60,8 @@ sealed class PoolActivityResult: OrderActivityResult() {
 
 sealed class AuctionActivityResult: ActivityResult() {
 
-    data class History(val value: LogEvent): AuctionActivityResult() {
-        override fun getId(): String = this.value.id.toHexString()
+    data class History(val value: ReversedEthereumLogRecord): AuctionActivityResult() {
+        override fun getId(): String = this.value.id
         override fun getDate(): Instant = when (this.value.data) {
             is OrderExchangeHistory -> (this.value.data as OrderExchangeHistory).date
             is AuctionHistory -> (this.value.data as AuctionHistory).date

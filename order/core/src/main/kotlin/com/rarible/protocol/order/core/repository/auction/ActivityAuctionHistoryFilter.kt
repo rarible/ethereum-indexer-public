@@ -1,8 +1,8 @@
 package com.rarible.protocol.order.core.repository.auction
 
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.continuation.DateIdContinuation
 import com.rarible.protocol.order.core.continuation.PriceIdContinuation
 import com.rarible.protocol.order.core.misc.safeQueryParam
@@ -23,23 +23,23 @@ sealed class ActivityAuctionHistoryFilter {
     internal val sort: Sort
         get() = when (auctionActivitySort) {
             AuctionActivitySort.LATEST_FIRST -> Sort.by(
-                Sort.Order.desc("${LogEvent::data.name}.${AuctionHistory::date.name}"),
+                Sort.Order.desc("${ReversedEthereumLogRecord::data.name}.${AuctionHistory::date.name}"),
                 Sort.Order.desc("_id")
             )
             AuctionActivitySort.EARLIEST_FIRST -> Sort.by(
-                Sort.Order.asc("${LogEvent::data.name}.${AuctionHistory::date.name}"),
+                Sort.Order.asc("${ReversedEthereumLogRecord::data.name}.${AuctionHistory::date.name}"),
                 Sort.Order.asc("_id")
             )
             AuctionActivitySort.BID_DES -> Sort.by(
-                Sort.Order.desc("${LogEvent::data.name}.${BidPlaced::bidValue.name}"),
+                Sort.Order.desc("${ReversedEthereumLogRecord::data.name}.${BidPlaced::bidValue.name}"),
                 Sort.Order.desc("_id")
             )
             AuctionActivitySort.SYNC_LATEST_FIRST -> Sort.by(
-                Sort.Order.desc(LogEvent::updatedAt.name),
+                Sort.Order.desc(ReversedEthereumLogRecord::updatedAt.name),
                 Sort.Order.desc("_id")
             )
             AuctionActivitySort.SYNC_EARLIEST_FIRST -> Sort.by(
-                Sort.Order.asc(LogEvent::updatedAt.name),
+                Sort.Order.asc(ReversedEthereumLogRecord::updatedAt.name),
                 Sort.Order.asc("_id")
             )
         }
@@ -52,8 +52,8 @@ sealed class ActivityAuctionHistoryFilter {
                 val lastBid = PriceIdContinuation.parse(continuation)
                 lastBid?.let {
                     this.orOperator(
-                        LogEvent::data / BidPlaced::bidValue lt lastBid.price,
-                        (LogEvent::data / BidPlaced::bidValue isEqualTo lastBid.price).and("_id")
+                        ReversedEthereumLogRecord::data / BidPlaced::bidValue lt lastBid.price,
+                        (ReversedEthereumLogRecord::data / BidPlaced::bidValue isEqualTo lastBid.price).and("_id")
                             .lt(lastBid.id.safeQueryParam())
                     )
                 } ?: this
@@ -62,8 +62,8 @@ sealed class ActivityAuctionHistoryFilter {
                 val lastDate = DateIdContinuation.parse(continuation)
                 lastDate?.let {
                     this.orOperator(
-                        LogEvent::data / AuctionHistory::date lt lastDate.date,
-                        (LogEvent::data / AuctionHistory::date isEqualTo lastDate.date).and("_id")
+                        ReversedEthereumLogRecord::data / AuctionHistory::date lt lastDate.date,
+                        (ReversedEthereumLogRecord::data / AuctionHistory::date isEqualTo lastDate.date).and("_id")
                             .lt(lastDate.id.safeQueryParam())
                     )
                 } ?: this
@@ -72,8 +72,8 @@ sealed class ActivityAuctionHistoryFilter {
                 val lastDate = DateIdContinuation.parse(continuation)
                 lastDate?.let {
                     this.orOperator(
-                        LogEvent::data / AuctionHistory::date gt lastDate.date,
-                        (LogEvent::data / AuctionHistory::date isEqualTo lastDate.date).and("_id")
+                        ReversedEthereumLogRecord::data / AuctionHistory::date gt lastDate.date,
+                        (ReversedEthereumLogRecord::data / AuctionHistory::date isEqualTo lastDate.date).and("_id")
                             .gt(lastDate.id.safeQueryParam())
                     )
                 } ?: this
@@ -82,8 +82,8 @@ sealed class ActivityAuctionHistoryFilter {
                 val lastDate = DateIdContinuation.parse(continuation)
                 lastDate?.let {
                     this.orOperator(
-                        LogEvent::updatedAt lt lastDate.date,
-                        (LogEvent::updatedAt isEqualTo lastDate.date).and("_id")
+                        ReversedEthereumLogRecord::updatedAt lt lastDate.date,
+                        (ReversedEthereumLogRecord::updatedAt isEqualTo lastDate.date).and("_id")
                             .lt(lastDate.id.safeQueryParam())
                     )
                 } ?: this
@@ -92,8 +92,8 @@ sealed class ActivityAuctionHistoryFilter {
                 val lastDate = DateIdContinuation.parse(continuation)
                 lastDate?.let {
                     this.orOperator(
-                        LogEvent::updatedAt gt lastDate.date,
-                        (LogEvent::updatedAt isEqualTo lastDate.date).and("_id")
+                        ReversedEthereumLogRecord::updatedAt gt lastDate.date,
+                        (ReversedEthereumLogRecord::updatedAt isEqualTo lastDate.date).and("_id")
                             .gt(lastDate.id.safeQueryParam())
                     )
                 } ?: this
@@ -116,8 +116,8 @@ sealed class ActivityAuctionHistoryFilter {
         override val auctionActivitySort: AuctionActivitySort = AuctionActivitySort.BID_DES
 
         override fun getCriteria(): Criteria {
-            return (LogEvent::data / AuctionHistory::hash).isEqualTo(hash)
-                .and(LogEvent::data / AuctionHistory::type).isEqualTo(AuctionHistoryType.BID_PLACED)
+            return (ReversedEthereumLogRecord::data / AuctionHistory::hash).isEqualTo(hash)
+                .and(ReversedEthereumLogRecord::data / AuctionHistory::type).isEqualTo(AuctionHistoryType.BID_PLACED)
                 .scrollTo(auctionActivitySort, continuation)
         }
     }
@@ -130,7 +130,7 @@ sealed class ActivityAuctionHistoryFilter {
         override val auctionActivitySort: AuctionActivitySort = sort ?: AuctionActivitySort.LATEST_FIRST
 
         override fun getCriteria(): Criteria {
-            return (LogEvent::data / AuctionHistory::type).isEqualTo(type)
+            return (ReversedEthereumLogRecord::data / AuctionHistory::type).isEqualTo(type)
                 .scrollTo(auctionActivitySort, continuation)
         }
     }
@@ -147,7 +147,7 @@ sealed class AuctionByUser(
     override val auctionActivitySort: AuctionActivitySort = sort
 
     override fun getCriteria(): Criteria {
-        return Criteria().andOperator((LogEvent::data / AuctionHistory::type) isEqualTo type, extraCriteria)
+        return Criteria().andOperator((ReversedEthereumLogRecord::data / AuctionHistory::type) isEqualTo type, extraCriteria)
             .dateBoundary(auctionActivitySort, continuation, from, to)
             .scrollTo(auctionActivitySort, continuation)
     }
@@ -161,7 +161,7 @@ sealed class AuctionByUser(
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.ON_CHAIN_AUCTION, continuation, sort) {
-        override val extraCriteria = (LogEvent::data / OnChainAuction::seller).inValues(users)
+        override val extraCriteria = (ReversedEthereumLogRecord::data / OnChainAuction::seller).inValues(users)
     }
 
     class Bid(
@@ -171,7 +171,7 @@ sealed class AuctionByUser(
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.BID_PLACED, continuation, sort) {
-        override val extraCriteria = (LogEvent::data / BidPlaced::buyer).inValues(users)
+        override val extraCriteria = (ReversedEthereumLogRecord::data / BidPlaced::buyer).inValues(users)
     }
 
     class Cancel(
@@ -181,7 +181,7 @@ sealed class AuctionByUser(
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.AUCTION_CANCELLED, continuation, sort) {
-        override val extraCriteria = (LogEvent::data / AuctionCancelled::seller).inValues(users)
+        override val extraCriteria = (ReversedEthereumLogRecord::data / AuctionCancelled::seller).inValues(users)
     }
 
     class Finished(
@@ -191,7 +191,7 @@ sealed class AuctionByUser(
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.AUCTION_FINISHED, continuation, sort) {
-        override val extraCriteria = (LogEvent::data / AuctionFinished::seller).inValues(users)
+        override val extraCriteria = (ReversedEthereumLogRecord::data / AuctionFinished::seller).inValues(users)
     }
 
     private fun Criteria.dateBoundary(
@@ -207,11 +207,11 @@ sealed class AuctionByUser(
         val end = to ?: Instant.now()
 
         if (continuation == null) {
-            return this.and(LogEvent::data / AuctionHistory::date).gte(start).lte(end)
+            return this.and(ReversedEthereumLogRecord::data / AuctionHistory::date).gte(start).lte(end)
         }
         return when (activitySort) {
-            AuctionActivitySort.LATEST_FIRST -> this.and(LogEvent::data / AuctionHistory::date).gte(start)
-            AuctionActivitySort.EARLIEST_FIRST -> this.and(LogEvent::data / AuctionHistory::date).lte(end)
+            AuctionActivitySort.LATEST_FIRST -> this.and(ReversedEthereumLogRecord::data / AuctionHistory::date).gte(start)
+            AuctionActivitySort.EARLIEST_FIRST -> this.and(ReversedEthereumLogRecord::data / AuctionHistory::date).lte(end)
             else -> this
         }
     }
@@ -228,9 +228,9 @@ sealed class AuctionByItem(
     override val auctionActivitySort: AuctionActivitySort = sort
 
     override fun getCriteria(): Criteria {
-        var criteria = (LogEvent::data / AuctionHistory::type).isEqualTo(type)
-            .and(LogEvent::data / Auction::sell / Asset::type / NftAssetType::token).isEqualTo(token)
-            .and(LogEvent::data / Auction::sell / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
+        var criteria = (ReversedEthereumLogRecord::data / AuctionHistory::type).isEqualTo(type)
+            .and(ReversedEthereumLogRecord::data / Auction::sell / Asset::type / NftAssetType::token).isEqualTo(token)
+            .and(ReversedEthereumLogRecord::data / Auction::sell / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
         return criteria.scrollTo(auctionActivitySort, continuation)
     }
 
@@ -274,8 +274,8 @@ sealed class AuctionByCollection(
     override val auctionActivitySort: AuctionActivitySort = sort
 
     override fun getCriteria(): Criteria {
-        var criteria = (LogEvent::data / AuctionHistory::type).isEqualTo(type)
-            .and(LogEvent::data / Auction::sell / Asset::type / NftAssetType::token).isEqualTo(token)
+        var criteria = (ReversedEthereumLogRecord::data / AuctionHistory::type).isEqualTo(type)
+            .and(ReversedEthereumLogRecord::data / Auction::sell / Asset::type / NftAssetType::token).isEqualTo(token)
         return criteria.scrollTo(auctionActivitySort, continuation)
     }
 

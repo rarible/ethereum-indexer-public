@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.api.controller
 
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
-import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
@@ -370,7 +370,7 @@ class OrderAggregationControllerFt : AbstractIntegrationTest() {
         assertThat(collection2Aggregation.count).isEqualTo(2)
     }
 
-    private suspend fun saveHistory(vararg history: LogEvent) {
+    private suspend fun saveHistory(vararg history: ReversedEthereumLogRecord) {
         history.forEach { exchangeHistoryRepository.save(it).awaitFirst() }
     }
 }

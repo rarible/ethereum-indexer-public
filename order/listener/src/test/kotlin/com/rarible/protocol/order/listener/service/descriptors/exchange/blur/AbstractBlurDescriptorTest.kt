@@ -2,11 +2,11 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.blur
 
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
+import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.protocol.order.core.data.log
-import com.rarible.protocol.order.core.model.EventData
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.blur.BlurEventConverter
 import com.rarible.protocol.order.listener.service.descriptors.HistorySubscriber

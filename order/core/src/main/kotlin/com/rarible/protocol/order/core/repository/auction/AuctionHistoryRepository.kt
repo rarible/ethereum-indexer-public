@@ -1,10 +1,10 @@
 package com.rarible.protocol.order.core.repository.auction
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.reduce.repository.ReduceEventRepository
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
@@ -33,52 +33,52 @@ class AuctionHistoryRepository(
 
     val logger: Logger = LoggerFactory.getLogger(javaClass)
 
-    fun save(logEvent: LogEvent): Mono<LogEvent> {
-        return template.save(logEvent.withDbUpdated(), COLLECTION)
+    fun save(reversedEthereumLogRecord: ReversedEthereumLogRecord): Mono<ReversedEthereumLogRecord> {
+        return template.save(reversedEthereumLogRecord.withUpdatedAt(), COLLECTION)
     }
 
-    fun find(query: Query): Flow<LogEvent> {
-        return template.find(query,LogEvent::class.java, COLLECTION).asFlow()
+    fun find(query: Query): Flow<ReversedEthereumLogRecord> {
+        return template.find(query,ReversedEthereumLogRecord::class.java, COLLECTION).asFlow()
     }
 
-    fun findById(id: ObjectId): Mono<LogEvent> {
+    fun findById(id: ObjectId): Mono<ReversedEthereumLogRecord> {
         return template.findById(id, COLLECTION)
     }
 
-    fun findByType(type: AuctionHistoryType): Flux<LogEvent> {
-        val query = Query(LogEvent::topic inValues type.topic)
+    fun findByType(type: AuctionHistoryType): Flux<ReversedEthereumLogRecord> {
+        val query = Query(ReversedEthereumLogRecord::topic inValues type.topic)
         return template.find(query, COLLECTION)
     }
 
-    fun searchActivity(filter: ActivityAuctionHistoryFilter, size: Int): Flux<LogEvent> {
+    fun searchActivity(filter: ActivityAuctionHistoryFilter, size: Int): Flux<ReversedEthereumLogRecord> {
         val hint = filter.hint
-        val criteria = filter.getCriteria().and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
+        val criteria = filter.getCriteria().and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
 
         val query = Query(criteria).limit(size)
 
         if (hint != null) {
             query.withHint(hint)
         }
-        return template.find(query.with(filter.sort), LogEvent::class.java, COLLECTION)
+        return template.find(query.with(filter.sort), ReversedEthereumLogRecord::class.java, COLLECTION)
     }
 
     override fun getEvents(key: Word?, after: Long?): Flow<AuctionReduceEvent> {
         val criteria = Criteria()
             .run {
-                key?.let { and(LogEvent::data / AuctionHistory::hash).isEqualTo(key) } ?: this
+                key?.let { and(ReversedEthereumLogRecord::data / AuctionHistory::hash).isEqualTo(key) } ?: this
             }
             .run {
-                after?.let { and(LogEvent::blockNumber).gt(it) } ?: this
+                after?.let { and(ReversedEthereumLogRecord::blockNumber).gt(it) } ?: this
             }
 
         val query = Query(criteria).with(LOG_SORT_ASC)
         return template
-            .find(query, LogEvent::class.java, COLLECTION)
-            .map { logEvent -> AuctionReduceEvent(logEvent) }
+            .find(query, ReversedEthereumLogRecord::class.java, COLLECTION)
+            .map { reversedEthereumLogRecord -> AuctionReduceEvent(reversedEthereumLogRecord) }
             .asFlow()
     }
 
-    fun findAll(): Flux<LogEvent> {
+    fun findAll(): Flux<ReversedEthereumLogRecord> {
         return template.findAll(COLLECTION)
     }
 
@@ -88,32 +88,32 @@ class AuctionHistoryRepository(
         }
     }
 
-    fun findByIds(ids: List<String>): Flux<LogEvent> {
+    fun findByIds(ids: List<String>): Flux<ReversedEthereumLogRecord> {
         val query = Query(
-            LogEvent::id inValues ids.map { ObjectId(it) }
+            ReversedEthereumLogRecord::id inValues ids.map { ObjectId(it) }
         )
-        return template.find(query, LogEvent::class.java, COLLECTION)
+        return template.find(query, ReversedEthereumLogRecord::class.java, COLLECTION)
     }
 
     private object AuctionHistoryIndexes {
         val BY_TYPE_TOKEN_ID_DEFINITION: Index = Index()
-            .on("${LogEvent::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
-            .on("${LogEvent::data.name}.${Auction::sell.name}.${Asset::type.name}.${NftAssetType::token::name}", Sort.Direction.ASC)
-            .on("${LogEvent::data.name}.${Auction::sell.name}.${Asset::type.name}.${NftAssetType::tokenId::name}", Sort.Direction.ASC)
+            .on("${ReversedEthereumLogRecord::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
+            .on("${ReversedEthereumLogRecord::data.name}.${Auction::sell.name}.${Asset::type.name}.${NftAssetType::token::name}", Sort.Direction.ASC)
+            .on("${ReversedEthereumLogRecord::data.name}.${Auction::sell.name}.${Asset::type.name}.${NftAssetType::tokenId::name}", Sort.Direction.ASC)
             .background()
 
         val BY_TYPE_SELLER_DEFINITION: Index = Index()
-            .on("${LogEvent::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
-            .on("${LogEvent::data.name}.${OnChainAuction::seller.name}", Sort.Direction.ASC)
+            .on("${ReversedEthereumLogRecord::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
+            .on("${ReversedEthereumLogRecord::data.name}.${OnChainAuction::seller.name}", Sort.Direction.ASC)
             .background()
 
         val BY_TYPE_BUYER_DEFINITION: Index = Index()
-            .on("${LogEvent::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
-            .on("${LogEvent::data.name}.${OnChainAuction::buyer.name}", Sort.Direction.ASC)
+            .on("${ReversedEthereumLogRecord::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
+            .on("${ReversedEthereumLogRecord::data.name}.${OnChainAuction::buyer.name}", Sort.Direction.ASC)
             .background()
 
         val BY_UPDATED_AT_FIELD: Index = Index()
-            .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
+            .on(ReversedEthereumLogRecord::updatedAt.name, Sort.Direction.ASC)
             .on("_id", Sort.Direction.ASC)
             .background()
 
@@ -131,10 +131,10 @@ class AuctionHistoryRepository(
 
         val LOG_SORT_ASC: Sort = Sort
             .by(
-                "${LogEvent::data.name}.${AuctionHistory::hash.name}",
-                LogEvent::blockNumber.name,
-                LogEvent::logIndex.name,
-                LogEvent::minorLogIndex.name
+                "${ReversedEthereumLogRecord::data.name}.${AuctionHistory::hash.name}",
+                ReversedEthereumLogRecord::blockNumber.name,
+                ReversedEthereumLogRecord::logIndex.name,
+                ReversedEthereumLogRecord::minorLogIndex.name
             )
     }
 }

@@ -29,7 +29,7 @@ class AuctionService(
             .map { logs ->
                 val bidPlaced = logs.data as BidPlaced
                 AuctionBidEntity(
-                    id = logs.id.toHexString(),
+                    id = logs.id,
                     bid = bidPlaced.bid,
                     buyer = bidPlaced.buyer,
                     buy = auction.buy,

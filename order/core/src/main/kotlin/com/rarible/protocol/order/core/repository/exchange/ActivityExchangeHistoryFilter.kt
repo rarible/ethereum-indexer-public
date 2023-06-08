@@ -1,9 +1,9 @@
 package com.rarible.protocol.order.core.repository.exchange
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.misc.safeQueryParam
 import com.rarible.protocol.order.core.model.ActivitySort
@@ -30,19 +30,19 @@ import java.time.Instant
 
 sealed class ActivityExchangeHistoryFilter {
     protected companion object {
-        val makeNftKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / AssetType::nft
-        val takeNftKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / AssetType::nft
-        val takeOrderExchange = LogEvent::data / OrderExchangeHistory::take
-        val makeOrderExchange = LogEvent::data / OrderExchangeHistory::make
-        val makerOrderExchange = LogEvent::data / OrderExchangeHistory::maker
-        val orderSideMatchSide = LogEvent::data /  OrderSideMatch::side
+        val makeNftKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / AssetType::nft
+        val takeNftKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::take / Asset::type / AssetType::nft
+        val takeOrderExchange = ReversedEthereumLogRecord::data / OrderExchangeHistory::take
+        val makeOrderExchange = ReversedEthereumLogRecord::data / OrderExchangeHistory::make
+        val makerOrderExchange = ReversedEthereumLogRecord::data / OrderExchangeHistory::maker
+        val orderSideMatchSide = ReversedEthereumLogRecord::data /  OrderSideMatch::side
     }
 
     internal abstract fun getCriteria(): Criteria
 
     internal open val hint: Document? = null
     internal abstract val sort: ActivitySort
-    internal open val status: LogEventStatus = LogEventStatus.CONFIRMED
+    internal open val status: EthereumLogStatus = EthereumLogStatus.CONFIRMED
 
     class AllSell(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
@@ -79,7 +79,7 @@ sealed class ActivityExchangeHistoryFilter {
 
     class AllRevertedSync(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
-        override val status: LogEventStatus = LogEventStatus.REVERTED
+        override val status: EthereumLogStatus = EthereumLogStatus.REVERTED
         override fun getCriteria(): Criteria {
             return Criteria().andOperator(
                 takeOrderExchange exists true,
@@ -108,14 +108,14 @@ sealed class ActivityExchangeHistoryFilter {
 
     protected infix fun Criteria.canceled(isCancel: Boolean): Criteria =
         if (isCancel) {
-            and(LogEvent::data / OrderExchangeHistory::type).isEqualTo(ItemType.CANCEL)
+            and(ReversedEthereumLogRecord::data / OrderExchangeHistory::type).isEqualTo(ItemType.CANCEL)
         } else {
             this
         }
 
     protected infix fun Criteria.sideMatch(sideMatch: Boolean): Criteria =
         if (sideMatch) {
-            and(LogEvent::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
+            and(ReversedEthereumLogRecord::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
         } else {
             this
         }
@@ -126,23 +126,23 @@ sealed class ActivityExchangeHistoryFilter {
         } else when (sort) {
             ActivitySort.LATEST_FIRST ->
                 this.orOperator(
-                    LogEvent::data / OrderExchangeHistory::date lt continuation.afterDate,
-                    (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId.safeQueryParam())
+                    ReversedEthereumLogRecord::data / OrderExchangeHistory::date lt continuation.afterDate,
+                    (ReversedEthereumLogRecord::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId.safeQueryParam())
                 )
             ActivitySort.EARLIEST_FIRST ->
                 this.orOperator(
-                    LogEvent::data / OrderExchangeHistory::date gt continuation.afterDate,
-                    (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
+                    ReversedEthereumLogRecord::data / OrderExchangeHistory::date gt continuation.afterDate,
+                    (ReversedEthereumLogRecord::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
                 )
             ActivitySort.SYNC_LATEST_FIRST ->
                 this.orOperator(
-                    LogEvent::updatedAt lt continuation.afterDate,
-                    (LogEvent::updatedAt isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId.safeQueryParam())
+                    ReversedEthereumLogRecord::updatedAt lt continuation.afterDate,
+                    (ReversedEthereumLogRecord::updatedAt isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId.safeQueryParam())
                 )
             ActivitySort.SYNC_EARLIEST_FIRST ->
                 this.orOperator(
-                    LogEvent::updatedAt gt continuation.afterDate,
-                    (LogEvent::updatedAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
+                    ReversedEthereumLogRecord::updatedAt gt continuation.afterDate,
+                    (ReversedEthereumLogRecord::updatedAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
                 )
             ActivitySort.BY_ID ->
                 this.and("_id").gt(continuation.afterId.safeQueryParam())
@@ -162,22 +162,22 @@ sealed class ActivityExchangeHistoryFilter {
         val end = to ?: Instant.now()
 
         if (continuation == null) {
-            return this.and(LogEvent::data / OrderExchangeHistory::date).gte(start).lte(end)
+            return this.and(ReversedEthereumLogRecord::data / OrderExchangeHistory::date).gte(start).lte(end)
         }
         return when (activitySort) {
-            ActivitySort.LATEST_FIRST -> this.and(LogEvent::data / OrderExchangeHistory::date).gte(start)
-            ActivitySort.EARLIEST_FIRST -> this.and(LogEvent::data / OrderExchangeHistory::date).lte(end)
-            ActivitySort.SYNC_LATEST_FIRST -> this.and(LogEvent::updatedAt).gte(start)
-            ActivitySort.SYNC_EARLIEST_FIRST -> this.and(LogEvent::updatedAt).lte(end)
-            ActivitySort.BY_ID -> this.and(LogEvent::id).gt(end)
+            ActivitySort.LATEST_FIRST -> this.and(ReversedEthereumLogRecord::data / OrderExchangeHistory::date).gte(start)
+            ActivitySort.EARLIEST_FIRST -> this.and(ReversedEthereumLogRecord::data / OrderExchangeHistory::date).lte(end)
+            ActivitySort.SYNC_LATEST_FIRST -> this.and(ReversedEthereumLogRecord::updatedAt).gte(start)
+            ActivitySort.SYNC_EARLIEST_FIRST -> this.and(ReversedEthereumLogRecord::updatedAt).lte(end)
+            ActivitySort.BY_ID -> this.and(ReversedEthereumLogRecord::id).gt(end)
         }
     }
 }
 
 sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityExchangeHistoryFilter() {
     protected companion object {
-        private val makerKey = LogEvent::data / OrderSideMatch::maker
-        private val takerKey = LogEvent::data / OrderSideMatch::taker
+        private val makerKey = ReversedEthereumLogRecord::data / OrderSideMatch::maker
+        private val takerKey = ReversedEthereumLogRecord::data / OrderSideMatch::taker
     }
 
     protected val makerCriteria = if (users.isSingleton) makerKey isEqualTo users.single() else makerKey inValues users
@@ -249,8 +249,8 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
 
 sealed class CollectionActivityExchangeHistoryFilter : ActivityExchangeHistoryFilter() {
     protected companion object {
-        val makeNftContractKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / NftAssetType::token
-        val takeNftContractKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / NftAssetType::token
+        val makeNftContractKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / NftAssetType::token
+        val takeNftContractKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::take / Asset::type / NftAssetType::token
     }
 
     data class ByCollectionSell(override val sort: ActivitySort, private val contract: Address, private val continuation: Continuation?) : CollectionActivityExchangeHistoryFilter() {
@@ -286,8 +286,8 @@ sealed class CollectionActivityExchangeHistoryFilter : ActivityExchangeHistoryFi
 
 sealed class ItemActivityExchangeHistoryFilter : CollectionActivityExchangeHistoryFilter() {
     protected companion object {
-        val makeNftTokenIdKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / NftAssetType::tokenId
-        val takeNftTokenIdKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / NftAssetType::tokenId
+        val makeNftTokenIdKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / NftAssetType::tokenId
+        val takeNftTokenIdKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::take / Asset::type / NftAssetType::tokenId
     }
 
     data class ByItemSell(override val sort: ActivitySort, private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityExchangeHistoryFilter() {

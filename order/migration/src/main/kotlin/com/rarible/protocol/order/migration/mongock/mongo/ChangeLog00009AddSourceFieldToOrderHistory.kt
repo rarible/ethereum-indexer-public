@@ -2,7 +2,7 @@ package com.rarible.protocol.order.migration.mongock.mongo
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
-import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
@@ -10,7 +10,6 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import io.changock.migration.api.annotations.NonLockGuarded
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -40,8 +39,8 @@ class ChangeLog00009AddSourceFieldToOrderHistory {
         )
 
         val criteria = Criteria("data._class").inValues(knownClasses)
-            .andOperator(LogEvent::data / OrderExchangeHistory::source exists false)
-        template.find(Query().addCriteria(criteria), LogEvent::class.java, ExchangeHistoryRepository.COLLECTION)
+            .andOperator(ReversedEthereumLogRecord::data / OrderExchangeHistory::source exists false)
+        template.find(Query().addCriteria(criteria), ReversedEthereumLogRecord::class.java, ExchangeHistoryRepository.COLLECTION)
             .asFlow().collect { log ->
             val updatedLog = when (val data = log.data) {
                 is OrderSideMatch -> log.copy(data = data.copy(source = HistorySource.RARIBLE))

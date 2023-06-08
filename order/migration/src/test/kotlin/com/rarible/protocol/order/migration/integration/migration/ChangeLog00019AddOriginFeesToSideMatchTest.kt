@@ -1,10 +1,10 @@
 package com.rarible.protocol.order.migration.integration.migration
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.data.createOrderRaribleV2DataV1
 import com.rarible.protocol.order.core.data.createOrderSideMatch
 import com.rarible.protocol.order.core.model.OrderSideMatch
@@ -17,6 +17,7 @@ import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -54,27 +55,28 @@ internal class ChangeLog00019AddOriginFeesToSideMatchTest : AbstractMigrationTes
         )
         migration.addOriginFeesToSideMatch(template)
 
-        val savedHistoryWithData1 = exchangeHistoryRepository.findById(historyWithData1.id).awaitFirst()
+        val savedHistoryWithData1 = exchangeHistoryRepository.findById(ObjectId(historyWithData1.id)).awaitFirst()
         assertThat((savedHistoryWithData1.data as OrderSideMatch).originFees).isEqualTo(data1.originFees)
 
-        val savedHistoryWithData2 = exchangeHistoryRepository.findById(historyWithData2.id).awaitFirst()
+        val savedHistoryWithData2 = exchangeHistoryRepository.findById(ObjectId(historyWithData2.id)).awaitFirst()
         assertThat((savedHistoryWithData2.data as OrderSideMatch).originFees).isEqualTo(data2.originFees)
 
-        val savedHistoryWithNoData = exchangeHistoryRepository.findById(historyWithNoData.id).awaitFirst()
+        val savedHistoryWithNoData = exchangeHistoryRepository.findById(ObjectId(historyWithNoData.id)).awaitFirst()
         assertThat((savedHistoryWithNoData.data as OrderSideMatch).originFees).isEmpty()
 
-        val savedHistoryWithOriginFees = exchangeHistoryRepository.findById(historyWithOriginFees.id).awaitFirst()
+        val savedHistoryWithOriginFees = exchangeHistoryRepository.findById(ObjectId(historyWithOriginFees.id)).awaitFirst()
         assertThat((savedHistoryWithOriginFees.data as OrderSideMatch).originFees).isEqualTo(originFees)
     }
 
-    suspend fun save(orderSideMatch: OrderSideMatch): LogEvent {
+    suspend fun save(orderSideMatch: OrderSideMatch): ReversedEthereumLogRecord {
         return exchangeHistoryRepository.save(
-            LogEvent(
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = orderSideMatch,
                 address = randomAddress(),
                 topic = Word.apply(ByteArray(32)),
-                transactionHash = Word.apply(randomWord()),
-                status = LogEventStatus.CONFIRMED,
+                transactionHash = randomWord(),
+                status = EthereumLogStatus.CONFIRMED,
                 index = 0,
                 logIndex = 0,
                 minorLogIndex = 0

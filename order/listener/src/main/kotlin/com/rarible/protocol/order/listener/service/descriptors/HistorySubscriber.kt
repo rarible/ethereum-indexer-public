@@ -1,12 +1,12 @@
 package com.rarible.protocol.order.listener.service.descriptors
 
+import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.SubscriberGroup
 import com.rarible.blockchain.scanner.ethereum.model.SubscriberGroupAlias
 import com.rarible.blockchain.scanner.ethereum.subscriber.AbstractSubscriber
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.model.AuctionHistory
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
-import com.rarible.protocol.order.core.model.EventData
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.SubscriberGroups

@@ -17,7 +17,7 @@ class NonceService(
             ?.let { logEvent ->
                 val data = logEvent.data as ChangeNonceHistory
                 MakerNonce(
-                    historyId = logEvent.id.toHexString(),
+                    historyId = logEvent.id,
                     nonce = data.newNonce,
                     timestamp = data.date)
             }

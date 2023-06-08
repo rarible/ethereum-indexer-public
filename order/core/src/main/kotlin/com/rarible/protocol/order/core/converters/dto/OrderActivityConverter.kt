@@ -4,7 +4,6 @@ import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.dto.OrderActivityBidDto
 import com.rarible.protocol.dto.OrderActivityCancelBidDto
 import com.rarible.protocol.dto.OrderActivityCancelListDto

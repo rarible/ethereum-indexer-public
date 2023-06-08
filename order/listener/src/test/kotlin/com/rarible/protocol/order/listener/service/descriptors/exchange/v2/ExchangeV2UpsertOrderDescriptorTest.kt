@@ -1,10 +1,10 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.data.isEqualToOrder
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.AmmNftAssetType
@@ -239,8 +239,8 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
         assertThat(getEthBalance(userSender1.from())).isEqualTo(remainingEth)
 
         // Revert OnChainOrder log events.
-        exchangeHistoryRepository.findLogEvents(orderHash, null).asFlow().collect { logEvent ->
-            exchangeHistoryRepository.save(logEvent.copy(status = LogEventStatus.REVERTED)).awaitFirst()
+        exchangeHistoryRepository.findReversedEthereumLogRecords(orderHash, null).asFlow().collect { logEvent ->
+            exchangeHistoryRepository.save(logEvent.copy(status = EthereumLogStatus.REVERTED)).awaitFirst()
         }
         orderUpdateService.update(orderHash, orderOffchainEventMarks())
         assertThat(orderVersionRepository.findAllByHash(orderHash).count()).isEqualTo(0)

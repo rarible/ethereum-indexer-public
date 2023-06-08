@@ -1,8 +1,8 @@
 package com.rarible.protocol.order.listener.service.task
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.task.TaskHandler
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderActivityResult
@@ -38,12 +38,12 @@ class RevertIgnoredActivitiesTaskHandler(
                 publisher.publish(dto)
                 saveWithRevertedStatus(history)
                 logger.info("Published ad saved ignored activity ${history.id}")
-                history.id.toHexString()
+                history.id
             }
     }
 
-    private suspend fun saveWithRevertedStatus(logEvent: LogEvent) {
-        exchangeHistoryRepository.save(logEvent.copy(status = LogEventStatus.REVERTED)).awaitFirst()
+    private suspend fun saveWithRevertedStatus(logEvent: ReversedEthereumLogRecord) {
+        exchangeHistoryRepository.save(logEvent.copy(status = EthereumLogStatus.REVERTED)).awaitFirst()
     }
 
     companion object {

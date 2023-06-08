@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.withSpan
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.BlockchainDto
 import com.rarible.protocol.order.core.misc.div
@@ -55,8 +55,8 @@ class CollectionOrderStatService(
         Blockchain.OPTIMISM -> BlockchainDto.OPTIMISM
     }
 
-    val makeNftKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / AssetType::nft
-    val makeNftContractKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / NftAssetType::token
+    val makeNftKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / AssetType::nft
+    val makeNftContractKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / NftAssetType::token
 
     suspend fun getOrSchedule(token: Address, currency: String?): CollectionOrderStat {
         val stat = optimisticLock {
@@ -104,13 +104,13 @@ class CollectionOrderStatService(
         val match = Aggregation.match(
             makeNftKey.isEqualTo(true)
                 .and(makeNftContractKey).isEqualTo(token)
-                .and(LogEvent::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
-                .and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
+                .and(ReversedEthereumLogRecord::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
+                .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
         )
         val group = Aggregation
             .group("data.make.type.token")
-            .sum("${LogEvent::data.name}.${OrderSideMatch::takeUsd.name}").`as`("totalVolume")
-            .max("${LogEvent::data.name}.${OrderSideMatch::takeUsd.name}").`as`("highestSale")
+            .sum("${ReversedEthereumLogRecord::data.name}.${OrderSideMatch::takeUsd.name}").`as`("totalVolume")
+            .max("${ReversedEthereumLogRecord::data.name}.${OrderSideMatch::takeUsd.name}").`as`("highestSale")
 
         val aggregation = Aggregation.newAggregation(match, group)
 

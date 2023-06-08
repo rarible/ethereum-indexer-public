@@ -1,12 +1,13 @@
 package com.rarible.protocol.order.api.controller
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomInt
+import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderSortDto
 import com.rarible.protocol.dto.OrderStatusDto
@@ -320,14 +321,15 @@ class OrderSearchFt : AbstractIntegrationTest() {
             currency = currencyToken,
             hash = ammOrder.hash
         )
-        val logEvent = LogEvent(
+        val logEvent = ReversedEthereumLogRecord(
+            id = ObjectId().toHexString(),
             data = poolCreate,
             address = randomAddress(),
             topic = Word.apply(RandomUtils.nextBytes(32)),
-            transactionHash = Word.apply(RandomUtils.nextBytes(32)),
+            transactionHash = randomWord(),
             index = RandomUtils.nextInt(),
             minorLogIndex = 0,
-            status = LogEventStatus.CONFIRMED
+            status = EthereumLogStatus.CONFIRMED
         )
         poolHistoryRepository.save(logEvent).awaitFirst()
 

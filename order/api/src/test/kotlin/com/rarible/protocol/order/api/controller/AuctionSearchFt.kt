@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.api.controller
 
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.dto.AuctionBidDto
 import com.rarible.protocol.dto.AuctionDto
 import com.rarible.protocol.dto.AuctionIdsDto
@@ -440,7 +440,7 @@ class AuctionSearchFt : AbstractIntegrationTest() {
     fun `should find auctions bids`(
         contract: Address,
         auctionId: EthUInt256,
-        eventLogs: List<LogEvent>
+        eventLogs: List<ReversedEthereumLogRecord>
     ) = runBlocking<Unit> {
         val auction = randomAuction().copy(contract = contract, auctionId = auctionId)
         saveAuction(auction)
@@ -508,7 +508,7 @@ class AuctionSearchFt : AbstractIntegrationTest() {
         auction.forEach { auctionRepository.save(it) }
     }
 
-    private suspend fun saveHistory(history: List<LogEvent>) {
+    private suspend fun saveHistory(history: List<ReversedEthereumLogRecord>) {
         history.forEach { auctionHistoryRepository.save(it).awaitFirst() }
     }
 

@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.api.service.order
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.contracts.test.erc1271.TestERC1271
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
@@ -9,8 +11,6 @@ import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.protocol.contracts.erc20.test.SimpleERC20
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
@@ -76,6 +76,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -985,12 +986,13 @@ class OrderServiceIt : AbstractOrderIt() {
 
         orderRepository.save(ammOrder)
         poolHistoryRepository.save(
-            LogEvent(
+           ReversedEthereumLogRecord(
+               id = ObjectId().toHexString(),
                 data = nftIn,
                 address = randomAddress(),
                 topic = Word.apply(ByteArray(32)),
-                transactionHash = Word.apply(randomWord()),
-                status = LogEventStatus.CONFIRMED,
+                transactionHash = randomWord(),
+                status = EthereumLogStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 1,
                 minorLogIndex = 1,

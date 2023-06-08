@@ -1,9 +1,9 @@
 package com.rarible.protocol.order.core.repository.exchange
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.data.createOrderSideMatch
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -33,7 +34,7 @@ internal class ExchangeHistoryRepositoryTest : AbstractIntegrationTest() {
         save(history1, history2, history3, history4)
 
         val targetOrderVersions = exchangeHistoryRepository
-            .findLogEvents(null, null, platforms = listOf(HistorySource.RARIBLE))
+            .findReversedEthereumLogRecords(null, null, platforms = listOf(HistorySource.RARIBLE))
             .collectList().awaitFirst()
 
         Assertions.assertThat(targetOrderVersions).hasSize(2)
@@ -59,12 +60,13 @@ internal class ExchangeHistoryRepositoryTest : AbstractIntegrationTest() {
     private suspend fun save(vararg history: OrderExchangeHistory) {
         history.forEach {
             exchangeHistoryRepository.save(
-                LogEvent(
+                ReversedEthereumLogRecord(
+                    id = ObjectId().toHexString(),
                     data = it,
                     address = randomAddress(),
                     topic = Word.apply(ByteArray(32)),
-                    transactionHash = Word.apply(randomWord()),
-                    status = LogEventStatus.CONFIRMED,
+                    transactionHash = randomWord(),
+                    status = EthereumLogStatus.CONFIRMED,
                     index = 0,
                     logIndex = 0,
                     minorLogIndex = 0

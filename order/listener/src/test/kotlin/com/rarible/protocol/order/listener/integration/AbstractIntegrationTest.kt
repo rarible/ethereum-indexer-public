@@ -2,6 +2,8 @@ package com.rarible.protocol.order.listener.integration
 
 import com.rarible.blockchain.scanner.block.Block
 import com.rarible.blockchain.scanner.block.BlockRepository
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
@@ -14,8 +16,6 @@ import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.BlockHead
 import com.rarible.ethereum.listener.log.domain.BlockStatus
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
@@ -57,6 +57,7 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -329,9 +330,29 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     protected suspend fun getEthBalance(account: Address): BigInteger =
         ethereum.ethGetBalance(account, "latest").awaitFirst()
 
-    protected suspend fun <T> saveItemHistory(data: T, token: Address = AddressFactory.create(), transactionHash: Word = WordFactory.create(), logIndex: Int? = null, status: LogEventStatus = LogEventStatus.CONFIRMED): T {
+    protected suspend fun <T> saveItemHistory(
+        data: T,
+        token: Address = AddressFactory.create(),
+        transactionHash: Word = WordFactory.create(),
+        logIndex: Int? = null,
+        status: EthereumLogStatus = EthereumLogStatus.CONFIRMED
+    ): T {
         if (data is OrderExchangeHistory) {
-            val log = exchangeHistoryRepository.save(LogEvent(data = data, address = token, topic = WordFactory.create(), transactionHash = transactionHash, status = status, index = 0, logIndex = logIndex, minorLogIndex = 0)).awaitFirst()
+            val log = exchangeHistoryRepository.save(
+                ReversedEthereumLogRecord(
+                    id = ObjectId().toHexString(),
+                    data = data,
+                    address = token,
+                    topic = WordFactory.create(),
+                    transactionHash =
+                    transactionHash.prefixed(),
+                    status = status,
+                    index = 0,
+                    logIndex =
+                    logIndex,
+                    minorLogIndex = 0
+                )
+            ).awaitFirst()
             return log.data as T
         }
         throw IllegalArgumentException("Unsupported history type")
@@ -355,7 +376,8 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         topic: Word = 0.toBigInteger().toWord()
     ) {
         exchangeHistoryRepository.save(
-            LogEvent(
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = OrderCancel(
                     hash = orderHash,
                     date = nowMillis(),
@@ -368,8 +390,8 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 ),
                 address = contractAddress,
                 topic = topic,
-                transactionHash = Word.apply(randomWord()),
-                status = LogEventStatus.CONFIRMED,
+                transactionHash = randomWord(),
+                status = EthereumLogStatus.CONFIRMED,
                 index = 0,
                 logIndex = 0,
                 minorLogIndex = 0

@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.model
 
-import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import java.time.Instant
 
 data class OrderExchangeHistoryEvent(
@@ -15,7 +15,7 @@ sealed class OrderExchangeHistorySubEvent {
 }
 
 data class OrderExchangeHistoryCreateEvent(
-    val logEvent: LogEvent
+    val logEvent: ReversedEthereumLogRecord
 ) : OrderExchangeHistorySubEvent() {
     override val type: OrderExchangeHistorySubEventType = OrderExchangeHistorySubEventType.CREATE
 }

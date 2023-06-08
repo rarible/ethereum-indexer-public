@@ -1,8 +1,9 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.core.test.data.randomWord
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -12,6 +13,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -23,14 +25,15 @@ class PoolReduceTaskHandlerTest : AbstractIntegrationTest() {
     @Test
     fun `should reduce pool order`() = runBlocking<Unit> {
         val poolCreate = randomSellOnChainAmmOrder()
-        val logEvent = LogEvent(
+        val logEvent = ReversedEthereumLogRecord(
+            id = ObjectId().toHexString(),
             data = poolCreate,
             address = randomAddress(),
             topic = Word.apply(RandomUtils.nextBytes(32)),
-            transactionHash = Word.apply(RandomUtils.nextBytes(32)),
+            transactionHash = randomWord(),
             index = RandomUtils.nextInt(),
             minorLogIndex = 0,
-            status = LogEventStatus.CONFIRMED
+            status = EthereumLogStatus.CONFIRMED
         )
         poolHistoryRepository.save(logEvent).awaitFirst()
         val hash = handler.runLongTask(from = null, param = "").toList().map { Word.apply(it) }.single()
