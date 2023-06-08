@@ -12,9 +12,11 @@ import com.rarible.protocol.erc20.core.repository.data.randomErc20IncomeTransfer
 import com.rarible.protocol.erc20.core.repository.data.randomErc20OutcomeTransfer
 import com.rarible.protocol.erc20.core.repository.data.randomErc20Withdrawal
 import com.rarible.protocol.erc20.core.repository.data.randomLogEvent
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -192,16 +194,61 @@ class TransferHistoryRepositoryIt : AbstractIntegrationTest() {
         assertThat(logs).hasSize(1)
     }
 
+    @Test
+    fun findAll() = runBlocking<Unit> {
+        val token = randomAddress()
+        val owner = randomAddress()
+
+        val logEvent1 = randomLogEvent(
+            randomErc20OutcomeTransfer(token, owner),
+            blockNumber = 1
+        ).copy(status = EthereumLogStatus.CONFIRMED)
+        val logEvent2 = randomLogEvent(
+            randomErc20IncomeTransfer(token, owner),
+            blockNumber = 2
+        ).copy(status = EthereumLogStatus.CONFIRMED)
+
+        val saved = saveAll(logEvent1, logEvent2)
+
+        val result = historyRepository.findAll(null).toList()
+
+        assertThat(result).containsExactlyInAnyOrder(*saved.toTypedArray())
+
+        val result2 = historyRepository.findAll(result[0].id.toString()).toList()
+        assertThat(result2).containsExactly(result[1])
+    }
+
+    @Test
+    fun `find possible duplicate`() = runBlocking<Unit> {
+        val token = randomAddress()
+        val owner = randomAddress()
+        val logEvent1 = randomLogEvent(
+            randomErc20OutcomeTransfer(token, owner),
+            blockNumber = 1
+        ).copy(status = EthereumLogStatus.CONFIRMED)
+        val logEvent2 = randomLogEvent(
+            randomErc20IncomeTransfer(token, owner),
+            blockNumber = 2
+        ).copy(status = EthereumLogStatus.CONFIRMED)
+        val possibleDuplicate =
+            logEvent1.copy(minorLogIndex = logEvent1.minorLogIndex + 1, id = ObjectId().toHexString())
+
+        val saved = saveAll(logEvent1, logEvent2, possibleDuplicate)
+
+        val result = historyRepository.findPossibleDuplicates(saved[0])
+
+        assertThat(result).containsExactly(saved[2])
+    }
+
     private suspend fun saveAll(token: Address = randomAddress(), vararg histories: Erc20TokenHistory) {
         histories.forEachIndexed { index, history ->
             historyRepository.save(randomLogEvent(history).copy(address = token, index = index)).awaitFirst()
         }
     }
 
-    private suspend fun saveAll(vararg logs: ReversedEthereumLogRecord) {
-        logs.forEach { log ->
+    private suspend fun saveAll(vararg logs: ReversedEthereumLogRecord) =
+        logs.map { log ->
             historyRepository.save(log).awaitFirst()
         }
-    }
 }
 

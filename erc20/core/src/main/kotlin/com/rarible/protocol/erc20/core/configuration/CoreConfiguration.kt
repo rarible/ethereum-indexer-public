@@ -7,9 +7,13 @@ import com.rarible.protocol.erc20.core.converters.Erc20BalanceDtoConverter
 import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
 import com.rarible.protocol.erc20.core.service.Erc20BalanceService
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.data.mongodb.config.EnableMongoAuditing
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories
+import scalether.core.MonoEthereum
+import scalether.domain.Address
+import scalether.transaction.ReadOnlyMonoTransactionSender
 
 @EnableRaribleMongo
 @EnableScaletherMongoConversions
@@ -24,4 +28,7 @@ import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRep
         Erc20BalanceDtoConverter::class
     ]
 )
-class CoreConfiguration
+class CoreConfiguration {
+    @Bean
+    fun sender(ethereum: MonoEthereum) = ReadOnlyMonoTransactionSender(ethereum, Address.ZERO())
+}

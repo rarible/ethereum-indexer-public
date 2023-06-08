@@ -8,9 +8,6 @@ import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import scalether.core.MonoEthereum
-import scalether.domain.Address
-import scalether.transaction.ReadOnlyMonoTransactionSender
 
 @Configuration
 @EnableRaribleMongo
@@ -19,9 +16,6 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
 @EnableScaletherMongoConversions
 @EnableConfigurationProperties(Erc20IndexerApiProperties::class)
 class Erc20IndexerApiConfiguration {
-
-    @Bean
-    fun sender(ethereum: MonoEthereum) = ReadOnlyMonoTransactionSender(ethereum, Address.ZERO())
 
     @Bean
     fun webRequestClientTagContributor(): WebRequestClientTagContributor {

@@ -5,7 +5,6 @@ import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
-import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.core.model.Erc20Balance
@@ -16,6 +15,7 @@ import com.rarible.protocol.erc20.core.model.Erc20TokenApproval
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.model.Erc20Withdrawal
 import io.daonomic.rpc.domain.Word
+import org.bson.types.ObjectId
 import scalether.domain.Address
 import java.math.BigInteger
 import java.time.Instant
@@ -29,7 +29,7 @@ fun randomLogEvent(
     index: Int = 0
 ): ReversedEthereumLogRecord {
     return ReversedEthereumLogRecord(
-        id = randomString(),
+        id = ObjectId().toHexString(),
         data = history,
         address = history.token,
         topic = Word.apply(randomWord()),
