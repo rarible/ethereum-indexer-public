@@ -5,6 +5,7 @@ import com.rarible.blockchain.scanner.ethereum.task.EthereumReindexParam
 import com.rarible.blockchain.scanner.reindex.BlockRange
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
+import com.rarible.protocol.erc20.core.admin.model.Erc20DuplicatedLogRecordsTaskParam
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import org.springframework.dao.DuplicateKeyException
@@ -50,12 +51,30 @@ class Erc20TaskService(
         )
     }
 
+    suspend fun createDeduplicateTask(update: Boolean, force: Boolean): Task {
+        val param = Erc20DuplicatedLogRecordsTaskParam(update = update)
+        if (!force) checkRunningReduceErc20DeduplicateTask()
+        return saveTask(
+            param = mapper.writeValueAsString(param),
+            type = Erc20DuplicatedLogRecordsTaskParam.ERC20_DUPLICATED_LOG_RECORDS_TASK,
+            state = null,
+            force = force
+        )
+    }
+
     private suspend fun checkRunningReduceErc20BalanceTask(param: Erc20ReduceTaskParam) {
         taskRepository
             .findRunningByType(Erc20ReduceTaskParam.TASK_TYPE)
             .filter { Erc20ReduceTaskParam.fromString(it.param).isOverlapped(param) }
             .firstOrNull()
             ?.let { throw IllegalArgumentException("Reduce for $param is overlapping running task: $it") }
+    }
+
+    private suspend fun checkRunningReduceErc20DeduplicateTask() {
+        taskRepository
+            .findRunningByType(Erc20DuplicatedLogRecordsTaskParam.ERC20_DUPLICATED_LOG_RECORDS_TASK)
+            .firstOrNull()
+            ?.let { throw IllegalArgumentException("Deduplicate erc20 log is already in progress") }
     }
 
     private suspend fun checkRunningReindexErc20TokenTask(tokens: List<Address>) {

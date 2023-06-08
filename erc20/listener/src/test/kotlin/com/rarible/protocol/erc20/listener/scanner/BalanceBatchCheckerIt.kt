@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.checker
+package com.rarible.protocol.erc20.listener.scanner
 
 import com.rarible.core.test.wait.BlockingWait.waitAssert
 import com.rarible.ethereum.domain.Blockchain
@@ -27,7 +27,7 @@ import org.web3j.utils.Numeric
 @Disabled
 @FlowPreview
 @IntegrationTest
-class BalanceCheckerIt : AbstractIntegrationTest() {
+class BalanceBatchCheckerIt : AbstractIntegrationTest() {
 
     @Autowired
     lateinit var meterRegistry: MeterRegistry

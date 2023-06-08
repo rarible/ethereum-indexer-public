@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.subscriber
+package com.rarible.protocol.erc20.listener.scanner.subscriber
 
 import com.rarible.contracts.test.weth.TestWETH9
 import com.rarible.core.test.wait.Wait

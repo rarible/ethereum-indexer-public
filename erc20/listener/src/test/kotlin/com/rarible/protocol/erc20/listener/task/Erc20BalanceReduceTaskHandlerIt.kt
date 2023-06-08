@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.admin
+package com.rarible.protocol.erc20.listener.task
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
@@ -10,7 +10,6 @@ import com.rarible.protocol.erc20.core.repository.data.randomErc20Deposit
 import com.rarible.protocol.erc20.core.repository.data.randomErc20IncomeTransfer
 import com.rarible.protocol.erc20.core.repository.data.randomErc20OutcomeTransfer
 import com.rarible.protocol.erc20.core.repository.data.randomLogEvent
-import com.rarible.protocol.erc20.listener.service.balance.BalanceReduceTaskHandler
 import com.rarible.protocol.erc20.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.erc20.listener.test.IntegrationTest
 import kotlinx.coroutines.flow.collect
@@ -23,7 +22,7 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 @IntegrationTest
-class ReduceErc20BalanceTaskHandlerIt : AbstractIntegrationTest() {
+class Erc20BalanceReduceTaskHandlerIt : AbstractIntegrationTest() {
 
     @Autowired
     lateinit var historyRepository: Erc20TransferHistoryRepository
@@ -32,7 +31,7 @@ class ReduceErc20BalanceTaskHandlerIt : AbstractIntegrationTest() {
     lateinit var balanceRepository: Erc20BalanceRepository
 
     @Autowired
-    lateinit var handler: BalanceReduceTaskHandler
+    lateinit var handler: Erc20BalanceReduceTaskHandler
 
     @Test
     fun `reduce token balances - from beginning`() = runBlocking<Unit> {

@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.token
+package com.rarible.protocol.erc20.listener.service
 
 import com.rarible.core.contract.model.Contract
 import com.rarible.core.contract.model.ContractType

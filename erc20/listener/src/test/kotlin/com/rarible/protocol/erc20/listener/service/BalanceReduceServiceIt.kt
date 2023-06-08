@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.balance
+package com.rarible.protocol.erc20.listener.service
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord

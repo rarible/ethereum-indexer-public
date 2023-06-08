@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.service.checker
+package com.rarible.protocol.erc20.listener.scanner
 
 import com.rarible.contracts.erc20.IERC20
 import com.rarible.core.daemon.sequential.ConsumerBatchEventHandler
@@ -23,7 +23,7 @@ import kotlin.random.Random.Default.nextLong
 class BalanceBatchCheckerHandler(
     private val ethereum: MonoEthereum,
     private val checkerMetrics: CheckerMetrics,
-    private val commonProps: Erc20ListenerProperties
+    commonProps: Erc20ListenerProperties
 ) : ConsumerBatchEventHandler<Erc20BalanceEventDto> {
 
     private val logger = LoggerFactory.getLogger(javaClass)

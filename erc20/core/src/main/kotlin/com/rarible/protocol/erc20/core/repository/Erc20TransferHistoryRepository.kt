@@ -4,17 +4,15 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.mongo.util.div
+import com.rarible.protocol.erc20.core.converters.Erc20HistoryLogConverter
 import com.rarible.protocol.erc20.core.model.BalanceId
-import com.rarible.protocol.erc20.core.model.Erc20Deposit
-import com.rarible.protocol.erc20.core.model.Erc20DepositHistoryLog
 import com.rarible.protocol.erc20.core.model.Erc20HistoryLog
-import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
-import com.rarible.protocol.erc20.core.model.Erc20IncomeTransferHistoryLog
-import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
-import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransferHistoryLog
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
-import com.rarible.protocol.erc20.core.model.Erc20Withdrawal
-import com.rarible.protocol.erc20.core.model.Erc20WithdrawalHistoryLog
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
@@ -98,17 +96,43 @@ class Erc20TransferHistoryRepository(
         return template
             .find(query, ReversedEthereumLogRecord::class.java, COLLECTION)
             .mapNotNull {
-                when (val logData = it.data) {
-                    is Erc20IncomeTransfer -> Erc20IncomeTransferHistoryLog(it, logData)
-                    is Erc20OutcomeTransfer -> Erc20OutcomeTransferHistoryLog(it, logData)
-                    is Erc20Deposit -> Erc20DepositHistoryLog(it, logData)
-                    is Erc20Withdrawal -> Erc20WithdrawalHistoryLog(it, logData)
-                    else -> null
-                }
+                Erc20HistoryLogConverter.convert(it)
             }
     }
 
     fun Criteria.confirmed() = this.and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
+
+    fun findAll(fromIdExcluded: String?): Flow<ReversedEthereumLogRecord> =
+        template.find(
+            Query(Criteria().apply {
+                if (fromIdExcluded != null) {
+                    and(ReversedEthereumLogRecord::id).gt(ObjectId(fromIdExcluded))
+                }
+            }.confirmed()).with(Sort.by(ReversedEthereumLogRecord::id.name)),
+            ReversedEthereumLogRecord::class.java,
+            COLLECTION
+        ).asFlow()
+
+    suspend fun findPossibleDuplicates(logEvent: ReversedEthereumLogRecord): List<ReversedEthereumLogRecord> {
+        val historyLog = Erc20HistoryLogConverter.convert(logEvent) ?: return emptyList()
+        return template.find(
+            Query(
+                Criteria()
+                    .and(ReversedEthereumLogRecord::transactionHash).isEqualTo(logEvent.transactionHash)
+                    .and(ReversedEthereumLogRecord::blockHash).isEqualTo(logEvent.blockHash)
+                    .and(ReversedEthereumLogRecord::logIndex).isEqualTo(logEvent.logIndex)
+                    .and(ReversedEthereumLogRecord::data / Erc20TokenHistory::owner).isEqualTo(historyLog.history.owner)
+                    .and(ReversedEthereumLogRecord::data / Erc20TokenHistory::token).isEqualTo(historyLog.history.token)
+                    .and(ReversedEthereumLogRecord::id).ne(logEvent.id)
+            ).with(Sort.by(ReversedEthereumLogRecord::id.name)), ReversedEthereumLogRecord::class.java, COLLECTION
+        ).asFlow().toList()
+    }
+
+    suspend fun removeAll(logs: List<ReversedEthereumLogRecord>) {
+        logs.forEach {
+            template.remove(it).awaitFirstOrNull()
+        }
+    }
 
     companion object {
 

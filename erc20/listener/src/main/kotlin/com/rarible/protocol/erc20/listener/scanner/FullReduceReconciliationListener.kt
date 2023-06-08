@@ -1,11 +1,11 @@
-package com.rarible.protocol.erc20.listener.service.reconciliation
+package com.rarible.protocol.erc20.listener.scanner
 
 import com.rarible.blockchain.scanner.ethereum.reconciliation.OnReconciliationListener
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.service.reduce.asEthereumLogRecord
-import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceService
+import com.rarible.protocol.erc20.listener.service.Erc20BalanceReduceService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
