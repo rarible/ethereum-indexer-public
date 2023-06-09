@@ -102,12 +102,14 @@ class ForeignOrderMetrics(
 
     fun onOrderInconsistency(
         platform: Platform,
+        status: String,
     ) {
         meterRegistry.counter(
             FOREIGN_ORDER_INCONSISTENCY,
             listOf(
                 tag(blockchain),
                 tag(platform),
+                status(status),
             )
         ).increment()
     }

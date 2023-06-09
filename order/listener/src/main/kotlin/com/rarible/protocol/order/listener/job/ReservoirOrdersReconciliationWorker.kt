@@ -73,7 +73,9 @@ class ReservoirOrdersReconciliationWorker(
 
     private suspend fun waitIfNecessary(response: ReservoirOrderEvents) {
         if (response.events.size < properties.size) {
-            logger.info("Result is not full. Will wait for ${properties.pollingPeriod}")
+            logger.info(
+                "Result size ${response.events.size} < ${properties.size}. Will wait for ${properties.pollingPeriod}"
+            )
             delay(properties.pollingPeriod)
         }
     }
@@ -92,7 +94,7 @@ class ReservoirOrdersReconciliationWorker(
             logger.warn(
                 "Found canceled order but active in the database $id. Will cancel: ${properties.cancelEnabled}"
             )
-            foreignOrderMetrics.onOrderInconsistency(order.platform)
+            foreignOrderMetrics.onOrderInconsistency(platform = order.platform, status = event.order.status.name)
             if (properties.cancelEnabled) {
                 orderCancelService.cancelOrder(
                     id = id,
