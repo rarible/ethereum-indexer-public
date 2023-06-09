@@ -59,6 +59,11 @@
                 <version>${looksrare-client-starter.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.rarible</groupId>
+                <artifactId>rarible-reservoir-client-starter</artifactId>
+                <version>${reservoir-client.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>net.java.dev.jna</groupId>
                 <artifactId>jna</artifactId>
                 <version>${dev-jna.version}</version>

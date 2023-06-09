@@ -133,6 +133,10 @@
             <groupId>com.rarible</groupId>
             <artifactId>rarible-looksrare-client-starter</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rarible</groupId>
+            <artifactId>rarible-reservoir-client-starter</artifactId>
+        </dependency>
 
         <!-- ================== Test ===================== -->
         <dependency>

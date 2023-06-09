@@ -100,11 +100,25 @@ class ForeignOrderMetrics(
         ).increment()
     }
 
+    fun onOrderInconsistency(
+        platform: Platform,
+        status: String,
+    ) {
+        meterRegistry.counter(
+            FOREIGN_ORDER_INCONSISTENCY,
+            listOf(
+                tag(blockchain),
+                tag(platform),
+                status(status),
+            )
+        ).increment()
+    }
+
     private companion object {
 
         const val FOREIGN_ORDER_DOWNLOAD = "foreign_order_download"
         const val FOREIGN_ORDER_DOWNLOAD_DELAY = "foreign_order_download_delay"
         const val FOREIGN_ORDER_EVENT = "foreign_order_event"
+        const val FOREIGN_ORDER_INCONSISTENCY = "foreign_order_inconsistency"
     }
-
 }

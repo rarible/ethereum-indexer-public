@@ -19,6 +19,7 @@ data class SeaportFetchState(
     override fun withCursor(cursor: String): SeaportFetchState {
         return copy(cursor = cursor)
     }
+
     companion object {
         const val ID = "seaport-order-fetch"
     }
@@ -58,7 +59,7 @@ data class LooksrareV2FetchState(
     override val id: String = ID
 ) : AggregatorFetchState {
 
-    constructor(cursor: LooksrareV2Cursor): this(cursor.toString())
+    constructor(cursor: LooksrareV2Cursor) : this(cursor.toString())
 
     @get:Transient
     val looksrareV2Cursor: LooksrareV2Cursor
@@ -85,6 +86,7 @@ data class X2Y2FetchState(
     override fun withCursor(cursor: String): X2Y2FetchState {
         return copy(cursor = cursor)
     }
+
     companion object {
         const val ID = "x2y2-order-fetch"
     }
@@ -98,7 +100,23 @@ data class X2Y2CancelListEventFetchState(
     override fun withCursor(cursor: String): X2Y2CancelListEventFetchState {
         return copy(cursor = cursor)
     }
+
     companion object {
         const val ID = "x2y2-cancel-list-event-fetch"
     }
 }
+
+data class ReservoirAsksEventFetchState(
+    override val cursor: String,
+    @Id
+    override val id: String = ID
+) : AggregatorFetchState {
+    override fun withCursor(cursor: String): ReservoirAsksEventFetchState {
+        return copy(cursor = cursor)
+    }
+
+    companion object {
+        const val ID = "reservoir-asks-event-fetch"
+    }
+}
+

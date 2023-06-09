@@ -30,6 +30,7 @@ data class OrderListenerProperties(
     val raribleExpiredBidWorker: RaribleExpiredBidWorkerProperties = RaribleExpiredBidWorkerProperties(),
     val seaportLoad: SeaportLoadProperties = SeaportLoadProperties(),
     val looksrareLoad: LooksrareLoadProperties = LooksrareLoadProperties(),
+    val reservoir: ReservoirProperties = ReservoirProperties(),
     val x2y2Load: X2Y2OrderLoadProperties = X2Y2OrderLoadProperties(),
     val x2y2CancelListEventLoad: X2Y2EventLoadProperties = X2Y2EventLoadProperties(),
     val sudoSwapLoad: SudoSwapLoadProperties = SudoSwapLoadProperties(),
@@ -155,4 +156,12 @@ data class X2Y2EventLoadProperties(
 
 data class SudoSwapLoadProperties(
     val ignorePairs: Set<Address> = emptySet(),
+)
+
+data class ReservoirProperties(
+    val enabled: Boolean = false,
+    val cancelEnabled: Boolean = false,
+    val size: Long = 50,
+    val pollingPeriod: Duration = Duration.ofSeconds(60),
+    val errorDelay: Duration = Duration.ofSeconds(1)
 )
