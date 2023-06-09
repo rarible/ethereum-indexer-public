@@ -4,6 +4,7 @@ import com.rarible.blockchain.scanner.ethereum.migration.ChangeLog00001
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.protocol.client.NoopWebClientCustomizer
+import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.nft.api.client.FixedNftIndexerApiServiceUriProvider
 import com.rarible.protocol.nft.api.client.NftActivityControllerApi
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
@@ -12,6 +13,7 @@ import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nft.api.client.NftTransactionControllerApi
+import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.HistoryTopics
@@ -104,6 +106,9 @@ abstract class AbstractIntegrationTest {
     @Autowired
     protected lateinit var ipfsProperties: NftIndexerProperties.IpfsProperties
 
+    @Autowired
+    protected lateinit var testItemEventHandler: TestKafkaHandler<NftItemEventDto>
+
     @LocalServerPort
     private var port: Int = 0
 
@@ -134,6 +139,7 @@ abstract class AbstractIntegrationTest {
 
     @BeforeEach
     fun clear() {
+        testItemEventHandler.clear()
         clearMocks(mockItemMetaResolver)
         coEvery { mockTokenStandardPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
         coEvery { mockTokenOpenseaPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
