@@ -5,6 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.model.AggregatorFetchState
 import com.rarible.protocol.order.core.model.LooksrareFetchState
 import com.rarible.protocol.order.core.model.LooksrareV2FetchState
+import com.rarible.protocol.order.core.model.ReservoirAsksEventFetchState
 import com.rarible.protocol.order.core.model.SeaportFetchState
 import com.rarible.protocol.order.core.model.X2Y2CancelListEventFetchState
 import com.rarible.protocol.order.core.model.X2Y2FetchState
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Component
 class AggregatorStateRepository(
     private val template: ReactiveMongoTemplate
 ) {
-    suspend fun <T: AggregatorFetchState> save(fetchState: T) {
+    suspend fun <T : AggregatorFetchState> save(fetchState: T) {
         template.save(fetchState, COLLECTION).awaitFirst()
     }
 
@@ -43,7 +44,11 @@ class AggregatorStateRepository(
         return get(X2Y2CancelListEventFetchState.ID, X2Y2CancelListEventFetchState::class.java)
     }
 
-    private suspend fun <T: AggregatorFetchState> get(id: String, type: Class<T>): T? {
+    suspend fun getReservoirAsksEventState(): ReservoirAsksEventFetchState? {
+        return get(ReservoirAsksEventFetchState.ID, ReservoirAsksEventFetchState::class.java)
+    }
+
+    private suspend fun <T : AggregatorFetchState> get(id: String, type: Class<T>): T? {
         return template.findById(id, type, COLLECTION).awaitFirstOrNull()
     }
 
