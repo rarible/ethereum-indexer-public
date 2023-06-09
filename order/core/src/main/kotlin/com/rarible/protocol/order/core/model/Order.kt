@@ -873,6 +873,18 @@ fun Order.isBid() = take.type.nft
 
 fun Order.isSell() = make.type.nft
 
+fun Order.nft(): Asset = if (isSell()) {
+    make
+} else {
+    take
+}
+
+fun Order.payment(): Asset = if (isSell()) {
+    take
+} else {
+    make
+}
+
 fun calculateAmounts(
     make: BigInteger,
     take: BigInteger,

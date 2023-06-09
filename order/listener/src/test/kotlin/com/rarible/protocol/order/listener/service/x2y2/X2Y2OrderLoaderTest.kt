@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.service.x2y2
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import com.rarible.protocol.order.listener.configuration.X2Y2OrderLoadProperties
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion

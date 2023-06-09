@@ -5,18 +5,15 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
-import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import com.rarible.protocol.order.core.model.Platform
-import com.rarible.protocol.order.core.model.currency
-import com.rarible.protocol.order.core.model.isBid
-import com.rarible.protocol.order.core.model.isSell
+import com.rarible.protocol.order.core.model.nft
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.model.tokenId
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.updater.CancelInactiveOrderUpdater
+import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
-import com.rarible.protocol.order.listener.service.x2y2.X2Y2Service
 import org.springframework.stereotype.Component
 
 @Component
@@ -37,33 +34,11 @@ class OrderX2Y2StatusTaskHandler(
 
     override suspend fun handleOrder(order: Order) {
         val eventTimeMarks = orderOffchainEventMarks()
-        val data = order.data as? OrderX2Y2DataV1 ?: run {
-            logger.error("Invalid order data (not x2y2 data): hash={}", order.hash)
-            return
-        }
-        val (price, tokenId) = when {
-            order.isSell() -> {
-                val tokenId = order.make.type.tokenId
-                val price = order.take.value
-                price to tokenId
-            }
-            order.isBid() -> {
-                val price = order.make.value
-                val tokenId = order.take.type.tokenId
-                price to tokenId
-            }
-            else -> throw IllegalStateException("Can't get price for order: ${order.hash}")
-        }
-        val isActive = x2y2Service.isActiveOrder(
-            caller = order.maker,
-            orderId = data.orderId,
-            currency = order.currency.token,
-            price = price.value,
-            tokenId = tokenId?.value ?: throw IllegalStateException("Can't get tokenId for order: ${order.hash}"),
-        )
+        val isActive = x2y2Service.isActiveOrder(order)
         if (isActive.not() && properties.fixX2Y2) {
             logger.info(
-                "Detected not active x2y2 order ${order.hash}, collection=${order.token}, tokeId=${tokenId}"
+                "Detected not active x2y2 order ${order.hash}, " +
+                    "collection=${order.token}, tokeId=${order.nft().type.tokenId}"
             )
             cancelX2Y2(order, eventTimeMarks)
         }

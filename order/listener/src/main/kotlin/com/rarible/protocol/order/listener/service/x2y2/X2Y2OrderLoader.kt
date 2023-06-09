@@ -4,6 +4,7 @@ import com.rarible.protocol.order.core.misc.orderIntegrationEventMarks
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import com.rarible.protocol.order.listener.configuration.X2Y2OrderLoadProperties
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.seaportInfo

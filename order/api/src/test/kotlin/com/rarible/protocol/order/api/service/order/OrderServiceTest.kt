@@ -9,9 +9,11 @@ import com.rarible.protocol.order.api.service.order.signature.OrderSignatureReso
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
+import com.rarible.protocol.order.core.data.createOrderX2Y2DataV1
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.CommonSigner
+import com.rarible.protocol.order.core.service.OrderCancelService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
@@ -19,6 +21,7 @@ import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.core.service.pool.PoolOwnershipService
+import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
@@ -73,6 +76,12 @@ internal class OrderServiceTest {
 
     @MockK
     private lateinit var orderSignatureResolver: OrderSignatureResolver
+
+    @MockK
+    private lateinit var x2y2Service: X2Y2Service
+
+    @MockK
+    private lateinit var orderCancelService: OrderCancelService
 
     @SpyK
     private var featureFlags: OrderIndexerProperties.FeatureFlags = OrderIndexerProperties.FeatureFlags()
@@ -168,6 +177,43 @@ internal class OrderServiceTest {
                 orderService.validateAndGet(order.hash)
             }
         }.withMessage("wrong order data")
+    }
+
+    @Test
+    fun `validate x2y2`() = runBlocking<Unit> {
+        val order = createOrder().copy(
+            platform = Platform.X2Y2,
+            data = createOrderX2Y2DataV1()
+        )
+        coEvery { orderRepository.findById(order.hash) } returns order
+        coEvery { x2y2Service.isActiveOrder(order) } returns false
+        coEvery { approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) } returns true
+        coEvery { approveService.checkOnChainErc20Allowance(order.maker, order.make) } returns true
+        coEvery { orderCancelService.cancelOrder(id = eq(order.hash), eventTimeMarksDto = any()) } returns Unit
+
+        assertThatExceptionOfType(OrderDataException::class.java).isThrownBy {
+            runBlocking {
+                orderService.validateAndGet(order.hash)
+            }
+        }.withMessage("order is not active")
+
+        coVerify {
+            orderCancelService.cancelOrder(id = eq(order.hash), eventTimeMarksDto = any())
+        }
+    }
+
+    @Test
+    fun `validate x2y2 exception`() = runBlocking<Unit> {
+        val order = createOrder().copy(
+            platform = Platform.X2Y2,
+            data = createOrderX2Y2DataV1()
+        )
+        coEvery { orderRepository.findById(order.hash) } returns order
+        coEvery { x2y2Service.isActiveOrder(order) } throws IllegalStateException("error")
+        coEvery { approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) } returns true
+        coEvery { approveService.checkOnChainErc20Allowance(order.maker, order.make) } returns true
+
+        assertThat(orderService.validateAndGet(order.hash)).isEqualTo(order)
     }
 
     @Test

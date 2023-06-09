@@ -145,6 +145,10 @@
             <artifactId>transport-mono_${scala.major.version}</artifactId>
             <version>${scalether.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.rarible.x2y2</groupId>
+            <artifactId>rarible-x2y2-client-starter</artifactId>
+        </dependency>
 
         <!-- ================== Test ===================== -->
         <dependency>

@@ -41,6 +41,7 @@ import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.CommonSigner
+import com.rarible.protocol.order.core.service.OrderCancelService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
@@ -48,6 +49,7 @@ import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.core.service.pool.PoolOwnershipService
+import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -72,6 +74,8 @@ class OrderService(
     private val approveService: ApproveService,
     private val commonSigner: CommonSigner,
     private val orderSignatureResolver: OrderSignatureResolver,
+    private val x2y2Service: X2Y2Service,
+    private val orderCancelService: OrderCancelService,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
@@ -125,7 +129,6 @@ class OrderService(
     }
 
     suspend fun validateAndGet(hash: Word): Order {
-        val eventTimeMarks = orderOffchainEventMarks()
         val order = orderRepository.findById(hash)
             ?: throw EntityNotFoundApiException("Order", hash)
 
@@ -133,22 +136,60 @@ class OrderService(
             return order
         }
 
-        if (order.status !== OrderStatus.ACTIVE) {
-            logger.warn("Order validation error: hash=$hash, status=${order.status}")
-            orderUpdateService.update(hash, eventTimeMarks)
-            throw ValidationApiException("order is not active")
+        checkStatus(order, hash)
+        checkApprovals(order, hash)
+        checkOpensea(order, hash)
+        checkX2Y2(order)
+        return order
+    }
+
+    private suspend fun checkX2Y2(order: Order) {
+        if (order.platform == Platform.X2Y2) {
+            val active = try {
+                x2y2Service.isActiveOrder(order)
+            } catch (e: Exception) {
+                logger.error("Error during getting x2y2 order status: $e", e)
+                true
+            }
+            if (!active) {
+                orderCancelService.cancelOrder(id = order.hash, eventTimeMarksDto = orderOffchainEventMarks())
+                throw OrderDataException("order is not active")
+            }
         }
+    }
+
+    private suspend fun checkOpensea(
+        order: Order,
+        hash: Word
+    ) {
+        if (order.platform == Platform.OPEN_SEA && order.data.version == OrderDataVersion.BASIC_SEAPORT_DATA_V1) {
+            orderSignatureResolver.resolveSeaportSignature(hash)
+        }
+    }
+
+    private suspend fun checkApprovals(
+        order: Order,
+        hash: Word
+    ) {
         if (!approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) ||
             !approveService.checkOnChainErc20Allowance(order.maker, order.make)
         ) {
             logger.warn("Order validation error: hash=$hash, approved=false")
-            orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = eventTimeMarks)
+            orderUpdateService.updateApproval(
+                order = order,
+                approved = false,
+                eventTimeMarks = orderOffchainEventMarks()
+            )
             throw ValidationApiException("order is not approved")
         }
-        if (order.platform == Platform.OPEN_SEA && order.data.version == OrderDataVersion.BASIC_SEAPORT_DATA_V1) {
-            orderSignatureResolver.resolveSeaportSignature(hash)
+    }
+
+    private suspend fun checkStatus(order: Order, hash: Word) {
+        if (order.status !== OrderStatus.ACTIVE) {
+            logger.warn("Order validation error: hash=$hash, status=${order.status}")
+            orderUpdateService.update(hash, orderOffchainEventMarks())
+            throw ValidationApiException("order is not active")
         }
-        return order
     }
 
     fun getAll(hashes: List<Word>): Flow<Order> {

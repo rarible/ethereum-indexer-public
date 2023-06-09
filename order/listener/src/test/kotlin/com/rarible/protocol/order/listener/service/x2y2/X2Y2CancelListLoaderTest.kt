@@ -4,6 +4,7 @@ import com.rarible.core.test.data.randomString
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import com.rarible.protocol.order.listener.data.randomX2Y2Event
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.x2y2.client.model.ApiListResponse
