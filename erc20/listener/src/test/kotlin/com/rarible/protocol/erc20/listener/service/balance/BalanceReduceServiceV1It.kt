@@ -35,6 +35,7 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -43,6 +44,7 @@ import java.util.Date
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
 
+@Disabled("Replaced with V2 in master branch")
 @Deprecated("It uses v1 reducer")
 @FlowPreview
 @IntegrationTest
