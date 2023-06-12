@@ -13,13 +13,10 @@ class CompositeDomainResolver(
         .toMap()
 
     suspend fun resolve(name: String): DomainResolveResult {
-        val type = DomainTypeParser.parse(name) ?: EMPTY_RESULT
+        val type = DomainTypeParser.parse(name)
         return resolvers[type]
-            ?.also { if (!it.isValidNane(name)) throw ValidationApiException("Invalid domain name: $name") }
-            ?.resolve(name) ?: error("Unexpected null result")
-    }
-
-    companion object {
-        val EMPTY_RESULT: DomainResolveResult = DomainResolveResult(null)
+            ?.also { if (!it.isValidName(name)) throw ValidationApiException("Invalid domain name: $name") }
+            ?.resolve(name)
+            ?: throw ValidationApiException("Top level domain is not supported")
     }
 }

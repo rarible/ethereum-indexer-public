@@ -6,7 +6,7 @@ import com.rarible.protocol.nft.api.model.DomainType
 interface DomainResolver {
     val types: List<DomainType>
 
-    fun isValidNane(name: String): Boolean
+    fun isValidName(name: String): Boolean
 
     suspend fun resolve(name: String): DomainResolveResult
 }

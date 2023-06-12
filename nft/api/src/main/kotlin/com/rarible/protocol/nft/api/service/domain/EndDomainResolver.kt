@@ -12,7 +12,7 @@ class EndDomainResolver(
 
     override val types: List<DomainType> = listOf(DomainType.ENS)
 
-    override fun isValidNane(name: String) = EnsResolver.isValidEnsName(name)
+    override fun isValidName(name: String) = EnsResolver.isValidEnsName(name)
 
     override suspend fun resolve(name: String): DomainResolveResult {
         val address = ensResolver.resolve(name)

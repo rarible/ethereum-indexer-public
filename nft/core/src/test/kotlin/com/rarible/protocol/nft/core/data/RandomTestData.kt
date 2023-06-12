@@ -530,3 +530,4 @@ fun indexerInNftBlockchainTimeMark(log: EthereumLog) = EventTimeMarks(
     )
 )
 
+fun randomEnsDomain(): String = "${randomString()}.eth"
