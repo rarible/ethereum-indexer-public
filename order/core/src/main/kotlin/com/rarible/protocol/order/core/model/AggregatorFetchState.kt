@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.model
 
+import com.rarible.core.common.ifNotBlank
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import java.time.Instant
@@ -53,23 +54,22 @@ data class LooksrareFetchState(
 }
 
 data class LooksrareV2FetchState(
-    override val cursor: String,
+    override val cursor: String = "",
     @Id
-    override val id: String = ID
+    override val id: String = ID,
+    val cursorObj: LooksrareV2Cursor? = null,
 ) : AggregatorFetchState {
-
-    constructor(cursor: LooksrareV2Cursor): this(cursor.toString())
 
     @get:Transient
     val looksrareV2Cursor: LooksrareV2Cursor
-        get() = LooksrareV2Cursor.parser(cursor)
+        get() = cursorObj ?: cursor.ifNotBlank()?.let { LooksrareV2Cursor.parser(it) } ?: LooksrareV2Cursor.default()
 
     fun withCursor(cursor: LooksrareV2Cursor): LooksrareV2FetchState {
-        return withCursor(cursor.toString())
+        return copy(cursorObj = cursor, cursor = "")
     }
 
     override fun withCursor(cursor: String): LooksrareV2FetchState {
-        return copy(cursor = cursor)
+        throw UnsupportedOperationException("Use withCursor(LooksrareV2Cursor)")
     }
 
     companion object {
