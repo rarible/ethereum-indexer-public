@@ -1070,7 +1070,7 @@ class OrderServiceIt : AbstractOrderIt() {
             orderService.validateAndGet(saved.hash)
             fail("Shouldn't be here")
         } catch (e: ValidationApiException) {
-            assertThat(e.message).isEqualTo("order is not active")
+            assertThat(e.message).isEqualTo("order ${saved.platform}:${saved.hash} is not active")
         }
     }
 

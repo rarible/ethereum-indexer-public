@@ -728,6 +728,7 @@ data class Order(
                         .add(AddressType.encode(fee.recipient))
                 )
             }
+
             fun packFees(fees: List<BlurFee>): Binary {
                 return fees.fold(Binary.empty()) { acc, next ->
                     acc.add(feeHash(next))
@@ -926,6 +927,22 @@ val AssetType.tokenId: EthUInt256?
         }
     }
 
+val AssetType.itemId: ItemId
+    get() {
+        return when (this) {
+            is Erc721AssetType -> ItemId(token, tokenId.value)
+            is Erc1155AssetType -> ItemId(token, tokenId.value)
+            is Erc1155LazyAssetType -> ItemId(token, tokenId.value)
+            is Erc721LazyAssetType -> ItemId(token, tokenId.value)
+            is CryptoPunksAssetType -> ItemId(token, tokenId.value)
+            is GenerativeArtAssetType,
+            is EthAssetType,
+            is Erc20AssetType,
+            is CollectionAssetType,
+            is AmmNftAssetType -> ItemId(token, BigInteger.ZERO)
+        }
+    }
+
 val Order.isMakeFillOrder: Boolean
     get() = data.isMakeFillOrder(sell = make.type.nft)
 
@@ -973,6 +990,5 @@ internal val CONSIDERATION_ITEM_TYPE_HASH = keccak256(
 internal val ORDER_TYPE_HASH = keccak256(ORDER_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))
 internal val BLUR_ORDER_TYPE_HASH = keccak256(BLUR_ORDER_TYPE_HASH_STRING.toByteArray(StandardCharsets.UTF_8))
 internal val BLUR_FEE_TYPE_HASH = keccak256(BLUR_FEE_TYPE_HASH_STRING.toByteArray(StandardCharsets.UTF_8))
-
 
 val EXPIRED_BID_STATUSES = setOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE, OrderStatus.ENDED)

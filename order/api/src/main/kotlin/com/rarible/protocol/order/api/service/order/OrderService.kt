@@ -10,9 +10,8 @@ import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
-import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.misc.data
-import com.rarible.protocol.order.api.service.order.signature.OrderSignatureResolver
+import com.rarible.protocol.order.api.service.order.validation.OrderStateValidator
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.AssetConverter
@@ -27,8 +26,6 @@ import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderAmmData
-import com.rarible.protocol.order.core.model.OrderDataVersion
-import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
@@ -37,11 +34,9 @@ import com.rarible.protocol.order.core.model.PoolNftItemIds
 import com.rarible.protocol.order.core.model.PoolTradePrice
 import com.rarible.protocol.order.core.model.currency
 import com.rarible.protocol.order.core.model.order.OrderFilter
-import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.CommonSigner
-import com.rarible.protocol.order.core.service.OrderCancelService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
@@ -49,7 +44,6 @@ import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.core.service.pool.PoolOwnershipService
-import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -73,9 +67,7 @@ class OrderService(
     private val poolInfoProvider: PoolInfoProvider,
     private val approveService: ApproveService,
     private val commonSigner: CommonSigner,
-    private val orderSignatureResolver: OrderSignatureResolver,
-    private val x2y2Service: X2Y2Service,
-    private val orderCancelService: OrderCancelService,
+    private val orderStateValidator: OrderStateValidator,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
@@ -136,60 +128,8 @@ class OrderService(
             return order
         }
 
-        checkStatus(order, hash)
-        checkApprovals(order, hash)
-        checkOpensea(order, hash)
-        checkX2Y2(order)
+        orderStateValidator.validate(order)
         return order
-    }
-
-    private suspend fun checkX2Y2(order: Order) {
-        if (order.platform == Platform.X2Y2) {
-            val active = try {
-                x2y2Service.isActiveOrder(order)
-            } catch (e: Exception) {
-                logger.error("Error during getting x2y2 order status: $e", e)
-                true
-            }
-            if (!active) {
-                orderCancelService.cancelOrder(id = order.hash, eventTimeMarksDto = orderOffchainEventMarks())
-                throw OrderDataException("order is not active")
-            }
-        }
-    }
-
-    private suspend fun checkOpensea(
-        order: Order,
-        hash: Word
-    ) {
-        if (order.platform == Platform.OPEN_SEA && order.data.version == OrderDataVersion.BASIC_SEAPORT_DATA_V1) {
-            orderSignatureResolver.resolveSeaportSignature(hash)
-        }
-    }
-
-    private suspend fun checkApprovals(
-        order: Order,
-        hash: Word
-    ) {
-        if (!approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) ||
-            !approveService.checkOnChainErc20Allowance(order.maker, order.make)
-        ) {
-            logger.warn("Order validation error: hash=$hash, approved=false")
-            orderUpdateService.updateApproval(
-                order = order,
-                approved = false,
-                eventTimeMarks = orderOffchainEventMarks()
-            )
-            throw ValidationApiException("order is not approved")
-        }
-    }
-
-    private suspend fun checkStatus(order: Order, hash: Word) {
-        if (order.status !== OrderStatus.ACTIVE) {
-            logger.warn("Order validation error: hash=$hash, status=${order.status}")
-            orderUpdateService.update(hash, orderOffchainEventMarks())
-            throw ValidationApiException("order is not active")
-        }
     }
 
     fun getAll(hashes: List<Word>): Flow<Order> {

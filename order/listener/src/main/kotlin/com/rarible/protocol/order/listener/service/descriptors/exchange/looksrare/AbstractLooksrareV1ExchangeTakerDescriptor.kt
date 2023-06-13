@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.looksra
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.common.keccak256
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.misc.looksrareError
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
@@ -19,7 +20,6 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
-import com.rarible.protocol.order.listener.misc.looksrareError
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger

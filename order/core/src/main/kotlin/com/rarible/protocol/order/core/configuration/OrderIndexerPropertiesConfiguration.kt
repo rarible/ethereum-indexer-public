@@ -40,7 +40,7 @@ class OrderIndexerPropertiesConfiguration(
     fun ethereumPoolEventHandleProperties() = indexerProperties.poolEventHandle
 
     @Bean
-    fun featureFlags()  = indexerProperties.featureFlags
+    fun featureFlags() = indexerProperties.featureFlags
 
     @Bean
     @Qualifier("raribleExchangeV2")
@@ -71,7 +71,12 @@ class OrderIndexerPropertiesConfiguration(
 
     @Bean
     fun protocolCommissionProvider(): ProtocolCommissionProvider {
-       return ProtocolCommissionProvider(EthUInt256.of(indexerProperties.protocolCommission.toLong()))
+        return ProtocolCommissionProvider(EthUInt256.of(indexerProperties.protocolCommission.toLong()))
+    }
+
+    @Bean
+    fun looksrareLoadProperties(): LooksrareLoadProperties {
+        return indexerProperties.looksrareLoad
     }
 
     private companion object {

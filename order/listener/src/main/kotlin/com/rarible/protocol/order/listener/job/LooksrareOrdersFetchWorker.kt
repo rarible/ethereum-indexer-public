@@ -2,7 +2,7 @@ package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
-import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
+import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.listener.service.looksrare.LooksrareOrderLoadHandler
 import io.micrometer.core.instrument.MeterRegistry
 

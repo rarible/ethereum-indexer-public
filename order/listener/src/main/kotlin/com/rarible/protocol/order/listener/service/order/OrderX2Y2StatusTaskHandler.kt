@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.itemId
 import com.rarible.protocol.order.core.model.nft
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.model.tokenId
@@ -37,8 +38,7 @@ class OrderX2Y2StatusTaskHandler(
         val isActive = x2y2Service.isActiveOrder(order)
         if (isActive.not() && properties.fixX2Y2) {
             logger.info(
-                "Detected not active x2y2 order ${order.hash}, " +
-                    "collection=${order.token}, tokeId=${order.nft().type.tokenId}"
+                "Detected not active x2y2 order ${order.hash}, itemId=${order.nft().type.itemId}"
             )
             cancelX2Y2(order, eventTimeMarks)
         }
