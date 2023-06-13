@@ -24,7 +24,7 @@ class ApprovalsOrderStateValidator(
                 approved = false,
                 eventTimeMarks = orderOffchainEventMarks()
             )
-            throw ValidationApiException("order is not approved")
+            throw ValidationApiException("order ${order.platform}:${order.hash} is not approved")
         }
     }
 }
