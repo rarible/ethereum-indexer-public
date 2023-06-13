@@ -10,9 +10,7 @@ import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
-import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.misc.data
-import com.rarible.protocol.order.api.service.order.signature.OrderSignatureResolver
 import com.rarible.protocol.order.api.service.order.validation.OrderStateValidator
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -28,8 +26,6 @@ import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderAmmData
-import com.rarible.protocol.order.core.model.OrderDataVersion
-import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
@@ -38,11 +34,9 @@ import com.rarible.protocol.order.core.model.PoolNftItemIds
 import com.rarible.protocol.order.core.model.PoolTradePrice
 import com.rarible.protocol.order.core.model.currency
 import com.rarible.protocol.order.core.model.order.OrderFilter
-import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.CommonSigner
-import com.rarible.protocol.order.core.service.OrderCancelService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
@@ -50,7 +44,6 @@ import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.core.service.pool.PoolOwnershipService
-import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
