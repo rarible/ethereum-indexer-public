@@ -20,7 +20,7 @@ import java.time.temporal.ChronoUnit
 internal class LooksrareOrderLoadHandlerTest {
     private val looksrareOrderLoader = mockk<LooksrareOrderLoader>()
     private val aggregatorStateRepository = mockk<AggregatorStateRepository>()
-    private val properties = LooksrareLoadProperties()
+    private val properties = LooksrareLoadProperties(pollingPeriod = Duration.ZERO)
 
     private val handler = LooksrareOrderLoadHandler(
         looksrareOrderLoader,
@@ -48,7 +48,7 @@ internal class LooksrareOrderLoadHandlerTest {
             }
             coVerify {
                 aggregatorStateRepository.save(
-                    withArg { assertThat(it.cursor).isEqualTo(next.toString()) }
+                    withArg { assertThat((it as LooksrareV2FetchState).cursorObj).isEqualTo(next) }
                 )
             }
         }
@@ -59,7 +59,7 @@ internal class LooksrareOrderLoadHandlerTest {
         val expectedCreatedAfter = LooksrareV2Cursor(nowMillis().truncatedTo(ChronoUnit.SECONDS) - Duration.ofDays(1))
         val next = LooksrareV2Cursor(Instant.now() - Duration.ofHours(1))
 
-        coEvery { aggregatorStateRepository.getLooksrareV2State() } returns LooksrareV2FetchState(expectedCreatedAfter)
+        coEvery { aggregatorStateRepository.getLooksrareV2State() } returns LooksrareV2FetchState(cursorObj = expectedCreatedAfter)
         coEvery { aggregatorStateRepository.save(any()) } returns Unit
         coEvery { looksrareOrderLoader.load(any()) } returns LooksrareOrderLoader.Result(next, 0)
 
@@ -72,7 +72,7 @@ internal class LooksrareOrderLoadHandlerTest {
         }
         coVerify {
             aggregatorStateRepository.save(
-                withArg { assertThat(it.cursor).isEqualTo(next.toString()) }
+                withArg { assertThat((it as LooksrareV2FetchState).cursorObj).isEqualTo(next) }
             )
         }
     }
