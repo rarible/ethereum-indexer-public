@@ -42,7 +42,7 @@ internal class ApprovalsOrderStateValidatorTest {
             runBlocking {
                 approvalsOrderStateValidator.validate(order)
             }
-        }.withMessage("order is not approved")
+        }.withMessage("order ${order.platform}:${order.hash} is not approved")
 
         coVerify { orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = any()) }
     }
@@ -64,7 +64,7 @@ internal class ApprovalsOrderStateValidatorTest {
             runBlocking {
                 approvalsOrderStateValidator.validate(order)
             }
-        }.withMessage("order is not approved")
+        }.withMessage("order ${order.platform}:${order.hash} is not approved")
 
         coVerify { orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = any()) }
     }
