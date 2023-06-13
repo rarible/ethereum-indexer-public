@@ -13,8 +13,8 @@ class DomainController(
     private val domainResolver: CompositeDomainResolver
 ) : NftDomainControllerApi {
 
-    override suspend fun resolveDomainByName(name: String): ResponseEntity<DomainResolveResultDto> {
-        val result = domainResolver.resolve(name)
+    override suspend fun resolveDomainByName(domain: String): ResponseEntity<DomainResolveResultDto> {
+        val result = domainResolver.resolve(domain)
         return ResponseEntity.ok(DomainResultDtoConverter.convert(result))
     }
 }
