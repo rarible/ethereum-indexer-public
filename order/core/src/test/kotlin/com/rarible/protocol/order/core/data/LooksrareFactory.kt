@@ -13,9 +13,12 @@ import io.daonomic.rpc.domain.Word
 import java.time.Duration
 import java.time.Instant
 
-fun randomLooksrareOrder(): LooksrareOrder {
+fun randomLooksrareOrder(
+    hash: Word = Word.apply(randomWord()),
+    id: String = randomWord(),
+): LooksrareOrder {
     return LooksrareOrder(
-        hash = Word.apply(randomWord()),
+        hash = hash,
         collection = randomAddress(),
         itemIds = listOf(randomBigInt()),
         quoteType  = QuoteType.ASK,
@@ -36,7 +39,7 @@ fun randomLooksrareOrder(): LooksrareOrder {
         createdAt = Instant.now(),
         merkleRoot = randomBinary(),
         merkleProof = listOf(randomMerkleProof()),
-        id = randomWord()
+        id = id
     )
 }
 

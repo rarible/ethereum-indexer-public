@@ -13,6 +13,7 @@ import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFactory
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
+import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -65,7 +66,8 @@ class OrderListenerConfiguration(
     private val nftIndexerEventsConsumerFactory: NftIndexerEventsConsumerFactory,
     private val metrics: ForeignOrderMetrics
 ) {
-    private val erc20BalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.erc20-balance"
+    private val erc20BalanceConsumerGroup =
+        "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.erc20-balance"
     private val ownershipBalanceConsumerGroup =
         "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
     private val itemConsumerGroup =
@@ -84,11 +86,6 @@ class OrderListenerConfiguration(
     @Bean
     fun seaportLoadProperties(): SeaportLoadProperties {
         return listenerProperties.seaportLoad
-    }
-
-    @Bean
-    fun looksrareLoadProperties(): LooksrareLoadProperties {
-        return listenerProperties.looksrareLoad
     }
 
     @Bean
@@ -193,8 +190,8 @@ class OrderListenerConfiguration(
     @Bean
     @ConditionalOnProperty(
         prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["rarible-expired-bid-worker.enabled"],
-        havingValue="true"
+        name = ["rarible-expired-bid-worker.enabled"],
+        havingValue = "true"
     )
     fun raribleBidsCanceledAfterExpiredJob(
         orderRepository: OrderRepository,
@@ -321,16 +318,16 @@ class OrderListenerConfiguration(
     @Bean
     @ConditionalOnProperty(
         prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["looksrare-load.enabled"],
-        havingValue="true"
+        name = ["looksrare-load.enabled"],
+        havingValue = "true"
     )
     fun looksrareOrderLoadWorker(
         meterRegistry: MeterRegistry,
-        properties: OrderListenerProperties,
+        properties: LooksrareLoadProperties,
         looksrareOrderLoadHandler: LooksrareOrderLoadHandler
     ): LooksrareOrdersFetchWorker {
         return LooksrareOrdersFetchWorker(
-            properties = properties.looksrareLoad,
+            properties = properties,
             meterRegistry = meterRegistry,
             handler = looksrareOrderLoadHandler
         ).apply { start() }

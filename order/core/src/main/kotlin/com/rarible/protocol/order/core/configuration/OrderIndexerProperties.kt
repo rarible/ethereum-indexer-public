@@ -51,6 +51,7 @@ data class OrderIndexerProperties(
     val bidValidation: BidValidationProperties = BidValidationProperties(),
     val orderEventHandle: OrderEventHandleProperties = OrderEventHandleProperties(),
     val poolEventHandle: PoolEventHandleProperties = PoolEventHandleProperties(),
+    val looksrareLoad: LooksrareLoadProperties = LooksrareLoadProperties(),
 ) {
     val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong()) * BigDecimal.valueOf(1, 18)
 
@@ -166,3 +167,16 @@ data class SudoSwapAddresses(
     var linearCurveV1: Address = Address.ZERO(),
 )
 
+data class LooksrareLoadProperties(
+    val enabled: Boolean = false,
+    var saveEnabled: Boolean = false,
+    val delay: Duration = Duration.ofMinutes(1),
+    val loadPeriod: Duration = Duration.ofSeconds(30),
+    val loadMaxSize: Int = 150,
+    val retry: Int = 5,
+    val saveBatchSize: Int = 50,
+    val loadMaxDeep: Int = 5,
+    val retryDelay: Duration = Duration.ofMillis(500),
+    val pollingPeriod: Duration = Duration.ofSeconds(60),
+    val errorDelay: Duration = Duration.ofSeconds(1)
+)

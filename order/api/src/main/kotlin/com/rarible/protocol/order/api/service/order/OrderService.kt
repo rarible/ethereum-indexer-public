@@ -13,6 +13,7 @@ import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.misc.data
 import com.rarible.protocol.order.api.service.order.signature.OrderSignatureResolver
+import com.rarible.protocol.order.api.service.order.validation.OrderStateValidator
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.AssetConverter
@@ -73,9 +74,7 @@ class OrderService(
     private val poolInfoProvider: PoolInfoProvider,
     private val approveService: ApproveService,
     private val commonSigner: CommonSigner,
-    private val orderSignatureResolver: OrderSignatureResolver,
-    private val x2y2Service: X2Y2Service,
-    private val orderCancelService: OrderCancelService,
+    private val orderStateValidator: OrderStateValidator,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
@@ -136,60 +135,8 @@ class OrderService(
             return order
         }
 
-        checkStatus(order, hash)
-        checkApprovals(order, hash)
-        checkOpensea(order, hash)
-        checkX2Y2(order)
+        orderStateValidator.validate(order)
         return order
-    }
-
-    private suspend fun checkX2Y2(order: Order) {
-        if (order.platform == Platform.X2Y2) {
-            val active = try {
-                x2y2Service.isActiveOrder(order)
-            } catch (e: Exception) {
-                logger.error("Error during getting x2y2 order status: $e", e)
-                true
-            }
-            if (!active) {
-                orderCancelService.cancelOrder(id = order.hash, eventTimeMarksDto = orderOffchainEventMarks())
-                throw OrderDataException("order is not active")
-            }
-        }
-    }
-
-    private suspend fun checkOpensea(
-        order: Order,
-        hash: Word
-    ) {
-        if (order.platform == Platform.OPEN_SEA && order.data.version == OrderDataVersion.BASIC_SEAPORT_DATA_V1) {
-            orderSignatureResolver.resolveSeaportSignature(hash)
-        }
-    }
-
-    private suspend fun checkApprovals(
-        order: Order,
-        hash: Word
-    ) {
-        if (!approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) ||
-            !approveService.checkOnChainErc20Allowance(order.maker, order.make)
-        ) {
-            logger.warn("Order validation error: hash=$hash, approved=false")
-            orderUpdateService.updateApproval(
-                order = order,
-                approved = false,
-                eventTimeMarks = orderOffchainEventMarks()
-            )
-            throw ValidationApiException("order is not approved")
-        }
-    }
-
-    private suspend fun checkStatus(order: Order, hash: Word) {
-        if (order.status !== OrderStatus.ACTIVE) {
-            logger.warn("Order validation error: hash=$hash, status=${order.status}")
-            orderUpdateService.update(hash, orderOffchainEventMarks())
-            throw ValidationApiException("order is not active")
-        }
     }
 
     fun getAll(hashes: List<Word>): Flow<Order> {

@@ -1,0 +1,47 @@
+package com.rarible.protocol.order.api.service.order.validation.validators
+
+import com.rarible.protocol.order.api.data.createOrder
+import com.rarible.protocol.order.api.exceptions.ValidationApiException
+import com.rarible.protocol.order.core.service.OrderUpdateService
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
+import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import java.time.Instant
+
+@ExtendWith(MockKExtension::class)
+internal class StatusOrderStateValidatorTest {
+    @InjectMockKs
+    private lateinit var statusOrderStateValidator: StatusOrderStateValidator
+
+    @MockK
+    private lateinit var orderUpdateService: OrderUpdateService
+
+    @Test
+    fun `validate and get not active`() = runBlocking<Unit> {
+        val order = createOrder(
+            end = Instant.now().minusSeconds(100).epochSecond
+        )
+        coEvery { orderUpdateService.update(order.hash, any()) } returns Unit
+
+        assertThatExceptionOfType(ValidationApiException::class.java).isThrownBy {
+            runBlocking {
+                statusOrderStateValidator.validate(order)
+            }
+        }.withMessage("order ${order.platform}:${order.hash} is not active")
+
+        coVerify { orderUpdateService.update(order.hash, any()) }
+    }
+
+    @Test
+    fun `validate valid`() = runBlocking<Unit> {
+        val order = createOrder()
+
+        statusOrderStateValidator.validate(order)
+    }
+}
