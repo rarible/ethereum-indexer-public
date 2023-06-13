@@ -125,6 +125,10 @@
             <groupId>com.rarible</groupId>
             <artifactId>rarible-opensea-client-starter</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rarible</groupId>
+            <artifactId>rarible-reservoir-client-starter</artifactId>
+        </dependency>
 
         <!-- ================== Test ===================== -->
         <dependency>

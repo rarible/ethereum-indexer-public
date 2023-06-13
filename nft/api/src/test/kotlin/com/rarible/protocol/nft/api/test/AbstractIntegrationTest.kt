@@ -4,14 +4,17 @@ import com.rarible.blockchain.scanner.ethereum.migration.ChangeLog00001
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.protocol.client.NoopWebClientCustomizer
+import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.nft.api.client.FixedNftIndexerApiServiceUriProvider
 import com.rarible.protocol.nft.api.client.NftActivityControllerApi
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
+import com.rarible.protocol.nft.api.client.NftDomainControllerApi
 import com.rarible.protocol.nft.api.client.NftIndexerApiClientFactory
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nft.api.client.NftTransactionControllerApi
+import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.HistoryTopics
@@ -69,6 +72,7 @@ abstract class AbstractIntegrationTest {
     protected lateinit var nftLazyMintApiClient: NftLazyMintControllerApi
     protected lateinit var nftTransactionApiClient: NftTransactionControllerApi
     protected lateinit var nftActivityApiClient: NftActivityControllerApi
+    protected lateinit var nftDomainControllerApi: NftDomainControllerApi
     protected lateinit var webClient: WebClient
 
     protected lateinit var poller: MonoTransactionPoller
@@ -104,6 +108,9 @@ abstract class AbstractIntegrationTest {
     @Autowired
     protected lateinit var ipfsProperties: NftIndexerProperties.IpfsProperties
 
+    @Autowired
+    protected lateinit var testItemEventHandler: TestKafkaHandler<NftItemEventDto>
+
     @LocalServerPort
     private var port: Int = 0
 
@@ -134,6 +141,7 @@ abstract class AbstractIntegrationTest {
 
     @BeforeEach
     fun clear() {
+        testItemEventHandler.clear()
         clearMocks(mockItemMetaResolver)
         coEvery { mockTokenStandardPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
         coEvery { mockTokenOpenseaPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
@@ -150,6 +158,7 @@ abstract class AbstractIntegrationTest {
         nftLazyMintApiClient = clientFactory.createNftMintApiClient(Blockchain.ETHEREUM.name)
         nftTransactionApiClient = clientFactory.createNftTransactionApiClient(Blockchain.ETHEREUM.name)
         nftActivityApiClient = clientFactory.createNftActivityApiClient(Blockchain.ETHEREUM.name)
+        nftDomainControllerApi = clientFactory.createNftDomainApiClient(Blockchain.ETHEREUM.name)
         webClient = WebClient.builder().baseUrl("http://127.0.0.1:$port").build()
 
         poller = MonoTransactionPoller(ethereum)

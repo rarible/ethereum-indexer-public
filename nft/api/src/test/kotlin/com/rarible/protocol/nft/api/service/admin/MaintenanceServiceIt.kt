@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.api.service.admin
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createItem
@@ -8,6 +7,8 @@ import com.rarible.protocol.nft.api.e2e.data.createOwnership
 import com.rarible.protocol.nft.api.e2e.data.randomItemId
 import com.rarible.protocol.nft.api.model.ItemResult
 import com.rarible.protocol.nft.api.model.ItemStatus
+import com.rarible.protocol.nft.api.service.item.ItemService
+import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
 import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.model.Item
@@ -15,23 +16,21 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProblemType
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.service.item.ItemOwnershipConsistencyService
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import io.mockk.every
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @End2EndTest
 class MaintenanceServiceIt : AbstractIntegrationTest() {
-
-    @Autowired
-    private lateinit var service: MaintenanceService
 
     @Autowired
     private lateinit var ownershipRepository: OwnershipRepository
@@ -39,8 +38,27 @@ class MaintenanceServiceIt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var itemRepository: ItemRepository
 
-    @MockkBean
-    private lateinit var itemReduceService: ItemReduceService
+    @Autowired
+    private lateinit var ownershipApiService: OwnershipApiService
+
+    @Autowired
+    private lateinit var itemService: ItemService
+
+    @Autowired
+    private lateinit var itemOwnershipConsistencyService: ItemOwnershipConsistencyService
+
+    private val itemReduceService: ItemReduceService = mockk()
+    private lateinit var service: MaintenanceService
+
+    @BeforeEach
+    fun beforeEach() {
+        service = MaintenanceService(
+            ownershipApiService,
+            itemService,
+            itemReduceService,
+            itemOwnershipConsistencyService
+        )
+    }
 
     @Test
     fun `should fix user items`() = runBlocking<Unit> {

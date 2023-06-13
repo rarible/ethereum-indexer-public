@@ -5,6 +5,7 @@ import com.rarible.core.cache.EnableRaribleCache
 import com.rarible.core.lockredis.EnableRaribleRedisLock
 import com.rarible.core.loggingfilter.EnableLoggingContextFilter
 import com.rarible.core.telemetry.actuator.WebRequestClientTagContributor
+import com.rarible.ethereum.autoconfigure.EthereumProperties
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.sign.service.ERC1271SignService
@@ -13,7 +14,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import scalether.transaction.MonoTransactionSender
+import org.web3j.ens.EnsResolver;
+import org.web3j.protocol.Web3j;
+import org.web3j.protocol.http.HttpService;
 import java.math.BigInteger
+
 
 @Configuration
 @EnableConfigurationProperties(NftIndexerApiProperties::class)
@@ -21,8 +26,10 @@ import java.math.BigInteger
 @EnableLoggingContextFilter
 @EnableRaribleRedisLock
 @EnableEthereumScanner
+@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class NftIndexerApiConfiguration(
-    private val nftIndexerApiProperties: NftIndexerApiProperties
+    private val nftIndexerApiProperties: NftIndexerApiProperties,
+    private val ethereumProperties: EthereumProperties,
 ) {
     @Bean
     fun reduceSkipTokens(): ReduceSkipTokens {
@@ -52,5 +59,15 @@ class NftIndexerApiConfiguration(
     @Bean
     fun webRequestClientTagContributor(): WebRequestClientTagContributor {
         return WebRequestClientTagContributor()
+    }
+
+    @Bean
+    fun web3j(): Web3j {
+        return Web3j.build(HttpService(ethereumProperties.httpUrl))
+    }
+
+    @Bean
+    fun ensResolver(web3j: Web3j): EnsResolver {
+        return EnsResolver(web3j)
     }
 }

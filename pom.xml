@@ -31,16 +31,18 @@
 
         <rarible.ethereum.version>1.7.8</rarible.ethereum.version>
         <rarible.ethereum.contracts.version>1.0.52</rarible.ethereum.contracts.version>
-        <rarible.core.version>2.5.21</rarible.core.version>
-        <rarible.blockchain.scanner.version>2.6.29</rarible.blockchain.scanner.version>
+        <rarible.core.version>2.5.22</rarible.core.version>
+        <rarible.blockchain.scanner.version>2.6.30</rarible.blockchain.scanner.version>
 
-        <rarible.protocol.ethereum.version>1.51.0</rarible.protocol.ethereum.version>
+        <rarible.protocol.ethereum.version>1.51.1</rarible.protocol.ethereum.version>
         <rarible.protocol.currency.version>1.38.3</rarible.protocol.currency.version>
         <opensea-client-starter.version>2.1.15</opensea-client-starter.version>
         <looksrare-client-starter.version>1.2.6</looksrare-client-starter.version>
         <x2y2-client.version>1.1.1</x2y2-client.version>
+        <reservoir-client.version>1.0.1</reservoir-client.version>
 
         <dev-jna.version>5.7.0</dev-jna.version>
+        <web3j.version>4.9.8</web3j.version>
 
         <!-- ============== Plugin versions ============== -->
         <version.plugin.clean>3.1.0</version.plugin.clean>
@@ -98,6 +100,11 @@
             </dependency>
 
             <!-- ================== Other =================== -->
+            <dependency>
+                <groupId>org.web3j</groupId>
+                <artifactId>core</artifactId>
+                <version>${web3j.version}</version>
+            </dependency>
             <dependency>
                 <groupId>net.java.dev.jna</groupId>
                 <artifactId>jna</artifactId>

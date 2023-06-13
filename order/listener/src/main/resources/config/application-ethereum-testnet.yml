@@ -45,3 +45,5 @@ listener:
 rarible:
   seaport:
     network: goerli
+  reservoir:
+    testnet: true

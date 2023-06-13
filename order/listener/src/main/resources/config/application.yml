@@ -20,7 +20,7 @@ spring:
     web-application-type: reactive
 mongock:
   change-logs-scan-package:
-    - com.rarible.ethereum.listener.log.mongock
+    - com.rarible.blockchain.scanner.ethereum.migration
 
 rarible:
   ethereum:

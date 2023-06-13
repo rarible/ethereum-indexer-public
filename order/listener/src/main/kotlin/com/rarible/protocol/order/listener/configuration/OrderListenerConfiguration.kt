@@ -19,11 +19,13 @@ import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepos
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
+import com.rarible.protocol.order.core.service.OrderCancelService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
 import com.rarible.protocol.order.listener.job.LooksrareOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.OrderStartEndCheckerWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
+import com.rarible.protocol.order.listener.job.ReservoirOrdersReconciliationWorker
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2CancelEventsFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2OrdersFetchWorker
@@ -44,6 +46,7 @@ import com.rarible.protocol.order.listener.service.x2y2.X2Y2CancelEventsLoadHand
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2CancelListEventLoader
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoadHandler
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoader
+import com.rarible.reservoir.client.ReservoirClient
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -330,6 +333,32 @@ class OrderListenerConfiguration(
             properties = properties,
             meterRegistry = meterRegistry,
             handler = looksrareOrderLoadHandler
+        ).apply { start() }
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER,
+        name = ["reservoir.enabled"],
+        havingValue = "true"
+    )
+    fun reservoirOrdersReconciliationWorker(
+        meterRegistry: MeterRegistry,
+        stateRepository: AggregatorStateRepository,
+        properties: ReservoirProperties,
+        reservoirClient: ReservoirClient,
+        orderCancelService: OrderCancelService,
+        orderRepository: OrderRepository,
+        foreignOrderMetrics: ForeignOrderMetrics,
+    ): ReservoirOrdersReconciliationWorker {
+        return ReservoirOrdersReconciliationWorker(
+            reservoirClient = reservoirClient,
+            aggregatorStateRepository = stateRepository,
+            orderCancelService = orderCancelService,
+            properties = properties,
+            orderRepository = orderRepository,
+            foreignOrderMetrics = foreignOrderMetrics,
+            meterRegistry = meterRegistry,
         ).apply { start() }
     }
 }
