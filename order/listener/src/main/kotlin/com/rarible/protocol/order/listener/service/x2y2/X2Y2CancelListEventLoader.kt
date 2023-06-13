@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.x2y2Error
 import com.rarible.protocol.order.listener.misc.x2y2Info

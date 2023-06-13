@@ -1,10 +1,10 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.core.daemon.job.JobHandler
+import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.core.model.LooksrareV2FetchState
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
-import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
 import kotlinx.coroutines.time.delay
 import org.springframework.stereotype.Component
 import java.time.Duration

@@ -10,9 +10,8 @@ import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
-import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.misc.data
-import com.rarible.protocol.order.api.service.order.signature.OrderSignatureResolver
+import com.rarible.protocol.order.api.service.order.validation.OrderStateValidator
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.AssetConverter
@@ -27,8 +26,6 @@ import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderAmmData
-import com.rarible.protocol.order.core.model.OrderDataVersion
-import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
@@ -37,7 +34,6 @@ import com.rarible.protocol.order.core.model.PoolNftItemIds
 import com.rarible.protocol.order.core.model.PoolTradePrice
 import com.rarible.protocol.order.core.model.currency
 import com.rarible.protocol.order.core.model.order.OrderFilter
-import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.CommonSigner
@@ -71,7 +67,7 @@ class OrderService(
     private val poolInfoProvider: PoolInfoProvider,
     private val approveService: ApproveService,
     private val commonSigner: CommonSigner,
-    private val orderSignatureResolver: OrderSignatureResolver,
+    private val orderStateValidator: OrderStateValidator,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
@@ -125,7 +121,6 @@ class OrderService(
     }
 
     suspend fun validateAndGet(hash: Word): Order {
-        val eventTimeMarks = orderOffchainEventMarks()
         val order = orderRepository.findById(hash)
             ?: throw EntityNotFoundApiException("Order", hash)
 
@@ -133,21 +128,7 @@ class OrderService(
             return order
         }
 
-        if (order.status !== OrderStatus.ACTIVE) {
-            logger.warn("Order validation error: hash=$hash, status=${order.status}")
-            orderUpdateService.update(hash, eventTimeMarks)
-            throw ValidationApiException("order is not active")
-        }
-        if (!approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) ||
-            !approveService.checkOnChainErc20Allowance(order.maker, order.make)
-        ) {
-            logger.warn("Order validation error: hash=$hash, approved=false")
-            orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = eventTimeMarks)
-            throw ValidationApiException("order is not approved")
-        }
-        if (order.platform == Platform.OPEN_SEA && order.data.version == OrderDataVersion.BASIC_SEAPORT_DATA_V1) {
-            orderSignatureResolver.resolveSeaportSignature(hash)
-        }
+        orderStateValidator.validate(order)
         return order
     }
 

@@ -1,10 +1,10 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.core.common.nowMillis
+import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.core.model.LooksrareV2FetchState
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
-import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

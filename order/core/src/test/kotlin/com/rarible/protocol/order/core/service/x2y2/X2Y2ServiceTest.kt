@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.listener.service.x2y2
+package com.rarible.protocol.order.core.service.x2y2
 
 import com.rarible.protocol.order.listener.data.randomX2Y2Event
 import com.rarible.protocol.order.listener.data.randomX2Y2Order

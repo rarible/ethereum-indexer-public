@@ -11,14 +11,18 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
 
-fun createOrder(): Order {
+fun createOrder(
+    token: Address = AddressFactory.create(),
+    tokenId: EthUInt256 = EthUInt256.TEN,
+): Order {
     return Order(
         maker = AddressFactory.create(),
         taker = AddressFactory.create(),
-        make = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN),
+        make = Asset(Erc1155AssetType(token, tokenId), EthUInt256.TEN),
         take = Asset(
             Erc20AssetType(AddressFactory.create()),
             EthUInt256.of(BigInteger.valueOf(5) * BigInteger.valueOf(10).pow(18))

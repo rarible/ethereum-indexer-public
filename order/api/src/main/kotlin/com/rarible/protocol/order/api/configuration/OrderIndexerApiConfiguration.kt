@@ -9,10 +9,14 @@ import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.sign.service.ERC1271SignService
-import com.rarible.opensea.client.agent.SimpleUserAgentProviderImpl
 import com.rarible.opensea.client.agent.UserAgentProvider
+import com.rarible.protocol.order.api.service.order.validation.OrderStateValidator
+import com.rarible.protocol.order.api.service.order.validation.validators.CheckingOrderStateValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.service.OrderCancelService
+import com.rarible.protocol.order.core.service.looksrare.LooksrareOrderService
+import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -59,4 +63,24 @@ class OrderIndexerApiConfiguration(
             }
         }
     }
+
+    @Bean
+    fun x2y2OrderStateValidator(
+        x2Y2Service: X2Y2Service,
+        orderCancelService: OrderCancelService,
+    ): OrderStateValidator = CheckingOrderStateValidator(
+        orderStateCheckService = x2Y2Service,
+        orderCancelService = orderCancelService,
+        platform = Platform.X2Y2,
+    )
+
+    @Bean
+    fun looksrareOrderStateValidator(
+        looksrareOrderService: LooksrareOrderService,
+        orderCancelService: OrderCancelService,
+    ): OrderStateValidator = CheckingOrderStateValidator(
+        orderStateCheckService = looksrareOrderService,
+        orderCancelService = orderCancelService,
+        platform = Platform.LOOKSRARE,
+    )
 }

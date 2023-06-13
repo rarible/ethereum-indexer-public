@@ -13,6 +13,7 @@ import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFactory
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
+import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -88,11 +89,6 @@ class OrderListenerConfiguration(
     @Bean
     fun seaportLoadProperties(): SeaportLoadProperties {
         return listenerProperties.seaportLoad
-    }
-
-    @Bean
-    fun looksrareLoadProperties(): LooksrareLoadProperties {
-        return listenerProperties.looksrareLoad
     }
 
     @Bean
@@ -330,11 +326,11 @@ class OrderListenerConfiguration(
     )
     fun looksrareOrderLoadWorker(
         meterRegistry: MeterRegistry,
-        properties: OrderListenerProperties,
+        properties: LooksrareLoadProperties,
         looksrareOrderLoadHandler: LooksrareOrderLoadHandler
     ): LooksrareOrdersFetchWorker {
         return LooksrareOrdersFetchWorker(
-            properties = properties.looksrareLoad,
+            properties = properties,
             meterRegistry = meterRegistry,
             handler = looksrareOrderLoadHandler
         ).apply { start() }
