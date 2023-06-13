@@ -8,6 +8,7 @@ import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.nft.api.client.FixedNftIndexerApiServiceUriProvider
 import com.rarible.protocol.nft.api.client.NftActivityControllerApi
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
+import com.rarible.protocol.nft.api.client.NftDomainControllerApi
 import com.rarible.protocol.nft.api.client.NftIndexerApiClientFactory
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
@@ -71,6 +72,7 @@ abstract class AbstractIntegrationTest {
     protected lateinit var nftLazyMintApiClient: NftLazyMintControllerApi
     protected lateinit var nftTransactionApiClient: NftTransactionControllerApi
     protected lateinit var nftActivityApiClient: NftActivityControllerApi
+    protected lateinit var nftDomainControllerApi: NftDomainControllerApi
     protected lateinit var webClient: WebClient
 
     protected lateinit var poller: MonoTransactionPoller
@@ -156,6 +158,7 @@ abstract class AbstractIntegrationTest {
         nftLazyMintApiClient = clientFactory.createNftMintApiClient(Blockchain.ETHEREUM.name)
         nftTransactionApiClient = clientFactory.createNftTransactionApiClient(Blockchain.ETHEREUM.name)
         nftActivityApiClient = clientFactory.createNftActivityApiClient(Blockchain.ETHEREUM.name)
+        nftDomainControllerApi = clientFactory.createNftDomainApiClient(Blockchain.ETHEREUM.name)
         webClient = WebClient.builder().baseUrl("http://127.0.0.1:$port").build()
 
         poller = MonoTransactionPoller(ethereum)

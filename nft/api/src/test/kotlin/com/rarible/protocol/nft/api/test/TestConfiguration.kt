@@ -24,6 +24,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Primary
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.RestTemplate
+import org.web3j.ens.EnsResolver
 import java.net.HttpURLConnection
 
 @TestConfiguration
@@ -97,5 +98,11 @@ class TestConfiguration {
             offsetResetStrategy = OffsetResetStrategy.EARLIEST
         )
         return ConsumerWorker(consumer, handler, "test-kafka-activity-worker")
+    }
+
+    @Bean
+    @Primary
+    fun mockkEnsResolver(): EnsResolver {
+        return mockk()
     }
 }
