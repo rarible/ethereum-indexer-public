@@ -8,11 +8,13 @@ enum class HistorySource {
     LOOKSRARE,
     SUDOSWAP,
     BLUR,
+    CMP,
     ;
 
     fun toPlatform(): Platform {
         return when (this) {
             RARIBLE -> Platform.RARIBLE
+            CMP -> Platform.CMP
             OPEN_SEA -> Platform.OPEN_SEA
             CRYPTO_PUNKS -> Platform.CRYPTO_PUNKS
             X2Y2 -> Platform.X2Y2

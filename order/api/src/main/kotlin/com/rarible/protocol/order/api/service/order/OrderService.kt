@@ -8,6 +8,7 @@ import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.order.api.converter.OrderFormPlatformConverter
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.api.misc.data
@@ -29,7 +30,6 @@ import com.rarible.protocol.order.core.model.OrderAmmData
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
-import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.PoolNftItemIds
 import com.rarible.protocol.order.core.model.PoolTradePrice
 import com.rarible.protocol.order.core.model.currency
@@ -76,7 +76,7 @@ class OrderService(
         val take = checkLazyNft(AssetConverter.convert(form.take))
         val data = OrderDataConverter.convert(form.data)
         val hash = Order.hashKey(form.maker, make.type, take.type, form.salt, data)
-        val platform = Platform.RARIBLE
+        val platform = OrderFormPlatformConverter.convert(form.platform)
         val approved = approveService.checkOnChainApprove(maker, make.type, platform)
         val signature = commonSigner.fixSignature(form.signature)
         return OrderVersion(

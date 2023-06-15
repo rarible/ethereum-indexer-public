@@ -8,6 +8,7 @@ object PlatformDtoConverter : Converter<Platform, PlatformDto> {
     override fun convert(source: Platform): PlatformDto {
         return when (source) {
             Platform.RARIBLE -> PlatformDto.RARIBLE
+            Platform.CMP -> PlatformDto.CMP
             Platform.OPEN_SEA -> PlatformDto.OPEN_SEA
             Platform.CRYPTO_PUNKS -> PlatformDto.CRYPTO_PUNKS
             Platform.X2Y2 -> PlatformDto.X2Y2

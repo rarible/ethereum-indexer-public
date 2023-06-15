@@ -44,6 +44,7 @@ class ApproveService(
 
     private val platformByOperatorMap: Map<Address, Platform> = mapOf(
         raribleTransferProxy to Platform.RARIBLE,
+        raribleTransferProxy to Platform.CMP,
         seaportTransferProxy to Platform.OPEN_SEA,
         x2y2TransferProxyErc721 to Platform.X2Y2,
         x2y2TransferProxyErc1155 to Platform.X2Y2,
@@ -115,6 +116,7 @@ class ApproveService(
     ): Boolean? {
         return when (platform) {
             Platform.RARIBLE,
+            Platform.CMP,
             Platform.OPEN_SEA,
             Platform.CRYPTO_PUNKS,
             Platform.LOOKSRARE,

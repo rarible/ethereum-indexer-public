@@ -4,6 +4,7 @@ import io.daonomic.rpc.domain.Binary
 
 enum class Platform(val id: Binary) {
     RARIBLE(id32("RARIBLE")),
+    CMP(id32("BLUR")),
     OPEN_SEA(id32("OPEN_SEA")),
     CRYPTO_PUNKS(id32("CRYPTO_PUNKS")),
     LOOKSRARE(id32("LOOKSRARE")),
@@ -15,6 +16,7 @@ enum class Platform(val id: Binary) {
     fun toHistorySource(): HistorySource {
         return when (this) {
             RARIBLE -> HistorySource.RARIBLE
+            CMP -> HistorySource.CMP
             OPEN_SEA -> HistorySource.OPEN_SEA
             CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS
             X2Y2 -> HistorySource.X2Y2

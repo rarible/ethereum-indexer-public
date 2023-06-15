@@ -174,6 +174,7 @@ data class Order(
         return when (platform) {
             Platform.SUDOSWAP -> true
             Platform.RARIBLE,
+            Platform.CMP,
             Platform.OPEN_SEA,
             Platform.CRYPTO_PUNKS,
             Platform.LOOKSRARE,

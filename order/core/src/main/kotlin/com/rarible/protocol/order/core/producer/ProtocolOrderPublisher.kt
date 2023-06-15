@@ -97,7 +97,8 @@ class ProtocolOrderPublisher(
 
     private val PlatformDto.needPublish: Boolean
         get() = when (this) {
-            PlatformDto.RARIBLE -> true
+            PlatformDto.RARIBLE,
+            PlatformDto.CMP -> true
             PlatformDto.OPEN_SEA, -> publishProperties.publishSeaportOrders
             PlatformDto.X2Y2 -> publishProperties.publishX2Y2Orders
             PlatformDto.LOOKSRARE -> publishProperties.publishLooksrareOrders
