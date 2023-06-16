@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.common.ifNotBlank
+import com.rarible.core.meta.resource.model.UrlResource
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
@@ -15,9 +16,7 @@ import com.rarible.protocol.nft.core.service.item.meta.properties.JsonProperties
 import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import org.springframework.stereotype.Component
 
-@Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
-class RariblePropertiesResolver(
+abstract class AbstractRariblePropertiesResolver(
     private val urlService: UrlService,
     private val rawPropertiesProvider: RawPropertiesProvider,
     private val tokenUriResolver: BlockchainTokenUriResolver
@@ -72,16 +71,20 @@ class RariblePropertiesResolver(
 
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
         uri.ifNotBlank() ?: return null
-        val resource = urlService.parseUrl(uri, itemId.toString()) ?: throw MetaException(
-            "$uri unparseable",
-            status = MetaException.Status.UnparseableLink
-        )
+        val resource = parseTokenUrl(itemId, uri)
         val rawProperties = rawPropertiesProvider.getContent(itemId, resource) ?: return null
 
         return ItemPropertiesParser.parse(
             itemId = itemId,
             httpUrl = urlService.resolveInternalHttpUrl(resource),
             rawProperties = rawProperties
+        )
+    }
+
+    protected open fun parseTokenUrl(itemId: ItemId, tokenUri: String): UrlResource {
+        return urlService.parseUrl(tokenUri, itemId.toString()) ?: throw MetaException(
+            "$tokenUri unparseable",
+            status = MetaException.Status.UnparseableLink
         )
     }
 
@@ -100,3 +103,12 @@ class RariblePropertiesResolver(
         return copy(name = newName)
     }
 }
+
+@Component
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
+class RariblePropertiesResolver(
+    urlService: UrlService,
+    rawPropertiesProvider: RawPropertiesProvider,
+    tokenUriResolver: BlockchainTokenUriResolver
+) : AbstractRariblePropertiesResolver(urlService, rawPropertiesProvider, tokenUriResolver)
+
