@@ -6,6 +6,8 @@ rarible:
 
 api:
   metaSyncLoadingTimeout: 3000
+  operator:
+    privateKey: "0x0000000000000000000000000000000000000000000000000000000000000001"
 
 common:
   kafka-replica-set: ${kafka.hosts}
