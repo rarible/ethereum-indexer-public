@@ -59,9 +59,6 @@ abstract class AbstractIntegrationTest {
             "common.blockchain", Blockchain.ETHEREUM.name.toLowerCase()
         )
         System.setProperty(
-            "api.operator.private-key", "0x0000000000000000000000000000000000000000000000000000000000000000"
-        )
-        System.setProperty(
             "spring.data.mongodb.database", "protocol"
         )
     }
