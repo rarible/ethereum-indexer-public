@@ -12,7 +12,7 @@ polygon-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
-      max_direct_memory_megabytes: 1024
+      max_direct_memory_megabytes: 2048
 
 polygon-order-api:
   replicas: 2

@@ -31,7 +31,7 @@ class LooksrareOrderLoadHandler(
 
     private fun getDefaultFetchState(): LooksrareV2FetchState {
         return LooksrareV2FetchState(
-           LooksrareV2Cursor(Instant.now() - Duration.ofHours(1))
+            cursorObj = LooksrareV2Cursor(Instant.now() - Duration.ofHours(1))
         )
     }
 }
