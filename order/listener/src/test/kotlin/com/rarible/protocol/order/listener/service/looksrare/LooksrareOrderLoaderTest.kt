@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
+import com.rarible.core.test.data.randomString
 import com.rarible.looksrare.client.model.v2.Status
 import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
@@ -19,6 +20,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.time.Duration
 import java.time.Instant
 
 internal class LooksrareOrderLoaderTest {
@@ -75,6 +77,52 @@ internal class LooksrareOrderLoaderTest {
         coVerify(exactly = 1) { orderUpdateService.save(eq(orderVersion2), any()) }
         coVerify(exactly = 1) { looksrareOrderConverter.convert(looksrareOrder1) }
         coVerify(exactly = 1) { looksrareOrderConverter.convert(looksrareOrder2) }
+    }
+
+    @Test
+    fun `fetch - ok, fetchinf all olds and keep max seen order`() = runBlocking<Unit> {
+        val looksrareOrder1 = randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(1), status = Status.VALID)
+        val looksrareOrder2 = randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(2), status = Status.VALID)
+        val looksrareOrder3 = randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(3), status = Status.VALID)
+
+        val createdAfter = looksrareOrder3.createdAt - Duration.ofMinutes(1)
+        val cursor = LooksrareV2Cursor(createdAfter)
+
+        coEvery { looksrareOrderService.getNextSellOrders(cursor) } returns listOf(looksrareOrder1, looksrareOrder2, looksrareOrder3)
+
+        coEvery { orderRepository.findById(any()) } returns null
+        coEvery { looksrareOrderConverter.convert(any()) } returns createOrderVersion()
+        coEvery { orderUpdateService.save(any(), any()) } returns createOrder()
+        coEvery { orderUpdateService.updateMakeStock(any<Order>(), any(), any()) } returns (createOrder() to true)
+
+        val result = loader.load(cursor)
+        assertThat(result.cursor?.createdAfter).isEqualTo(cursor.createdAfter)
+        assertThat(result.cursor?.nextId).isEqualTo(looksrareOrder3.id)
+        assertThat(result.cursor?.maxSeenCreated).isEqualTo(looksrareOrder1.createdAt)
+    }
+
+    @Test
+    fun `fetch - ok, get max seen created if all old orders was loaded`() = runBlocking<Unit> {
+        val maxSeenCreated = Instant.now()
+
+        val looksrareOrder1 = randomLooksrareOrder().copy(createdAt = maxSeenCreated.minusSeconds(1), status = Status.VALID)
+        val looksrareOrder2 = randomLooksrareOrder().copy(createdAt = maxSeenCreated.minusSeconds(2), status = Status.VALID)
+        val looksrareOrder3 = randomLooksrareOrder().copy(createdAt = maxSeenCreated.minusSeconds(3), status = Status.VALID)
+
+        val createdAfter = looksrareOrder2.createdAt
+        val cursor = LooksrareV2Cursor(createdAfter, nextId = randomString(), maxSeenCreated = maxSeenCreated)
+
+        coEvery { looksrareOrderService.getNextSellOrders(cursor) } returns listOf(looksrareOrder1, looksrareOrder2, looksrareOrder3)
+
+        coEvery { orderRepository.findById(any()) } returns null
+        coEvery { looksrareOrderConverter.convert(any()) } returns createOrderVersion()
+        coEvery { orderUpdateService.save(any(), any()) } returns createOrder()
+        coEvery { orderUpdateService.updateMakeStock(any<Order>(), any(), any()) } returns (createOrder() to true)
+
+        val result = loader.load(cursor)
+        assertThat(result.cursor?.createdAfter).isEqualTo(maxSeenCreated)
+        assertThat(result.cursor?.nextId).isNull()
+        assertThat(result.cursor?.maxSeenCreated).isNull()
     }
 
     @Test

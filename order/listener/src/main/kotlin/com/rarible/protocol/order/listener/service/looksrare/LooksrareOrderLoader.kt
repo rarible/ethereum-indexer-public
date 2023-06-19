@@ -98,12 +98,20 @@ class LooksrareOrderLoader(
     private fun LooksrareV2Cursor.next(orders: List<LooksrareOrder>): LooksrareV2Cursor {
         val max = orders.maxByOrNull { it.createdAt } ?: return this
         val min = orders.minByOrNull { it.createdAt } ?: return this
+
+        //Need to save max seen created order to continue from it after we fetch all old orders
+        val savingMaxSeenCreated = maxSeenCreated?.let { maxOf(max.createdAt, it) } ?: max.createdAt
+
         return if (min.createdAt > createdAfter) {
             logger.looksrareInfo("Still go deep, min createdAfter=${min.createdAt}")
-            LooksrareV2Cursor(createdAfter, min.id)
+            LooksrareV2Cursor(
+                createdAfter = createdAfter,
+                nextId = min.id,
+                maxSeenCreated = savingMaxSeenCreated
+            )
         } else {
-            logger.looksrareInfo("Load all , max createdAfter=${max.createdAt}")
-            LooksrareV2Cursor(max.createdAt)
+            logger.looksrareInfo("Load all, max createdAfter=$savingMaxSeenCreated")
+            LooksrareV2Cursor(createdAfter = savingMaxSeenCreated)
         }
     }
 
