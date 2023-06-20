@@ -4,15 +4,13 @@ import com.rarible.core.apm.withTransaction
 import com.rarible.core.daemon.job.JobHandler
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.misc.toDto
-import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.listener.configuration.StartEndWorkerProperties
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.merge
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -26,7 +24,7 @@ class OrderStartEndCheckerHandler(
     private val orderRepository: OrderRepository,
     private val orderDtoConverter: OrderDtoConverter,
     private val publisher: ProtocolOrderPublisher,
-    private val orderIndexerProperties: OrderIndexerProperties,
+    private val properties: StartEndWorkerProperties,
     private val orderExpiredMetric: RegisteredCounter,
     private val orderStartedMetric: RegisteredCounter
 ) : JobHandler {
@@ -40,19 +38,26 @@ class OrderStartEndCheckerHandler(
 
     internal suspend fun update(now: Instant) {
         logger.info("Starting to update status for orders...")
+        /**
+         * We have to cancel order a bit in advance, as during order execution (witch can take time),
+         * order can be already expired
+         */
+        val expiredNow = now + properties.cancelOffset
+
         merge(
-            orderRepository.findExpiredOrders(now),
+            orderRepository.findExpiredOrders(expiredNow),
             orderRepository.findNotStartedOrders(now)
         )
-            .filter { order -> order.isNoLegacyOpenSea() }
             .collect { order ->
                 val eventTimeMarks = orderOffchainEventMarks()
+                val isExpired = order.isEndedAt(expiredNow)
                 val saved = orderRepository.save(
                     order
+                        .withAdvanceExpired(isExpired)
                         .cancelEndedBid()
                         .withUpdatedStatus(now)
                 )
-                if (order.isEnded()) orderExpiredMetric.increment() else orderStartedMetric.increment()
+                if (isExpired == true) orderExpiredMetric.increment() else orderStartedMetric.increment()
                 logger.info("Change order ${saved.id} status to ${saved.status}")
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
@@ -62,9 +67,5 @@ class OrderStartEndCheckerHandler(
                 )
                 publisher.publish(updateEvent)
             }
-    }
-
-    private fun Order.isNoLegacyOpenSea(): Boolean {
-        return this.isLegacyOpenSea(orderIndexerProperties.exchangeContractAddresses.openSeaV1).not()
     }
 }
