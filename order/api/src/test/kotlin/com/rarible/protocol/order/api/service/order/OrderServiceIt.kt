@@ -1099,14 +1099,13 @@ class OrderServiceIt : AbstractOrderIt() {
             createOrder(
                 maker = maker,
                 make = Asset(Erc20AssetType(erc20.address()), EthUInt256.TEN),
-            )
+            ).copy(platform = Platform.RARIBLE)
         )
-
         try {
             orderService.validateAndGet(saved.hash)
             fail("Shouldn't be here")
         } catch (e: ValidationApiException) {
-            assertThat(e.message).isEqualTo("order is not approved")
+            assertThat(e.message).isEqualTo("order RARIBLE:${saved.hash} is not approved")
         }
     }
 
