@@ -53,7 +53,7 @@ class OrderStartEndCheckerHandler(
                 val isExpired = order.isEndedAt(expiredNow)
                 val saved = orderRepository.save(
                     order
-                        .withAdvanveExpired(isExpired)
+                        .withAdvanceExpired(isExpired)
                         .cancelEndedBid()
                         .withUpdatedStatus(now)
                 )

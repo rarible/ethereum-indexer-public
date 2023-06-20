@@ -168,7 +168,7 @@ data class Order(
         return copy(approved = approved)
     }
 
-    fun withAdvanveExpired(advanceExpired: Boolean?): Order {
+    fun withAdvanceExpired(advanceExpired: Boolean?): Order {
         return copy(advanceExpired = advanceExpired)
     }
 
