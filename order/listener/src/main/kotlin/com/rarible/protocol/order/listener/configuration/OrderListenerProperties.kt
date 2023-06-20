@@ -109,6 +109,7 @@ data class RaribleExpiredBidWorkerProperties(
 
 data class StartEndWorkerProperties(
     val enabled: Boolean = true,
+    val cancelOffset: Duration = Duration.ofMinutes(1),
     val pollingPeriod: Duration = Duration.ofMinutes(1),
     val errorDelay: Duration = Duration.ofMinutes(2)
 )

@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
+import com.rarible.protocol.order.listener.configuration.StartEndWorkerProperties
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -35,6 +36,9 @@ import java.time.Instant
 internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var handler: OrderStartEndCheckerHandler
+
+    @Autowired
+    private lateinit var properties: StartEndWorkerProperties
 
     @BeforeEach
     fun setup() {
@@ -71,6 +75,28 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
         val updateTime = nowMillis()
         handler.update(updateTime)
         assertThat(check(orderVersion.hash, OrderStatus.ENDED)).isEqualTo(updateTime)
+    }
+
+    @Test
+    fun `expired - ok, in advance`() = runBlocking<Unit> {
+        val targetMaker = AddressFactory.create()
+        val targetToken = AddressFactory.create()
+        val make = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val take = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
+        val orderVersion = createOrderVersion().copy(
+            maker = targetMaker,
+            make = make,
+            take = take,
+            start = null,
+            end = nowMillis().plus(properties.cancelOffset.dividedBy(2)).epochSecond
+        )
+        val order = orderUpdateService.save(orderVersion)
+        assertThat(order.status).isEqualTo(OrderStatus.ACTIVE)
+
+        check(orderVersion.hash, OrderStatus.ACTIVE)
+
+        handler.handle()
+        check(orderVersion.hash, OrderStatus.ENDED)
     }
 
     @Test

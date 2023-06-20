@@ -90,9 +90,13 @@ data class Order(
      * Has been ApproveForAll or Approve event applied for sale/bid token
      */
     val approved: Boolean = true,
+    /**
+     * With flag need to expire orders in advance
+     */
+    val advanceExpired: Boolean? = null
 ) {
     init {
-        status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data, approved)
+        status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data, approved, advanceExpired)
     }
 
     fun forV1Tx() = run {
@@ -155,7 +159,7 @@ data class Order(
 
     fun withUpdatedStatus(updateTime: Instant = nowMillis()): Order {
         return copy(
-            status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data, approved),
+            status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data, approved, advanceExpired),
             lastUpdateAt = updateTime
         )
     }
@@ -164,7 +168,13 @@ data class Order(
         return copy(approved = approved)
     }
 
+    fun withAdvanveExpired(advanceExpired: Boolean?): Order {
+        return copy(advanceExpired = advanceExpired)
+    }
+
     fun isEnded() = Companion.isEnded(end)
+
+    fun isEndedAt(at: Instant) = Companion.isEnded(end, at.epochSecond)
 
     fun isEndedBid(): Boolean {
         return isBid() && isEnded()
@@ -277,6 +287,7 @@ data class Order(
             end: Long?,
             data: OrderData,
             approved: Boolean,
+            advanceExpired: Boolean?,
         ): OrderStatus {
             return when {
                 data.isAmmOrder() -> ammOrderStatus(makeStock, start, end)
@@ -284,6 +295,7 @@ data class Order(
                 fill >= take.value -> OrderStatus.FILLED
                 cancelled -> OrderStatus.CANCELLED
                 approved.not() -> OrderStatus.INACTIVE
+                advanceExpired == true -> OrderStatus.ENDED
                 isActiveByMakeStock(makeStock, start, end) -> OrderStatus.ACTIVE
                 !isStarted(start) -> OrderStatus.NOT_STARTED
                 isEnded(end) -> OrderStatus.ENDED
@@ -302,7 +314,11 @@ data class Order(
         private fun isAlive(start: Long?, end: Long?) = isStarted(start) && !isEnded(end)
 
         private fun isEnded(end: Long?): Boolean {
-            val now = Instant.now().epochSecond
+            return isEnded(end, Instant.now().epochSecond)
+        }
+
+
+        private fun isEnded(end: Long?, now: Long): Boolean {
             return end?.let { it in 1 until now } ?: false
         }
 
