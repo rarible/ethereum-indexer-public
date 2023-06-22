@@ -192,16 +192,20 @@ class SeaportEventConverter(
         val orderHash = Word.apply(event.orderHash())
         logger.info("Event to cancel order ${orderHash}, tx=${transaction.hash()}, found inputs=${inputs}")
         val assets = if (inputs.isNotEmpty()) {
-            val components = inputs.map { CANCEL_SIGNATURE.`in`().decode(it, 4).value().toList() }.flatten()
-            require(components.size == totalLogs) {
-                "Order components size (${components.size}) is net equals totalLogs=${totalLogs} (tx=${transaction.hash()})"
+            try {
+                val components = inputs.map { CANCEL_SIGNATURE.`in`().decode(it, 4).value().toList() }.flatten()
+                require(components.size == totalLogs) {
+                    "Order components size (${components.size}) is net equals totalLogs=${totalLogs} (tx=${transaction.hash()})"
+                }
+                val targetComponent = SeaportOrderParser.convert(components[index])
+                require(Order.seaportV1Hash(targetComponent) == orderHash) {
+                    "Components hash needn't match order hash $orderHash in  (tx=${transaction.hash()})"
+                }
+                convertToAsserts(targetComponent)
+            } catch (ex: Throwable) {
+                logger.error("Can't parse cancel orders input, tx=${transaction.hash()}", ex)
+                null
             }
-
-            val targetComponent = SeaportOrderParser.convert(components[index])
-            require(Order.seaportV1Hash(targetComponent) == orderHash) {
-                "Components hash needn't match order hash $orderHash in  (tx=${transaction.hash()})"
-            }
-            convertToAsserts(targetComponent)
         } else {
             null
         }
