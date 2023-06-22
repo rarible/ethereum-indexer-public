@@ -190,6 +190,7 @@ class SeaportEventConverter(
     ): List<OrderCancel> {
         val inputs = getMethodInput(event.log(), transaction, getTrace = true, CANCEL_SIGNATURE_ID)
         val orderHash = Word.apply(event.orderHash())
+        logger.info("Event to cancel order ${orderHash}, tx=${transaction.hash()}, found inputs=${inputs}")
         val assets = if (inputs.isNotEmpty()) {
             val components = inputs.map { CANCEL_SIGNATURE.`in`().decode(it, 4).value().toList() }.flatten()
             require(components.size == totalLogs) {
