@@ -1,8 +1,8 @@
-package com.rarible.protocol.order.api.service.order.validation.validators
+package com.rarible.protocol.order.core.validator
 
-import com.rarible.protocol.order.api.data.createOrder
-import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.core.data.createOrderX2Y2DataV1
+import com.rarible.protocol.order.core.data.randomOrder
+import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.OrderCancelService
 import com.rarible.protocol.order.core.service.OrderStateCheckService
@@ -38,7 +38,7 @@ internal class CheckingOrderStateValidatorTest {
 
     @Test
     fun `validate x2y2`() = runBlocking<Unit> {
-        val order = createOrder().copy(
+        val order = randomOrder().copy(
             platform = Platform.X2Y2,
             data = createOrderX2Y2DataV1()
         )
@@ -58,7 +58,7 @@ internal class CheckingOrderStateValidatorTest {
 
     @Test
     fun `validate x2y2 exception`() = runBlocking<Unit> {
-        val order = createOrder().copy(
+        val order = randomOrder().copy(
             platform = Platform.X2Y2,
             data = createOrderX2Y2DataV1()
         )
@@ -69,14 +69,14 @@ internal class CheckingOrderStateValidatorTest {
 
     @Test
     fun `validate ignored`() = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
 
         checkingOrderStateValidator.validate(order)
     }
 
     @Test
     fun `validate x2y2 valid`() = runBlocking<Unit> {
-        val order = createOrder().copy(
+        val order = randomOrder().copy(
             platform = Platform.X2Y2,
             data = createOrderX2Y2DataV1()
         )

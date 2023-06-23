@@ -1,11 +1,11 @@
-package com.rarible.protocol.order.api.service.order.validation.validators
+package com.rarible.protocol.order.core.validator
 
 import com.rarible.core.test.data.randomBinary
-import com.rarible.protocol.order.api.data.createOrder
-import com.rarible.protocol.order.api.exceptions.OrderDataException
-import com.rarible.protocol.order.api.service.order.signature.OrderSignatureResolver
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
+import com.rarible.protocol.order.core.data.randomOrder
+import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.service.SeaportSignatureResolver
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -21,15 +21,15 @@ internal class OpenseaOrderStateValidatorTest {
     private lateinit var openseaOrderStateValidator: OpenseaOrderStateValidator
 
     @MockK
-    private lateinit var orderSignatureResolver: OrderSignatureResolver
+    private lateinit var seaportSignatureResolver: SeaportSignatureResolver
 
     @Test
     fun `validate seaport`() = runBlocking<Unit> {
-        val order = createOrder().copy(
+        val order = randomOrder().copy(
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1()
         )
-        coEvery { orderSignatureResolver.resolveSeaportSignature(order.hash) } throws OrderDataException("wrong order data")
+        coEvery { seaportSignatureResolver.resolveSeaportSignature(order.hash) } throws OrderDataException("wrong order data")
 
         assertThatExceptionOfType(OrderDataException::class.java).isThrownBy {
             runBlocking {
@@ -40,18 +40,18 @@ internal class OpenseaOrderStateValidatorTest {
 
     @Test
     fun `validate ignored`() = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
 
         openseaOrderStateValidator.validate(order)
     }
 
     @Test
     fun `validate valid`() = runBlocking<Unit> {
-        val order = createOrder().copy(
+        val order = randomOrder().copy(
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1()
         )
-        coEvery { orderSignatureResolver.resolveSeaportSignature(order.hash) } returns randomBinary()
+        coEvery { seaportSignatureResolver.resolveSeaportSignature(order.hash) } returns randomBinary()
 
         openseaOrderStateValidator.validate(order)
     }

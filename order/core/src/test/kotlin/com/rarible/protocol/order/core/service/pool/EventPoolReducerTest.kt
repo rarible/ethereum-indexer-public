@@ -2,12 +2,12 @@ package com.rarible.protocol.order.core.service.pool
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.createSudoSwapPoolDataV1
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.data.randomPoolDeltaUpdate
 import com.rarible.protocol.order.core.data.randomPoolFeeUpdate
 import com.rarible.protocol.order.core.data.randomPoolNftDeposit
@@ -29,7 +29,7 @@ internal class EventPoolReducerTest {
 
     @Test
     fun `should reduce onChainAmmOrder event`() = runBlocking<Unit> {
-        val init = createOrder()
+        val init = randomOrder()
         val data = createSudoSwapPoolDataV1()
         val event = randomSellOnChainAmmOrder(data)
 

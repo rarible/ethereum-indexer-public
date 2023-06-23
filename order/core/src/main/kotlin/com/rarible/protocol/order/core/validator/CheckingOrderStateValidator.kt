@@ -1,7 +1,6 @@
-package com.rarible.protocol.order.api.service.order.validation.validators
+package com.rarible.protocol.order.core.validator
 
-import com.rarible.protocol.order.api.exceptions.OrderDataException
-import com.rarible.protocol.order.api.service.order.validation.OrderStateValidator
+import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Platform
@@ -16,8 +15,13 @@ class CheckingOrderStateValidator(
     private val orderCancelService: OrderCancelService,
     private val platform: Platform,
 ) : OrderStateValidator {
+
+    override val type = "aggregation"
+
+    override fun supportsValidation(order: Order) = order.platform == platform
+
     override suspend fun validate(order: Order) {
-        if (order.platform == platform) {
+        if (supportsValidation(order)) {
             val active = try {
                 orderStateCheckService.isActiveOrder(order)
             } catch (e: Exception) {

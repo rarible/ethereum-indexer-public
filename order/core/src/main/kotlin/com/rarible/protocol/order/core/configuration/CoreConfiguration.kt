@@ -9,14 +9,20 @@ import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
 import com.rarible.protocol.order.core.metric.MetricsPackage
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.producer.ProducerPackage
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionSnapshotRepository
+import com.rarible.protocol.order.core.service.OrderCancelService
 import com.rarible.protocol.order.core.service.Package
 import com.rarible.protocol.order.core.service.auction.AuctionReduceService
 import com.rarible.protocol.order.core.service.auction.AuctionReducer
 import com.rarible.protocol.order.core.service.auction.AuctionUpdateService
+import com.rarible.protocol.order.core.service.looksrare.LooksrareOrderService
+import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import com.rarible.protocol.order.core.trace.TracePackage
+import com.rarible.protocol.order.core.validator.CheckingOrderStateValidator
+import com.rarible.protocol.order.core.validator.OrderStateValidator
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -26,13 +32,17 @@ import scalether.transaction.MonoTransactionSender
 
 @Configuration
 @EnableContractService
-@ComponentScan(basePackageClasses = [
-    Package::class,
-    ConvertersPackage::class,
-    EventPackage::class,
-    TracePackage::class,
-    ProducerPackage::class,
-    MetricsPackage::class]
+@ComponentScan(
+    basePackageClasses = [
+        Package::class,
+        ConvertersPackage::class,
+        EventPackage::class,
+        TracePackage::class,
+        ProducerPackage::class,
+        MetricsPackage::class,
+        OrderStateValidator::class
+    ]
+
 )
 @Import(
     RepositoryConfiguration::class,
@@ -73,4 +83,24 @@ class CoreConfiguration {
             snapshotStrategy = BlockchainSnapshotStrategy(properties.blockCountBeforeSnapshot)
         )
     }
+
+    @Bean
+    fun x2y2OrderStateValidator(
+        x2Y2Service: X2Y2Service,
+        orderCancelService: OrderCancelService,
+    ): OrderStateValidator = CheckingOrderStateValidator(
+        orderStateCheckService = x2Y2Service,
+        orderCancelService = orderCancelService,
+        platform = Platform.X2Y2,
+    )
+
+    @Bean
+    fun looksrareOrderStateValidator(
+        looksrareOrderService: LooksrareOrderService,
+        orderCancelService: OrderCancelService,
+    ): OrderStateValidator = CheckingOrderStateValidator(
+        orderStateCheckService = looksrareOrderService,
+        orderCancelService = orderCancelService,
+        platform = Platform.LOOKSRARE,
+    )
 }

@@ -11,7 +11,7 @@ import com.rarible.looksrare.client.model.v2.QuoteType
 import com.rarible.looksrare.client.model.v2.Sort
 import com.rarible.looksrare.client.model.v2.Status
 import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
-import com.rarible.protocol.order.core.data.createOrder
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
 import io.mockk.coEvery
@@ -102,7 +102,7 @@ internal class LooksrareOrderServiceTest {
 
     @Test
     fun `isActiveOrder order found`() = runBlocking<Unit> {
-        val order = createOrder(token = Address.ONE(), tokenId = EthUInt256(BigInteger.ONE))
+        val order = randomOrder(token = Address.ONE(), tokenId = EthUInt256(BigInteger.ONE))
         val lastId = randomWord()
         coEvery {
             looksrareClient.getOrders(match {
@@ -154,7 +154,7 @@ internal class LooksrareOrderServiceTest {
 
     @Test
     fun `isActiveOrder order not found`() = runBlocking<Unit> {
-        val order = createOrder(token = Address.ONE(), tokenId = EthUInt256(BigInteger.ONE))
+        val order = randomOrder(token = Address.ONE(), tokenId = EthUInt256(BigInteger.ONE))
         val lastId = randomWord()
         coEvery {
             looksrareClient.getOrders(match {
@@ -204,7 +204,7 @@ internal class LooksrareOrderServiceTest {
 
     @Test
     fun `isActiveOrder order depth exhausted`() = runBlocking<Unit> {
-        val order = createOrder(token = Address.ONE(), tokenId = EthUInt256(BigInteger.ONE))
+        val order = randomOrder(token = Address.ONE(), tokenId = EthUInt256(BigInteger.ONE))
         coEvery {
             looksrareClient.getOrders(any())
         } returns LooksrareResult.success(

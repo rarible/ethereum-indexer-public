@@ -1,7 +1,6 @@
-package com.rarible.protocol.order.api.service.order.validation.validators
+package com.rarible.protocol.order.core.validator
 
-import com.rarible.protocol.order.api.exceptions.ValidationApiException
-import com.rarible.protocol.order.api.service.order.validation.OrderStateValidator
+import com.rarible.protocol.order.core.exception.ValidationApiException
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.order.logger
@@ -14,6 +13,11 @@ class ApprovalsOrderStateValidator(
     private val approveService: ApproveService,
     private val orderUpdateService: OrderUpdateService
 ) : OrderStateValidator {
+
+    override val type = "approval"
+
+    override fun supportsValidation(order: Order) = true
+
     override suspend fun validate(order: Order) {
         if (!approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) ||
             !approveService.checkOnChainErc20Allowance(order.maker, order.make)

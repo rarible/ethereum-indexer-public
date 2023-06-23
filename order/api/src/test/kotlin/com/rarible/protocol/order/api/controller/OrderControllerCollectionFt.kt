@@ -7,7 +7,7 @@ import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.order.api.data.createOrderVersion
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
-import com.rarible.protocol.order.core.data.createOrder
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
@@ -152,8 +152,8 @@ class OrderControllerCollectionFt : AbstractIntegrationTest() {
 
     @Test
     fun `should return orders by id`() = runBlocking<Unit> {
-        val order1 = createOrder()
-        val order2 = createOrder()
+        val order1 = randomOrder()
+        val order2 = randomOrder()
         saveOrders(order1, order2)
         val request = OrderIdsDto(ids = listOf(order1.hash.prefixed(), order2.hash.prefixed()))
 

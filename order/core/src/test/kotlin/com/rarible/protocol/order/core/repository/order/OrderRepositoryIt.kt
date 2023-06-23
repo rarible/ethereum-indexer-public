@@ -3,13 +3,13 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createBidOrder
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderRaribleV2DataV1
 import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.Order
@@ -45,7 +45,7 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
 
     @Test
     fun `test order raw format`() = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
 
         delegate.save(order)
 
@@ -71,7 +71,7 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
 
     @Test
     fun `should remove order`() = runBlocking {
-        val hash = delegate.save(createOrder()).hash
+        val hash = delegate.save(randomOrder()).hash
 
         val savedOrder = delegate.findById(hash)
         assertThat(savedOrder).isNotNull
@@ -87,32 +87,32 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         val maker = randomAddress()
         val currentNonce = 0L
         val newNonce = 1L
-        val order1 = createOrder().copy(
+        val order1 = randomOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
             data = createOrderOpenSeaV1DataV1().copy(nonce = currentNonce)
         )
-        val order2 = createOrder().copy(
+        val order2 = randomOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
             data = createOrderOpenSeaV1DataV1().copy(nonce = currentNonce)
         )
-        val order3 = createOrder().copy(
+        val order3 = randomOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
             data = createOrderOpenSeaV1DataV1().copy(nonce = newNonce)
         )
-        val order4 = createOrder().copy(
+        val order4 = randomOrder().copy(
             maker = maker,
             platform = Platform.RARIBLE,
             data = createOrderOpenSeaV1DataV1().copy(nonce = currentNonce)
         )
-        val order5 = createOrder().copy(
+        val order5 = randomOrder().copy(
             maker = randomAddress(),
             platform = Platform.OPEN_SEA,
             data = createOrderOpenSeaV1DataV1().copy(nonce = currentNonce)
         )
-        val order6 = createOrder().copy(
+        val order6 = randomOrder().copy(
             maker = randomAddress(),
             platform = Platform.OPEN_SEA,
             data = createOrderOpenSeaV1DataV1().copy(nonce = newNonce)
@@ -129,38 +129,38 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         val maker = randomAddress()
         val counter = EthUInt256.of(0L)
         val newCounter = EthUInt256.of(1L)
-        val order0 = createOrder().copy(
+        val order0 = randomOrder().copy(
             maker = maker,
             cancelled = true,
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
         )
-        val order1 = createOrder().copy(
+        val order1 = randomOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
         )
-        val order2 = createOrder().copy(
+        val order2 = randomOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
         )
-        val order3 = createOrder().copy(
+        val order3 = randomOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1().copy(counterHex = newCounter)
         )
-        val order4 = createOrder().copy(
+        val order4 = randomOrder().copy(
             maker = maker,
             platform = Platform.RARIBLE,
             data = createOrderRaribleV2DataV1()
         )
-        val order5 = createOrder().copy(
+        val order5 = randomOrder().copy(
             maker = randomAddress(),
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
         )
-        val order6 = createOrder().copy(
+        val order6 = randomOrder().copy(
             maker = randomAddress(),
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1().copy(counterHex = newCounter)
@@ -182,39 +182,39 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         val counter1 = EthUInt256.of(0L)
         val counter2 = EthUInt256.of(1L)
         val otherCounter = EthUInt256.of(2L)
-        val order0 = createOrder().copy(
+        val order0 = randomOrder().copy(
             maker = maker,
             cancelled = true,
             platform = Platform.LOOKSRARE,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter1)
         )
-        val order1 = createOrder().copy(
+        val order1 = randomOrder().copy(
             maker = maker,
             cancelled = true,
             platform = Platform.LOOKSRARE,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter2)
         )
-        val order2 = createOrder().copy(
+        val order2 = randomOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter1)
         )
-        val order3 = createOrder().copy(
+        val order3 = randomOrder().copy(
             maker = maker,
             platform = Platform.LOOKSRARE,
             data = createOrderBasicSeaportDataV1().copy(counterHex = otherCounter)
         )
-        val order4 = createOrder().copy(
+        val order4 = randomOrder().copy(
             maker = maker,
             platform = Platform.RARIBLE,
             data = createOrderRaribleV2DataV1()
         )
-        val order5 = createOrder().copy(
+        val order5 = randomOrder().copy(
             maker = randomAddress(),
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter1)
         )
-        val order6 = createOrder().copy(
+        val order6 = randomOrder().copy(
             maker = randomAddress(),
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter1)
@@ -237,19 +237,19 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         val maker = randomAddress()
         val counter = EthUInt256.of(100L)
         val otherCounter = EthUInt256.of(2L)
-        val order0 = createOrder().copy(
+        val order0 = randomOrder().copy(
             maker = maker,
             cancelled = true,
             platform = Platform.LOOKSRARE,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
         )
-        val order1 = createOrder().copy(
+        val order1 = randomOrder().copy(
             maker = maker,
             cancelled = true,
             platform = Platform.LOOKSRARE,
             data = createOrderBasicSeaportDataV1().copy(counterHex = otherCounter)
         )
-        val order2 = createOrder().copy(
+        val order2 = randomOrder().copy(
             maker = maker,
             platform = Platform.OPEN_SEA,
             data = createOrderBasicSeaportDataV1().copy(counterHex = counter)
@@ -275,7 +275,7 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         //Active orders
         repeat(10) {
             currencies.forEach { currency ->
-                val order = createOrder().copy(make = randomErc721(token), take = randomErc20(currency))
+                val order = randomOrder().copy(make = randomErc721(token), take = randomErc20(currency))
                 val savedOrder = orderRepository.save(order)
                 assertThat(savedOrder.status).isEqualTo(OrderStatus.ACTIVE)
             }
@@ -283,7 +283,11 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         //Not active orders
         repeat(10) {
             currencies.forEach { currency ->
-                val order = createOrder().copy(make = randomErc721(token), take = randomErc20(randomAddress()), cancelled = true)
+                val order = randomOrder().copy(
+                    make = randomErc721(token),
+                    take = randomErc20(randomAddress()),
+                    cancelled = true
+                )
                 val savedOrder = orderRepository.save(order)
                 assertThat(savedOrder.status).isNotEqualTo(OrderStatus.ACTIVE)
             }

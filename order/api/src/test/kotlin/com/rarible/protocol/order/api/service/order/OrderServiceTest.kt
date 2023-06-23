@@ -1,15 +1,15 @@
 package com.rarible.protocol.order.api.service.order
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.protocol.order.api.data.createOrder
-import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.order.api.exceptions.OrderDataException
-import com.rarible.protocol.order.api.service.order.validation.OrderStateValidator
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.data.randomOrder
+import com.rarible.protocol.order.core.exception.EntityNotFoundApiException
+import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.OrderValidationService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
@@ -67,14 +67,14 @@ internal class OrderServiceTest {
     private lateinit var commonSigner: CommonSigner
 
     @MockK
-    private lateinit var orderStateValidator: OrderStateValidator
+    private lateinit var orderValidationService: OrderValidationService
 
     @SpyK
     private var featureFlags: OrderIndexerProperties.FeatureFlags = OrderIndexerProperties.FeatureFlags()
 
     @Test
     fun `validate and get not found`() = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
         coEvery { orderRepository.findById(order.hash) } returns null
 
         assertThatExceptionOfType(EntityNotFoundApiException::class.java).isThrownBy {
@@ -86,18 +86,18 @@ internal class OrderServiceTest {
 
     @Test
     fun `validate valid`() = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
         coEvery { orderRepository.findById(order.hash) } returns order
-        coEvery { orderStateValidator.validate(order) } returns Unit
+        coEvery { orderValidationService.validateState(order) } returns Unit
 
         assertThat(orderService.validateAndGet(order.hash)).isEqualTo(order)
     }
 
     @Test
     fun `validate and get not valid`() = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
         coEvery { orderRepository.findById(order.hash) } returns order
-        coEvery { orderStateValidator.validate(order) } throws OrderDataException("order is not valid")
+        coEvery { orderValidationService.validateState(order) } throws OrderDataException("order is not valid")
 
         assertThatExceptionOfType(OrderDataException::class.java).isThrownBy {
             runBlocking {

@@ -2,11 +2,11 @@ package com.rarible.protocol.order.core.model
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.randomErc1155
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.data.withMakeFill
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -157,8 +157,8 @@ class OrderTest {
         makeStock = 75 / 50 * 50 = 50 can be used as payment.
          */
         listOf(
-            createOrder(),
-            createOrder().withMakeFill()
+            randomOrder(),
+            randomOrder().withMakeFill()
         ).forEach {
             val order = it.copy(
                 make = randomErc20(EthUInt256.of(100)),
@@ -177,8 +177,8 @@ class OrderTest {
         Make stock = 7
          */
         listOf(
-            createOrder(),
-            createOrder().withMakeFill()
+            randomOrder(),
+            randomOrder().withMakeFill()
         ).forEach {
             val order = it
                 .copy(
@@ -199,7 +199,7 @@ class OrderTest {
 
         For OpenSea 7 < 10 => makeStock = 0
          */
-        val order = createOrder()
+        val order = randomOrder()
             .copy(
                 make = randomErc1155(EthUInt256.of(10)),
                 take = randomErc20(EthUInt256.of(100)),
@@ -217,7 +217,7 @@ class OrderTest {
 
         For OpenSea 7 < 10 => makeStock = 0
          */
-        val order = createOrder()
+        val order = randomOrder()
             .copy(
                 make = randomErc20(EthUInt256.of(100)),
                 take = randomErc1155(EthUInt256.TEN),
@@ -230,7 +230,7 @@ class OrderTest {
     @Test
     fun `stock is 0 when cancelled`() {
         assertThat(
-            createOrder().copy(
+            randomOrder().copy(
                 cancelled = true,
                 lastUpdateAt = nowMillis()
             ).withMakeBalance(
@@ -243,7 +243,7 @@ class OrderTest {
 
     @Test
     fun `should have active status for AMM order`() {
-        val amm = createOrder().copy(
+        val amm = randomOrder().copy(
             make = randomErc721(),
             take = randomErc20(EthUInt256.ZERO),
             makeStock = EthUInt256.ONE,
@@ -255,7 +255,7 @@ class OrderTest {
 
     @Test
     fun `should have inactive status for AMM order`() {
-        val amm = createOrder().copy(
+        val amm = randomOrder().copy(
             make = randomErc721().copy(value = EthUInt256.ZERO),
             take = randomErc20(EthUInt256.ZERO),
             makeStock = EthUInt256.ZERO,
@@ -267,7 +267,7 @@ class OrderTest {
 
     @Test
     fun `should calculate status for AMM order and make stock`() {
-        val amm = createOrder().copy(
+        val amm = randomOrder().copy(
             make = randomErc721().copy(value = EthUInt256.ONE),
             take = randomErc20(EthUInt256.ONE),
             makeStock = EthUInt256.ONE,
@@ -282,7 +282,7 @@ class OrderTest {
     @Test
     fun `stock is 0 when cancelled for OpenSea order`() {
         assertThat(
-            createOrder().copy(
+            randomOrder().copy(
                 type = OrderType.OPEN_SEA_V1,
                 cancelled = true,
                 lastUpdateAt = nowMillis()
@@ -297,7 +297,7 @@ class OrderTest {
     @Test
     fun `stock is less than make value when balance is low`() {
         assertThat(
-            createOrder().copy(
+            randomOrder().copy(
                 make = randomErc20(EthUInt256.TEN),
                 take = randomErc20(EthUInt256.of(5))
             ).withMakeBalance(EthUInt256.of(5), EthUInt256.ZERO).makeStock
@@ -308,7 +308,7 @@ class OrderTest {
     @Test
     fun `stock is make value when is enough of asset`() {
         assertThat(
-            createOrder().copy(
+            randomOrder().copy(
                 make = randomErc20(EthUInt256.TEN),
                 take = randomErc20(EthUInt256.of(5))
             ).withMakeBalance(EthUInt256.of(20), EthUInt256.ZERO).makeStock
@@ -316,7 +316,7 @@ class OrderTest {
             .isEqualTo(EthUInt256.of(10))
 
         assertThat(
-            createOrder().copy(
+            randomOrder().copy(
                 make = randomErc20(EthUInt256.TEN),
                 take = randomErc20(EthUInt256.of(5))
             ).withMakeBalance(EthUInt256.of(10), EthUInt256.ZERO).makeStock
@@ -335,7 +335,7 @@ class OrderTest {
         makeStock = 4
          */
         assertThat(
-            createOrder().copy(
+            randomOrder().copy(
                 make = randomErc20(EthUInt256.TEN),
                 take = randomErc1155(EthUInt256.of(5)),
                 fill = EthUInt256.of(3),
@@ -359,7 +359,7 @@ class OrderTest {
         makeStock = 2
          */
         assertThat(
-            createOrder().withMakeFill().copy(
+            randomOrder().withMakeFill().copy(
                 make = randomErc1155(EthUInt256.of(5)),
                 take = randomErc20(EthUInt256.TEN),
                 fill = EthUInt256.of(3),
@@ -375,7 +375,7 @@ class OrderTest {
     @Test
     fun `V2 take-fill order - stock is 0 when the order is filled`() {
         assertThat(
-            createOrder().copy(
+            randomOrder().copy(
                 make = randomErc20(EthUInt256.TEN),
                 take = randomErc20(EthUInt256.of(5)),
                 fill = EthUInt256.of(5), // fill by take side
@@ -390,7 +390,7 @@ class OrderTest {
     @Test
     fun `V2 make-fill order - stock is 0 when the order is filled`() {
         assertThat(
-            createOrder().withMakeFill().copy(
+            randomOrder().withMakeFill().copy(
                 make = randomErc20(EthUInt256.TEN),
                 take = randomErc20(EthUInt256.of(5)),
                 fill = EthUInt256.TEN, // fill by make side
@@ -412,7 +412,7 @@ class OrderTest {
         Protocol fee = 3000 / 1000 ~= 1/3
         => Make stock = (75 - 1/3 * 75) / 25 * 25 = 25
          */
-        val order = createOrder()
+        val order = randomOrder()
             .copy(
                 make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(100)),
                 take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.of(4)),
@@ -431,7 +431,7 @@ class OrderTest {
         Origin fee = 3000 / 10000 ~= 1/3
         => Make stock = (75 - 1/3 * 75 ) / 25 * 25 = 50
          */
-        val order = createOrder()
+        val order = randomOrder()
             .copy(
                 make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(100)),
                 take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.of(4)),
@@ -458,7 +458,7 @@ class OrderTest {
         Protocol fee = 3000 / 1000 ~= 1/3
         => Make stock = (75 - 1/3 * 75 - 1/3 * 75) / 25 * 25 = 25
          */
-        val order = createOrder()
+        val order = randomOrder()
             .copy(
                 make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(100)),
                 take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.of(4)),
@@ -479,7 +479,7 @@ class OrderTest {
     @ParameterizedTest
     @MethodSource("optionalRoyaltiesByPlatform")
     fun `should get right flag for royalties`(platform: Platform, expectedValue: Boolean) {
-        val order = createOrder().copy(platform = platform)
+        val order = randomOrder().copy(platform = platform)
         assertThat(order.isOptionalRoyalties()).isEqualTo(expectedValue)
     }
 
@@ -487,13 +487,13 @@ class OrderTest {
     inner class HashKey {
         @Test
         fun `V2 - different hash key for make-fill and take-fill orders data V1 vs data V2`() {
-            val order = createOrder()
+            val order = randomOrder()
             assertThat(order.id).isNotEqualTo(order.withMakeFill().id)
         }
 
         @Test
         fun `V2 - different hash key for make-fill and take-fill orders data V2`() {
-            val order = createOrder()
+            val order = randomOrder()
             assertThat(order.withMakeFill(isMakeFill = false).id)
                 .isNotEqualTo(order.withMakeFill(isMakeFill = true).id)
         }

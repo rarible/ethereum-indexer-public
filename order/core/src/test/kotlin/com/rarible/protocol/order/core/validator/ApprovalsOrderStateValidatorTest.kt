@@ -1,7 +1,7 @@
-package com.rarible.protocol.order.api.service.order.validation.validators
+package com.rarible.protocol.order.core.validator
 
-import com.rarible.protocol.order.api.data.createOrder
-import com.rarible.protocol.order.api.exceptions.ValidationApiException
+import com.rarible.protocol.order.core.data.randomOrder
+import com.rarible.protocol.order.core.exception.ValidationApiException
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
 import io.mockk.coEvery
@@ -27,7 +27,7 @@ internal class ApprovalsOrderStateValidatorTest {
 
     @Test
     fun `validate and get no approval`() = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
         coEvery {
             orderUpdateService.updateApproval(
                 order = order,
@@ -49,7 +49,7 @@ internal class ApprovalsOrderStateValidatorTest {
 
     @Test
     fun `validate and get no erc20 allowance`() = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
         coEvery {
             orderUpdateService.updateApproval(
                 order = order,
@@ -71,7 +71,7 @@ internal class ApprovalsOrderStateValidatorTest {
 
     @Test
     fun `validate valid`() = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
 
         coEvery { approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) } returns true
         coEvery { approveService.checkOnChainErc20Allowance(order.maker, order.make) } returns true

@@ -2,8 +2,8 @@ package com.rarible.protocol.order.api.service.order.validation
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.api.data.createOrderVersion
-import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.service.order.validation.validators.ParametersPatchValidator
+import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.toOrderExactFields

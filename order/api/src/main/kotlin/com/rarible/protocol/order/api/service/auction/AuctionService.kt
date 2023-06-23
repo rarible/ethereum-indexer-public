@@ -1,7 +1,10 @@
 package com.rarible.protocol.order.api.service.auction
 
-import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.exception.EntityNotFoundApiException
+import com.rarible.protocol.order.core.model.Auction
+import com.rarible.protocol.order.core.model.AuctionBidEntity
+import com.rarible.protocol.order.core.model.Bid
+import com.rarible.protocol.order.core.model.BidPlaced
 import com.rarible.protocol.order.core.repository.auction.ActivityAuctionHistoryFilter
 import com.rarible.protocol.order.core.repository.auction.AuctionFilter
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository

@@ -112,6 +112,11 @@ class OrderListenerConfiguration(
     }
 
     @Bean
+    fun floorBidCheckWorkerProperties(): FloorOrderCheckWorkerProperties {
+        return listenerProperties.floorOrderCheckWorker
+    }
+
+    @Bean
     fun erc20BalanceChangeWorker(
         handler: Erc20BalanceConsumerEventHandler
     ): ConsumerWorker<Erc20BalanceEventDto> {

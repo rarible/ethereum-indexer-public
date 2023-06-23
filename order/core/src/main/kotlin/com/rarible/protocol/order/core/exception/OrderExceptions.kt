@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.api.exceptions
+package com.rarible.protocol.order.core.exception
 
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.EthereumApiErrorEntityNotFoundDto
@@ -6,13 +6,13 @@ import com.rarible.protocol.dto.EthereumOrderDataApiErrorDto
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
 import org.springframework.http.HttpStatus
 
-sealed class OrderIndexerApiException(
+sealed class OrderIndexerException(
     message: String,
     val status: HttpStatus,
     val data: Any
 ) : Exception(message)
 
-class EntityNotFoundApiException(type: String, id: Any) : OrderIndexerApiException(
+class EntityNotFoundApiException(type: String, id: Any) : OrderIndexerException(
     message = getNotFoundMessage(type, id),
     status = HttpStatus.NOT_FOUND,
     data = EthereumApiErrorEntityNotFoundDto(
@@ -21,7 +21,7 @@ class EntityNotFoundApiException(type: String, id: Any) : OrderIndexerApiExcepti
     )
 )
 
-class ValidationApiException(message: String) : OrderIndexerApiException(
+class ValidationApiException(message: String) : OrderIndexerException(
     message = message,
     status = HttpStatus.BAD_REQUEST,
     data = EthereumApiErrorBadRequestDto(
@@ -30,7 +30,7 @@ class ValidationApiException(message: String) : OrderIndexerApiException(
     )
 )
 
-class OrderDataException(message: String) : OrderIndexerApiException(
+class OrderDataException(message: String) : OrderIndexerException(
     message = message,
     status = HttpStatus.BAD_REQUEST,
     data = EthereumOrderDataApiErrorDto(
@@ -39,7 +39,7 @@ class OrderDataException(message: String) : OrderIndexerApiException(
     )
 )
 
-class OrderUpdateException(message: String, code: EthereumOrderUpdateApiErrorDto.Code) : OrderIndexerApiException(
+class OrderUpdateException(message: String, code: EthereumOrderUpdateApiErrorDto.Code) : OrderIndexerException(
     message = message,
     status = HttpStatus.BAD_REQUEST,
     data = EthereumOrderUpdateApiErrorDto(

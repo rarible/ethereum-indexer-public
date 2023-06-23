@@ -2,7 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createNftItemDto
-import com.rarible.protocol.order.core.data.createOrder
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -33,7 +33,7 @@ class OrderItemServiceTest {
     @Test
     fun `on item changed - ok, suspicious`() = runBlocking<Unit> {
         val item = createNftItemDto().copy(isSuspiciousOnOS = true)
-        val order = createOrder()
+        val order = randomOrder()
 
         coEvery {
             orderRepository.findSellOrdersNotCancelledByItemId(

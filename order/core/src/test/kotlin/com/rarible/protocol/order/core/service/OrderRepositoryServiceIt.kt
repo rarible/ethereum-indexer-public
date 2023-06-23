@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.service
 
 import com.rarible.core.test.wait.Wait
-import com.rarible.protocol.order.core.data.createOrder
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.Order
@@ -21,7 +21,7 @@ internal class OrderRepositoryServiceIt : AbstractIntegrationTest() {
     @Test
     fun `should get all order by target batches`() = runBlocking {
         val orders = (1..10).map {
-            orderRepository.save(createOrder())
+            orderRepository.save(randomOrder())
         }
         Wait.waitAssert {
             val filter = OrderFilterAll(sort = OrderFilterSort.LAST_UPDATE_DESC, platforms = emptyList())

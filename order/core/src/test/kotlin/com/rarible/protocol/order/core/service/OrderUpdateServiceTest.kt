@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.protocol.order.core.data.createOrder
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
@@ -39,9 +39,9 @@ internal class OrderUpdateServiceTest {
 
     @Test
     fun `should send event if lastEventId was changed`() = runBlocking<Unit> {
-        val hash =WordFactory.create()
-        val order = createOrder().copy(lastEventId = "1")
-        val updatedOrder = createOrder().copy(lastEventId = "2")
+        val hash = WordFactory.create()
+        val order = randomOrder().copy(lastEventId = "1")
+        val updatedOrder = randomOrder().copy(lastEventId = "2")
 
         coEvery { orderRepository.findById(eq(hash)) } returns order
         coEvery { orderReduceService.updateOrder(eq(hash)) } returns updatedOrder

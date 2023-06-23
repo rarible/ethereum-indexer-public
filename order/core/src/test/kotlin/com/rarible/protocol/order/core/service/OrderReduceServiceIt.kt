@@ -7,7 +7,6 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createLogEvent
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderCancel
 import com.rarible.protocol.order.core.data.createOrderDataLegacy
@@ -24,6 +23,7 @@ import com.rarible.protocol.order.core.data.randomApproveHistory
 import com.rarible.protocol.order.core.data.randomErc1155
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
@@ -592,7 +592,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun `should remove amm order if history reverted`() = runBlocking<Unit> {
         val onChainAmmOrder = randomSellOnChainAmmOrder()
-        orderRepository.save(createOrder().copy(id = Order.Id(onChainAmmOrder.hash), hash = onChainAmmOrder.hash))
+        orderRepository.save(randomOrder().copy(id = Order.Id(onChainAmmOrder.hash), hash = onChainAmmOrder.hash))
         prepareStorage(EthereumLogStatus.REVERTED, onChainAmmOrder)
 
         val result = orderReduceService.updateOrder(onChainAmmOrder.hash)!!

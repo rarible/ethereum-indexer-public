@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.service.updater
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.data.createOrder
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
@@ -26,7 +26,7 @@ class CancelInactiveOrderUpdaterTest {
 
     @Test
     fun `inactive order cancelled`() = runBlocking<Unit> {
-        val order = createOrder().copy(platform = Platform.X2Y2, makeStock = EthUInt256.ZERO)
+        val order = randomOrder().copy(platform = Platform.X2Y2, makeStock = EthUInt256.ZERO)
 
         coEvery { orderStateService.setCancelState(order.hash) } returns OrderState(order.hash, true)
 
@@ -39,12 +39,12 @@ class CancelInactiveOrderUpdaterTest {
     @Test
     fun `non-target orders not affected`() = runBlocking<Unit> {
         // Not x2y2 order, skipped
-        val raribleOrder = createOrder().copy(platform = Platform.RARIBLE, makeStock = EthUInt256.ZERO)
+        val raribleOrder = randomOrder().copy(platform = Platform.RARIBLE, makeStock = EthUInt256.ZERO)
         val updatedRaribleOrder = updater.update(raribleOrder)
         assertThat(updatedRaribleOrder).isEqualTo(raribleOrder)
 
         // Active order, skipped
-        val activeOrder = createOrder().copy(platform = Platform.X2Y2)
+        val activeOrder = randomOrder().copy(platform = Platform.X2Y2)
         val updatedActiveOrder = updater.update(activeOrder)
         assertThat(activeOrder).isEqualTo(updatedActiveOrder)
     }

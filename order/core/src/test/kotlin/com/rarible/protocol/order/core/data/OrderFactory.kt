@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.api.data
+package com.rarible.protocol.order.core.data
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomBigInt
@@ -30,7 +30,7 @@ import scalether.domain.AddressFactory
 import java.math.BigInteger
 import java.time.Instant
 
-fun createOrder(
+fun randomOrder(
     maker: Address = AddressFactory.create(),
     taker: Address? = AddressFactory.create(),
     make: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
