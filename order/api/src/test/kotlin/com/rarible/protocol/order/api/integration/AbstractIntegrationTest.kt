@@ -51,9 +51,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
-import org.web3j.utils.Numeric
+import org.web3jold.crypto.Keys
+import org.web3jold.crypto.Sign
+import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 import scalether.domain.Address

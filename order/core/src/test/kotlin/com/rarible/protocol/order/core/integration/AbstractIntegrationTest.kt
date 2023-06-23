@@ -26,7 +26,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 import scalether.domain.Address
@@ -110,7 +110,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
             MonoSimpleNonceProvider(ethereum),
             Numeric.toBigInt("0x0a2853fac2c0a03f463f04c4567839473c93f3307da459132b7dd1ca633c0e16"),
             BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+            { Mono.just(BigInteger.ZERO) }
         )
     }
 

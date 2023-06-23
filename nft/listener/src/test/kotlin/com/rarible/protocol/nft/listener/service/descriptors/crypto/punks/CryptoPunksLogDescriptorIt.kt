@@ -25,7 +25,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import scalether.domain.Address
 import scalether.domain.request.Transaction
 import java.math.BigInteger

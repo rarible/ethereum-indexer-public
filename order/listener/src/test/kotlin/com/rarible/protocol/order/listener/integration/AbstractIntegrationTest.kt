@@ -65,9 +65,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
-import org.web3j.utils.Numeric
+import org.web3jold.crypto.Keys
+import org.web3jold.crypto.Sign
+import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.core.MonoEthereum

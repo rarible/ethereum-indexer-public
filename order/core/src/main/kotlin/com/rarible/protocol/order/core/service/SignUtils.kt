@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.service
 
 import io.daonomic.rpc.domain.Binary
-import org.web3j.crypto.Sign
+import org.web3jold.crypto.Sign
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 

@@ -18,7 +18,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.web3j.crypto.Keys
+import org.web3jold.crypto.Keys
 import scalether.abi.Uint256Type
 import scalether.domain.Address
 import java.math.BigInteger

@@ -25,8 +25,8 @@ import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.web3j.crypto.Sign
-import org.web3j.utils.Numeric
+import org.web3jold.crypto.Sign
+import org.web3jold.utils.Numeric
 import scalether.abi.Uint256Type
 import scalether.domain.Address
 import scalether.domain.AddressFactory

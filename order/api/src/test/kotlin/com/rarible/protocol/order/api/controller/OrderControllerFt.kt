@@ -49,7 +49,7 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestTemplate
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger

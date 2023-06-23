@@ -23,7 +23,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.reactive.function.client.WebClient
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import scalether.domain.Address
 import scalether.transaction.MonoSigningTransactionSender
 

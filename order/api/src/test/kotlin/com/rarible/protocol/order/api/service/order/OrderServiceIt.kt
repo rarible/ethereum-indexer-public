@@ -87,7 +87,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.allAndAwait
 import org.springframework.data.mongodb.core.remove
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.AddressFactory

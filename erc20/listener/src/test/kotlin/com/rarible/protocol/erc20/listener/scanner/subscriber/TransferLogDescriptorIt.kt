@@ -16,7 +16,7 @@ import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import scalether.domain.Address
 import java.math.BigInteger
 import java.time.Duration

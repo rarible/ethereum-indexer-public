@@ -22,9 +22,9 @@ import com.rarible.protocol.order.core.service.CommonSigner
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
-import org.web3j.utils.Numeric
+import org.web3jold.crypto.Keys
+import org.web3jold.crypto.Sign
+import org.web3jold.utils.Numeric
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger

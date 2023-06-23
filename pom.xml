@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.rarible</groupId>
         <artifactId>rarible-parent-pom</artifactId>
-        <version>2.7.5</version>
+        <version>2.7.7</version>
     </parent>
 
     <repositories>
@@ -29,14 +29,14 @@
         <mockserver-netty.version>5.11.2</mockserver-netty.version>
         <mockserver.version>1.15.3</mockserver.version>
 
-        <rarible.ethereum.version>1.7.8</rarible.ethereum.version>
-        <rarible.ethereum.contracts.version>1.0.52</rarible.ethereum.contracts.version>
-        <rarible.core.version>2.5.23</rarible.core.version>
-        <rarible.blockchain.scanner.version>2.6.33</rarible.blockchain.scanner.version>
+        <rarible.ethereum.version>1.7.9</rarible.ethereum.version>
+        <rarible.ethereum.contracts.version>1.0.53</rarible.ethereum.contracts.version>
+        <rarible.core.version>2.5.24</rarible.core.version>
+        <rarible.blockchain.scanner.version>2.6.37</rarible.blockchain.scanner.version>
 
-        <rarible.protocol.ethereum.version>1.51.1</rarible.protocol.ethereum.version>
-        <rarible.protocol.currency.version>1.38.3</rarible.protocol.currency.version>
-        <opensea-client-starter.version>2.1.15</opensea-client-starter.version>
+        <rarible.protocol.ethereum.version>1.51.4</rarible.protocol.ethereum.version>
+        <rarible.protocol.currency.version>1.38.4</rarible.protocol.currency.version>
+        <opensea-client-starter.version>2.1.16</opensea-client-starter.version>
         <looksrare-client-starter.version>1.2.6</looksrare-client-starter.version>
         <x2y2-client.version>1.1.1</x2y2-client.version>
         <reservoir-client.version>1.0.1</reservoir-client.version>

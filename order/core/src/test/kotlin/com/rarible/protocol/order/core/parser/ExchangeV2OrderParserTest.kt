@@ -31,9 +31,9 @@ import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
-import org.web3j.utils.Numeric
+import org.web3jold.crypto.Keys
+import org.web3jold.crypto.Sign
+import org.web3jold.utils.Numeric
 import scala.Tuple4
 import scalether.domain.Address
 import java.math.BigInteger
