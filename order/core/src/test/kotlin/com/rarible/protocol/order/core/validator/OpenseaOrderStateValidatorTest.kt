@@ -11,6 +11,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -39,10 +40,10 @@ internal class OpenseaOrderStateValidatorTest {
     }
 
     @Test
-    fun `validate ignored`() = runBlocking<Unit> {
+    fun `supports - false`() = runBlocking<Unit> {
         val order = randomOrder()
 
-        openseaOrderStateValidator.validate(order)
+        assertThat(openseaOrderStateValidator.supportsValidation(order)).isFalse()
     }
 
     @Test

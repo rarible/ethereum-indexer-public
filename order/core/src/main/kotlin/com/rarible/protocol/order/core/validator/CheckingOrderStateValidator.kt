@@ -21,20 +21,18 @@ class CheckingOrderStateValidator(
     override fun supportsValidation(order: Order) = order.platform == platform
 
     override suspend fun validate(order: Order) {
-        if (supportsValidation(order)) {
-            val active = try {
-                orderStateCheckService.isActiveOrder(order)
-            } catch (e: Exception) {
-                logger.error(
-                    "Error during getting $platform order hash=${order.hash}, " +
-                        "itemId=${order.nft().type.itemId}, status: $e", e
-                )
-                true
-            }
-            if (!active) {
-                orderCancelService.cancelOrder(id = order.hash, eventTimeMarksDto = orderOffchainEventMarks())
-                throw OrderDataException("order $platform:${order.hash} is not active")
-            }
+        val active = try {
+            orderStateCheckService.isActiveOrder(order)
+        } catch (e: Exception) {
+            logger.error(
+                "Error during getting $platform order hash=${order.hash}, " +
+                    "itemId=${order.nft().type.itemId}, status: $e", e
+            )
+            true
+        }
+        if (!active) {
+            orderCancelService.cancelOrder(id = order.hash, eventTimeMarksDto = orderOffchainEventMarks())
+            throw OrderDataException("order $platform:${order.hash} is not active")
         }
     }
 }

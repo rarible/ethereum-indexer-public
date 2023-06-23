@@ -19,8 +19,6 @@ class OpenseaOrderStateValidator(
     }
 
     override suspend fun validate(order: Order) {
-        if (supportsValidation(order)) {
-            seaportSignatureResolver.resolveSeaportSignature(order.hash)
-        }
+        seaportSignatureResolver.resolveSeaportSignature(order.hash)
     }
 }

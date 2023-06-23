@@ -11,6 +11,7 @@ import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -68,10 +69,10 @@ internal class CheckingOrderStateValidatorTest {
     }
 
     @Test
-    fun `validate ignored`() = runBlocking<Unit> {
+    fun `supports - false`() = runBlocking<Unit> {
         val order = randomOrder()
 
-        checkingOrderStateValidator.validate(order)
+        assertThat(checkingOrderStateValidator.supportsValidation(order)).isFalse()
     }
 
     @Test
