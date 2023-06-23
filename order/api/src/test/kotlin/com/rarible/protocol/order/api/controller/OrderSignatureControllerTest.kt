@@ -5,7 +5,7 @@ import com.rarible.core.test.data.randomBinary
 import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.dto.EthereumSignatureValidationFormDto
-import com.rarible.protocol.order.api.service.order.signature.OrderSignatureResolver
+import com.rarible.protocol.order.core.service.SeaportSignatureResolver
 import com.rarible.x2y2.client.X2Y2ApiClient
 import io.mockk.clearMocks
 import io.mockk.coEvery
@@ -21,7 +21,7 @@ class OrderSignatureControllerTest {
 
     private val client = mockk<X2Y2ApiClient>()
 
-    private val resolver = mockk<OrderSignatureResolver>()
+    private val resolver = mockk<SeaportSignatureResolver>()
 
     private val controller = OrderSignatureController(erc1271SignService, client, resolver)
 

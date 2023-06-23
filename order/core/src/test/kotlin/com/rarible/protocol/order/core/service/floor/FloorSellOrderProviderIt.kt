@@ -1,10 +1,10 @@
 package com.rarible.protocol.order.core.service.floor
 
 import com.rarible.core.test.data.randomAddress
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.data.randomEth
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import kotlinx.coroutines.runBlocking
@@ -12,7 +12,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
-
 
 @IntegrationTest
 internal class FloorSellOrderProviderIt : AbstractIntegrationTest() {
@@ -24,32 +23,32 @@ internal class FloorSellOrderProviderIt : AbstractIntegrationTest() {
         val token = randomAddress()
         val currency1 = randomAddress()
         val currency2 = randomAddress()
-        val floorOrder1 = createOrder().copy(
+        val floorOrder1 = randomOrder().copy(
             make = randomErc721(token),
             take = randomErc20(currency1),
             makePrice = BigDecimal.valueOf(1)
         )
-        val floorOrder2 = createOrder().copy(
+        val floorOrder2 = randomOrder().copy(
             make = randomErc721(token),
             take = randomErc20(currency2),
             makePrice = BigDecimal.valueOf(2)
         )
-        val floorOrder3 = createOrder().copy(
+        val floorOrder3 = randomOrder().copy(
             make = randomErc721(token),
             take = randomEth(),
             makePrice = BigDecimal.valueOf(3)
         )
-        val other1 = createOrder().copy(
+        val other1 = randomOrder().copy(
             make = randomErc721(token),
             take = randomErc20(currency1),
             makePrice = BigDecimal.valueOf(10)
         )
-        val other2 = createOrder().copy(
+        val other2 = randomOrder().copy(
             make = randomErc721(token),
             take = randomErc20(currency2),
             makePrice = BigDecimal.valueOf(10)
         )
-        val other3 = createOrder().copy(
+        val other3 = randomOrder().copy(
             make = randomErc721(token),
             take = randomEth(),
             makePrice = BigDecimal.valueOf(10)

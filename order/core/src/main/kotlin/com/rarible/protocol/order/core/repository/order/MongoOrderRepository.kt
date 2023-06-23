@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION
 import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes.SELL_ORDERS_BY_CURRENCY_COLLECTION_DEFINITION
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -361,6 +362,27 @@ class MongoOrderRepository(
             )
         )
         return template.query<Order>().matching(query).all().asFlow()
+    }
+
+    override suspend fun findActiveBestSellOrdersOfCollection(
+        token: Address,
+        currency: Address,
+        size: Int
+    ): List<Order> {
+        val query = Query(
+            Criteria().andOperator(
+                (Order::make / Asset::type / NftAssetType::nft).isEqualTo(true),
+                (Order::status).isEqualTo(OrderStatus.ACTIVE),
+                (Order::make / Asset::type / NftAssetType::token).isEqualTo(token),
+                (Order::take / Asset::type / NftAssetType::token).isEqualTo(currency),
+            )
+        ).with(
+            Sort.by(Sort.Direction.ASC, Order::makePrice.name, "_id")
+        ).withHint(
+            SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION.indexKeys
+        ).limit(size)
+
+        return template.find(query, Order::class.java).collectList().awaitFirst()
     }
 
     override fun findActiveSaleOrdersHashesByMakerAndToken(

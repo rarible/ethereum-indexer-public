@@ -1,12 +1,12 @@
 package com.rarible.protocol.order.api.service.order.validation.validators
 
 import com.rarible.core.test.data.randomAddress
-import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.data.randomCollection
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.service.floor.FloorSellService
 import io.mockk.coEvery

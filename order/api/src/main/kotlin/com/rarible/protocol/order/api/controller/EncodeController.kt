@@ -6,10 +6,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.converters.model.AssetTypeConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
+import com.rarible.protocol.order.core.exception.ValidationApiException
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage

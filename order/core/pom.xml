@@ -62,6 +62,10 @@
 
         <!-- =============== Rarible-core ================ -->
         <dependency>
+            <groupId>com.rarible</groupId>
+            <artifactId>rarible-opensea-client-starter</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.rarible.protocol.contracts</groupId>
             <artifactId>protocol-ethereum-contracts-order</artifactId>
             <version>${rarible.ethereum.contracts.version}</version>

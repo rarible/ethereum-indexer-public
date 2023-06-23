@@ -4,7 +4,7 @@ import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
-import com.rarible.protocol.order.core.data.createOrder
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.ReservoirAsksEventFetchState
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -96,8 +96,8 @@ internal class ReservoirOrdersReconciliationWorkerTest {
                 continuation = cursor2,
             )
         )
-        coEvery { orderRepository.findById(canceledOrderId) } returns createOrder().copy(cancelled = true)
-        coEvery { orderRepository.findById(inconsistentOrderId) } returns createOrder().copy(
+        coEvery { orderRepository.findById(canceledOrderId) } returns randomOrder().copy(cancelled = true)
+        coEvery { orderRepository.findById(inconsistentOrderId) } returns randomOrder().copy(
             platform = Platform.X2Y2
         )
         coEvery { orderCancelService.cancelOrder(id = eq(inconsistentOrderId), eventTimeMarksDto = any()) } returns Unit

@@ -1,9 +1,9 @@
 package com.rarible.protocol.order.core.service.floor
 
 import com.rarible.core.test.data.randomAddress
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.service.CurrencyService
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -24,17 +24,17 @@ internal class FloorSellServiceTest {
         val currency2 = randomAddress()
         val currency3 = randomAddress()
 
-        val order1 = createOrder().copy(
+        val order1 = randomOrder().copy(
             make = randomErc721(),
             take = randomErc20(currency1),
             makePrice = BigDecimal.valueOf(1)
         )
-        val order2 = createOrder().copy(
+        val order2 = randomOrder().copy(
             make = randomErc721(),
             take = randomErc20(currency2),
             makePrice = BigDecimal.valueOf(2)
         )
-        val order3 = createOrder().copy(
+        val order3 = randomOrder().copy(
             make = randomErc721(),
             take = randomErc20(currency3),
             makePrice = BigDecimal.valueOf(3)

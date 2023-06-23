@@ -2,7 +2,7 @@ package com.rarible.protocol.order.api.service.order.validation.validators
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.api.exceptions.OrderDataException
+import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion

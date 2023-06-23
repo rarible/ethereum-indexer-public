@@ -3,7 +3,7 @@ package com.rarible.protocol.order.api.controller.advice
 import com.rarible.ethereum.sign.service.InvalidSignatureException
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
-import com.rarible.protocol.order.api.exceptions.OrderIndexerApiException
+import com.rarible.protocol.order.core.exception.OrderIndexerException
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -17,8 +17,8 @@ import org.springframework.web.server.ServerWebInputException
 class ErrorsController {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @ExceptionHandler(OrderIndexerApiException::class)
-    fun handleIndexerApiException(ex: OrderIndexerApiException) = mono {
+    @ExceptionHandler(OrderIndexerException::class)
+    fun handleIndexerApiException(ex: OrderIndexerException) = mono {
         ResponseEntity.status(ex.status).body(ex.data)
     }
 

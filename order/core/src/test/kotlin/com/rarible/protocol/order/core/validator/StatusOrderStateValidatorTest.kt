@@ -1,7 +1,7 @@
-package com.rarible.protocol.order.api.service.order.validation.validators
+package com.rarible.protocol.order.core.validator
 
-import com.rarible.protocol.order.api.data.createOrder
-import com.rarible.protocol.order.api.exceptions.ValidationApiException
+import com.rarible.protocol.order.core.data.randomOrder
+import com.rarible.protocol.order.core.exception.ValidationApiException
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -24,7 +24,7 @@ internal class StatusOrderStateValidatorTest {
 
     @Test
     fun `validate and get not active`() = runBlocking<Unit> {
-        val order = createOrder(
+        val order = randomOrder(
             end = Instant.now().minusSeconds(100).epochSecond
         )
         coEvery { orderUpdateService.update(order.hash, any()) } returns Unit
@@ -40,7 +40,7 @@ internal class StatusOrderStateValidatorTest {
 
     @Test
     fun `validate valid`() = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
 
         statusOrderStateValidator.validate(order)
     }

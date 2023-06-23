@@ -34,6 +34,7 @@ data class OrderListenerProperties(
     val x2y2CancelListEventLoad: X2Y2EventLoadProperties = X2Y2EventLoadProperties(),
     val sudoSwapLoad: SudoSwapLoadProperties = SudoSwapLoadProperties(),
     val startEndWorker: StartEndWorkerProperties = StartEndWorkerProperties(),
+    val floorOrderCheckWorker: FloorOrderCheckWorkerProperties = FloorOrderCheckWorkerProperties(),
     var fixApproval: Boolean = false,
     var fixX2Y2: Boolean = false,
     val approvalEvenHandleDelay: Duration = Duration.ZERO,
@@ -112,6 +113,12 @@ data class StartEndWorkerProperties(
     val cancelOffset: Duration = Duration.ofMinutes(1),
     val pollingPeriod: Duration = Duration.ofMinutes(1),
     val errorDelay: Duration = Duration.ofMinutes(2)
+)
+
+data class FloorOrderCheckWorkerProperties(
+    val enabled: Boolean = true,
+    val pollingPeriod: Duration = Duration.ofMinutes(60),
+    val errorDelay: Duration = Duration.ofMinutes(60)
 )
 
 sealed class X2Y2LoadProperties {

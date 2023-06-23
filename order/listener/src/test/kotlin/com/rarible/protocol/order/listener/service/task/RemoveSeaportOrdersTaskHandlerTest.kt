@@ -3,10 +3,10 @@ package com.rarible.protocol.order.listener.service.task
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.OrderStatus
@@ -62,7 +62,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             orderStateRepository,
             orderUpdateService
         )
-        val orderToRemove1 = createOrder().copy(
+        val orderToRemove1 = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(1),
             data = createOrderBasicSeaportDataV1().copy(protocol = seaportAddress),
@@ -70,7 +70,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
         )
-        val otherOrder = createOrder().copy(
+        val otherOrder = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(2),
             data = createOrderBasicSeaportDataV1(),
@@ -78,7 +78,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
         )
-        val filledOrder = createOrder().copy(
+        val filledOrder = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(2),
             data = createOrderBasicSeaportDataV1(),
@@ -87,7 +87,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
         )
-        val orderToRemove2 = createOrder().copy(
+        val orderToRemove2 = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(10),
             data = createOrderBasicSeaportDataV1().copy(protocol = seaportAddress),
@@ -96,7 +96,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
         )
-        val laterOrder = createOrder().copy(
+        val laterOrder = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(20),
             data = createOrderBasicSeaportDataV1().copy(protocol = randomAddress()),
@@ -146,7 +146,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             orderStateRepository,
             orderUpdateService
         )
-        val orderToRemove1 = createOrder().copy(
+        val orderToRemove1 = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(1),
             data = createOrderBasicSeaportDataV1().copy(protocol = seaportAddress),
@@ -154,7 +154,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
         )
-        val otherOrder = createOrder().copy(
+        val otherOrder = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(2),
             data = createOrderBasicSeaportDataV1(),
@@ -162,7 +162,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
         )
-        val filledOrder = createOrder().copy(
+        val filledOrder = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(2),
             data = createOrderBasicSeaportDataV1(),
@@ -171,7 +171,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
         )
-        val orderToRemove2 = createOrder().copy(
+        val orderToRemove2 = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(10),
             data = createOrderBasicSeaportDataV1().copy(protocol = seaportAddress),
@@ -180,7 +180,7 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
         )
-        val laterOrder = createOrder().copy(
+        val laterOrder = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(20),
             data = createOrderBasicSeaportDataV1().copy(protocol = randomAddress()),

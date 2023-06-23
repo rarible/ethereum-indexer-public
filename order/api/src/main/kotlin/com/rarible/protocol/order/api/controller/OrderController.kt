@@ -19,7 +19,6 @@ import com.rarible.protocol.dto.PrepareOrderTxResponseDto
 import com.rarible.protocol.dto.PreparedOrderTxDto
 import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.parser.AddressParser
-import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -35,6 +34,7 @@ import com.rarible.protocol.order.core.converters.model.OrderSortDtoConverter
 import com.rarible.protocol.order.core.converters.model.OrderStatusConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
+import com.rarible.protocol.order.core.exception.ValidationApiException
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId

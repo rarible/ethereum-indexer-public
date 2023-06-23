@@ -1,9 +1,9 @@
 package com.rarible.protocol.order.api.service.order.validation.validators
 
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
-import com.rarible.protocol.order.api.exceptions.OrderDataException
-import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.service.order.validation.OrderVersionValidator
+import com.rarible.protocol.order.core.exception.OrderDataException
+import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.OrderAmmData
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderDataLegacy

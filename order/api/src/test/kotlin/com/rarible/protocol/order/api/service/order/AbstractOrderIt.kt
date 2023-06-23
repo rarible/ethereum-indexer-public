@@ -13,14 +13,14 @@ import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.dto.LegacyOrderFormDto
 import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.RaribleV2OrderFormDto
-import com.rarible.protocol.order.api.data.createOrder
-import com.rarible.protocol.order.api.data.sign
-import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.service.order.validation.validators.OrderSignatureValidator
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
+import com.rarible.protocol.order.core.data.randomOrder
+import com.rarible.protocol.order.core.data.sign
+import com.rarible.protocol.order.core.data.toForm
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
@@ -64,7 +64,7 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
     )
 
-    fun createOrder(maker: Address, start: Long?, end: Long?) = createOrder(
+    fun createOrder(maker: Address, start: Long?, end: Long?) = randomOrder(
         maker = maker,
         make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
         start = start,
@@ -96,7 +96,7 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
     )
 
-    fun createOrder(maker: Address, make: Asset) = createOrder(
+    fun createOrder(maker: Address, make: Asset) = randomOrder(
         maker = maker,
         taker = null,
         make = make

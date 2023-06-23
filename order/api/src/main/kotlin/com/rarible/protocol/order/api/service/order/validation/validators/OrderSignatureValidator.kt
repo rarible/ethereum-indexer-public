@@ -5,8 +5,8 @@ import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
-import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.service.order.validation.OrderVersionValidator
+import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
 import com.rarible.protocol.order.core.model.OrderType

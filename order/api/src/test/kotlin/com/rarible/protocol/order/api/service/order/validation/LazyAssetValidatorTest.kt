@@ -11,12 +11,11 @@ import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.order.api.data.createErc20Asset
-import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.service.order.validation.validators.LazyAssetValidator
 import com.rarible.protocol.order.core.data.createOrderVersion
+import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
-import com.rarible.protocol.order.core.model.Part as ModelPart
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
@@ -29,6 +28,7 @@ import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
 import java.util.stream.Stream
+import com.rarible.protocol.order.core.model.Part as ModelPart
 
 internal class LazyAssetValidatorTest {
 

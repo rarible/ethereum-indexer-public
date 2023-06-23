@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.api.service.order.signature
+package com.rarible.protocol.order.core.service
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.ethereum.domain.Blockchain
@@ -8,9 +8,9 @@ import com.rarible.opensea.client.model.OpenSeaError
 import com.rarible.opensea.client.model.OperationResult
 import com.rarible.opensea.client.model.v2.FulfillListingRequest
 import com.rarible.opensea.client.model.v2.FulfillListingResponse
-import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.exception.EntityNotFoundApiException
+import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.metric.ExecutionError
 import com.rarible.protocol.order.core.metric.OrderMetrics
 import com.rarible.protocol.order.core.misc.Retry
@@ -18,7 +18,6 @@ import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.service.OrderCancelService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
@@ -26,7 +25,7 @@ import org.springframework.stereotype.Component
 import java.time.Duration
 
 @Component
-class OrderSignatureResolver(
+class SeaportSignatureResolver(
     private val orderCancelService: OrderCancelService,
     private val seaportClient: SeaportProtocolClient,
     private val orderRepository: OrderRepository,
@@ -112,6 +111,6 @@ class OrderSignatureResolver(
         return OrderDataException("Seaport error: $code: $message")
     }
 
-    private val logger = LoggerFactory.getLogger(OrderSignatureResolver::class.java)
+    private val logger = LoggerFactory.getLogger(SeaportSignatureResolver::class.java)
 }
 

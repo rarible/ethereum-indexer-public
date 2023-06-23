@@ -1,13 +1,13 @@
 package com.rarible.protocol.order.core.service.pool
 
 import com.rarible.core.test.data.randomBigInt
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.createSudoSwapBuyInfo
 import com.rarible.protocol.order.core.data.createSudoSwapSellInfo
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.data.randomEth
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.curve.PoolCurve
@@ -54,7 +54,7 @@ internal class PoolPriceProviderTest {
     @Test
     fun `should update bid amm order price`() = runBlocking<Unit> {
         val data = createOrderSudoSwapAmmDataV1()
-        val order = createOrder().copy(type = OrderType.AMM, make = randomEth(), take = randomErc721(), data = data)
+        val order = randomOrder().copy(type = OrderType.AMM, make = randomEth(), take = randomErc721(), data = data)
         val protocolFeeMultiplier = randomBigInt()
         val expectedTakePrice = BigDecimal("0.500000000000000000")
         val sudoSwapSellInfo = createSudoSwapSellInfo().copy(outputValue = expectedTakePrice.eth())

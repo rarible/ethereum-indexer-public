@@ -6,10 +6,10 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderStatus
@@ -50,7 +50,7 @@ class ReduceCanceledSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
     internal fun `remove order`() = runBlocking<Unit> {
         val now = Instant.now()
         val seaportAddress = randomAddress()
-        val order = createOrder().copy(
+        val order = randomOrder().copy(
             make = randomErc721(),
             lastUpdateAt = now - Duration.ofMinutes(1),
             data = createOrderBasicSeaportDataV1().copy(protocol = seaportAddress),

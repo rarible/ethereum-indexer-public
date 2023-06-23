@@ -53,7 +53,7 @@ import java.time.Duration
 import java.time.Instant
 import java.util.Date
 import java.util.stream.Stream
-import com.rarible.protocol.order.api.data.createOrder as createOrderFully
+import com.rarible.protocol.order.core.data.randomOrder as createOrderFully
 
 @IntegrationTest
 class OrderSearchFt : AbstractIntegrationTest() {

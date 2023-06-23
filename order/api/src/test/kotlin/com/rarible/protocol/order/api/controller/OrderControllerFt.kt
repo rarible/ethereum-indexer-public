@@ -12,13 +12,13 @@ import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV3BuyDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV3SellDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
-import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.data.createOrderRaribleV1DataV3Buy
 import com.rarible.protocol.order.core.data.createOrderRaribleV1DataV3Sell
 import com.rarible.protocol.order.core.data.createOrderRaribleV2DataV1
+import com.rarible.protocol.order.core.data.toForm
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
@@ -53,7 +53,7 @@ import org.web3j.utils.Numeric
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
-import com.rarible.protocol.order.api.data.createOrder as createOrderFully
+import com.rarible.protocol.order.core.data.randomOrder as createOrderFully
 
 @IntegrationTest
 @Import(OrderControllerFt.TestOrderServiceConfiguration::class)

@@ -4,7 +4,7 @@ import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
-import com.rarible.protocol.order.core.data.createOrder
+import com.rarible.protocol.order.core.data.randomOrder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -22,7 +22,7 @@ class OrderControllerSyncIt  : AbstractIntegrationTest() {
         val ordersChunk = 5
 
         repeat(ordersQuantity) {
-            orderRepository.save(createOrder())
+            orderRepository.save(randomOrder())
         }
 
         var continuation : String? = null
@@ -47,7 +47,7 @@ class OrderControllerSyncIt  : AbstractIntegrationTest() {
         val ordersChunk = 9
 
         repeat(ordersQuantity) {
-            orderRepository.save(createOrder())
+            orderRepository.save(randomOrder())
         }
 
         var continuation : String? = null

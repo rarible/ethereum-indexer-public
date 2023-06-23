@@ -3,8 +3,8 @@ package com.rarible.protocol.order.core.converters.dto
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.protocol.dto.NftBidOrdersPriceUpdateEventDto
 import com.rarible.protocol.dto.NftSellOrdersPriceUpdateEventDto
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderDto
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.OrderKind
 import io.mockk.coEvery
@@ -41,7 +41,7 @@ internal class NftOrdersPriceUpdateEventConverterTest {
         kind: OrderKind,
         expectedEventType: Class<Any>
     ) = runBlocking<Unit> {
-        val order = createOrder()
+        val order = randomOrder()
         val orderDto = createOrderDto()
         val itemId = ItemId(AddressFactory.create(), randomBigInt())
 

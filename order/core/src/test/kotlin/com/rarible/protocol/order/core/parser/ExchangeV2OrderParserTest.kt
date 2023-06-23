@@ -6,10 +6,10 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
-import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.randomErc1155
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.data.randomPart
 import com.rarible.protocol.order.core.data.randomPartDto
 import com.rarible.protocol.order.core.misc.fixV
@@ -56,7 +56,7 @@ class ExchangeV2OrderParserTest {
     fun `should get parser simple sell order`() = runBlocking<Unit> {
         val newKeys = generateNewKeys()
 
-        val order = createOrder().copy(
+        val order = randomOrder().copy(
             maker = newKeys.address,
             make = randomErc721(),
             take = randomErc20(EthUInt256.of(5)),
@@ -104,7 +104,7 @@ class ExchangeV2OrderParserTest {
     fun `should get parser simple bid order`() = runBlocking<Unit> {
         val newKeys = generateNewKeys()
 
-        val order = createOrder().copy(
+        val order = randomOrder().copy(
             maker = newKeys.address,
             make = randomErc20(EthUInt256.of(5)),
             take = randomErc1155(EthUInt256.of(5)),

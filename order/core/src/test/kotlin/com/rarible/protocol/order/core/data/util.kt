@@ -110,7 +110,7 @@ import java.math.BigInteger
 import java.time.Instant
 import com.rarible.blockchain.scanner.ethereum.model.EventData as ScannerEventData
 
-fun createOrder(
+fun randomOrder(
     token: Address = AddressFactory.create(),
     tokenId: EthUInt256 = EthUInt256.TEN,
 ) =
@@ -137,12 +137,12 @@ fun createOrder(
 
 fun createSellOrder(
     data: OrderData = createOrderRaribleV2DataV1()
-) = createOrder().copy(make = randomErc721(), take = randomErc20(), data = data)
+) = randomOrder().copy(make = randomErc721(), take = randomErc20(), data = data)
 
 fun createBidOrder(
     data: OrderData = createOrderRaribleV2DataV1(),
     platform: Platform = Platform.RARIBLE,
-) = createOrder().copy(
+) = randomOrder().copy(
     make = randomErc20(),
     take = randomErc721(),
     data = data,

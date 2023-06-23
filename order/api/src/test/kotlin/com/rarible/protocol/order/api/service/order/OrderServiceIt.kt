@@ -24,10 +24,6 @@ import com.rarible.protocol.dto.OrderIdsDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
-import com.rarible.protocol.order.api.data.createOrder
-import com.rarible.protocol.order.api.data.sign
-import com.rarible.protocol.order.api.exceptions.OrderUpdateException
-import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.PlatformDtoConverter
@@ -39,7 +35,11 @@ import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.data.randomEth
+import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
+import com.rarible.protocol.order.core.data.sign
+import com.rarible.protocol.order.core.exception.OrderUpdateException
+import com.rarible.protocol.order.core.exception.ValidationApiException
 import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.Asset
@@ -896,7 +896,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val collection1 = AddressFactory.create()
         val tokenId1 = EthUInt256.of(1000)
 
-        val erc721Order1 = createOrder().copy(
+        val erc721Order1 = randomOrder().copy(
             make = Asset(Erc721AssetType(collection1, tokenId1), EthUInt256.ONE),
             makeStock = EthUInt256.TEN
         )
@@ -905,7 +905,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val collection2 = AddressFactory.create()
         val tokenId2 = EthUInt256.of(1001)
 
-        val erc1155Order2 = createOrder().copy(
+        val erc1155Order2 = randomOrder().copy(
             make = Asset(Erc1155AssetType(collection2, tokenId2), EthUInt256.ONE),
             makeStock = EthUInt256.TEN
         )
@@ -949,7 +949,7 @@ class OrderServiceIt : AbstractOrderIt() {
             ItemId(ownership2.contract, ownership2.tokenId),
         )
         val expectedContinuation = randomString()
-        val ammOrder = createOrder().copy(
+        val ammOrder = randomOrder().copy(
             type = OrderType.AMM,
             make = randomAmmNftAsset(collection),
             data = createOrderSudoSwapAmmDataV1(poolAddress = poolAddress)
@@ -980,7 +980,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val size = randomInt()
         val collection = randomAddress()
         val tokenId = EthUInt256.of(randomBigInt())
-        val ammOrder = createOrder()
+        val ammOrder = randomOrder()
         val nftIn =
             randomPoolTargetNftIn().copy(hash = ammOrder.hash, collection = collection, tokenIds = listOf(tokenId))
 
@@ -1014,7 +1014,7 @@ class OrderServiceIt : AbstractOrderIt() {
             delta = BigDecimal("0.1").eth(),
             spotPrice = BigDecimal("0.1").eth(),
         )
-        val ammOrder = createOrder().copy(
+        val ammOrder = randomOrder().copy(
             make = randomErc721(),
             take = randomEth(),
             data = data,
@@ -1053,7 +1053,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val (maker, erc20) = prepareErc20AndApprove(BigInteger.TEN)
 
         val saved = orderRepository.save(
-            createOrder(
+            randomOrder(
                 maker = maker,
                 make = Asset(Erc20AssetType(erc20.address()), EthUInt256.TEN),
                 start = Instant.now().minusSeconds(60).epochSecond,

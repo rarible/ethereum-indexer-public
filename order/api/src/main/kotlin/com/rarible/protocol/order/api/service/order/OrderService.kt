@@ -8,15 +8,14 @@ import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.PartDto
-import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.api.misc.data
-import com.rarible.protocol.order.api.service.order.validation.OrderStateValidator
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
+import com.rarible.protocol.order.core.exception.EntityNotFoundApiException
+import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
@@ -38,6 +37,7 @@ import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.OrderValidationService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
@@ -67,7 +67,7 @@ class OrderService(
     private val poolInfoProvider: PoolInfoProvider,
     private val approveService: ApproveService,
     private val commonSigner: CommonSigner,
-    private val orderStateValidator: OrderStateValidator,
+    private val orderValidationService: OrderValidationService,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
@@ -128,7 +128,7 @@ class OrderService(
             return order
         }
 
-        orderStateValidator.validate(order)
+        orderValidationService.validateState(order)
         return order
     }
 

@@ -1,12 +1,12 @@
 package com.rarible.protocol.order.api.service.aggregation
 
-import com.rarible.protocol.order.api.exceptions.ValidationApiException
+import com.rarible.protocol.order.core.exception.ValidationApiException
 import com.rarible.protocol.order.core.model.AggregatedData
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
-import java.util.*
+import java.util.Date
 
 @Component
 class OrderAggregationService(
