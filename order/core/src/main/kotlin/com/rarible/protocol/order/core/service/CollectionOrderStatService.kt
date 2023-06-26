@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.withSpan
 import com.rarible.core.common.nowMillis
@@ -105,7 +105,7 @@ class CollectionOrderStatService(
             makeNftKey.isEqualTo(true)
                 .and(makeNftContractKey).isEqualTo(token)
                 .and(ReversedEthereumLogRecord::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
-                .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
+                .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumBlockStatus.CONFIRMED)
         )
         val group = Aggregation
             .group("data.make.type.token")

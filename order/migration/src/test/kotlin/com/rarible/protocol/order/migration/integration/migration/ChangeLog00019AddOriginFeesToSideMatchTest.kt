@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.migration.integration.migration
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
@@ -76,7 +76,7 @@ internal class ChangeLog00019AddOriginFeesToSideMatchTest : AbstractMigrationTes
                 address = randomAddress(),
                 topic = Word.apply(ByteArray(32)),
                 transactionHash = randomWord(),
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 index = 0,
                 logIndex = 0,
                 minorLogIndex = 0

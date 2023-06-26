@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.service.pool
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomInt
@@ -92,7 +92,7 @@ internal class PoolEventListenerTest {
     @Test
     fun `should publish on reverted OnChainAmmOrder`() = runBlocking<Unit> {
         val event = randomSellOnChainAmmOrder()
-        val logEvent = logEvent(event).copy(status = EthereumLogStatus.REVERTED)
+        val logEvent = logEvent(event).copy(status = EthereumBlockStatus.REVERTED)
 
         coEvery { orderRepository.findById(event.hash) } returns createSellOrder()
         coEvery { orderPublisher.publish(any<OrderEventDto>()) } returns Unit
@@ -152,7 +152,7 @@ internal class PoolEventListenerTest {
             address = randomAddress(),
             topic = Word.apply(randomWord()),
             transactionHash = randomWord(),
-            status = EthereumLogStatus.CONFIRMED,
+            status = EthereumBlockStatus.CONFIRMED,
             index = 0,
             logIndex = 0,
             minorLogIndex = 0

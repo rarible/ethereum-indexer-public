@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.service.auction
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.reduce.service.Reducer
@@ -35,10 +35,10 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
         val update = AuctionUpdate(event.logEvent)
 
         val result = when (update.logStatus) {
-            EthereumLogStatus.CONFIRMED -> {
+            EthereumBlockStatus.CONFIRMED -> {
                 auction.withUpdate(update)
             }
-            EthereumLogStatus.PENDING -> {
+            EthereumBlockStatus.PENDING -> {
                 auction.withUpdate(update).withPending(update)
             }
             else -> auction

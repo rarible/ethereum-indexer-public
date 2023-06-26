@@ -113,7 +113,7 @@ abstract class AbstractSudoSwapTestnetTest {
         tokenId: BigInteger = randomBigInt()
     ): BigInteger {
         token
-            .mint(sender.from(), tokenId, "test#$tokenId")
+            .mint(sender.from(), tokenId)
             .execute()
             .verifySuccess()
 

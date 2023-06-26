@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.repository.exchange
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
@@ -66,7 +66,7 @@ internal class ExchangeHistoryRepositoryTest : AbstractIntegrationTest() {
                     address = randomAddress(),
                     topic = Word.apply(ByteArray(32)),
                     transactionHash = randomWord(),
-                    status = EthereumLogStatus.CONFIRMED,
+                    status = EthereumBlockStatus.CONFIRMED,
                     index = 0,
                     logIndex = 0,
                     minorLogIndex = 0

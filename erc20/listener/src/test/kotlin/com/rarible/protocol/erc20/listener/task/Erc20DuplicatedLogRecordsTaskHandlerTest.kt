@@ -2,7 +2,7 @@ package com.rarible.protocol.erc20.listener.task
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.task.Task
 import com.rarible.core.test.data.randomAddress
@@ -62,7 +62,7 @@ internal class Erc20DuplicatedLogRecordsTaskHandlerTest {
         log = randomLogEvent(
             randomErc20OutcomeTransfer(token, owner),
             blockNumber = 1
-        ).copy(status = EthereumLogStatus.CONFIRMED)
+        ).copy(status = EthereumBlockStatus.CONFIRMED)
         param = objectMapper.writeValueAsString(Erc20DuplicatedLogRecordsTaskParam(update = true))
         coEvery { erc20TransferHistoryRepository.findAll("from") } returns flowOf(log)
     }

@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce.status
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomBurnItemEvent
@@ -22,7 +22,7 @@ internal class ItemCalculatedFieledsReducerTest {
             supply = EthUInt256.ZERO,
             lazySupply = EthUInt256.ZERO,
             revertableEvents = listOf(
-                createRandomBurnItemEvent().withNewValues(status = EthereumLogStatus.CONFIRMED)
+                createRandomBurnItemEvent().withNewValues(status = EthereumBlockStatus.CONFIRMED)
             )
         )
         val reducedItem = reducer.reduce(item, createRandomMintItemEvent())
@@ -32,9 +32,9 @@ internal class ItemCalculatedFieledsReducerTest {
     @Test
     fun `should get the latest confirmed log for updatedAt field`() = runBlocking<Unit> {
         val now = nowMillis()
-        val event1 = createRandomMintItemEvent().withNewValues(status = EthereumLogStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(10))
-        val event2 =createRandomMintItemEvent().withNewValues(status = EthereumLogStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(1))
-        val event3 =createRandomMintItemEvent().withNewValues(status = EthereumLogStatus.PENDING, createdAt = now)
+        val event1 = createRandomMintItemEvent().withNewValues(status = EthereumBlockStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(10))
+        val event2 =createRandomMintItemEvent().withNewValues(status = EthereumBlockStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(1))
+        val event3 =createRandomMintItemEvent().withNewValues(status = EthereumBlockStatus.PENDING, createdAt = now)
         val item = createRandomItem().copy(
             revertableEvents = listOf(event1, event2, event3)
         )

@@ -40,7 +40,7 @@ class TransferDescriptorIt : AbstractIntegrationTest() {
 
         val token = TestERC721.deployAndWait(userSender, poller, "TEST", "TST").awaitFirst()
         val itemId = ItemId(token.address(), EthUInt256(BigInteger.ONE))
-        token.mint(userSender.from(), itemId.tokenId.value,"").execute().verifySuccess()
+        token.mint(userSender.from(), itemId.tokenId.value).execute().verifySuccess()
 
         Wait.waitAssert {
             val transfers = nftItemHistoryRepository

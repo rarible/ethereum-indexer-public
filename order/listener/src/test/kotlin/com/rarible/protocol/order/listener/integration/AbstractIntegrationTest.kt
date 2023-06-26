@@ -2,7 +2,7 @@ package com.rarible.protocol.order.listener.integration
 
 import com.rarible.blockchain.scanner.block.Block
 import com.rarible.blockchain.scanner.block.BlockRepository
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.application.ApplicationEnvironmentInfo
@@ -335,7 +335,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         token: Address = AddressFactory.create(),
         transactionHash: Word = WordFactory.create(),
         logIndex: Int? = null,
-        status: EthereumLogStatus = EthereumLogStatus.CONFIRMED
+        status: EthereumBlockStatus = EthereumBlockStatus.CONFIRMED
     ): T {
         if (data is OrderExchangeHistory) {
             val log = exchangeHistoryRepository.save(
@@ -391,7 +391,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 address = contractAddress,
                 topic = topic,
                 transactionHash = randomWord(),
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 index = 0,
                 logIndex = 0,
                 minorLogIndex = 0

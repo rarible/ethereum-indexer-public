@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.model
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.common.nowMillis
 import com.rarible.core.entity.reducer.model.Entity
 import com.rarible.ethereum.domain.EthUInt256
@@ -40,7 +40,7 @@ data class Ownership(
     private val _id: OwnershipId = OwnershipId(token, tokenId, owner)
 
     fun getPendingEvents(): List<OwnershipEvent> {
-        return revertableEvents.filter { it.log.status == EthereumLogStatus.PENDING }
+        return revertableEvents.filter { it.log.status == EthereumBlockStatus.PENDING }
     }
 
     fun withVersion(version: Long?): Ownership {
@@ -72,9 +72,9 @@ data class Ownership(
             && this.pending.isEmpty() // TODO this check not needed for reducerV2
         val updatedAt =
             // We try to get timestamp of the latest blockchain event
-            this.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.log?.createdAt ?:
+            this.revertableEvents.lastOrNull { it.log.status == EthereumBlockStatus.CONFIRMED }?.log?.createdAt ?:
             // If no blockchain event, we get latest pending createdAt event timestamp
-            this.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.PENDING }?.log?.createdAt ?: this.date
+            this.revertableEvents.lastOrNull { it.log.status == EthereumBlockStatus.PENDING }?.log?.createdAt ?: this.date
         return this.copy(deleted = deleted, date = updatedAt)
     }
 

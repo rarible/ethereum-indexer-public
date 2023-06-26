@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.service.block.auction
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
@@ -38,7 +38,7 @@ class AuctionEventSubscriber(
         auctionReduceService.onEvents(reduceEvent)
         // Then send all kafka Auction Activity events with attached actual Auctions
         auctionEvents
-            .filter { it.status == EthereumLogStatus.CONFIRMED }
+            .filter { it.status == EthereumBlockStatus.CONFIRMED }
             .forEach { publicActivity(it) }
     }
 

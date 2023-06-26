@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.service.task
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
@@ -74,7 +74,7 @@ class ReduceCanceledSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             address = randomAddress(),
             topic = Word.apply(ByteArray(32)),
             transactionHash = randomWord(),
-            status = EthereumLogStatus.CONFIRMED,
+            status = EthereumBlockStatus.CONFIRMED,
             index = 0,
             logIndex = 0,
             minorLogIndex = 0

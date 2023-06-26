@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
@@ -329,7 +329,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             transactionHash = randomWord(),
             index = RandomUtils.nextInt(),
             minorLogIndex = 0,
-            status = EthereumLogStatus.CONFIRMED
+            status = EthereumBlockStatus.CONFIRMED
         )
         poolHistoryRepository.save(logEvent).awaitFirst()
 

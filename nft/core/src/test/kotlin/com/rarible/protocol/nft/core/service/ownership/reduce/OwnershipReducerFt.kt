@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
@@ -27,7 +27,7 @@ internal class OwnershipReducerFt : AbstractIntegrationTest() {
         val ownership = initial()
 
         val transferTo = createRandomOwnershipTransferToEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 1)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 1)
             .copy(value = EthUInt256.ONE)
 
         val reducedOwnership = reduce(ownership, transferTo)
@@ -41,7 +41,7 @@ internal class OwnershipReducerFt : AbstractIntegrationTest() {
         val ownership = initial().copy(value = EthUInt256.TEN)
 
         val transferFrom = createRandomOwnershipTransferFromEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 1)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 1)
             .copy(value = EthUInt256.ONE)
 
         val reducedOwnership = reduce(ownership, transferFrom)
@@ -57,16 +57,16 @@ internal class OwnershipReducerFt : AbstractIntegrationTest() {
 
         val events = listOf(
             createRandomOwnershipTransferFromEvent()
-                .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 1)
+                .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 1)
                 .copy(value = EthUInt256.of(2)),
             createRandomOwnershipTransferFromEvent()
-                .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 2)
+                .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 2)
                 .copy(value = EthUInt256.of(5)),
             createRandomOwnershipTransferToEvent()
-                .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 3)
+                .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 3)
                 .copy(value = EthUInt256.ONE),
             createRandomOwnershipTransferToEvent()
-                .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 4)
+                .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 4)
                 .copy(value = EthUInt256.ONE)
         )
         val reducedOwnership = reduce(ownership, events)
@@ -81,25 +81,25 @@ internal class OwnershipReducerFt : AbstractIntegrationTest() {
         val ownership = initial().copy(value = EthUInt256.TEN)
 
         val event1 = createRandomOwnershipTransferFromEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 1)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 1)
             .copy(value = EthUInt256.of(2))
         val event2 = createRandomOwnershipTransferFromEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 2)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 2)
             .copy(value = EthUInt256.of(5))
         val duplicate1 = createRandomOwnershipTransferFromEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 2)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 2)
             .copy(value = EthUInt256.of(5))
         val event3 = createRandomOwnershipTransferToEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 3, logIndex = 10, minorLogIndex = 0)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 3, logIndex = 10, minorLogIndex = 0)
             .copy(value = EthUInt256.ONE)
         val duplicate2 = createRandomOwnershipTransferToEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 3, logIndex = 10, minorLogIndex = 0)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 3, logIndex = 10, minorLogIndex = 0)
             .copy(value = EthUInt256.ONE)
         val event4 = createRandomOwnershipTransferToEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 4)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 4)
             .copy(value = EthUInt256.ONE)
         val duplicate3 = createRandomOwnershipTransferFromEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 2)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 2)
             .copy(value = EthUInt256.of(5))
 
         val reducedOwnership = reduce(ownership, event1, event2, duplicate1, event3, duplicate2, event4, duplicate3)
@@ -115,17 +115,17 @@ internal class OwnershipReducerFt : AbstractIntegrationTest() {
         val ownership = initial().copy(value = EthUInt256.TEN)
 
         val notRevertable1 = createRandomOwnershipTransferFromEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 1)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 1)
         val notRevertable2 = createRandomOwnershipTransferFromEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 2)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 2)
         val notRevertable3 = createRandomOwnershipTransferToEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 3)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 3)
         val revertable1 = createRandomOwnershipTransferToEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 14)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 14)
         val revertable2 = createRandomOwnershipTransferToEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 15)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 15)
         val revertable3 = createRandomOwnershipTransferToEvent()
-            .withNewValues(status = EthereumLogStatus.CONFIRMED, blockNumber = 16)
+            .withNewValues(status = EthereumBlockStatus.CONFIRMED, blockNumber = 16)
 
         val reducedOwnership = reduce(
             ownership, notRevertable1, notRevertable2, notRevertable3, revertable1, revertable2, revertable3

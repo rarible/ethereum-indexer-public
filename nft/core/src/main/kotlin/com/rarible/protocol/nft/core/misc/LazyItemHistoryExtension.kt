@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.misc
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.model.LazyItemHistory
@@ -16,7 +16,7 @@ fun LazyItemHistory.wrapWithEthereumLogRecord(): ReversedEthereumLogRecord {
         id = ObjectId().toHexString(),
         version = null,
         transactionHash = WORD_ZERO.prefixed(),
-        status = EthereumLogStatus.CONFIRMED,
+        status = EthereumBlockStatus.CONFIRMED,
         topic = WORD_ZERO,
         blockNumber = -1,
         logIndex = -1,

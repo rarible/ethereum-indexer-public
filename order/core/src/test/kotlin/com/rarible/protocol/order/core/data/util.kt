@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.data
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
@@ -567,7 +567,7 @@ fun createOnChainOrder(): OnChainOrder {
 
 fun createLogEvent(
     data: EventData,
-    status: EthereumLogStatus = EthereumLogStatus.CONFIRMED,
+    status: EthereumBlockStatus = EthereumBlockStatus.CONFIRMED,
     blockNumber: Long = 0
 ): ReversedEthereumLogRecord {
     return ReversedEthereumLogRecord(
@@ -849,7 +849,7 @@ fun createRandomEthereumLog(
 ): EthereumLog =
     EthereumLog(
         transactionHash = randomWord(),
-        status = EthereumLogStatus.values().random(),
+        status = EthereumBlockStatus.values().random(),
         address = randomAddress(),
         topic = Word.apply(randomWord()),
         blockHash = Word.apply(randomWord()),
@@ -874,7 +874,7 @@ fun createLogRecordEvent(data: ScannerEventData): LogRecordEvent {
     val record = createLogRecord(data)
     return LogRecordEvent(
         record = record,
-        reverted = record.status == EthereumLogStatus.REVERTED,
+        reverted = record.status == EthereumBlockStatus.REVERTED,
         eventTimeMarks = EventTimeMarks("test")
     )
 }

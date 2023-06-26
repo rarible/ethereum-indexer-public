@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.repository.pool
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
@@ -268,7 +268,7 @@ internal class PoolHistoryRepositoryTest : AbstractIntegrationTest() {
                 address = randomAddress(),
                 topic = Word.apply(ByteArray(32)),
                 transactionHash = randomWord(),
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = blockNumber,
                 logIndex = logIndex,
                 minorLogIndex = minorLogIndex,

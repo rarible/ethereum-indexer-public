@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce.status
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
@@ -18,7 +18,7 @@ class ItemCalculatedFieldsReducer : Reducer<ItemEvent, Item> {
 
         val updatedAt =
             // We try to get timestamp of the latest blockchain event
-            entity.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.log?.createdAt ?:
+            entity.revertableEvents.lastOrNull { it.log.status == EthereumBlockStatus.CONFIRMED }?.log?.createdAt ?:
             entity.date
 
         return entity.copy(deleted = deleted, supply = value, date = updatedAt)

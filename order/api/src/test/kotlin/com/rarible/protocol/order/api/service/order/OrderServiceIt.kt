@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.api.service.order
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.contracts.test.erc1271.TestERC1271
 import com.rarible.core.common.nowMillis
@@ -992,7 +992,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 address = randomAddress(),
                 topic = Word.apply(ByteArray(32)),
                 transactionHash = randomWord(),
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 1,
                 minorLogIndex = 1,

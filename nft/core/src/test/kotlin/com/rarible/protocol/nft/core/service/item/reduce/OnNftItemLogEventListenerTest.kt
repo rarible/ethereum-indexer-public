@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.contracts.erc721.TransferEvent
 import com.rarible.core.common.EventTimeMarks
@@ -42,7 +42,7 @@ class OnNftItemLogEventListenerTest {
     @Test
     fun `on log event - not confirmed`() = runBlocking<Unit> {
         val record = randomReversedLogRecord(createItemHistory()).copy(
-            status = EthereumLogStatus.REVERTED,
+            status = EthereumBlockStatus.REVERTED,
             topic = TransferEvent.id()
         )
 

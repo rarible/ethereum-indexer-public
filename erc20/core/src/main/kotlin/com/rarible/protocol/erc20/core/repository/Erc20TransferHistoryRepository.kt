@@ -1,6 +1,6 @@
 package com.rarible.protocol.erc20.core.repository
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.mongo.util.div
@@ -101,7 +101,7 @@ class Erc20TransferHistoryRepository(
             }
     }
 
-    fun Criteria.confirmed() = this.and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
+    fun Criteria.confirmed() = this.and(ReversedEthereumLogRecord::status).isEqualTo(EthereumBlockStatus.CONFIRMED)
 
     fun findAll(fromIdExcluded: String?): Flow<ReversedEthereumLogRecord> =
         template.find(

@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.service.order
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.task.TaskService
 import com.rarible.core.test.data.randomAddress
@@ -43,7 +43,7 @@ class OrderReduceTaskHandlerTest : AbstractIntegrationTest() {
             transactionHash = randomWord(),
             index = RandomUtils.nextInt(),
             minorLogIndex = 0,
-            status = EthereumLogStatus.CONFIRMED
+            status = EthereumBlockStatus.CONFIRMED
         )
         exchangeHistoryRepository.save(logEvent).awaitFirst()
 

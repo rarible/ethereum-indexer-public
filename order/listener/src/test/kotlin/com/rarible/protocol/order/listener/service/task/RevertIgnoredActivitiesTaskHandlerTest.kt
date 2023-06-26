@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.service.task
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.test.data.randomString
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
@@ -54,7 +54,7 @@ class RevertIgnoredActivitiesTaskHandlerTest {
             } returns activities[index]
 
             coEvery {
-                exchangeHistoryRepository.save(event.copy(status = EthereumLogStatus.REVERTED))
+                exchangeHistoryRepository.save(event.copy(status = EthereumBlockStatus.REVERTED))
             } returns Mono.just(event)
         }
         every {

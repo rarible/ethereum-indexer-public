@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.data
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
@@ -183,7 +183,7 @@ fun createAuctionLogEvent(data: AuctionHistory) = ReversedEthereumLogRecord(
     transactionHash = randomWord(),
     index = RandomUtils.nextInt(),
     minorLogIndex = 0,
-    status = EthereumLogStatus.CONFIRMED
+    status = EthereumBlockStatus.CONFIRMED
 )
 
 fun randomLogList(auctions: List<Auction>): List<ReversedEthereumLogRecord> {

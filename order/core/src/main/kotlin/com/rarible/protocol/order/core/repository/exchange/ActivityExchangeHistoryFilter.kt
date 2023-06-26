@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.repository.exchange
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.domain.EthUInt256
@@ -42,7 +42,7 @@ sealed class ActivityExchangeHistoryFilter {
 
     internal open val hint: Document? = null
     internal abstract val sort: ActivitySort
-    internal open val status: EthereumLogStatus = EthereumLogStatus.CONFIRMED
+    internal open val status: EthereumBlockStatus = EthereumBlockStatus.CONFIRMED
 
     class AllSell(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
@@ -79,7 +79,7 @@ sealed class ActivityExchangeHistoryFilter {
 
     class AllRevertedSync(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
-        override val status: EthereumLogStatus = EthereumLogStatus.REVERTED
+        override val status: EthereumBlockStatus = EthereumBlockStatus.REVERTED
         override fun getCriteria(): Criteria {
             return Criteria().andOperator(
                 takeOrderExchange exists true,
