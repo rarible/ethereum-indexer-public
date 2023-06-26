@@ -4,9 +4,9 @@ import com.rarible.ethereum.common.keccak256
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
-import org.web3j.crypto.Hash
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
+import org.web3jold.crypto.Hash
+import org.web3jold.crypto.Keys
+import org.web3jold.crypto.Sign
 import scalether.domain.Address
 import java.nio.charset.StandardCharsets
 import kotlin.experimental.and

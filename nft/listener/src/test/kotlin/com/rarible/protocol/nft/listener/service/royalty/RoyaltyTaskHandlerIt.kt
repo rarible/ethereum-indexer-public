@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import scala.Tuple2
 import scalether.domain.Address

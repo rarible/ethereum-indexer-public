@@ -45,8 +45,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
-import org.web3j.crypto.Sign
-import org.web3j.utils.Numeric
+import org.web3jold.crypto.Sign
+import org.web3jold.utils.Numeric
 import scala.Tuple11
 import scala.Tuple12
 import scala.Tuple2

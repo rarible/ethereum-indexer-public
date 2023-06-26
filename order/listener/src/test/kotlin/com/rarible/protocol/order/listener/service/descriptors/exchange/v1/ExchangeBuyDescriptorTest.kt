@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.request.Transaction

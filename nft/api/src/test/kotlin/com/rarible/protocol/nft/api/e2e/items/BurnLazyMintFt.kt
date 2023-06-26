@@ -47,8 +47,8 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
+import org.web3jold.crypto.Keys
+import org.web3jold.crypto.Sign
 import scalether.abi.Uint256Type
 import scalether.domain.Address
 import java.math.BigInteger

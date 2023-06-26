@@ -20,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 
 // This test is flaky due to kafka events from other tests can change metrics
 // Better to run these test separately

@@ -2,7 +2,7 @@ package com.rarible.protocol.order.core.model
 
 import com.rarible.protocol.order.core.misc.EMPTY_SIGNATURE
 import io.daonomic.rpc.domain.Binary
-import org.web3j.crypto.Sign
+import org.web3jold.crypto.Sign
 import java.math.BigInteger
 
 data class BlurInput(

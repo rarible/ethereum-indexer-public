@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider

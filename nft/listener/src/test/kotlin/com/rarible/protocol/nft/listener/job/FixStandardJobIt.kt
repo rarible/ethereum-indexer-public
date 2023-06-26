@@ -29,7 +29,7 @@ import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.isEqualTo
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.domain.AddressFactory
 import scalether.transaction.MonoSigningTransactionSender

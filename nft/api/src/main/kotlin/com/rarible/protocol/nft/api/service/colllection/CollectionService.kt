@@ -24,8 +24,8 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.time.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import org.web3j.crypto.Sign
-import org.web3j.utils.Numeric
+import org.web3jold.crypto.Sign
+import org.web3jold.utils.Numeric
 import scalether.abi.Uint256Type
 import scalether.domain.Address
 import scalether.util.Hex
