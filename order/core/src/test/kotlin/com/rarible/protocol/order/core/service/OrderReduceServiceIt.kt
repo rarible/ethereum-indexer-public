@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
@@ -254,7 +254,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 address = data.exchange,
                 topic = Word.apply(randomWord()),
                 transactionHash = randomWord(),
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
@@ -296,7 +296,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 address = data.protocol,
                 topic = Word.apply(randomWord()),
                 transactionHash = randomWord(),
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
@@ -336,7 +336,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 address = data.exchange,
                 topic = Word.apply(randomWord()),
                 transactionHash = randomWord(),
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
@@ -378,7 +378,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 address = data.protocol,
                 topic = Word.apply(randomWord()),
                 transactionHash = randomWord(),
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
@@ -421,7 +421,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 address = data.protocol,
                 topic = Word.apply(randomWord()),
                 transactionHash = randomWord(),
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
@@ -593,7 +593,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     fun `should remove amm order if history reverted`() = runBlocking<Unit> {
         val onChainAmmOrder = randomSellOnChainAmmOrder()
         orderRepository.save(randomOrder().copy(id = Order.Id(onChainAmmOrder.hash), hash = onChainAmmOrder.hash))
-        prepareStorage(EthereumLogStatus.REVERTED, onChainAmmOrder)
+        prepareStorage(EthereumBlockStatus.REVERTED, onChainAmmOrder)
 
         val result = orderReduceService.updateOrder(onChainAmmOrder.hash)!!
 
@@ -672,7 +672,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(updated?.status).isEqualTo(OrderStatus.ACTIVE)
     }
 
-    private suspend fun prepareStorage(status: EthereumLogStatus, vararg histories: OrderExchangeHistory) {
+    private suspend fun prepareStorage(status: EthereumBlockStatus, vararg histories: OrderExchangeHistory) {
         histories.forEachIndexed { index, history ->
             exchangeHistoryRepository.save(
                 ReversedEthereumLogRecord(
@@ -693,7 +693,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         }
     }
 
-    private suspend fun prepareStorage(status: EthereumLogStatus, vararg histories: PoolHistory) {
+    private suspend fun prepareStorage(status: EthereumBlockStatus, vararg histories: PoolHistory) {
         histories.forEachIndexed { index, history ->
             poolHistoryRepository.save(
                 ReversedEthereumLogRecord(
@@ -715,11 +715,11 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     }
 
     private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {
-        prepareStorage(EthereumLogStatus.CONFIRMED, *histories)
+        prepareStorage(EthereumBlockStatus.CONFIRMED, *histories)
     }
 
     private suspend fun prepareStorage(vararg histories: PoolHistory) {
-        prepareStorage(EthereumLogStatus.CONFIRMED, *histories)
+        prepareStorage(EthereumBlockStatus.CONFIRMED, *histories)
     }
 
     private suspend fun prepareStorage(vararg orderVersions: OrderVersion) {

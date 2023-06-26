@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.converters
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
@@ -80,7 +80,7 @@ internal class OrderActivityConverterTest {
                 transactionHash = randomWord(),
                 index = RandomUtils.nextInt(),
                 minorLogIndex = 0,
-                status = EthereumLogStatus.CONFIRMED
+                status = EthereumBlockStatus.CONFIRMED
             )
             Stream.of(
                 Arguments.of(

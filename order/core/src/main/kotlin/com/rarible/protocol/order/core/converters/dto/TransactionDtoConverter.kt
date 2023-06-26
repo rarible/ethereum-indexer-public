@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.converters.dto
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.protocol.dto.LogEventDto
 import io.daonomic.rpc.domain.Word
@@ -18,13 +18,13 @@ object TransactionDtoConverter : Converter<ReversedEthereumLogRecord, LogEventDt
         )
     }
 
-    private fun convert(source: EthereumLogStatus): LogEventDto.Status {
+    private fun convert(source: EthereumBlockStatus): LogEventDto.Status {
         return when (source) {
-            EthereumLogStatus.PENDING -> LogEventDto.Status.PENDING
-            EthereumLogStatus.CONFIRMED -> LogEventDto.Status.CONFIRMED
-            EthereumLogStatus.REVERTED -> LogEventDto.Status.REVERTED
-            EthereumLogStatus.DROPPED -> LogEventDto.Status.DROPPED
-            EthereumLogStatus.INACTIVE -> LogEventDto.Status.INACTIVE
+            EthereumBlockStatus.PENDING -> LogEventDto.Status.PENDING
+            EthereumBlockStatus.CONFIRMED -> LogEventDto.Status.CONFIRMED
+            EthereumBlockStatus.REVERTED -> LogEventDto.Status.REVERTED
+            EthereumBlockStatus.DROPPED -> LogEventDto.Status.DROPPED
+            EthereumBlockStatus.INACTIVE -> LogEventDto.Status.INACTIVE
         }
     }
 }

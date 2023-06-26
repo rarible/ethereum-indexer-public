@@ -1,6 +1,6 @@
 package com.rarible.protocol.erc20.core.service.reduce
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.core.integration.AbstractIntegrationTest
@@ -36,7 +36,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             balance = EthUInt256.Companion.of(7)
         )
         val erc20IncomeTransferEvent = randomIncomeTransferEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1)
             .copy(
                 value = EthUInt256.TEN,
                 token = token,
@@ -58,7 +58,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             balance = EthUInt256.Companion.of(7)
         )
         val event = randomIncomeTransferEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
             .copy(
                 value = EthUInt256.TEN,
                 token = token,
@@ -66,7 +66,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             )
 
         val revertedEvent = event
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
 
         val reducedItem = reduce(entity, event, revertedEvent)
         Assertions.assertThat(reducedItem.balance).isEqualTo(EthUInt256.of(7))
@@ -83,7 +83,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             balance = EthUInt256.Companion.of(7)
         )
         val incomeTransferEvent = randomIncomeTransferEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
             .copy(
                 value = EthUInt256.TEN,
                 token = token,
@@ -91,7 +91,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             )
 
         val outcomeTransferEvent = randomOutcomeTransferEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2, logIndex = 2, minorLogIndex = 2)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2, logIndex = 2, minorLogIndex = 2)
             .copy(
                 value = EthUInt256.ONE,
                 token = token,
@@ -99,7 +99,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             )
 
         val incomeTransferSecondEvent = randomIncomeTransferEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 3, logIndex = 3, minorLogIndex = 3)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 3, logIndex = 3, minorLogIndex = 3)
             .copy(
                 value = EthUInt256.TEN,
                 token = token,
@@ -107,10 +107,10 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             )
 
         val revertedEvent = incomeTransferSecondEvent
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 3, logIndex = 3, minorLogIndex = 3)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 3, logIndex = 3, minorLogIndex = 3)
 
         val withdrawalEvent = randomWithdrawalEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 4, logIndex = 4, minorLogIndex = 4)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 4, logIndex = 4, minorLogIndex = 4)
             .copy(
                 value = EthUInt256.of(6),
                 token = token,
@@ -118,7 +118,7 @@ internal class Erc20BalanceReducerFt : AbstractIntegrationTest() {
             )
 
         val depositEvent = randomDepositEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 5, logIndex = 5, minorLogIndex = 5)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 5, logIndex = 5, minorLogIndex = 5)
             .copy(
                 value = EthUInt256.of(4),
                 token = token,

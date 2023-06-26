@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.service.pool.listener
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.core.data.createLogEvent
@@ -49,7 +49,7 @@ internal class PoolActivityListenerTest {
     @ParameterizedTest
     @MethodSource("swapEvents")
     fun `should publish events`(event: PoolHistory, reverted: Boolean) = runBlocking<Unit> {
-        val logEvent = createLogEvent(event).copy(status = if (reverted) EthereumLogStatus.REVERTED else EthereumLogStatus.CONFIRMED)
+        val logEvent = createLogEvent(event).copy(status = if (reverted) EthereumBlockStatus.REVERTED else EthereumBlockStatus.CONFIRMED)
 
         val activityDto = mockk<OrderActivityDto>()
 

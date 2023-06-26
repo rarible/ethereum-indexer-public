@@ -1,6 +1,6 @@
 package com.rarible.protocol.erc20.listener.service
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
@@ -98,7 +98,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
                     address = token,
                     topic = word(),
                     transactionHash = randomWord(),
-                    status = EthereumLogStatus.CONFIRMED,
+                    status = EthereumBlockStatus.CONFIRMED,
                     blockNumber = 1,
                     logIndex = 0,
                     minorLogIndex = index,

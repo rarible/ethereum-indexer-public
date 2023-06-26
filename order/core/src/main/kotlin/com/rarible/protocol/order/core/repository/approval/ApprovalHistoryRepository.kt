@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.repository.approval
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogRecord
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
@@ -42,7 +42,7 @@ class ApprovalHistoryRepository(
         val criteria: Criteria = where(ReversedEthereumLogRecord::data / ApprovalHistory::collection).isEqualTo(collection)
             .and(ReversedEthereumLogRecord::data / ApprovalHistory::owner).isEqualTo(owner)
             .and(ReversedEthereumLogRecord::data / ApprovalHistory::operator).isEqualTo(operator)
-            .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
+            .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumBlockStatus.CONFIRMED)
 
         val query = Query.query(criteria)
         query.with(Sort.by(

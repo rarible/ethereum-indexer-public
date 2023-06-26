@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.integration
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
@@ -138,7 +138,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         token: Address = AddressFactory.create(),
         transactionHash: Word = WordFactory.create(),
         logIndex: Int? = null,
-        status: EthereumLogStatus = EthereumLogStatus.CONFIRMED
+        status: EthereumBlockStatus = EthereumBlockStatus.CONFIRMED
     ): T {
         if (data is OrderExchangeHistory) {
             val log = exchangeHistoryRepository.save(

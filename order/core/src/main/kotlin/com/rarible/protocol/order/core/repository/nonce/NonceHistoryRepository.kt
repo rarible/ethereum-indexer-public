@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.repository.nonce
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
@@ -42,7 +42,7 @@ class NonceHistoryRepository(
     suspend fun findLatestNonceHistoryByMaker(maker: Address, address: Address): ReversedEthereumLogRecord? {
         val criteria = (ReversedEthereumLogRecord::data / ChangeNonceHistory::maker isEqualTo  maker)
             .and(ReversedEthereumLogRecord::address).isEqualTo(address)
-            .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
+            .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumBlockStatus.CONFIRMED)
 
         val query = Query(criteria).with(LOG_SORT_DESC)
         return template.findOne(query, ReversedEthereumLogRecord::class.java, COLLECTION).awaitFirstOrNull()

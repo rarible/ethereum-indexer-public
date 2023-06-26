@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
@@ -139,7 +139,7 @@ class OrderReduceService(
                 is OrderUpdate.ByExchangeLogEvent -> {
                     val exchangeHistory = update.logEvent.data.toExchangeHistory()
 
-                    if (exchangeHistory.isOnChainOrder() && update.logEvent.status != EthereumLogStatus.CONFIRMED) {
+                    if (exchangeHistory.isOnChainOrder() && update.logEvent.status != EthereumBlockStatus.CONFIRMED) {
                         seenRevertedOnChainOrder = true
                     }
                     order.updateWith(update.logEvent, exchangeHistory, update.eventId)
@@ -148,7 +148,7 @@ class OrderReduceService(
                 is OrderUpdate.ByPoolLogEvent -> {
                     val poolHistory = update.logEvent.data.toPoolHistory()
 
-                    if (poolHistory.isOnChainAmmOrder() && update.logEvent.status != EthereumLogStatus.CONFIRMED) {
+                    if (poolHistory.isOnChainAmmOrder() && update.logEvent.status != EthereumBlockStatus.CONFIRMED) {
                         seenRevertedOnChainOrder = true
                     }
                     order.updateWith(update.logEvent, poolHistory, update.eventId)
@@ -192,7 +192,7 @@ class OrderReduceService(
         }
         @Suppress("KotlinConstantConditions")
         return when (logEvent.status) {
-            EthereumLogStatus.CONFIRMED -> when (orderExchangeHistory) {
+            EthereumBlockStatus.CONFIRMED -> when (orderExchangeHistory) {
                 is OrderSideMatch -> {
                     if (orderExchangeHistory.adhoc == true && type == OrderType.CRYPTO_PUNKS) {
                         /*
@@ -236,7 +236,7 @@ class OrderReduceService(
         eventId: String
     ): Order {
         return when (logEvent.status) {
-            EthereumLogStatus.CONFIRMED -> {
+            EthereumBlockStatus.CONFIRMED -> {
                 poolReducer.reduce(this, poolHistory).copy(
                     lastEventId = accumulateEventId(lastEventId, eventId),
                     lastUpdateAt = maxOf(lastUpdateAt, poolHistory.date),
@@ -253,7 +253,7 @@ class OrderReduceService(
         eventId: String
     ): Order {
         val onChainOrderKey = logEvent.toLogEventKey()
-        return if (logEvent.status == EthereumLogStatus.CONFIRMED) {
+        return if (logEvent.status == EthereumBlockStatus.CONFIRMED) {
             val orderVersion = onChainOrder.toOrderVersion()
                 .copy(onChainOrderKey = onChainOrderKey)
                 .let { priceUpdateService.withUpdatedAllPrices(it) }

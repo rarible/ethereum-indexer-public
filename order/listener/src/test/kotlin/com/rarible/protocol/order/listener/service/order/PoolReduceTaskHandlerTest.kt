@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.service.order
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
@@ -33,7 +33,7 @@ class PoolReduceTaskHandlerTest : AbstractIntegrationTest() {
             transactionHash = randomWord(),
             index = RandomUtils.nextInt(),
             minorLogIndex = 0,
-            status = EthereumLogStatus.CONFIRMED
+            status = EthereumBlockStatus.CONFIRMED
         )
         poolHistoryRepository.save(logEvent).awaitFirst()
         val hash = handler.runLongTask(from = null, param = "").toList().map { Word.apply(it) }.single()

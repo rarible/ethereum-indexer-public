@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.repository.pool
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
@@ -95,7 +95,7 @@ class PoolHistoryRepository(
         val criteria = Criteria().andOperator(
             ReversedEthereumLogRecord::data / PoolHistory::hash isEqualTo hash,
             ReversedEthereumLogRecord::data / PoolHistory::type isEqualTo PoolHistoryType.POOL_CREAT,
-            ReversedEthereumLogRecord::status isEqualTo EthereumLogStatus.CONFIRMED,
+            ReversedEthereumLogRecord::status isEqualTo EthereumBlockStatus.CONFIRMED,
         )
         val query = Query(criteria)
             .with(POOL_CHANGE_SORT_ASC)
@@ -109,7 +109,7 @@ class PoolHistoryRepository(
         val criteria = Criteria().andOperator(
             ReversedEthereumLogRecord::data / PoolNftChange::collection isEqualTo collection,
             ReversedEthereumLogRecord::data / PoolNftChange::tokenIds isEqualTo tokenId,
-            ReversedEthereumLogRecord::status isEqualTo EthereumLogStatus.CONFIRMED,
+            ReversedEthereumLogRecord::status isEqualTo EthereumBlockStatus.CONFIRMED,
         )
         val query = Query(criteria)
             .with(POOL_CHANGE_SORT_DESC)
@@ -129,7 +129,7 @@ class PoolHistoryRepository(
         val criteria = Criteria().andOperator(
             ReversedEthereumLogRecord::data / PoolDataUpdate::hash isEqualTo hash,
             ReversedEthereumLogRecord::data / PoolDataUpdate::type isEqualTo type,
-            ReversedEthereumLogRecord::status isEqualTo EthereumLogStatus.CONFIRMED,
+            ReversedEthereumLogRecord::status isEqualTo EthereumBlockStatus.CONFIRMED,
             Criteria().orOperator(
                 Criteria().andOperator(
                     ReversedEthereumLogRecord::blockNumber isEqualTo blockNumber,

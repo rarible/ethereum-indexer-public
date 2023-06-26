@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
@@ -240,7 +240,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
 
         // Revert OnChainOrder log events.
         exchangeHistoryRepository.findReversedEthereumLogRecords(orderHash, null).asFlow().collect { logEvent ->
-            exchangeHistoryRepository.save(logEvent.copy(status = EthereumLogStatus.REVERTED)).awaitFirst()
+            exchangeHistoryRepository.save(logEvent.copy(status = EthereumBlockStatus.REVERTED)).awaitFirst()
         }
         orderUpdateService.update(orderHash, orderOffchainEventMarks())
         assertThat(orderVersionRepository.findAllByHash(orderHash).count()).isEqualTo(0)

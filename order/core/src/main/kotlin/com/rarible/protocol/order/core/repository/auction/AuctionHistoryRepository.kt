@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.repository.auction
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
@@ -52,7 +52,7 @@ class AuctionHistoryRepository(
 
     fun searchActivity(filter: ActivityAuctionHistoryFilter, size: Int): Flux<ReversedEthereumLogRecord> {
         val hint = filter.hint
-        val criteria = filter.getCriteria().and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
+        val criteria = filter.getCriteria().and(ReversedEthereumLogRecord::status).isEqualTo(EthereumBlockStatus.CONFIRMED)
 
         val query = Query(criteria).limit(size)
 

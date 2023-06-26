@@ -1,7 +1,7 @@
 package com.rarible.protocol.erc20.core
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
@@ -23,7 +23,7 @@ fun randomEthereumLog(
 ): EthereumLog =
     EthereumLog(
         transactionHash = randomWord(),
-        status = EthereumLogStatus.values().random(),
+        status = EthereumBlockStatus.values().random(),
         address = randomAddress(),
         topic = Word.apply(randomWord()),
         blockHash = Word.apply(randomWord()),
@@ -117,7 +117,7 @@ fun randomTokenApprovalEvent(): Erc20Event.Erc20TokenApprovalEvent {
 }
 
 fun EthereumLog.withNewValues(
-    status: EthereumLogStatus? = null,
+    status: EthereumBlockStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,
@@ -137,7 +137,7 @@ fun EthereumLog.withNewValues(
 )
 
 fun Erc20Event.Erc20IncomeTransferEvent.withNewValues(
-    status: EthereumLogStatus? = null,
+    status: EthereumBlockStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,
@@ -147,7 +147,7 @@ fun Erc20Event.Erc20IncomeTransferEvent.withNewValues(
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, index = index))
 
 fun Erc20Event.Erc20OutcomeTransferEvent.withNewValues(
-    status: EthereumLogStatus? = null,
+    status: EthereumBlockStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,
@@ -157,7 +157,7 @@ fun Erc20Event.Erc20OutcomeTransferEvent.withNewValues(
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, index = index))
 
 fun Erc20Event.Erc20DepositEvent.withNewValues(
-    status: EthereumLogStatus? = null,
+    status: EthereumBlockStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,
@@ -167,7 +167,7 @@ fun Erc20Event.Erc20DepositEvent.withNewValues(
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, index = index))
 
 fun Erc20Event.Erc20WithdrawalEvent.withNewValues(
-    status: EthereumLogStatus? = null,
+    status: EthereumBlockStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,
@@ -177,7 +177,7 @@ fun Erc20Event.Erc20WithdrawalEvent.withNewValues(
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, index = index))
 
 fun Erc20Event.Erc20TokenApprovalEvent.withNewValues(
-    status: EthereumLogStatus? = null,
+    status: EthereumBlockStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,

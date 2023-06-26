@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.service.task
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
@@ -43,7 +43,7 @@ class RevertIgnoredActivitiesTaskHandler(
     }
 
     private suspend fun saveWithRevertedStatus(logEvent: ReversedEthereumLogRecord) {
-        exchangeHistoryRepository.save(logEvent.copy(status = EthereumLogStatus.REVERTED)).awaitFirst()
+        exchangeHistoryRepository.save(logEvent.copy(status = EthereumBlockStatus.REVERTED)).awaitFirst()
     }
 
     companion object {

@@ -29,7 +29,7 @@ class KafkaEntityEventConsumer(
     private val workerCount: Int
 ) : AutoCloseable {
 
-    private val topicPrefix = getLogTopicPrefix(environment, service, blockchain)
+    private val topicPrefix = getLogTopicPrefix(environment, service, blockchain, "log")
     private val clientIdPrefix = "$environment.$host.${java.util.UUID.randomUUID()}.$blockchain"
     private val batchedConsumerWorkers = arrayListOf<ConsumerWorkerHolder<*>>()
 

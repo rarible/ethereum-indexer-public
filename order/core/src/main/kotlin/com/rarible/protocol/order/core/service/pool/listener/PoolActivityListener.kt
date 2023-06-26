@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.service.pool.listener
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.EventTimeMarks
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
@@ -22,7 +22,7 @@ class PoolActivityListener(
 ) : PoolEventListener {
 
     override suspend fun onPoolEvent(event: ReversedEthereumLogRecord, eventTimeMarks: EventTimeMarks) {
-        val reverted = event.status == EthereumLogStatus.REVERTED
+        val reverted = event.status == EthereumBlockStatus.REVERTED
         val activity = when (event.data as PoolHistory) {
             is PoolTargetNftIn,
             is PoolTargetNftOut -> PoolActivityResult.History(event)

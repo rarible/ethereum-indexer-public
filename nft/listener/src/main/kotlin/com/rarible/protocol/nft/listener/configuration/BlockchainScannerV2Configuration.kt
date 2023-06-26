@@ -1,9 +1,15 @@
 package com.rarible.protocol.nft.listener.configuration
 
 import com.rarible.blockchain.scanner.configuration.KafkaProperties
+import com.rarible.blockchain.scanner.consumer.TransactionRecordConsumerWorkerFactory
+import com.rarible.blockchain.scanner.consumer.TransactionRecordMapper
+import com.rarible.blockchain.scanner.consumer.kafka.KafkaTransactionRecordConsumerWorkerFactory
+import com.rarible.blockchain.scanner.consumer.kafka.KafkaTransactionRecordEventConsumer
 import com.rarible.blockchain.scanner.ethereum.EnableEthereumScanner
 import com.rarible.blockchain.scanner.ethereum.configuration.EthereumScannerProperties
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
+import com.rarible.blockchain.scanner.framework.data.TransactionRecordEvent
+import com.rarible.blockchain.scanner.framework.listener.TransactionRecordEventListener
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.ethereum.listener.log.LogEventDescriptorHolder
@@ -48,6 +54,39 @@ class BlockchainScannerV2Configuration(
             workerCount = nftListenerProperties.logConsumeWorkerCount,
             ignoreContracts = ignoredTokenResolver.resolve(),
         ).apply { start(entityEventListener) }
+    }
+
+    @Bean
+    fun transactionRecordConsumerWorkerFactory(): TransactionRecordConsumerWorkerFactory {
+        return KafkaTransactionRecordConsumerWorkerFactory(
+            properties = KafkaProperties(
+                brokerReplicaSet = nftIndexerProperties.kafkaReplicaSet,
+            ),
+            daemonProperties = nftListenerProperties.eventConsumerWorker,
+            meterRegistry = meterRegistry,
+            host = applicationEnvironmentInfo.host,
+            environment = applicationEnvironmentInfo.name,
+            blockchain = nftIndexerProperties.blockchain.value,
+            service = ethereumScannerProperties.service,
+        )
+    }
+
+    @Bean
+    fun transactionEntityEventConsumer(
+        transactionRecordEventListeners: List<TransactionRecordEventListener>,
+        consumerWorkerFactory: TransactionRecordConsumerWorkerFactory
+    ): KafkaTransactionRecordEventConsumer {
+        return KafkaTransactionRecordEventConsumer(consumerWorkerFactory).apply {
+            start(
+                transactionRecordListeners = transactionRecordEventListeners,
+                transactionRecordType = TransactionRecordEvent::class.java,
+                transactionRecordMapper = object : TransactionRecordMapper<TransactionRecordEvent> {
+                    override fun map(event: TransactionRecordEvent): TransactionRecordEvent = event
+                },
+                transactionRecordFilters = emptyList(),
+                workerCount = nftListenerProperties.logConsumeWorkerCount,
+            )
+        }
     }
 
     //TODO: Remove this workaround after full migrate to blockchain scanner v2

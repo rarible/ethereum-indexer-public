@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.converters.model
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -13,11 +13,11 @@ object LogEventToReversedEthereumLogRecordConverter {
             version = source.version,
             transactionHash = source.transactionHash.prefixed(),
             status = when (source.status) {
-                LogEventStatus.CONFIRMED -> EthereumLogStatus.CONFIRMED
-                LogEventStatus.PENDING -> EthereumLogStatus.PENDING
-                LogEventStatus.REVERTED -> EthereumLogStatus.REVERTED
-                LogEventStatus.DROPPED -> EthereumLogStatus.DROPPED
-                LogEventStatus.INACTIVE -> EthereumLogStatus.INACTIVE
+                LogEventStatus.CONFIRMED -> EthereumBlockStatus.CONFIRMED
+                LogEventStatus.PENDING -> EthereumBlockStatus.PENDING
+                LogEventStatus.REVERTED -> EthereumBlockStatus.REVERTED
+                LogEventStatus.DROPPED -> EthereumBlockStatus.DROPPED
+                LogEventStatus.INACTIVE -> EthereumBlockStatus.INACTIVE
             },
             topic = source.topic,
             minorLogIndex = source.minorLogIndex,

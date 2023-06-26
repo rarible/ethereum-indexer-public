@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.repository.nonce
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
@@ -76,7 +76,7 @@ internal class NonceHistoryRepositoryTest : AbstractIntegrationTest() {
             date = nowMillis(),
             source = HistorySource.OPEN_SEA
         )
-        saveLog(nonce0, address1, blockNumber = 100, logIndex = 100, minorLogIndex = 100, status = EthereumLogStatus.REVERTED)
+        saveLog(nonce0, address1, blockNumber = 100, logIndex = 100, minorLogIndex = 100, status = EthereumBlockStatus.REVERTED)
         saveLog(nonce1, address1, blockNumber = 10, logIndex = 2, minorLogIndex = 2)
         saveLog(nonce2, address1, blockNumber = 10, logIndex = 2, minorLogIndex = 1)
         saveLog(nonce3, address1, blockNumber = 10, logIndex = 1, minorLogIndex = 2)
@@ -99,7 +99,7 @@ internal class NonceHistoryRepositoryTest : AbstractIntegrationTest() {
         blockNumber: Long,
         logIndex: Int,
         minorLogIndex: Int,
-        status: EthereumLogStatus = EthereumLogStatus.CONFIRMED
+        status: EthereumBlockStatus = EthereumBlockStatus.CONFIRMED
     ) {
         nonceHistoryRepository.save(
             ReversedEthereumLogRecord(

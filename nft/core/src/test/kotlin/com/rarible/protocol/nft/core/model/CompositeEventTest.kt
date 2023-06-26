@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.model
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferToEvent
 import com.rarible.protocol.nft.core.data.withNewValues
@@ -12,14 +12,14 @@ internal class CompositeEventTest {
     fun `get min event from item event`() {
         val itemEvent1 = createRandomMintItemEvent()
             .withNewValues(
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1L,
                 logIndex = 1,
                 minorLogIndex = 1,
             )
         val itemEvent2 = createRandomMintItemEvent()
             .withNewValues(
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = 2L,
                 logIndex = 1,
                 minorLogIndex = 1,
@@ -36,14 +36,14 @@ internal class CompositeEventTest {
     fun `get min event from item ownership`() {
         val ownershipEvent1 = createRandomOwnershipTransferToEvent()
             .withNewValues(
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1L,
                 logIndex = 1,
                 minorLogIndex = 1,
             )
         val ownershipEvent2 = createRandomOwnershipTransferToEvent()
             .withNewValues(
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1L,
                 logIndex = 1,
                 minorLogIndex = 2,

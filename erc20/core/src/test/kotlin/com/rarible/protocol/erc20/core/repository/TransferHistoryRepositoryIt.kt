@@ -1,6 +1,6 @@
 package com.rarible.protocol.erc20.core.repository
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.erc20.core.integration.AbstractIntegrationTest
@@ -181,11 +181,11 @@ class TransferHistoryRepositoryIt : AbstractIntegrationTest() {
         val logEvent1 = randomLogEvent(
             randomErc20OutcomeTransfer(token, owner),
             blockNumber = 1
-        ).copy(status = EthereumLogStatus.CONFIRMED)
+        ).copy(status = EthereumBlockStatus.CONFIRMED)
         val logEvent2 = randomLogEvent(
             randomErc20IncomeTransfer(token, owner),
             blockNumber = 2
-        ).copy(status = EthereumLogStatus.REVERTED)
+        ).copy(status = EthereumBlockStatus.REVERTED)
 
         saveAll(logEvent1, logEvent2)
 
@@ -202,11 +202,11 @@ class TransferHistoryRepositoryIt : AbstractIntegrationTest() {
         val logEvent1 = randomLogEvent(
             randomErc20OutcomeTransfer(token, owner),
             blockNumber = 1
-        ).copy(status = EthereumLogStatus.CONFIRMED)
+        ).copy(status = EthereumBlockStatus.CONFIRMED)
         val logEvent2 = randomLogEvent(
             randomErc20IncomeTransfer(token, owner),
             blockNumber = 2
-        ).copy(status = EthereumLogStatus.CONFIRMED)
+        ).copy(status = EthereumBlockStatus.CONFIRMED)
 
         val saved = saveAll(logEvent1, logEvent2)
 
@@ -225,11 +225,11 @@ class TransferHistoryRepositoryIt : AbstractIntegrationTest() {
         val logEvent1 = randomLogEvent(
             randomErc20OutcomeTransfer(token, owner),
             blockNumber = 1
-        ).copy(status = EthereumLogStatus.CONFIRMED)
+        ).copy(status = EthereumBlockStatus.CONFIRMED)
         val logEvent2 = randomLogEvent(
             randomErc20IncomeTransfer(token, owner),
             blockNumber = 2
-        ).copy(status = EthereumLogStatus.CONFIRMED)
+        ).copy(status = EthereumBlockStatus.CONFIRMED)
         val possibleDuplicate =
             logEvent1.copy(minorLogIndex = logEvent1.minorLogIndex + 1, id = ObjectId().toHexString())
 

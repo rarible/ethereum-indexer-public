@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.api.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomWord
@@ -176,7 +176,7 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
                 address = Address.ZERO(),
                 topic = Word.apply(randomWord()),
                 transactionHash = randomWord(),
-                status = EthereumLogStatus.CONFIRMED,
+                status = EthereumBlockStatus.CONFIRMED,
                 index = 0,
                 logIndex = 0,
                 minorLogIndex = 0

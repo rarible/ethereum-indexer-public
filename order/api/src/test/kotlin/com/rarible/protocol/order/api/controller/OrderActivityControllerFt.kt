@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
@@ -1296,14 +1296,14 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
     @Test
     fun `should sync all reverted history activity`() = runBlocking<Unit> {
         val reverted = listOf(
-            createLogEvent(orderErc721BidCancel(), status = EthereumLogStatus.REVERTED),
-            createLogEvent(orderErc721SellSideMatch(), status = EthereumLogStatus.REVERTED),
-            createLogEvent(orderErc721SellCancel(), status = EthereumLogStatus.REVERTED)
+            createLogEvent(orderErc721BidCancel(), status = EthereumBlockStatus.REVERTED),
+            createLogEvent(orderErc721SellSideMatch(), status = EthereumBlockStatus.REVERTED),
+            createLogEvent(orderErc721SellCancel(), status = EthereumBlockStatus.REVERTED)
         )
         val confirmed = listOf(
-            createLogEvent(orderErc721BidCancel(), status = EthereumLogStatus.CONFIRMED),
-            createLogEvent(orderErc721SellSideMatch(), status = EthereumLogStatus.CONFIRMED),
-            createLogEvent(orderErc721SellCancel(), status = EthereumLogStatus.CONFIRMED)
+            createLogEvent(orderErc721BidCancel(), status = EthereumBlockStatus.CONFIRMED),
+            createLogEvent(orderErc721SellSideMatch(), status = EthereumBlockStatus.CONFIRMED),
+            createLogEvent(orderErc721SellCancel(), status = EthereumBlockStatus.CONFIRMED)
         )
         saveHistory(*(reverted + confirmed).shuffled().toTypedArray())
 

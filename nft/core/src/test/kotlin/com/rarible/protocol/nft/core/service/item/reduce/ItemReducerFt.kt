@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -41,7 +41,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val minter = randomAddress()
         val item = initial()
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1)
             .copy(supply = EthUInt256.TEN, owner = minter)
 
         val reducedItem = reduce(item, mint)
@@ -57,9 +57,9 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             revertableEvents = emptyList()
         )
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
         val revertedMint = mint
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
 
         val reducedItem = reduce(item, mint, revertedMint)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
@@ -74,9 +74,9 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             revertableEvents = emptyList()
         )
         val burn = createRandomBurnItemEvent() .copy(supply = EthUInt256.ONE)
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
         val revertedBurn = burn
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
 
         val reducedItem = reduce(item, burn, revertedBurn)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
@@ -90,14 +90,14 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val minter = randomAddress()
         val item = initial()
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.PENDING, blockNumber = null, minorLogIndex = 0)
+            .withNewValues(EthereumBlockStatus.PENDING, blockNumber = null, minorLogIndex = 0)
             .copy(supply = EthUInt256.TEN, owner = minter)
 
         val reducedItem1 = reduce(item, mint)
         assertThat(reducedItem1.revertableEvents).hasSize(1)
         assertThat(reducedItem1.date).isEqualTo(mint.log.createdAt)
 
-        val inactiveMint = mint.withNewValues(EthereumLogStatus.INACTIVE)
+        val inactiveMint = mint.withNewValues(EthereumBlockStatus.INACTIVE)
         val reducedItem2 = reduce(reducedItem1, inactiveMint)
         assertThat(reducedItem2.revertableEvents).hasSize(0)
     }
@@ -108,10 +108,10 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val item = initial()
 
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
             .copy(supply = EthUInt256.TEN, owner = minter)
         val revertedMint = mint
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
 
         val reducedItem = reduce(item, mint, revertedMint)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
@@ -125,10 +125,10 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val item = initial()
 
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1)
             .copy(supply = EthUInt256.TEN, owner = minter)
         val burn = createRandomBurnItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2)
             .copy(supply = EthUInt256.TEN, owner = minter)
 
         val reducedItem = reduce(item, mint, burn)
@@ -144,13 +144,13 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val item = initial()
 
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
             .copy(supply = EthUInt256.TEN, owner = minter)
         val burn = createRandomBurnItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
             .copy(supply = EthUInt256.TEN, owner = minter)
         val revertedBurn = burn
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
 
         val burnItem = reduce(item, mint, burn)
         assertThat(burnItem.deleted).isTrue()
@@ -168,10 +168,10 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val item = initial()
 
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1)
             .copy(supply = EthUInt256.TEN, owner = minter)
         val burn = createRandomBurnItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2)
             .copy(supply = EthUInt256.ONE, owner = minter)
 
         val reducedItem = reduce(item, mint, burn)
@@ -187,10 +187,10 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val item = initial()
 
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1)
             .copy(supply = EthUInt256.TEN, owner = minter)
         val transfer = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2)
             .copy(value = EthUInt256.TEN, from = minter, to = owner)
 
         val reducedItem = reduce(item, mint, transfer)
@@ -206,13 +206,13 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val item = initial()
 
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
             .copy(supply = EthUInt256.TEN, owner = minter)
         val transfer = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
             .copy(value = EthUInt256.TEN, from = minter, to = owner)
         val revertedTransfer = transfer
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
 
         val reducedItem = reduce(item, mint, transfer)
 
@@ -232,13 +232,13 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val lazyMint = createRandomLazyMintItemEvent()
             .copy(supply = EthUInt256.ONE, creators = creators)
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1)
             .copy(supply = EthUInt256.ONE, owner = minter)
         val transfer = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 2)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 2)
             .copy(value = EthUInt256.ONE, from = minter, to = owner)
         val creator = createRandomCreatorsItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 3)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 3)
             .copy(creators = creators)
 
         val reducedItem = reduce(item, lazyMint, mint, transfer, creator)
@@ -260,22 +260,22 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             .copy(supply = EthUInt256.ONE, creators = creators)
 
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
             .copy(supply = EthUInt256.ONE, owner = minter)
         val revertedMint = mint
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
 
         val transfer = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 2, minorLogIndex = 2)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 2, minorLogIndex = 2)
             .copy(value = EthUInt256.ONE, from = minter, to = owner)
         val revertedTransfer = transfer
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 2, minorLogIndex = 2)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 1, logIndex = 2, minorLogIndex = 2)
 
         val creator = createRandomCreatorsItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 3, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 3, minorLogIndex = 1)
             .copy(creators = creators)
         val revertedCreator = creator
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 3, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 1, logIndex = 3, minorLogIndex = 1)
 
         val reducedItem = reduce(item, lazyMint, mint, transfer, creator, revertedCreator, revertedTransfer, revertedMint)
 
@@ -299,34 +299,34 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
 
         val events = listOf(
             createRandomMintItemEvent()
-                .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1)
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1)
                 .copy(supply = EthUInt256.TEN, owner = minter),
             createRandomTransferItemEvent()
-                .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2)
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2)
                 .copy(value = EthUInt256.of(2), from = minter, to = owner1),
             createRandomTransferItemEvent()
-                .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 3)
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 3)
                 .copy(value = EthUInt256.of(1), from = owner1, to = owner2),
             createRandomTransferItemEvent()
-                .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 4)
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 4)
                 .copy(value = EthUInt256.of(1), from = owner1, to = owner2),
             createRandomTransferItemEvent()
-                .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 5)
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 5)
                 .copy(value = EthUInt256.of(5), from = minter, to = owner3),
             createRandomTransferItemEvent()
-                .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 6)
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 6)
                 .copy(value = EthUInt256.of(1), from = owner3, to = owner4),
             createRandomTransferItemEvent()
-                .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 7)
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 7)
                 .copy(value = EthUInt256.of(2), from = owner3, to = owner5),
             createRandomTransferItemEvent()
-                .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 8)
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 8)
                 .copy(value = EthUInt256.of(2), from = owner3, to = owner6),
             createRandomTransferItemEvent()
-                .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 9)
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 9)
                 .copy(value = EthUInt256.of(1), from = owner5, to = owner7),
             createRandomBurnItemEvent()
-                .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 10)
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 10)
                 .copy(supply = EthUInt256.of(1), owner = owner7),
         )
 
@@ -350,64 +350,64 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val item = initial()
 
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
             .copy(supply = EthUInt256.TEN, owner = minter)
         val revertedMint = mint
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
 
         val transfer1 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
             .copy(value = EthUInt256.of(2), from = minter, to = owner1)
         val revertedTransfer1 = transfer1
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
 
         val transfer2 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 3, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 3, logIndex = 1, minorLogIndex = 1)
             .copy(value = EthUInt256.of(1), from = owner1, to = owner2)
         val revertedTransfer2 = transfer2
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 3, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 3, logIndex = 1, minorLogIndex = 1)
 
         val transfer3 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 4, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 4, logIndex = 1, minorLogIndex = 1)
             .copy(value = EthUInt256.of(1), from = owner1, to = owner2)
         val revertedTransfer3 = transfer3
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 4, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 4, logIndex = 1, minorLogIndex = 1)
 
         val transfer4 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 5, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 5, logIndex = 1, minorLogIndex = 1)
             .copy(value = EthUInt256.of(5), from = minter, to = owner3)
         val revertedTransfer4 = transfer4
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 5, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 5, logIndex = 1, minorLogIndex = 1)
 
         val transfer5 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 6, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 6, logIndex = 1, minorLogIndex = 1)
             .copy(value = EthUInt256.of(1), from = owner3, to = owner4)
         val revertedTransfer5 = transfer5
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 6, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 6, logIndex = 1, minorLogIndex = 1)
 
         val transfer6 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 7, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 7, logIndex = 1, minorLogIndex = 1)
             .copy(value = EthUInt256.of(2), from = owner3, to = owner5)
         val revertedTransfer6 = transfer6
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 7, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 7, logIndex = 1, minorLogIndex = 1)
 
         val transfer7 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 8, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 8, logIndex = 1, minorLogIndex = 1)
             .copy(value = EthUInt256.of(2), from = owner3, to = owner6)
         val revertedTransfer7 = transfer7
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 8, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 8, logIndex = 1, minorLogIndex = 1)
 
         val transfer8 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 9, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 9, logIndex = 1, minorLogIndex = 1)
             .copy(value = EthUInt256.of(1), from = owner5, to = owner7)
         val revertedTransfer8 = transfer8
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 9, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 9, logIndex = 1, minorLogIndex = 1)
 
         val burn = createRandomBurnItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 10, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 10, logIndex = 1, minorLogIndex = 1)
             .copy(supply = EthUInt256.of(1), owner = owner7)
         val revertedBurn = burn
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 10, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 10, logIndex = 1, minorLogIndex = 1)
 
         val reducedItem = reduce(
             item,
@@ -532,17 +532,17 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val item = initial()
 
         val mint = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1)
         val transfer1 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2)
         val transfer2 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 3)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 3)
         val transfer3 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 14)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 14)
         val transfer4 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 15)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 15)
         val transfer5 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 16)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 16)
 
         val reducedItem = reduce(item, mint, transfer1, transfer2, transfer3, transfer4, transfer5)
 
@@ -559,18 +559,18 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val item = initial()
 
         val event1 = createRandomMintItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
             .copy(supply = EthUInt256.TEN, owner = minter)
         val duplicate1 = event1.withNewValues(blockNumber = 1, logIndex = 1, minorLogIndex = 1)
         val event2 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 2)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2)
             .copy(value = EthUInt256.of(2), from = minter, to = owner1)
         val event3 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 3, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 3, logIndex = 1, minorLogIndex = 1)
             .copy(value = EthUInt256.of(1), from = owner1, to = owner2)
         val duplicate2 = event3.withNewValues(blockNumber = 3, logIndex = 1, minorLogIndex = 1)
         val event4 = createRandomTransferItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 4)
+            .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 4)
             .copy(value = EthUInt256.of(1), from = owner1, to = owner2)
 
         val reducedItem = reduce(
@@ -594,7 +594,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         )
         val event = createRandomOpenSeaLazyItemMintEvent()
             .withNewValues(
-                EthereumLogStatus.CONFIRMED,
+                EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 1,
                 minorLogIndex = 1,
@@ -624,7 +624,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         )
         val event = createRandomTransferItemEvent()
             .withNewValues(
-                EthereumLogStatus.CONFIRMED,
+                EthereumBlockStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 1,
                 minorLogIndex = 1,
@@ -635,7 +635,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
                 to = owner
             )
         val revertedEvent = event
-            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
 
         val reducedItem = reduce(item, event, revertedEvent)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)

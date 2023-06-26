@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256

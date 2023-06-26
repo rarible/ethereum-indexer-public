@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.api.data
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
@@ -194,7 +194,7 @@ fun orderErc721BidCancel(): OrderCancel {
 
 fun createLogEvent(
     data: OrderExchangeHistory,
-    status: EthereumLogStatus = EthereumLogStatus.CONFIRMED
+    status: EthereumBlockStatus = EthereumBlockStatus.CONFIRMED
 ) = ReversedEthereumLogRecord(
     id = ObjectId().toHexString(),
     data = data,

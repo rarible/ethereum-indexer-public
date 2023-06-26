@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.repository.exchange
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
@@ -109,7 +109,7 @@ class ExchangeHistoryRepository(
         val tokenIdKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / NftAssetType::tokenId
         val criteria = tokenKey.isEqualTo(token)
             .and(tokenIdKey).isEqualTo(tokenId)
-            .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
+            .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumBlockStatus.CONFIRMED)
         val query = Query
             .query(criteria)
             .with(
@@ -127,7 +127,7 @@ class ExchangeHistoryRepository(
         val tokenIdKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::take / Asset::type / NftAssetType::tokenId
         val criteria = tokenKey.isEqualTo(token)
             .and(tokenIdKey).isEqualTo(tokenId)
-            .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumLogStatus.CONFIRMED)
+            .and(ReversedEthereumLogRecord::status).isEqualTo(EthereumBlockStatus.CONFIRMED)
         val query = Query
             .query(criteria)
             .with(
@@ -264,7 +264,7 @@ class ExchangeHistoryRepository(
             (ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / AssetType::nft  isEqualTo true)
                 .and(ReversedEthereumLogRecord::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
                 .and(ReversedEthereumLogRecord::data / OrderExchangeHistory::date).gt(startDate).lt(endDate)
-                .and(ReversedEthereumLogRecord::status).inValues(EthereumLogStatus.PENDING, EthereumLogStatus.CONFIRMED)
+                .and(ReversedEthereumLogRecord::status).inValues(EthereumBlockStatus.PENDING, EthereumBlockStatus.CONFIRMED)
                 .run { source?.let { and(ReversedEthereumLogRecord::data / OrderExchangeHistory::source).isEqualTo(it) } ?: this }
         )
         val group = Aggregation

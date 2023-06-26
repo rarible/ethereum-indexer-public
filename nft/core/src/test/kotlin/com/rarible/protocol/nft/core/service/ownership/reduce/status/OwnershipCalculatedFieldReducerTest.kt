@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce.status
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.data.*
 import kotlinx.coroutines.runBlocking
@@ -14,9 +14,9 @@ internal class OwnershipCalculatedFieldReducerTest {
     @Test
     fun `should get the latest confirmed log for updatedAt field`() = runBlocking<Unit> {
         val now = nowMillis()
-        val event1 = createRandomOwnershipTransferToEvent().withNewValues(status = EthereumLogStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(11))
-        val event2 = createRandomOwnershipTransferToEvent().withNewValues(status = EthereumLogStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(1))
-        val event3 = createRandomOwnershipTransferToEvent().withNewValues(status = EthereumLogStatus.PENDING, createdAt = now)
+        val event1 = createRandomOwnershipTransferToEvent().withNewValues(status = EthereumBlockStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(11))
+        val event2 = createRandomOwnershipTransferToEvent().withNewValues(status = EthereumBlockStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(1))
+        val event3 = createRandomOwnershipTransferToEvent().withNewValues(status = EthereumBlockStatus.PENDING, createdAt = now)
 
         val ownership = createRandomOwnership().copy(
             revertableEvents = listOf(event1, event2, event3)
@@ -28,8 +28,8 @@ internal class OwnershipCalculatedFieldReducerTest {
     @Test
     fun `should get the latest pending log for updatedAt field`() = runBlocking<Unit> {
         val now = nowMillis()
-        val event1 = createRandomOwnershipTransferToEvent().withNewValues(status = EthereumLogStatus.PENDING, createdAt = now - Duration.ofMinutes(1))
-        val event2 = createRandomOwnershipTransferToEvent().withNewValues(status = EthereumLogStatus.PENDING, createdAt = now)
+        val event1 = createRandomOwnershipTransferToEvent().withNewValues(status = EthereumBlockStatus.PENDING, createdAt = now - Duration.ofMinutes(1))
+        val event2 = createRandomOwnershipTransferToEvent().withNewValues(status = EthereumBlockStatus.PENDING, createdAt = now)
 
         val ownership = createRandomOwnership().copy(
             revertableEvents = listOf(event1, event2)

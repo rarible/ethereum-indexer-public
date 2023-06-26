@@ -1,6 +1,6 @@
 package com.rarible.protocol.erc20.core.repository.data
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
@@ -34,7 +34,7 @@ fun randomLogEvent(
         address = history.token,
         topic = Word.apply(randomWord()),
         transactionHash = randomWord(),
-        status = EthereumLogStatus.CONFIRMED,
+        status = EthereumBlockStatus.CONFIRMED,
         blockNumber = blockNumber,
         logIndex = logIndex,
         minorLogIndex = minorLogIndex,

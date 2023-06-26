@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.protocol.nft.core.converters.dto.NftActivityConverter
 import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
@@ -22,7 +22,7 @@ class OnNftItemLogEventListener(
     suspend fun onLogEvent(logEvent: LogRecordEvent) {
         try {
             val record = logEvent.record.asEthereumLogRecord()
-            if (record.status == EthereumLogStatus.CONFIRMED &&
+            if (record.status == EthereumBlockStatus.CONFIRMED &&
                 record.log.topic in topics
             ) {
                 val activity = nftActivityConverter.convert(record, logEvent.reverted)
