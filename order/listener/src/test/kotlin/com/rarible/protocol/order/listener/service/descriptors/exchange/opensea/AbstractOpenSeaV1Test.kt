@@ -15,7 +15,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.BeforeEach
-import org.web3j.utils.Numeric
+import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender

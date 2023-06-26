@@ -11,6 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.ens.EnsResolver
+import scalether.domain.Address
 
 @End2EndTest
 class DomainControllerFt : AbstractIntegrationTest() {
@@ -25,5 +26,14 @@ class DomainControllerFt : AbstractIntegrationTest() {
         every { endResolver.resolve(name) } returns address
         val result = nftDomainControllerApi.resolveDomainByName(name).awaitSingle()
         assertThat(result.registrant).isEqualTo(address)
+    }
+
+    @Test
+    fun `resolve - empty result`() = runBlocking<Unit> {
+        val name = randomEnsDomain()
+        val address = Address.ZERO().prefixed()
+        every { endResolver.resolve(name) } returns address
+        val result = nftDomainControllerApi.resolveDomainByName(name).awaitSingle()
+        assertThat(result.registrant).isBlank()
     }
 }

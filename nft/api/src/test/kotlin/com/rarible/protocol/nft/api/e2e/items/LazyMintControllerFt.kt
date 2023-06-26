@@ -39,8 +39,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.web3j.crypto.Keys
-import org.web3j.utils.Numeric
+import org.web3jold.crypto.Keys
+import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.AddressFactory
