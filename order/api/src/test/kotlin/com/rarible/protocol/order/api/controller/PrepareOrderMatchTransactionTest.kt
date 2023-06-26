@@ -188,7 +188,7 @@ class PrepareOrderMatchTransactionTest : AbstractOrderIt() {
         )
 
         erc721.setApprovalForAll(transferProxy.address(), true).withSender(sellerSender).execute().verifySuccess()
-        erc721.mint(seller, BigInteger.ONE, "uri").execute().verifySuccess()
+        erc721.mint(seller, BigInteger.ONE).execute().verifySuccess()
 
         val buyerKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val buyer = MonoSigningTransactionSender(

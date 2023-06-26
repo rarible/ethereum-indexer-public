@@ -347,7 +347,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         orderUpdateService.save(bidOrder)
 
         token1.mint(userSender1.from(), BigInteger.TEN).execute().verifySuccess()
-        token721.mint(userSender2.from(), BigInteger.ONE, "test").execute().verifySuccess()
+        token721.mint(userSender2.from(), BigInteger.ONE).execute().verifySuccess()
 
         val signature = hashToSign(Order.hash(bidOrder)).sign(privateKey1)
 
@@ -800,7 +800,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         orderUpdateService.save(bidOrder)
 
         token1.mint(userSender1.from(), BigInteger.TEN).execute().verifySuccess()
-        token721.mint(userSender2.from(), BigInteger.ONE, "test").execute().verifySuccess()
+        token721.mint(userSender2.from(), BigInteger.ONE).execute().verifySuccess()
 
         val signature = hashToSign(Order.hash(bidOrder)).sign(privateKey1)
 
@@ -1270,7 +1270,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         orderUpdateService.save(bidOrder)
 
         token1.mint(userSender1.from(), BigInteger.TEN).execute().verifySuccess()
-        token721.mint(userSender2.from(), BigInteger.ONE, "test").execute().verifySuccess()
+        token721.mint(userSender2.from(), BigInteger.ONE).execute().verifySuccess()
 
         val signature = hashToSign(Order.hash(bidOrder)).sign(privateKey1)
 
@@ -1381,7 +1381,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         orderUpdateService.save(bidOrder)
 
         token1.mint(userSender1.from(), BigInteger.valueOf(100)).execute().verifySuccess()
-        token721.mint(userSender2.from(), BigInteger.ONE, "test").execute().verifySuccess()
+        token721.mint(userSender2.from(), BigInteger.ONE).execute().verifySuccess()
 
         val signature = hashToSign(Order.hash(bidOrder)).sign(privateKey1)
 

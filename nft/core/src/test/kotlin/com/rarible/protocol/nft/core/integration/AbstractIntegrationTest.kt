@@ -16,7 +16,6 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
-import com.rarible.protocol.dto.NftCollectionSetBaseUriEventDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
@@ -311,18 +310,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
             assertThat(collectionEvents).anySatisfy(Consumer { event ->
                 assertThat(event).isInstanceOfSatisfying(NftCollectionUpdateEventDto::class.java) {
                     assertThat(it.collection).isEqualTo(expected)
-                }
-            })
-        }
-    }
-
-    protected suspend fun checkCollectionSetBaseUriWasPublished(
-        expected: Address
-    ) = coroutineScope {
-        Wait.waitAssert {
-            assertThat(collectionEvents).anySatisfy(Consumer { event ->
-                assertThat(event).isInstanceOfSatisfying(NftCollectionSetBaseUriEventDto::class.java) {
-                    assertThat(it.id).isEqualTo(expected)
                 }
             })
         }
