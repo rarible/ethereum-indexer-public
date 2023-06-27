@@ -45,13 +45,12 @@ class BlockchainScannerV2Configuration(
             properties = KafkaProperties(
                 brokerReplicaSet = nftIndexerProperties.kafkaReplicaSet,
             ),
-            daemonProperties = nftListenerProperties.eventConsumerWorker,
-            meterRegistry = meterRegistry,
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name,
             blockchain = nftIndexerProperties.blockchain.value,
             service = ethereumScannerProperties.service,
             workerCount = nftListenerProperties.logConsumeWorkerCount,
+            batchSize = nftListenerProperties.logConsumeWorkerBatchSize,
             ignoreContracts = ignoredTokenResolver.resolve(),
         ).apply { start(entityEventListener) }
     }
