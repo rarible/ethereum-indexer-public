@@ -2,8 +2,8 @@ package com.rarible.protocol.order.listener.configuration
 
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.daemon.sequential.ConsumerWorker
-import com.rarible.core.kafka.RaribleKafkaConsumer
+import com.rarible.core.kafka.RaribleKafkaConsumerFactory
+import com.rarible.core.kafka.RaribleKafkaConsumerWorker
 import com.rarible.core.task.EnableRaribleTask
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
@@ -21,7 +21,6 @@ import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.core.service.OrderCancelService
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
 import com.rarible.protocol.order.listener.job.LooksrareOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.OrderStartEndCheckerWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
@@ -61,7 +60,7 @@ import org.springframework.context.annotation.Configuration
 @EnableRaribleTask
 @EnableConfigurationProperties(OrderIndexerProperties::class, OrderListenerProperties::class)
 class OrderListenerConfiguration(
-    environmentInfo: ApplicationEnvironmentInfo,
+    private val environmentInfo: ApplicationEnvironmentInfo,
     private val commonProperties: OrderIndexerProperties,
     private val listenerProperties: OrderListenerProperties,
     private val meterRegistry: MeterRegistry,
@@ -79,6 +78,14 @@ class OrderListenerConfiguration(
     @Bean
     fun blockchain(): Blockchain {
         return commonProperties.blockchain
+    }
+
+    @Bean
+    fun raribleKafkaConsumerFactory(): RaribleKafkaConsumerFactory {
+        return RaribleKafkaConsumerFactory(
+            env = environmentInfo.name,
+            host = environmentInfo.host
+        )
     }
 
     @Bean
@@ -118,66 +125,53 @@ class OrderListenerConfiguration(
 
     @Bean
     fun erc20BalanceChangeWorker(
+        factory: RaribleKafkaConsumerFactory,
         handler: Erc20BalanceConsumerEventHandler
-    ): ConsumerWorker<Erc20BalanceEventDto> {
-        val args = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsConsumer(
-            consumerGroup = erc20BalanceConsumerGroup,
-            blockchain = blockchain()
+    ): RaribleKafkaConsumerWorker<Erc20BalanceEventDto> {
+        val settings = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsKafkaConsumerSettings(
+            group = erc20BalanceConsumerGroup,
+            blockchain = blockchain(),
+            concurrency = listenerProperties.balanceConsumerWorkersCount,
+            batchSize = listenerProperties.balanceConsumerBatchSize,
         )
-        val consumer = RaribleKafkaConsumer<Erc20BalanceEventDto>(
-            clientId = args.clientId,
-            consumerGroup = args.consumerGroup,
-            valueDeserializerClass = args.valueDeserializerClass,
-            defaultTopic = args.defaultTopic,
-            bootstrapServers = args.bootstrapServers,
-            offsetResetStrategy = args.offsetResetStrategy
+        return factory.createWorker(
+            settings = settings,
+            handler = handler
         )
-        return ConsumerWorker(
-            consumer = consumer,
-            eventHandler = handler,
-            meterRegistry = meterRegistry,
-            workerName = "erc20-balance-handler"
-        ).apply { start() }
     }
 
     @Bean
     fun ownershipChangeWorker(
+        factory: RaribleKafkaConsumerFactory,
         handler: OwnershipConsumerEventHandler
-    ): BatchedConsumerWorker<NftOwnershipEventDto> {
-        val consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
+    ): RaribleKafkaConsumerWorker<NftOwnershipEventDto> {
+        val settings = nftIndexerEventsConsumerFactory.createOwnershipEventsKafkaConsumerSettings(
             ownershipBalanceConsumerGroup,
-            blockchain = blockchain()
+            blockchain = blockchain(),
+            concurrency = listenerProperties.ownershipConsumerWorkersCount,
+            batchSize = listenerProperties.ownershipConsumerBatchSize,
         )
-        return BatchedConsumerWorker(
-            (1..listenerProperties.ownershipConsumerWorkersCount).map { index ->
-                ConsumerWorker(
-                    consumer = consumer,
-                    eventHandler = handler,
-                    meterRegistry = meterRegistry,
-                    workerName = "ownership-handler-$index"
-                )
-            }
-        ).apply { start() }
+        return factory.createWorker(
+            settings = settings,
+            handler = handler
+        )
     }
 
     @Bean
     fun itemChangeWorker(
+        factory: RaribleKafkaConsumerFactory,
         handler: ItemConsumerEventHandler
-    ): BatchedConsumerWorker<NftItemEventDto> {
-        val consumer = nftIndexerEventsConsumerFactory.createItemEventsConsumer(
+    ): RaribleKafkaConsumerWorker<NftItemEventDto> {
+        val settings = nftIndexerEventsConsumerFactory.createItemEventsKafkaConsumerSettings(
             consumerGroup = itemConsumerGroup,
-            blockchain = blockchain()
+            blockchain = blockchain(),
+            concurrency = listenerProperties.itemConsumerWorkersCount,
+            batchSize = listenerProperties.itemConsumerBatchSize,
         )
-        return BatchedConsumerWorker(
-            (1..listenerProperties.itemConsumerWorkersCount).map { index ->
-                ConsumerWorker(
-                    consumer = consumer,
-                    eventHandler = handler,
-                    meterRegistry = meterRegistry,
-                    workerName = "item-handler-$index"
-                )
-            }
-        ).apply { start() }
+        return factory.createWorker(
+            settings = settings,
+            handler = handler
+        )
     }
 
     @Bean
