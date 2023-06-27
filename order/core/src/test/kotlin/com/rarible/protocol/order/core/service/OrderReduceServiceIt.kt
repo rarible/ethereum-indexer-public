@@ -680,6 +680,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(saved.status).isEqualTo(OrderStatus.ACTIVE)
 
         val updated = orderReduceService.updateOrder(order.hash, true)
+
+        // Inactive because we didn't set approval
         assertThat(updated?.status).isEqualTo(OrderStatus.INACTIVE)
         assertThat(updated?.approved).isFalse
     }
