@@ -63,7 +63,6 @@ class BlockchainScannerV2Configuration(
                 brokerReplicaSet = nftIndexerProperties.kafkaReplicaSet,
             ),
             daemonProperties = nftListenerProperties.eventConsumerWorker,
-            meterRegistry = meterRegistry,
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name,
             blockchain = nftIndexerProperties.blockchain.value,
