@@ -93,7 +93,7 @@ internal class BalanceBatchCheckerTest {
         every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("3")))
 
         balanceBatchCheckerHandler.handle(erc20Event(91, 5))
-        balanceBatchCheckerHandler.handle(erc20Event(91, 5))
+        balanceBatchCheckerHandler.handle(erc20Event(92))
         balanceBatchCheckerHandler.handle(erc20Event(93))
 
         checkMetrics(3, 1, 1)
