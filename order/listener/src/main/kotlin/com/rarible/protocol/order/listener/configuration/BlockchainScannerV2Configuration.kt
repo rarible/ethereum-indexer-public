@@ -13,7 +13,6 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.ethereum.listener.log.LogEventDescriptorHolder
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -25,7 +24,6 @@ class BlockchainScannerV2Configuration(
     private val commonProperties: OrderIndexerProperties,
     private val listenerProperties: OrderListenerProperties,
     private val ethereumScannerProperties: EthereumScannerProperties,
-    private val meterRegistry: MeterRegistry,
     private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
     @Bean
@@ -35,7 +33,6 @@ class BlockchainScannerV2Configuration(
                 brokerReplicaSet = commonProperties.kafkaReplicaSet,
             ),
             daemonProperties = listenerProperties.eventConsumerWorker,
-            meterRegistry = meterRegistry,
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name,
             blockchain = commonProperties.blockchain.value,
