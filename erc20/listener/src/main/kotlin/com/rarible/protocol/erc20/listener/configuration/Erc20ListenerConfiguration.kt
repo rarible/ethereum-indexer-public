@@ -2,8 +2,8 @@ package com.rarible.protocol.erc20.listener.configuration
 
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.daemon.sequential.ConsumerBatchWorker
-import com.rarible.core.kafka.RaribleKafkaConsumer
+import com.rarible.core.kafka.RaribleKafkaConsumerFactory
+import com.rarible.core.kafka.RaribleKafkaConsumerWorker
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
@@ -29,14 +29,21 @@ import scalether.core.MonoEthereum
 @EnableConfigurationProperties(Erc20ListenerProperties::class)
 @Import(ProducerConfiguration::class)
 class Erc20ListenerConfiguration(
-    environmentInfo: ApplicationEnvironmentInfo,
+    private val environmentInfo: ApplicationEnvironmentInfo,
     private val commonProperties: Erc20ListenerProperties,
-    private val meterRegistry: MeterRegistry,
     private val erc20IndexerEventsConsumerFactory: Erc20IndexerEventsConsumerFactory
 ) {
 
     private val erc20BalanceConsumerGroup =
         "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.erc20.indexer.erc20-balance"
+
+    @Bean
+    fun raribleKafkaConsumerFactory(): RaribleKafkaConsumerFactory {
+        return RaribleKafkaConsumerFactory(
+            env = environmentInfo.name,
+            host = environmentInfo.host
+        )
+    }
 
     @Bean
     fun blockchain(): Blockchain {
@@ -65,27 +72,20 @@ class Erc20ListenerConfiguration(
 
     @Bean
     fun erc20BalanceCheckerWorker(
+        @Suppress("SpringJavaInjectionPointsAutowiringInspection")
         ethereum: MonoEthereum,
-        checkerMetrics: CheckerMetrics
-    ): ConsumerBatchWorker<Erc20BalanceEventDto> {
-        val args = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsConsumer(
-            consumerGroup = erc20BalanceConsumerGroup,
+        checkerMetrics: CheckerMetrics,
+        raribleKafkaConsumerFactory: RaribleKafkaConsumerFactory
+    ): RaribleKafkaConsumerWorker<Erc20BalanceEventDto> {
+        val settings = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsKafkaConsumerSettings(
+            group = erc20BalanceConsumerGroup,
+            concurrency = commonProperties.balanceCheckerProperties.eventsHandleConcurrency,
+            batchSize = commonProperties.balanceCheckerProperties.eventsHandleBatchSize,
             blockchain = blockchain()
         )
-        val consumer = RaribleKafkaConsumer<Erc20BalanceEventDto>(
-            clientId = args.clientId,
-            consumerGroup = args.consumerGroup,
-            valueDeserializerClass = args.valueDeserializerClass,
-            defaultTopic = args.defaultTopic,
-            bootstrapServers = args.bootstrapServers,
-            offsetResetStrategy = args.offsetResetStrategy
+        return raribleKafkaConsumerFactory.createWorker(
+            settings = settings,
+            handler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, commonProperties)
         )
-        return ConsumerBatchWorker(
-            consumer = consumer,
-            properties = commonProperties.eventConsumerWorker,
-            eventHandler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, commonProperties),
-            meterRegistry = meterRegistry,
-            workerName = "erc20-balance-checker"
-        ).apply { start() }
     }
 }

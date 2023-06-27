@@ -17,6 +17,7 @@ data class Erc20ListenerProperties(
     val depositTokens: List<String> = emptyList(), // for these tokens we count deposit/withdrawal events
     val blockCountBeforeSnapshot: Int = 12,
     val logConsumeWorkerCount: Int = 10,
+    val logConsumeWorkerBatchSize: Int = 500,
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val skipTransferContracts: List<String> = emptyList(),
     val balanceCheckerProperties: BalanceCheckerProperties = BalanceCheckerProperties(),
@@ -27,7 +28,9 @@ data class BalanceCheckerProperties(
     val skipNumberOfBlocks: Long = 20,
     val confirms: Int = 2,
     val updateLastBlock: Duration = Duration.ofSeconds(5),
-    val checkUpdatedAt: Boolean = false
+    val checkUpdatedAt: Boolean = false,
+    val eventsHandleBatchSize: Int = 500,
+    val eventsHandleConcurrency: Int = 10,
 )
 
 data class Erc20JobProperties(

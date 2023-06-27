@@ -7,7 +7,6 @@ import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
 import com.rarible.protocol.erc20.listener.consumer.KafkaEntityEventConsumer
-import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
@@ -20,7 +19,6 @@ class BlockchainScannerConfiguration(
     private val erc20IndexerProperties: Erc20IndexerProperties,
     private val erc20ListenerProperties: Erc20ListenerProperties,
     private val ethereumScannerProperties: EthereumScannerProperties,
-    private val meterRegistry: MeterRegistry,
     private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
 
@@ -36,15 +34,13 @@ class BlockchainScannerConfiguration(
             properties = KafkaProperties(
                 brokerReplicaSet = erc20IndexerProperties.kafkaReplicaSet,
             ),
-            daemonProperties = erc20ListenerProperties.eventConsumerWorker,
-            meterRegistry = meterRegistry,
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name,
             blockchain = erc20IndexerProperties.blockchain.value,
             service = ethereumScannerProperties.service,
             workerCount = erc20ListenerProperties.logConsumeWorkerCount,
+            batchSize = erc20ListenerProperties.logConsumeWorkerBatchSize,
             ignoreContracts = erc20ListenerProperties.skipTransferContracts.map { Address.apply(it) }.toSet(),
         ).apply { start(entityEventListener) }
     }
-
 }
