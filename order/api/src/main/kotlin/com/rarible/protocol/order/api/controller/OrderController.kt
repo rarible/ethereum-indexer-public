@@ -63,6 +63,7 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 import java.math.BigDecimal
@@ -90,9 +91,10 @@ class OrderController(
         value = ["/v0.1/orders/{hash}/reduce"],
         produces = ["application/json"]
     )
-    suspend fun reduceOrder(@PathVariable hash: String): OrderDto? {
+    suspend fun reduceOrder(@PathVariable hash: String,
+                            @RequestParam(name = "withApproval", required = false, defaultValue = "true") withApproval: Boolean): OrderDto? {
         val order = optimisticLock {
-            orderReduceService.updateOrder(hash.toOrderId().hash)
+            orderReduceService.updateOrder(hash.toOrderId().hash, withApproval)
         }
         return order?.let { orderDtoConverter.convert(it) }
     }
