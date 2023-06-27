@@ -92,7 +92,7 @@ class OrderController(
         produces = ["application/json"]
     )
     suspend fun reduceOrder(@PathVariable hash: String,
-                            @RequestParam(name = "withApproval", required = false, defaultValue = "true") withApproval: Boolean): OrderDto? {
+                            @RequestParam(name = "withApproval", required = false, defaultValue = "false") withApproval: Boolean): OrderDto? {
         val order = optimisticLock {
             orderReduceService.updateOrder(hash.toOrderId().hash, withApproval)
         }
