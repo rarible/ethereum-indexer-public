@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.service.event
 
-import com.rarible.core.daemon.sequential.ConsumerEventHandler
+import com.rarible.core.kafka.RaribleKafkaEventHandler
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import org.slf4j.LoggerFactory
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 @Component
 class Erc20BalanceConsumerEventHandler(
     private val orderBalanceService: OrderBalanceService
-) : ConsumerEventHandler<Erc20BalanceEventDto> {
+) : RaribleKafkaEventHandler<Erc20BalanceEventDto> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 

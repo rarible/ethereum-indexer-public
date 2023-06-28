@@ -49,9 +49,9 @@ internal class BalanceBatchCheckerTest {
     fun `consume first event - ok`() = runBlocking<Unit> {
         every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("5")))
 
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(91, 5)))
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
+        balanceBatchCheckerHandler.handle(erc20Event(91, 5))
+        balanceBatchCheckerHandler.handle(erc20Event(92))
+        balanceBatchCheckerHandler.handle(erc20Event(93))
 
         checkMetrics(3, 1, 0)
     }
@@ -61,20 +61,18 @@ internal class BalanceBatchCheckerTest {
         every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("15")))
 
         val event = erc20Event(91, 5)
-        balanceBatchCheckerHandler.handle(listOf(event))
+        balanceBatchCheckerHandler.handle(event)
         balanceBatchCheckerHandler.handle(
-            listOf(
-                event.copy(
-                    balanceId = event.balanceId,
-                    balance = event.balance.copy(
-                        lastUpdatedAt = event.balance.lastUpdatedAt?.minusSeconds(100),
-                        balance = 15.toBigInteger()
-                    )
+            event.copy(
+                balanceId = event.balanceId,
+                balance = event.balance.copy(
+                    lastUpdatedAt = event.balance.lastUpdatedAt?.minusSeconds(100),
+                    balance = 15.toBigInteger()
                 )
             )
         )
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
+        balanceBatchCheckerHandler.handle(erc20Event(92))
+        balanceBatchCheckerHandler.handle(erc20Event(93))
 
         checkMetrics(4, 1, 0)
     }
@@ -83,9 +81,9 @@ internal class BalanceBatchCheckerTest {
     fun `check order - ok`() = runBlocking<Unit> {
         every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("3")))
 
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(91, 3)))
+        balanceBatchCheckerHandler.handle(erc20Event(92))
+        balanceBatchCheckerHandler.handle(erc20Event(93))
+        balanceBatchCheckerHandler.handle(erc20Event(91, 3))
 
         checkMetrics(3, 1, 0)
     }
@@ -94,16 +92,16 @@ internal class BalanceBatchCheckerTest {
     fun `check invalid - ok`() = runBlocking<Unit> {
         every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("3")))
 
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(91, 5)))
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(92)))
-        balanceBatchCheckerHandler.handle(listOf(erc20Event(93)))
+        balanceBatchCheckerHandler.handle(erc20Event(91, 5))
+        balanceBatchCheckerHandler.handle(erc20Event(92))
+        balanceBatchCheckerHandler.handle(erc20Event(93))
 
         checkMetrics(3, 1, 1)
     }
 
     @Test
     fun `check skipping checks - ok`() = runBlocking<Unit> {
-        (1..10).forEach { balanceBatchCheckerHandler.handle(listOf(erc20Event(it))) }
+        (1..10).forEach { balanceBatchCheckerHandler.handle(erc20Event(it)) }
 
         checkMetrics(10, 0, 0)
     }
@@ -111,9 +109,9 @@ internal class BalanceBatchCheckerTest {
     @Test
     fun `check releasing buffer - ok`() = runBlocking<Unit> {
         every { ethereum.executeRaw(any()) } returns Mono.just(Response(1L, TextNode("1")))
-        val events = (80..90).map { erc20Event(it) }
-        balanceBatchCheckerHandler.handle(events)
-
+        (80..90).map {
+            balanceBatchCheckerHandler.handle(erc20Event(it))
+        }
         checkMetrics(11, 8, 0)
     }
 

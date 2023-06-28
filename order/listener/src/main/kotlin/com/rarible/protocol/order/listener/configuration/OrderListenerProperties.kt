@@ -20,8 +20,12 @@ data class OrderListenerProperties(
     val updateAuctionOngoingStateEnabled: Boolean = false,
     val updateAuctionOngoingStateEndLag: Duration = Duration.ofMinutes(5),
     val openSeaClientUserAgents: String = "",
+    val balanceConsumerWorkersCount: Int = 9,
+    val balanceConsumerBatchSize: Int = 500,
     val ownershipConsumerWorkersCount: Int = 4,
+    val ownershipConsumerBatchSize: Int = 500,
     val itemConsumerWorkersCount: Int = 3,
+    val itemConsumerBatchSize: Int = 500,
     val zeroExExchangeDomainHash: String = "0x",
     val openSeaExchangeDomainHashV2: String = "0x0000000000000000000000000000000000000000000000000000000000000000",
     val openSeaOrdersLoadPeriodWorker: OpenSeaOrdersLoadPeriodWorkerProperties = OpenSeaOrdersLoadPeriodWorkerProperties(),
@@ -40,6 +44,7 @@ data class OrderListenerProperties(
     val approvalEvenHandleDelay: Duration = Duration.ZERO,
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val logConsumeWorkerCount: Int = 9,
+    val logConsumeWorkerBatchSize: Int = 500,
     val floorPriceTopCollectionsCount: Int = 10
 ) {
     enum class OrderSide {
