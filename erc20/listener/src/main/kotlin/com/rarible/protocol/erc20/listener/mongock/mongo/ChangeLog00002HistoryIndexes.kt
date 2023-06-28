@@ -33,6 +33,7 @@ class ChangeLog00002HistoryIndexes {
                     .on(ReversedEthereumLogRecord::blockNumber.name, Sort.Direction.ASC)
                     .on(ReversedEthereumLogRecord::logIndex.name, Sort.Direction.ASC)
                     .on(ReversedEthereumLogRecord::minorLogIndex.name, Sort.Direction.ASC)
+                    .background()
             )
             indexOps.ensureIndex(
                 Index()
@@ -40,15 +41,18 @@ class ChangeLog00002HistoryIndexes {
                     .on(ReversedEthereumLogRecord::blockNumber.name, Sort.Direction.ASC)
                     .on(ReversedEthereumLogRecord::logIndex.name, Sort.Direction.ASC)
                     .on(ReversedEthereumLogRecord::minorLogIndex.name, Sort.Direction.ASC)
+                    .background()
             )
             indexOps.ensureIndex(
                 Index()
                     .on("blockNumber", Sort.Direction.ASC)
                     .on("logIndex", Sort.Direction.ASC)
+                    .background()
             )
             indexOps.ensureIndex(
                 Index()
                     .on("${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::owner.name}", Sort.Direction.ASC)
+                    .background()
             )
         }
     }
@@ -73,6 +77,7 @@ class ChangeLog00002HistoryIndexes {
         template.indexOps("erc20_balance").ensureIndex(
             Index()
                 .on(Erc20Balance::owner.name, Sort.Direction.ASC)
+                .background()
         )
     }
 
