@@ -1,8 +1,9 @@
-package com.rarible.protocol.erc20.listener.mongock.mongo
+package com.rarible.protocol.erc20.migration.mongock
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.repository.Erc20ApprovalHistoryRepository
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
@@ -48,11 +49,11 @@ class ChangeLog00002HistoryIndexes {
                     .on("logIndex", Sort.Direction.ASC)
                     .background()
             )
-            /*indexOps.ensureIndex(
+            indexOps.ensureIndex(
                 Index()
                     .on("${ReversedEthereumLogRecord::data.name}.${Erc20TokenHistory::owner.name}", Sort.Direction.ASC)
                     .background()
-            )*/
+            )
         }
     }
 
@@ -65,21 +66,20 @@ class ChangeLog00002HistoryIndexes {
             "data.token_1_data.owner_1_blockNumber_1_logIndex_1"
         )
     }
-    /*
-        @ChangeSet(
-            id = "ChangeLog00002HistoryIndexes.createBalanceIndexes",
-            order = "3",
-            author = "protocol",
-            runAlways = true
+
+    @ChangeSet(
+        id = "ChangeLog00002HistoryIndexes.createBalanceIndexes",
+        order = "3",
+        author = "protocol",
+        runAlways = true
+    )
+    fun createBalanceIndexes(@NonLockGuarded template: ReactiveMongoOperations) = runBlocking {
+        template.indexOps("erc20_balance").ensureIndex(
+            Index()
+                .on(Erc20Balance::owner.name, Sort.Direction.ASC)
+                .background()
         )
-        fun createBalanceIndexes(@NonLockGuarded template: ReactiveMongoOperations) = runBlocking {
-            template.indexOps("erc20_balance").ensureIndex(
-                Index()
-                    .on(Erc20Balance::owner.name, Sort.Direction.ASC)
-                    .background()
-            )
-        }
-        */
+    }
 
     private suspend fun dropIndex(template: ReactiveMongoOperations, collection: String, indexName: String) {
         val exists = template.indexOps(collection).indexInfo.any { it.name == indexName }.awaitFirst()

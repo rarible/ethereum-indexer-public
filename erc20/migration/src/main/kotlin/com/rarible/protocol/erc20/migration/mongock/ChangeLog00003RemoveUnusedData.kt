@@ -1,4 +1,4 @@
-package com.rarible.protocol.erc20.listener.mongock.mongo
+package com.rarible.protocol.erc20.migration.mongock
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet

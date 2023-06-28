@@ -55,5 +55,6 @@
         <module>core</module>
         <module>listener</module>
         <module>api</module>
+        <module>migration</module>
     </modules>
 </project>
