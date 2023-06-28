@@ -2,10 +2,10 @@ apiVersion: v2
 name: protocol
 version: 0.1.0
 dependencies:
-  - name: rarible-helm-chart
-    alias: polygon-erc20-listener
-    repository: file://../../resources/helm/rarible
-    version: 0.1.0
+- name: rarible-helm-chart
+  alias: polygon-erc20-listener
+  repository: file://../../resources/helm/rarible
+  version: 0.1.0
 - name: rarible-helm-chart
   alias: polygon-erc20-api
   repository: file://../../resources/helm/rarible
