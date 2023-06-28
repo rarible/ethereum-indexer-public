@@ -15,8 +15,7 @@ import scalether.domain.Address
 @ChangeLog(order = "00012")
 class ChangeLog00012InsertTokenForCryptoPunks {
 
-    // TODO: disable "runAlways=true" when the CryptoPunks contract is finally released.
-    @ChangeSet(id = "ChangeLog00012InsertTokenForCryptoPunks.insertTokenForCryptoPunks", runAlways = true, order = "1", author = "protocol")
+    @ChangeSet(id = "ChangeLog00012InsertTokenForCryptoPunks.insertTokenForCryptoPunks", runAlways = false, order = "1", author = "protocol")
     fun insertTokenForCryptoPunks(
         @NonLockGuarded tokenService: TokenService,
         @NonLockGuarded nftIndexerProperties: NftIndexerProperties
