@@ -42,4 +42,8 @@ data class Erc20Balance(
     override fun withRevertableEvents(events: List<Erc20Event>): Erc20Balance {
         return copy(revertableEvents = events)
     }
+
+    fun withBalance(balance: EthUInt256): Erc20Balance {
+        return copy(balance = balance)
+    }
 }

@@ -1,6 +1,7 @@
 package com.rarible.protocol.erc20.core.service
 
 import com.rarible.contracts.erc20.IERC20
+import com.rarible.core.common.optimisticLock
 import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.core.event.Erc20BalanceEventListener
@@ -10,6 +11,7 @@ import com.rarible.protocol.erc20.core.model.Erc20MarkedEvent
 import com.rarible.protocol.erc20.core.model.Erc20UpdateEvent
 import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
@@ -20,6 +22,8 @@ class Erc20BalanceService(
     private val erc20BalanceRepository: Erc20BalanceRepository,
     private val erc20BalanceEventListeners: List<Erc20BalanceEventListener>
 ) : EntityService<BalanceId, Erc20Balance, Erc20MarkedEvent> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     override suspend fun update(entity: Erc20Balance, event: Erc20MarkedEvent?): Erc20Balance {
         val result = erc20BalanceRepository.save(entity)
@@ -39,5 +43,19 @@ class Erc20BalanceService(
 
     suspend fun getBlockchainBalance(id: BalanceId): EthUInt256? {
         return IERC20(id.token, sender).balanceOf(id.owner).awaitFirstOrNull()?.let { EthUInt256(it) }
+    }
+
+    suspend fun onChainUpdate(balanceId: BalanceId, event: Erc20MarkedEvent?): Erc20Balance? {
+        return optimisticLock {
+            val erc20Balance = get(contract = balanceId.token, owner = balanceId.owner) ?: run {
+                logger.error("Can't get $balanceId from db")
+                return@optimisticLock  null
+            }
+            val balance = getBlockchainBalance(balanceId) ?: run {
+                logger.error("Can't get $balanceId from blockchain")
+                return@optimisticLock null
+            }
+            update(erc20Balance.withBalance(balance), event)
+        }
     }
 }
