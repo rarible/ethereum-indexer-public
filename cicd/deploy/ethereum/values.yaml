@@ -38,7 +38,7 @@ ethereum-erc20-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   priorityClassName: high
   resources:
     jvm:
