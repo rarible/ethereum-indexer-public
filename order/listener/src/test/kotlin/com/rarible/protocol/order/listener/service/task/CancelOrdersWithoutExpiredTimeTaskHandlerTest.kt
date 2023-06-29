@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.task
 
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
@@ -16,7 +17,6 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 @ExperimentalCoroutinesApi
@@ -49,7 +49,7 @@ class CancelOrdersWithoutExpiredTimeTaskHandlerTest : AbstractIntegrationTest() 
             createdAt = properties.raribleOrderExpiration.fixedExpireDate
         )
         val notExpiredOrder1 = createOrderBid().copy(
-            end = Instant.now().epochSecond
+            end = nowMillis().epochSecond
         )
         val expiredOrder3 = createOrderBid().copy(
             end = null
@@ -62,7 +62,7 @@ class CancelOrdersWithoutExpiredTimeTaskHandlerTest : AbstractIntegrationTest() 
             end = null,
         )
         val notExpiredOrder6 = createOrder().copy(
-            end = Instant.now().plus(7, ChronoUnit.DAYS).epochSecond,
+            end = nowMillis().plus(7, ChronoUnit.DAYS).epochSecond,
             approved = false
         )
         listOf(

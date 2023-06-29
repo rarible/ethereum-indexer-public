@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.contracts.test.erc721.TestERC721
+import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
@@ -21,13 +22,12 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import java.time.Duration
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 @ExperimentalCoroutinesApi
 @FlowPreview
 @IntegrationTest
-class ApprovalOrdersTest: AbstractIntegrationTest() {
+class ApprovalOrdersTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var approveService: ApproveService
 
@@ -64,12 +64,20 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
 
     @Test
     internal fun `should make x2y2 order cancel if not approve for erc721`() {
-        checkPlatform(Platform.X2Y2, transferProxyAddresses.x2y2TransferProxyErc721, noApprovalStatus = OrderStatus.CANCELLED)
+        checkPlatform(
+            Platform.X2Y2,
+            transferProxyAddresses.x2y2TransferProxyErc721,
+            noApprovalStatus = OrderStatus.CANCELLED
+        )
     }
 
     @Test
     internal fun `should make x2y2 order cancel if not approve for erc1155`() {
-        checkPlatform(Platform.X2Y2, transferProxyAddresses.x2y2TransferProxyErc1155, noApprovalStatus = OrderStatus.CANCELLED)
+        checkPlatform(
+            Platform.X2Y2,
+            transferProxyAddresses.x2y2TransferProxyErc1155,
+            noApprovalStatus = OrderStatus.CANCELLED
+        )
     }
 
     private fun checkPlatform(
@@ -89,7 +97,7 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
             }
             setApproval(token, proxy, false)
             Wait.waitAssert(Duration.ofSeconds(10)) {
-                checkStatus( false, saved.hash, noApprovalStatus)
+                checkStatus(false, saved.hash, noApprovalStatus)
                 assertThat(approveService.checkOnChainApprove(owner, token.address(), platform)).isEqualTo(false)
             }
         }
@@ -114,14 +122,13 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
         assertThat(updated.status).isEqualTo(expectedStatus)
     }
 
-
     private suspend fun createOrder(maker: Address, token: Address, platform: Platform): Order {
         val version = createOrderVersion().copy(
             maker = maker,
             make = randomErc721(token),
             take = randomErc20(),
             platform = platform,
-            end = Instant.now().plus(7, ChronoUnit.DAYS).epochSecond,
+            end = nowMillis().plus(7, ChronoUnit.DAYS).epochSecond,
         )
         return orderUpdateService.save(version)
     }

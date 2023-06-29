@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.task
 
 import com.rarible.core.logging.withTraceId
+import com.rarible.core.task.RunTask
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
@@ -39,6 +40,10 @@ class CancelOrdersWithoutExpiredTimeTaskHandler(
 
     override suspend fun isAbleToRun(param: String): Boolean {
         return true
+    }
+
+    override fun getAutorunParams(): List<RunTask> {
+        return listOf(RunTask("", null))
     }
 
     override fun runLongTask(from: Long?, param: String): Flow<Long> = flow<Long> {
