@@ -10,6 +10,7 @@ object SeaportOrderTypeDtoConverter {
             SeaportOrderType.PARTIAL_OPEN -> SeaportOrderTypeDto.PARTIAL_OPEN
             SeaportOrderType.FULL_RESTRICTED -> SeaportOrderTypeDto.FULL_RESTRICTED
             SeaportOrderType.PARTIAL_RESTRICTED -> SeaportOrderTypeDto.PARTIAL_RESTRICTED
+            SeaportOrderType.CONTRACT -> throw IllegalArgumentException("Unsupported order type: $source")
         }
     }
 }

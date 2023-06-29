@@ -65,6 +65,11 @@
 
         <!-- ================== Other =================== -->
         <dependency>
+            <groupId>io.daonomic.scalether</groupId>
+            <artifactId>transport-mono_${scala.major.version}</artifactId>
+            <version>${scalether.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.cloudyrock.mongock</groupId>
             <artifactId>mongock-spring-v5</artifactId>
         </dependency>
