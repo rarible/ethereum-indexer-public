@@ -672,6 +672,45 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(updated?.status).isEqualTo(OrderStatus.ACTIVE)
     }
 
+    @Test
+    fun `should cancel inactive order without end date`() = runBlocking<Unit> {
+        val order = createOrderVersion().copy(
+            make = randomErc721(),
+            take = randomErc20(),
+            platform = Platform.RARIBLE,
+            approved = false,
+            end = null,
+        )
+        val saved = orderUpdateService.save(order)
+        assertThat(saved.status).isEqualTo(OrderStatus.CANCELLED)
+    }
+
+    @Test
+    fun `should not cancel active order without end date`() = runBlocking<Unit> {
+        val order = createOrderVersion().copy(
+            make = randomErc721(),
+            take = randomErc20(),
+            platform = Platform.RARIBLE,
+            approved = true,
+            end = null,
+        )
+        val saved = orderUpdateService.save(order)
+        assertThat(saved.status).isEqualTo(OrderStatus.ACTIVE)
+    }
+
+    @Test
+    fun `should cancel active bid without end date`() = runBlocking<Unit> {
+        val order = createOrderVersion().copy(
+            make = randomErc20(),
+            take = randomErc721(),
+            platform = Platform.RARIBLE,
+            approved = true,
+            end = null,
+        )
+        val saved = orderUpdateService.save(order)
+        assertThat(saved.status).isEqualTo(OrderStatus.CANCELLED)
+    }
+
     private suspend fun prepareStorage(status: EthereumBlockStatus, vararg histories: OrderExchangeHistory) {
         histories.forEachIndexed { index, history ->
             exchangeHistoryRepository.save(

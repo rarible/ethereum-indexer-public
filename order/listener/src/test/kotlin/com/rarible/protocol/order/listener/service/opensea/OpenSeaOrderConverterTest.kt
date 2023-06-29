@@ -67,7 +67,7 @@ internal class OpenSeaOrderConverterTest {
         assertThat(converter.convert(OrderType.PARTIAL_OPEN)).isEqualTo(SeaportOrderType.PARTIAL_OPEN)
         assertThat(converter.convert(OrderType.PARTIAL_RESTRICTED)).isEqualTo(SeaportOrderType.PARTIAL_RESTRICTED)
         assertThat(OrderType.values()).hasSize(4)
-        assertThat(SeaportOrderType.values()).hasSize(4)
+        assertThat(SeaportOrderType.values()).hasSize(5)
     }
 
     @Test

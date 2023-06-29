@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -120,7 +121,7 @@ class ApprovalOrdersTest: AbstractIntegrationTest() {
             make = randomErc721(token),
             take = randomErc20(),
             platform = platform,
-            end = null
+            end = Instant.now().plus(7, ChronoUnit.DAYS).epochSecond,
         )
         return orderUpdateService.save(version)
     }
