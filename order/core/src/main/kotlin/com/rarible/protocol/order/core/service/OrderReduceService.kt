@@ -578,8 +578,8 @@ class OrderReduceService(
         }
 
         private val logEventComparator = compareBy<ReversedEthereumLogRecord> { it.blockNumber ?: 0 } then
-                compareBy { it.logIndex ?: 0 } then
-                compareBy { it.minorLogIndex }
+            compareBy { it.logIndex ?: 0 } then
+            compareBy { it.minorLogIndex }
 
         val logger: Logger = LoggerFactory.getLogger(OrderReduceService::class.java)
 
