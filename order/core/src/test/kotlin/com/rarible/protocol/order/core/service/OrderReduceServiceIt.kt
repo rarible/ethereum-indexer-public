@@ -672,20 +672,6 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(updated?.status).isEqualTo(OrderStatus.ACTIVE)
     }
 
-    @Test
-    fun `should reduce make sell order with approval`() = runBlocking<Unit> {
-        val order = createOrderVersion().copy(make = randomErc721(), take = randomErc20(), platform = Platform.RARIBLE)
-
-        val saved = orderUpdateService.save(order)
-        assertThat(saved.status).isEqualTo(OrderStatus.ACTIVE)
-
-        val updated = orderReduceService.updateOrder(order.hash, true)
-
-        // Inactive because we didn't set approval
-        assertThat(updated?.status).isEqualTo(OrderStatus.INACTIVE)
-        assertThat(updated?.approved).isFalse
-    }
-
     private suspend fun prepareStorage(status: EthereumBlockStatus, vararg histories: OrderExchangeHistory) {
         histories.forEachIndexed { index, history ->
             exchangeHistoryRepository.save(

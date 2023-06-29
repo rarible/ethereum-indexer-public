@@ -59,13 +59,7 @@ class OrderReduceService(
     private val exchangeContractAddresses = indexerProperties.exchangeContractAddresses
     private val raribleOrderExpiration = indexerProperties.raribleOrderExpiration
 
-    suspend fun updateOrder(orderHash: Word, withApproval: Boolean = false): Order? {
-        val reduced = update(orderHash = orderHash).awaitFirstOrNull()
-        return if (reduced != null && withApproval) {
-            val hasApproved = approveService.checkApprove(reduced.maker, reduced.make.type.token, reduced.platform)
-            reduced.copy(approved = hasApproved)
-        } else reduced
-    }
+    suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
     fun update(orderHash: Word? = null, fromOrderHash: Word? = null, platforms: List<Platform>? = null): Flux<Order> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
@@ -584,8 +578,8 @@ class OrderReduceService(
         }
 
         private val logEventComparator = compareBy<ReversedEthereumLogRecord> { it.blockNumber ?: 0 } then
-            compareBy { it.logIndex ?: 0 } then
-            compareBy { it.minorLogIndex }
+                compareBy { it.logIndex ?: 0 } then
+                compareBy { it.minorLogIndex }
 
         val logger: Logger = LoggerFactory.getLogger(OrderReduceService::class.java)
 

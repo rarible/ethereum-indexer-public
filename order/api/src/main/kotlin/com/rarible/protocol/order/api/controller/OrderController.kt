@@ -35,6 +35,7 @@ import com.rarible.protocol.order.core.converters.model.OrderStatusConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
 import com.rarible.protocol.order.core.exception.ValidationApiException
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Id.Companion.toOrderId
@@ -55,7 +56,9 @@ import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.BidsOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PrepareTxService
+import com.rarible.protocol.order.core.service.approve.ApproveService
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -82,6 +85,8 @@ class OrderController(
     private val orderBidsService: OrderBidsService,
     private val compositeBidConverter: CompositeBidConverter,
     private val orderReduceService: OrderReduceService,
+    private val approveService: ApproveService,
+    private val orderUpdateService: OrderUpdateService,
     orderIndexerProperties: OrderIndexerProperties
 ) : OrderControllerApi {
 
@@ -94,7 +99,12 @@ class OrderController(
     suspend fun reduceOrder(@PathVariable hash: String,
                             @RequestParam(name = "withApproval", required = false, defaultValue = "false") withApproval: Boolean): OrderDto? {
         val order = optimisticLock {
-            orderReduceService.updateOrder(hash.toOrderId().hash, withApproval)
+            val reduced = orderReduceService.updateOrder(hash.toOrderId().hash)
+            if (reduced != null && withApproval) {
+                val hasApproved = approveService.checkApprove(reduced.maker, reduced.make.type.token, reduced.platform)
+                orderUpdateService.updateApproval(reduced, hasApproved, orderOffchainEventMarks())
+                reduced.copy(approved = hasApproved)
+            } else reduced
         }
         return order?.let { orderDtoConverter.convert(it) }
     }
