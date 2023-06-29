@@ -17,7 +17,7 @@ internal class SeaportOrderTypeDtoConverterTest {
         assertThat(SeaportOrderTypeDtoConverter.convert(SeaportOrderType.PARTIAL_RESTRICTED))
             .isEqualTo(SeaportOrderTypeDto.PARTIAL_RESTRICTED)
 
-        assertThat(SeaportOrderType.values()).hasSize(4)
+        assertThat(SeaportOrderType.values()).hasSize(5)
         assertThat(SeaportOrderTypeDto.values()).hasSize(4)
     }
 }

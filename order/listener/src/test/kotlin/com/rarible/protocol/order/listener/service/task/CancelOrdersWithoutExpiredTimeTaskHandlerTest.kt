@@ -1,9 +1,11 @@
 package com.rarible.protocol.order.listener.service.task
 
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.listener.data.createBidOrderVersion
+import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderBid
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -12,18 +14,18 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @ExperimentalCoroutinesApi
 @FlowPreview
 @IntegrationTest
-class CancelBidsWithoutExpiredTimeTaskHandlerTest : AbstractIntegrationTest() {
+class CancelOrdersWithoutExpiredTimeTaskHandlerTest : AbstractIntegrationTest() {
 
     @Autowired
-    private lateinit var handler: CancelBidsWithoutExpiredTimeTaskHandler
+    private lateinit var handler: CancelOrdersWithoutExpiredTimeTaskHandler
 
     @Autowired
     private lateinit var properties: OrderIndexerProperties
@@ -47,34 +49,45 @@ class CancelBidsWithoutExpiredTimeTaskHandlerTest : AbstractIntegrationTest() {
             createdAt = properties.raribleOrderExpiration.fixedExpireDate
         )
         val notExpiredOrder1 = createOrderBid().copy(
-            end = Instant.now().epochSecond
+            end = nowMillis().epochSecond
         )
-        val notExpiredOrder2 = createOrderBid().copy(
+        val expiredOrder3 = createOrderBid().copy(
             end = null
         )
-        listOf(expiredOrder1, expiredOrder2).forEach {
+        val expiredOrder4 = createOrder().copy(
+            end = null,
+            approved = false,
+        )
+        val notExpiredOrder5 = createOrder().copy(
+            end = null,
+        )
+        val notExpiredOrder6 = createOrder().copy(
+            end = nowMillis().plus(7, ChronoUnit.DAYS).epochSecond,
+            approved = false
+        )
+        listOf(
+            expiredOrder1,
+            expiredOrder2,
+            expiredOrder3,
+            notExpiredOrder1,
+            expiredOrder4,
+            notExpiredOrder5,
+            notExpiredOrder6
+        ).forEach {
             val savedOrder = orderRepository.save(it)
-            Assertions.assertThat(savedOrder.status).isNotEqualTo(OrderStatus.CANCELLED)
+            assertThat(savedOrder.status).isNotEqualTo(OrderStatus.CANCELLED)
         }
-        listOf(notExpiredOrder1, notExpiredOrder2).forEach {
-            val savedOrder = orderRepository.save(it)
-            Assertions.assertThat(savedOrder.status).isNotEqualTo(OrderStatus.CANCELLED)
+        handler.runLongTask(null, "").toList()
+
+        listOf(expiredOrder1, expiredOrder2, expiredOrder3, expiredOrder4).forEach {
+            val updatedOrder = orderRepository.findById(it.hash)!!
+            assertThat(updatedOrder.status).isEqualTo(OrderStatus.CANCELLED)
+            assertThat(updatedOrder.cancelled).isTrue
         }
-        val count = handler.runLongTask(null, "").toList()
-        Assertions.assertThat(count).hasSize(3)
 
-        val updatedOrder1 = orderRepository.findById(expiredOrder1.hash)!!
-        Assertions.assertThat(updatedOrder1.status).isEqualTo(OrderStatus.CANCELLED)
-        Assertions.assertThat(updatedOrder1.cancelled).isTrue
-
-        val updatedOrder2 = orderRepository.findById(expiredOrder2.hash)!!
-        Assertions.assertThat(updatedOrder2.status).isEqualTo(OrderStatus.CANCELLED)
-        Assertions.assertThat(updatedOrder2.cancelled).isTrue
-
-        val updatedUotExpiredOrder1 = orderRepository.findById(notExpiredOrder1.hash)!!
-        Assertions.assertThat(updatedUotExpiredOrder1.status).isNotEqualTo(OrderStatus.CANCELLED)
-
-        val updatedUotExpiredOrder2 = orderRepository.findById(notExpiredOrder2.hash)!!
-        Assertions.assertThat(updatedUotExpiredOrder2.status).isNotEqualTo(OrderStatus.CANCELLED)
+        listOf(notExpiredOrder1, notExpiredOrder5, notExpiredOrder6).forEach {
+            val updatedUotExpiredOrder = orderRepository.findById(it.hash)!!
+            assertThat(updatedUotExpiredOrder.status).isNotEqualTo(OrderStatus.CANCELLED)
+        }
     }
 }

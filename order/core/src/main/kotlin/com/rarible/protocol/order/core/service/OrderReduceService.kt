@@ -27,7 +27,6 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
-import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
@@ -400,7 +399,6 @@ class OrderReduceService(
             lastUpdateAt = maxOf(this.lastUpdateAt, Instant.ofEpochSecond(disabledAt)),
             lastEventId = accumulateEventId(this.lastEventId, protocol.toString())
         )
-
     }
 
     private suspend fun Order.withCancelSmallPriceSeaport(): Order {
@@ -442,15 +440,10 @@ class OrderReduceService(
         } else this
     }
 
-    private suspend fun Order.withBidWithNoExpire(): Order {
-        if (this.isBid().not()) return this
+    private suspend fun Order.withNoExpire(): Order {
         if (this.platform != Platform.RARIBLE) return this
-        //Old bids with no 'end' time must be canceled
-        return if (
-            this.end == null &&
-            (this.createdAt <= indexerProperties.raribleOrderExpiration.fixedExpireDate)
-        ) {
-            logger.info("Cancel old rarible BID $id cause it has no 'end' time")
+        return if (this.end == null && (isBid() || status == OrderStatus.INACTIVE)) {
+            logger.info("Cancel rarible order $id cause it has no 'end' time")
             this.copy(
                 status = OrderStatus.CANCELLED,
                 lastUpdateAt = Instant.now(),
@@ -498,7 +491,7 @@ class OrderReduceService(
             .withCancelSeaport()
             .withApproval()
             .withBidExpire()
-            .withBidWithNoExpire()
+            .withNoExpire()
             .withCancelSmallPriceSeaport()
             .withFinalState()
 

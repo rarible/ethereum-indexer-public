@@ -108,6 +108,7 @@ import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import com.rarible.blockchain.scanner.ethereum.model.EventData as ScannerEventData
 
 fun randomOrder(
@@ -166,7 +167,7 @@ fun createOrderVersion(): OrderVersion {
         type = OrderType.RARIBLE_V2,
         salt = EthUInt256.TEN,
         start = null,
-        end = null,
+        end = nowMillis().plus(7, ChronoUnit.DAYS).epochSecond,
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
         signature = null
     )
@@ -199,7 +200,7 @@ fun createOrderBasicSeaportDataV1(
 ): OrderBasicSeaportDataV1 {
     return OrderBasicSeaportDataV1(
         protocol = randomAddress(),
-        orderType = SeaportOrderType.values().random(),
+        orderType = SeaportOrderType.SUPPORTED.random(),
         offer = emptyList(),
         consideration = emptyList(),
         zone = randomAddress(),
@@ -670,7 +671,7 @@ fun randomOrderBasicSeaportDataV1(): OrderBasicSeaportDataV1 {
     val counter = randomLong()
     return OrderBasicSeaportDataV1(
         protocol = randomAddress(),
-        orderType = SeaportOrderType.values().random(),
+        orderType = SeaportOrderType.SUPPORTED.random(),
         offer = listOf(randomSeaportOffer(), randomSeaportOffer()),
         consideration = listOf(randomSeaportConsideration(), randomSeaportConsideration()),
         zone = randomAddress(),
