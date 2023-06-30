@@ -12,6 +12,8 @@ import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV3BuyDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV3SellDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
+import com.rarible.protocol.order.api.client.OrderControllerApi
+import com.rarible.protocol.order.api.converter.toAddress
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.service.order.OrderService
@@ -36,6 +38,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.junit.Assert
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -48,6 +51,7 @@ import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import org.web3jold.utils.Numeric
 import scalether.domain.Address
@@ -196,6 +200,20 @@ class OrderControllerFt : AbstractIntegrationTest() {
         val result = orderClient.prepareOrderCancelTransaction(order.hash.toString()).awaitFirst()
         assertThat(result.to).isEqualTo(exchangeContractAddresses.v2)
         assertThat(result.data).isEqualTo(ExchangeV2.cancelSignature().encode(order.forTx()))
+    }
+
+    @Test
+    fun `invalid id format`() {
+        assertThatExceptionOfType(OrderControllerApi.ErrorGetSellOrdersByCollectionAndByStatus::class.java).isThrownBy {
+            orderClient.getSellOrdersByCollectionAndByStatus(
+                "ETHEREUM:0x59325733eb952a92e069c87f0a6168b29e80627f",
+                null,
+                null,
+                null,
+                1000,
+                null
+            ).block()
+        }.withMessageContaining("400 Bad Request")
     }
 
     @AfterEach

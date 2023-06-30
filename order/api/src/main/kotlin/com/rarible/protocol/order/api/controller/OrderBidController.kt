@@ -1,10 +1,11 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.OrderBidStatusDto
 import com.rarible.protocol.dto.OrderBidsPaginationDto
 import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.order.api.converter.toAddress
+import com.rarible.protocol.order.api.converter.toEthUInt256
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.continuation.page.PageSize
@@ -43,10 +44,10 @@ class OrderBidController(
     ): ResponseEntity<OrderBidsPaginationDto> {
         val requestSize = PageSize.ORDER_BID.limit(size)
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
-        val originAddress = if (origin == null) null else Address.apply(origin)
+        val originAddress = origin?.toAddress()
         val filter = BidsOrderVersionFilter.ByItem(
-            Address.apply(contract),
-            EthUInt256.of(tokenId),
+            contract.toAddress(),
+            tokenId.toEthUInt256(),
             maker,
             originAddress,
             safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },

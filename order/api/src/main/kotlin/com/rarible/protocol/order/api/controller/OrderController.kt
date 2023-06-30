@@ -19,6 +19,8 @@ import com.rarible.protocol.dto.PrepareOrderTxResponseDto
 import com.rarible.protocol.dto.PreparedOrderTxDto
 import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.parser.AddressParser
+import com.rarible.protocol.order.api.converter.toAddress
+import com.rarible.protocol.order.api.converter.toEthUInt256
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -255,7 +257,7 @@ class OrderController(
         val requestSize = limit(size)
         val result = orderService.getAmmOrdersByItemId(
             contract = AddressParser.parse(contract),
-            tokenId = EthUInt256.of(tokenId),
+            tokenId = tokenId.toEthUInt256(),
             continuation = continuation,
             size = limit(size)
         )
@@ -279,7 +281,7 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterAll(
             sort = convert(sort),
-            status = convertStatus(status),
+            status = safeStatuses(status),
             platforms = safePlatforms(null)
         )
         val result = searchOrders(filter, continuation, size)
@@ -312,7 +314,7 @@ class OrderController(
         size: Int?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellByItem(
-            contract = Address.apply(contract),
+            contract = contract.toAddress(),
             tokenId = BigInteger(tokenId),
             maker = safeAddress(maker),
             origin = safeAddress(origin),
@@ -336,14 +338,14 @@ class OrderController(
         currencyId: String?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellByItem(
-            contract = Address.apply(contract),
+            contract = contract.toAddress(),
             tokenId = BigInteger(tokenId),
             maker = safeAddress(maker),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
             sort = OrderFilterSort.MAKE_PRICE_ASC,
-            status = convertStatus(status),
-            currency = currencyId?.let { Address.apply(currencyId) }
+            status = safeStatuses(status),
+            currency = currencyId?.toAddress()
         )
         val result = searchSellByItemIdOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -357,7 +359,7 @@ class OrderController(
         size: Int?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellByCollection(
-            collection = Address.apply(collection),
+            collection = collection.toAddress(),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
             sort = OrderFilterSort.LAST_UPDATE_DESC,
@@ -376,11 +378,11 @@ class OrderController(
         status: List<OrderStatusDto>?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellByCollection(
-            collection = Address.apply(collection),
+            collection = collection.toAddress(),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
             sort = OrderFilterSort.LAST_UPDATE_DESC,
-            status = convertStatus(status)
+            status = safeStatuses(status)
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -399,7 +401,7 @@ class OrderController(
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
             sort = OrderFilterSort.LAST_UPDATE_DESC,
-            status = convertStatus(status)
+            status = safeStatuses(status)
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -417,7 +419,7 @@ class OrderController(
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
             sort = convert(sort),
-            status = convertStatus(status)
+            status = safeStatuses(status)
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -433,7 +435,7 @@ class OrderController(
         size: Int?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterBidByItem(
-            contract = Address.apply(contract),
+            contract = contract.toAddress(),
             tokenId = BigInteger(tokenId),
             maker = maker,
             origin = safeAddress(origin),
@@ -460,14 +462,14 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val requestSize = limit(size)
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
-        val originAddress = if (origin == null) null else Address.apply(origin)
+        val originAddress = origin?.toAddress()
         val filter = BidsOrderVersionFilter.ByItem(
-            Address.apply(contract),
-            EthUInt256.of(tokenId),
+            contract.toAddress(),
+            tokenId.toEthUInt256(),
             maker,
             originAddress,
             safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },
-            currencyId?.let { Address.apply(currencyId) },
+            currencyId?.let { currencyId.toAddress() },
             startDate?.let { Instant.ofEpochSecond(it) },
             endDate?.let { Instant.ofEpochSecond(it) },
             requestSize,
@@ -489,7 +491,7 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val requestSize = limit(size)
         val dateContinuation = Continuation.parse<Continuation.LastDate>(continuation)
-        val originAddress = if (origin == null) null else Address.apply(origin)
+        val originAddress = origin?.toAddress()
         val filter = BidsOrderVersionFilter.ByMaker(
             maker,
             originAddress,
@@ -532,8 +534,8 @@ class OrderController(
         val sanitizedStatuses = convertCurrencyStatuses(status)
         val currencies = if (sanitizedStatuses.isNotEmpty()) {
             orderRepository.findTakeTypesOfSellOrders(
-                Address.apply(contract),
-                EthUInt256.of(BigInteger(tokenId)),
+                contract.toAddress(),
+                tokenId.toEthUInt256(),
                 sanitizedStatuses
             ).map { assetTypeDtoConverter.convert(it) }.toList()
         } else {
@@ -551,8 +553,8 @@ class OrderController(
         val sanitizedStatuses = convertCurrencyStatuses(status)
         val currencies = if (sanitizedStatuses.isNotEmpty()) {
             orderRepository.findMakeTypesOfBidOrders(
-                Address.apply(contract),
-                EthUInt256.of(BigInteger(tokenId)),
+                contract.toAddress(),
+                tokenId.toEthUInt256(),
                 sanitizedStatuses
             ).map { assetTypeDtoConverter.convert(it) }.toList()
         } else {
@@ -626,15 +628,15 @@ class OrderController(
     }
 
     private fun safeAddress(value: String?): Address? {
-        return if (value == null) null else Address.apply(value)
+        return value?.toAddress()
     }
 
     private fun safePlatforms(platform: PlatformDto?): List<PlatformDto> {
         return platformFeaturedFilter.filter(platform)
     }
 
-    private fun convertStatus(source: List<OrderStatusDto>?): List<OrderStatusDto> {
-        return source?.map { OrderStatusDto.valueOf(it.name) } ?: listOf()
+    private fun safeStatuses(source: List<OrderStatusDto>?): List<OrderStatusDto> {
+        return source ?: emptyList()
     }
 
     private fun convert(
