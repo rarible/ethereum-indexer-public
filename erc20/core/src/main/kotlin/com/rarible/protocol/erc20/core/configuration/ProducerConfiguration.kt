@@ -6,6 +6,9 @@ import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceEventTopicProvider
 import com.rarible.protocol.erc20.core.event.Erc20EventPublisher
+import com.rarible.protocol.erc20.core.service.reduce.Erc20EventChainUpdateService
+import com.rarible.protocol.erc20.core.service.reduce.Erc20EventReduceService
+import com.rarible.protocol.erc20.core.service.reduce.Erc20EventService
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -14,11 +17,29 @@ import org.springframework.context.annotation.Configuration
 @EnableConfigurationProperties(Erc20IndexerProperties::class)
 class ProducerConfiguration(
     private val properties: Erc20IndexerProperties,
-    applicationEnvironmentInfo: ApplicationEnvironmentInfo
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
+    private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
 
     private val blockchain = properties.blockchain
     private val env = applicationEnvironmentInfo.name
+
+    @Bean
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
+    fun erc20EventService(
+        erc20EventChainUpdateService: Erc20EventChainUpdateService,
+        erc20EventReduceService: Erc20EventReduceService,
+    ): Erc20EventService {
+        val erc20EventListener = if (properties.featureFlags.chainBalanceUpdateEnabled)
+            erc20EventChainUpdateService
+        else erc20EventReduceService
+
+        return Erc20EventService(
+            erc20EventListener,
+            properties,
+            applicationEnvironmentInfo
+        )
+    }
 
     @Bean
     fun erc20EventPublisher(): Erc20EventPublisher {

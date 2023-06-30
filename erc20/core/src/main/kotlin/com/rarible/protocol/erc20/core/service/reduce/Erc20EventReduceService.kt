@@ -20,7 +20,7 @@ class Erc20EventReduceService(
     erc20BalanceTemplateProvider: Erc20BalanceTemplateProvider,
     erc20BalanceReducer: Erc20BalanceReducer,
     private val properties: Erc20IndexerProperties,
-) {
+) : Erc20EventListener {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -35,7 +35,7 @@ class Erc20EventReduceService(
         }
     }
 
-    suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
         try {
             events
                 .mapNotNull {

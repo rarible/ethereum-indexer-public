@@ -12,10 +12,10 @@ class Erc20EventChainUpdateService(
     private val erc20EventConverter: Erc20EventConverter,
     private val delegate: Erc20EventReduceService,
     private val erc20BalanceService: Erc20BalanceService
-)  {
+) : Erc20EventListener {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
         events
             .groupBy { it.record.asEthereumLogRecord().getKey() }
             .onEach { handleBalanceEvent(it.key, it.value) }
