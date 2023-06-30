@@ -142,7 +142,7 @@ internal class ReservoirOrdersReconciliationWorkerTest {
                 ),
                 amount = Amount(
                     raw = randomBigInt(),
-                    decimal = 10,
+                    decimal = 10.toBigDecimal(),
                     usd = randomBigDecimal(),
                     native = randomBigDecimal(),
                 ),

@@ -124,6 +124,11 @@ class OrderListenerConfiguration(
     }
 
     @Bean
+    fun reservoirProperties(): ReservoirProperties {
+        return listenerProperties.reservoir
+    }
+
+    @Bean
     fun erc20BalanceChangeWorker(
         factory: RaribleKafkaConsumerFactory,
         handler: Erc20BalanceConsumerEventHandler
