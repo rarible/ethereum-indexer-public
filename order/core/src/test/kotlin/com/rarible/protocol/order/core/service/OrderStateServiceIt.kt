@@ -2,11 +2,14 @@ package com.rarible.protocol.order.core.service
 
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
+import com.rarible.protocol.order.core.model.OrderState
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalUnit
 
 @IntegrationTest
 class OrderStateServiceIt : AbstractIntegrationTest() {
@@ -21,7 +24,7 @@ class OrderStateServiceIt : AbstractIntegrationTest() {
         val result = orderStateService.setCancelState(id)
         val fromDb = orderStateRepository.getById(id)
 
-        assertThat(result).isEqualTo(fromDb)
+        assertThat(result.truncated()).isEqualTo(fromDb?.truncated())
     }
 
     @Test
@@ -32,7 +35,13 @@ class OrderStateServiceIt : AbstractIntegrationTest() {
         val alreadyCancelled = orderStateService.setCancelState(id)
 
         // versions should be the same
-        assertThat(current).isEqualTo(alreadyCancelled)
+        assertThat(current.truncated()).isEqualTo(alreadyCancelled.truncated())
     }
 
+    private fun OrderState.truncated(): OrderState {
+        return copy(
+            createdAt = createdAt.truncatedTo(ChronoUnit.MILLIS),
+            lastUpdateAt = lastUpdateAt.truncatedTo(ChronoUnit.MILLIS),
+        )
+    }
 }
