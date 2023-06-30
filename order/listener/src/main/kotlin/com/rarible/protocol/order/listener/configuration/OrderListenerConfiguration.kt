@@ -112,6 +112,11 @@ class OrderListenerConfiguration(
     }
 
     @Bean
+    fun reservoirProperties(): ReservoirProperties {
+        return listenerProperties.reservoir
+    }
+
+    @Bean
     fun erc20BalanceChangeWorker(
         handler: Erc20BalanceConsumerEventHandler
     ): ConsumerWorker<Erc20BalanceEventDto> {
