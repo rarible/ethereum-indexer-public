@@ -30,27 +30,22 @@ internal class LooksrareOrderLoadHandlerTest {
 
     @Test
     fun `should get orders with init state`() = runBlocking<Unit> {
-        val now = nowMillis().truncatedTo(ChronoUnit.SECONDS)
-        val next = LooksrareV2Cursor(now - Duration.ofHours(1))
+        val next = LooksrareV2Cursor(Instant.now())
+        coEvery { aggregatorStateRepository.getLooksrareV2State() } returns null
+        coEvery { aggregatorStateRepository.save(any()) } returns Unit
+        coEvery { looksrareOrderLoader.load(any()) } returns LooksrareOrderLoader.Result(next, 1)
 
-        mockkStatic(Instant::class) {
-            every{ Instant.now() } returns now
-            coEvery { aggregatorStateRepository.getLooksrareV2State() } returns null
-            coEvery { aggregatorStateRepository.save(any()) } returns Unit
-            coEvery { looksrareOrderLoader.load(any()) } returns LooksrareOrderLoader.Result(next, 1)
+        handler.handle()
 
-            handler.handle()
-
-            coVerify {
-                looksrareOrderLoader.load(
-                    withArg { assertThat(it).isEqualTo(next) },
-                )
-            }
-            coVerify {
-                aggregatorStateRepository.save(
-                    withArg { assertThat((it as LooksrareV2FetchState).cursorObj).isEqualTo(next) }
-                )
-            }
+        coVerify {
+            looksrareOrderLoader.load(
+                withArg { assertThat(it.createdAfter).isBeforeOrEqualTo(Instant.now() - Duration.ofHours(1)) },
+            )
+        }
+        coVerify {
+            aggregatorStateRepository.save(
+                withArg { assertThat((it as LooksrareV2FetchState).cursorObj).isEqualTo(next) }
+            )
         }
     }
 

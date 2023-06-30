@@ -5,6 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.Tuples.keccak256
 import com.rarible.protocol.order.core.misc.plus
+import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.zeroWord
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.daonomic.rpc.domain.Binary
@@ -835,7 +836,8 @@ data class Order(
         }
 
         fun accumulateEventId(lastEventId: String?, eventId: String): String {
-            return Hash.sha3((lastEventId ?: "") + eventId)
+            val bytes = ((lastEventId ?: "") + eventId).toByteArray()
+            return Binary.apply(Hash.sha3(bytes)).hex()
         }
     }
 
