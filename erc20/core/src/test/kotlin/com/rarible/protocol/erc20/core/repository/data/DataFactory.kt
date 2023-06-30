@@ -7,6 +7,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
@@ -131,4 +132,11 @@ fun randomErc20TokenApproval(
         date = Date(date.toEpochMilli()),
         value = EthUInt256.of(value)
     )
+}
+
+fun randomBalanceId(
+    token: Address = randomAddress(),
+    owner: Address = randomAddress(),
+): BalanceId {
+    return BalanceId(token = token, owner = owner)
 }
