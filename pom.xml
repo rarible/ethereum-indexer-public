@@ -39,7 +39,7 @@
         <opensea-client-starter.version>2.1.16</opensea-client-starter.version>
         <looksrare-client-starter.version>1.2.6</looksrare-client-starter.version>
         <x2y2-client.version>1.1.1</x2y2-client.version>
-        <reservoir-client.version>1.0.1</reservoir-client.version>
+        <reservoir-client.version>1.0.2</reservoir-client.version>
 
         <dev-jna.version>5.7.0</dev-jna.version>
         <web3j.version>4.9.8</web3j.version>
