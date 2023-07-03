@@ -23,7 +23,6 @@ import com.rarible.reservoir.client.model.v3.EventKind
 import com.rarible.reservoir.client.model.v3.ReservoirOrder
 import com.rarible.reservoir.client.model.v3.ReservoirOrderEvent
 import com.rarible.reservoir.client.model.v3.ReservoirOrderEvents
-import com.rarible.reservoir.client.model.v3.Source
 import io.daonomic.rpc.domain.Word
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
@@ -149,7 +148,7 @@ internal class ReservoirOrdersReconciliationWorkerTest {
                 netAmount = null,
             ),
             quantityRemaining = randomBigInt(),
-            source = Source.OPEN_SEA,
+            source = "OPEN_SEA",
             validFrom = Instant.now(),
             validUntil = Instant.now(),
             status = status,
