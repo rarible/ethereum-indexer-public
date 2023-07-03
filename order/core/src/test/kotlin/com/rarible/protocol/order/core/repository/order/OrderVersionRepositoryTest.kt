@@ -16,6 +16,7 @@ import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.bson.types.ObjectId
@@ -113,6 +114,17 @@ internal class OrderVersionRepositoryTest : AbstractIntegrationTest() {
         )
         orderVersionRepository.save(version).awaitFirst()
         assertThrows<DuplicateKeyException> { runBlocking { orderVersionRepository.save(otherVersion).awaitFirst() } }
+    }
+
+    @Test
+    fun findLatestByHash() = runBlocking<Unit> {
+        val version1 = createOrderVersion()
+        val version2 = version1.copy(id = ObjectId(), approved = false)
+
+        orderVersionRepository.save(version1).awaitSingle()
+        orderVersionRepository.save(version2).awaitSingle()
+
+        assertThat(orderVersionRepository.findLatestByHash(version1.hash)?.id).isEqualTo(version2.id)
     }
 
     private fun createRandomKey(): LogEventKey = LogEventKey(
