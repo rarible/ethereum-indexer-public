@@ -234,6 +234,29 @@ data class Order(
         return copy(cancelled = cancel)
     }
 
+    fun toOrderVersion(): OrderVersion = OrderVersion(
+        maker = maker,
+        make = make,
+        take = take,
+        taker = taker,
+        type = type,
+        salt = salt,
+        start = start,
+        end = end,
+        data = data,
+        signature = signature,
+        platform = platform,
+        hash = hash,
+        approved = approved,
+        createdAt = createdAt,
+        makePriceUsd = null,
+        takePriceUsd = null,
+        makePrice = null,
+        takePrice = null,
+        makeUsd = null,
+        takeUsd = null
+    )
+
     companion object {
 
         /**

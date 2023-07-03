@@ -65,7 +65,7 @@ class ApprovalEventSubscriber(
                 )
         }
         orders.collect {
-            orderUpdateService.updateApproval(it, history.approved, eventTimeMarks)
+            orderUpdateService.reduceApproval(it, history.approved, eventTimeMarks)
         }
     }
 }
