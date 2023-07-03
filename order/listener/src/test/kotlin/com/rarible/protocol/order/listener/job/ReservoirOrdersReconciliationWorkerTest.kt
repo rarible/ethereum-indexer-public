@@ -16,7 +16,6 @@ import com.rarible.reservoir.client.ReservoirClient
 import com.rarible.reservoir.client.model.ReservoirResult
 import com.rarible.reservoir.client.model.common.Amount
 import com.rarible.reservoir.client.model.common.Currency
-import com.rarible.reservoir.client.model.common.OrderKind
 import com.rarible.reservoir.client.model.common.Price
 import com.rarible.reservoir.client.model.v3.EventInfo
 import com.rarible.reservoir.client.model.v3.EventKind
@@ -132,7 +131,7 @@ internal class ReservoirOrdersReconciliationWorkerTest {
             contract = AddressFactory.create(),
             id = id.toString(),
             isDynamic = false,
-            kind = OrderKind.SEAPORT_V1_5,
+            kind = "SEAPORT_V1_5",
             maker = AddressFactory.create(),
             price = Price(
                 currency = Currency(
