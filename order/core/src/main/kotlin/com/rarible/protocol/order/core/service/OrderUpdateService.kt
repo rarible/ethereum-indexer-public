@@ -17,7 +17,6 @@ import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.core.service.updater.CustomOrderUpdater
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
@@ -85,10 +84,7 @@ class OrderUpdateService(
     ) {
         val hash = order.hash
 
-        val latestVersion = orderVersionRepository.findLatestByHash(hash) ?: run {
-            logger.error("Can't find latest orderVersion for $hash")
-            return
-        }
+        val latestVersion = orderVersionRepository.findLatestByHash(hash) ?: order.toOrderVersion()
         orderVersionRepository.save(latestVersion.copy(approved = approved)).awaitSingle()
         reduceApproval(order, approved, eventTimeMarks)
     }
