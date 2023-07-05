@@ -16,7 +16,7 @@ data class Erc20ListenerProperties(
     val ignoredOwners: List<String> = emptyList(),
     val depositTokens: List<String> = emptyList(), // for these tokens we count deposit/withdrawal events
     val blockCountBeforeSnapshot: Int = 12,
-    val logConsumeWorkerCount: Int = 10,
+    val logConsumeWorkerCount: Int = 9,
     val logConsumeWorkerBatchSize: Int = 500,
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val skipTransferContracts: List<String> = emptyList(),
