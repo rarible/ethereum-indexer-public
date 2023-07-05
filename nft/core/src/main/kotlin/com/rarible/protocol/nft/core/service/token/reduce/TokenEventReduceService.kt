@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.core.service.token.reduce
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.apm.withTransaction
-import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -21,12 +20,11 @@ class TokenEventReduceService(
     entityIdService: TokenIdService,
     templateProvider: TokenTemplateProvider,
     reducer: TokenReducer,
-    properties: NftIndexerProperties,
-    environmentInfo: ApplicationEnvironmentInfo
+    properties: NftIndexerProperties
 ) : EntityEventListener {
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
-    override val id: String = EntityEventListeners.tokenHistoryListenerId(environmentInfo.name, properties.blockchain)
+    override val id: String = EntityEventListeners.tokenHistoryListenerId(properties.blockchain)
 
     override val subscriberGroup: SubscriberGroup = SubscriberGroups.TOKEN_HISTORY
 
@@ -37,7 +35,7 @@ class TokenEventReduceService(
                 .mapNotNull {
                     TokenEventConverter.convert(
                         it.record.asEthereumLogRecord(),
-                        it.eventTimeMarks?.addIndexerIn(now)
+                        it.eventTimeMarks.addIndexerIn(now)
                     )
                 }
                 .let { delegate.reduceAll(it) }

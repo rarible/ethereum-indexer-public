@@ -254,6 +254,7 @@ class OpenSeaOrderConverter(
             ClientOrderType.PARTIAL_OPEN -> SeaportOrderType.PARTIAL_OPEN
             ClientOrderType.FULL_RESTRICTED -> SeaportOrderType.FULL_RESTRICTED
             ClientOrderType.PARTIAL_RESTRICTED -> SeaportOrderType.PARTIAL_RESTRICTED
+            ClientOrderType.CONTRACT -> SeaportOrderType.CONTRACT
         }
     }
 

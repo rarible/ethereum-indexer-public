@@ -24,7 +24,6 @@ class KafkaEntityEventConsumer(
 ) : AutoCloseable {
 
     private val topicPrefix = getLogTopicPrefix(environment, service, blockchain, "log")
-    private val clientIdPrefix = "$environment.$host.${java.util.UUID.randomUUID()}.$blockchain"
     private val batchedConsumerWorkers = arrayListOf<RaribleKafkaConsumerWorker<*>>()
 
     fun start(entityEventListeners: List<EntityEventListener>) {
@@ -43,7 +42,7 @@ class KafkaEntityEventConsumer(
             env = environment,
             host = host
         )
-        val settings = RaribleKafkaConsumerSettings<EthereumLogRecordEvent>(
+        val settings = RaribleKafkaConsumerSettings(
             hosts = properties.brokerReplicaSet,
             topic = "$topicPrefix.${listener.subscriberGroup}",
             group = listener.id,

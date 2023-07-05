@@ -22,6 +22,9 @@ rarible:
     apm:
       agent:
         enabled: false
+    task:
+      enabled: false
+
 
 listener:
   depositTokens:

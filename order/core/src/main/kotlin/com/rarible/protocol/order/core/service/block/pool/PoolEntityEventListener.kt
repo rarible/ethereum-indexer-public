@@ -2,7 +2,6 @@ package com.rarible.protocol.order.core.service.block.pool
 
 import com.rarible.blockchain.scanner.framework.listener.AbstractLogRecordEventListener
 import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
-import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.EntityEventListeners
 import com.rarible.protocol.order.core.model.SubscriberGroups
@@ -13,10 +12,9 @@ import org.springframework.stereotype.Component
 class PoolEntityEventListener(
     @Qualifier("pool-event-subscriber")
     poolEventSubscribers: List<LogRecordEventSubscriber>,
-    properties: OrderIndexerProperties,
-    environmentInfo: ApplicationEnvironmentInfo
+    properties: OrderIndexerProperties
 ) : AbstractLogRecordEventListener(
     subscribers = poolEventSubscribers,
-    id = EntityEventListeners.orderHistoryListenerId(environmentInfo.name, properties.blockchain),
+    id = EntityEventListeners.orderHistoryListenerId(properties.blockchain),
     groupId = SubscriberGroups.POOL_HISTORY
 )

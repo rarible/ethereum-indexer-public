@@ -31,12 +31,12 @@
 
         <rarible.ethereum.version>1.7.10</rarible.ethereum.version>
         <rarible.ethereum.contracts.version>1.0.53</rarible.ethereum.contracts.version>
-        <rarible.core.version>2.5.30</rarible.core.version>
+        <rarible.core.version>2.5.31</rarible.core.version>
         <rarible.blockchain.scanner.version>2.7.2</rarible.blockchain.scanner.version>
 
         <rarible.protocol.ethereum.version>1.53.0</rarible.protocol.ethereum.version>
         <rarible.protocol.currency.version>1.38.4</rarible.protocol.currency.version>
-        <opensea-client-starter.version>2.1.16</opensea-client-starter.version>
+        <opensea-client-starter.version>2.1.17</opensea-client-starter.version>
         <looksrare-client-starter.version>1.2.6</looksrare-client-starter.version>
         <x2y2-client.version>1.1.1</x2y2-client.version>
         <reservoir-client.version>1.0.8</reservoir-client.version>
