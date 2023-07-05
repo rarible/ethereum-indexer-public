@@ -72,6 +72,7 @@ class TokenProvider(
         if (isValidToken) {
             token
         } else {
+            logger.info("This collection was blocked: ${token.id}")
             token.copy(
                 standard = TokenStandard.NONE,
                 scam = true
