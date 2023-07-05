@@ -30,7 +30,7 @@ data class BalanceCheckerProperties(
     val updateLastBlock: Duration = Duration.ofSeconds(5),
     val checkUpdatedAt: Boolean = false,
     val eventsHandleBatchSize: Int = 500,
-    val eventsHandleConcurrency: Int = 10,
+    val eventsHandleConcurrency: Int = 9,
 )
 
 data class Erc20JobProperties(
