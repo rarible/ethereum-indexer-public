@@ -11,6 +11,8 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.time.delay
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
@@ -27,6 +29,10 @@ class Erc20BalanceCleanupJob(
     ),
     workerName = "erc20-balance-cleanup-job"
 ) {
+
+    @EventListener(ApplicationReadyEvent::class)
+    fun onApplicationStarted() = start()
+
     override suspend fun handle() {
         if (!properties.enabled) {
             return

@@ -13,6 +13,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.util.concurrent.atomic.AtomicInteger
@@ -33,6 +35,9 @@ class FloorOrderCheckWorker(
 ) {
 
     override suspend fun handle() = handler.handle()
+
+    @EventListener(ApplicationReadyEvent::class)
+    fun onApplicationStarted() = start()
 }
 
 @Component
