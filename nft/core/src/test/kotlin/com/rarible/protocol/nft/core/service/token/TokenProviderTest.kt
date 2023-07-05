@@ -3,10 +3,12 @@ package com.rarible.protocol.nft.core.service.token
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBinary
 import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.filter.TokeByteCodeFilter
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Error
+import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -25,15 +27,15 @@ import java.io.IOException
 internal class TokenProviderTest {
 
     private val sender = mockk<MonoTransactionSender>()
-    private val tokenByteCodeProvider = mockk<TokenByteCodeProvider> {
-        coEvery { fetchByteCode(any()) } returns null
+    private val tokenByteCodeService = mockk<TokenByteCodeService> {
+        coEvery { getByteCode(any()) } returns null
     }
     private val tokeByteCodeFilter = mockk<TokeByteCodeFilter> {
         every { isValid(any()) } returns true
     }
     private val tokenProvider = TokenProvider(
         sender = sender,
-        tokenByteCodeProvider = tokenByteCodeProvider,
+        tokenByteCodeService = tokenByteCodeService,
         tokeByteCodeFilters = listOf(tokeByteCodeFilter)
     )
 
@@ -68,7 +70,7 @@ internal class TokenProviderTest {
         val code = randomBinary(100)
 
         every { tokeByteCodeFilter.isValid(code) } returns false
-        coEvery { tokenByteCodeProvider.fetchByteCode(token.id) } returns code
+        coEvery { tokenByteCodeService.getByteCode(token.id) } returns TokenByteCode(WordFactory.create(), code)
         val updatedToken = tokenProvider.detectScam(token).awaitFirst()
 
         assertThat(updatedToken.standard).isEqualTo(TokenStandard.NONE)

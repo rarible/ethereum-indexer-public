@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.model
 
 import com.rarible.core.entity.reducer.model.Entity
+import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.index.Indexed
@@ -31,11 +32,16 @@ data class Token(
     val isRaribleContract: Boolean = false,
     val deleted: Boolean = false,
     override val revertableEvents: List<TokenEvent> = emptyList(),
-    val scam: Boolean = false
+    val scam: Boolean = false,
+    val byteCodeHash: Word? = null
 ) : Entity<Address, TokenEvent, Token> {
 
     override fun withRevertableEvents(events: List<TokenEvent>): Token {
         return copy(revertableEvents = events)
+    }
+
+    fun withByteCodeHash(hash: Word): Token {
+        return copy(byteCodeHash = hash)
     }
 
     fun withDbUpdatedAt(): Token {
