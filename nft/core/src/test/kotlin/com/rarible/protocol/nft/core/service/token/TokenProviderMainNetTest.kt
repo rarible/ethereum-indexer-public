@@ -1,7 +1,10 @@
 package com.rarible.protocol.nft.core.service.token
 
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.repository.token.TokenByteCodeRepository
 import io.daonomic.rpc.mono.WebClientTransport
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -16,7 +19,10 @@ class TokenProviderMainNetTest {
 
     private val sender = createSender()
     private val tokenByteCodeProvider = TokenByteCodeProvider(sender, 3, 5, 1, Duration.ofMinutes(1))
-    private val service = TokenProvider(sender, tokenByteCodeProvider, emptyList())
+    private val tokenByteCodeRepository = mockk<TokenByteCodeRepository>()
+    private val featureFlags = FeatureFlags(saveTokenByteCode = false)
+    private val tokenByteCodeService = TokenByteCodeService(tokenByteCodeProvider, tokenByteCodeRepository, featureFlags)
+    private val service = TokenProvider(sender, tokenByteCodeService, emptyList())
 
     private fun createSender() = ReadOnlyMonoTransactionSender(
         MonoEthereum(
@@ -50,6 +56,7 @@ class TokenProviderMainNetTest {
     )
 
     @Test
+    @Disabled
     fun `request token standards`() = runBlocking<Unit> {
         val errors = arrayListOf<Pair<Address, TokenStandard>>()
         for ((address, expectedStandard) in expectedStandards) {

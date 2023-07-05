@@ -14,6 +14,7 @@ import com.rarible.protocol.nft.core.model.TokenFeature.SET_URI_PREFIX
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.test.IntegrationTest
+import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -68,7 +69,9 @@ class CollectionDescriptorIt : AbstractIntegrationTest() {
                     lastEventId = savedToken?.lastEventId,
                     standard = TokenStandard.ERC1155,
                     version = savedToken?.version,
-                    isRaribleContract = true
+                    isRaribleContract = true,
+                    //Byte code MUST be always the same for test contract
+                    byteCodeHash = Word.apply("0xc91d15681fef753028aa737fe7a8d5cb027936c63003656fce82b25c0ad3e084")
                 ),
                 Token::revertableEvents.name,
                 Token::dbUpdatedAt.name
@@ -113,7 +116,9 @@ class CollectionDescriptorIt : AbstractIntegrationTest() {
                     lastEventId = savedToken?.lastEventId,
                     standard = TokenStandard.ERC1155,
                     version = savedToken?.version,
-                    isRaribleContract = true
+                    isRaribleContract = true,
+                    //Byte code MUST be always the same for test contract
+                    byteCodeHash = Word.apply("0x4d5b9d151267956dfa723742471de92a7126f83f093ca8b22554a8c0220e5eba")
                 ),
                 Token::revertableEvents.name,
                 Token::dbUpdatedAt.name

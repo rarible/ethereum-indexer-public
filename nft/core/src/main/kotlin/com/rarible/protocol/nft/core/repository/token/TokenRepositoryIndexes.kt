@@ -31,11 +31,15 @@ object TokenRepositoryIndexes {
         .partial(PartialIndexFilter.of(Criteria.where(Token::standard.name).isEqualTo(TokenStandard.NONE)))
         .on(Token::standardRetries.name, Sort.Direction.ASC)
 
+    private val INDEX_BYTE_CODE_HASH = Index()
+        .on(Token::byteCodeHash.name, Sort.Direction.ASC)
+
     val ALL_INDEXES = listOf(
         INDEX_BY_DB_UPDATE,
         INDEX_STANDARD,
         INDEX_STANDARD_RETRIES,
         INDEX_BY_OWNER,
-        INDEX_BY_OWNER_AND_STANDARD
+        INDEX_BY_OWNER_AND_STANDARD,
+        INDEX_BYTE_CODE_HASH,
     )
 }

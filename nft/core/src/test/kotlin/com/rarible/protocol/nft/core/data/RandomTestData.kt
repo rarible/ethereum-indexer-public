@@ -8,6 +8,7 @@ import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomBinary
 import com.rarible.core.test.data.randomBoolean
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomLong
@@ -31,6 +32,7 @@ import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.core.repository.data.createAddress
@@ -495,6 +497,13 @@ fun createRandomInconsistentItem() = InconsistentItem(
     supplyValue = BigInteger.TEN,
     ownershipsValue = BigInteger.TEN,
 )
+
+fun createTokenByteCode(): TokenByteCode {
+    return TokenByteCode(
+        hash = Word.apply(randomWord()),
+        code = randomBinary(10)
+    )
+}
 
 fun randomUpdateSuspiciousItemsState(assetCount: Int = 10): UpdateSuspiciousItemsState {
     return UpdateSuspiciousItemsState(
