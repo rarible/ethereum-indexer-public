@@ -16,9 +16,10 @@ internal class SeaportOrderTypeDtoConverterTest {
             .isEqualTo(SeaportOrderTypeDto.PARTIAL_OPEN)
         assertThat(SeaportOrderTypeDtoConverter.convert(SeaportOrderType.PARTIAL_RESTRICTED))
             .isEqualTo(SeaportOrderTypeDto.PARTIAL_RESTRICTED)
+        assertThat(SeaportOrderTypeDtoConverter.convert(SeaportOrderType.CONTRACT))
+            .isEqualTo(SeaportOrderTypeDto.CONTRACT)
 
-        //TODO: Add Contract convert check in PT-3215
         assertThat(SeaportOrderType.values()).hasSize(5)
-        assertThat(SeaportOrderTypeDto.values()).hasSize(4)
+        assertThat(SeaportOrderTypeDto.values()).hasSize(5)
     }
 }
