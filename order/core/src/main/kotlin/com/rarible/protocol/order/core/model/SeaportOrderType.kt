@@ -10,7 +10,7 @@ enum class SeaportOrderType(val value: Int) {
 
     companion object {
         private val VALUES = values().associateBy { it.value }
-        val SUPPORTED = values().filter { it != CONTRACT }
+        val SUPPORTED = values()
 
         fun fromValue(value: Int): SeaportOrderType {
             return VALUES[value] ?: throw IllegalArgumentException("Unsupported value $value")
