@@ -43,7 +43,7 @@ class KafkaEntityEventConsumer(
             env = environment,
             host = host
         )
-        val settings = RaribleKafkaConsumerSettings<EthereumLogRecordEvent>(
+        val settings = RaribleKafkaConsumerSettings(
             hosts = properties.brokerReplicaSet,
             topic = "$topicPrefix.${listener.subscriberGroup}",
             group = listener.id,
