@@ -1,0 +1,29 @@
+@startuml
+
+SDK -> ETHEREUM: calling approve for token
+ETHEREUM -> listener: approval event
+listener -> approve_history: saving approval
+SDK -> api: creating sell order
+activate api
+api -> order: checking existed order
+api -> api: validating order
+api -> ETHEREUM: checking allowance
+api -> api: reducing order
+api -> approve_history: getting last approval
+api -> api: seting order approval
+api -> order: saving order
+api -> SDK: order
+deactivate api
+
+
+box "Order indexer"
+participant api
+participant listener
+end box
+
+box "Mongo"
+participant approve_history
+participant order
+end box
+
+@enduml
