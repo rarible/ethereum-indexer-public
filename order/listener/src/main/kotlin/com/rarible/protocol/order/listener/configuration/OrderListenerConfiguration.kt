@@ -69,11 +69,11 @@ class OrderListenerConfiguration(
     private val metrics: ForeignOrderMetrics
 ) {
     private val erc20BalanceConsumerGroup =
-        "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.erc20-balance"
+        "protocol.${commonProperties.blockchain.value}.order.indexer.erc20-balance"
     private val ownershipBalanceConsumerGroup =
-        "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
+        "protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
     private val itemConsumerGroup =
-        "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.item"
+        "protocol.${commonProperties.blockchain.value}.order.indexer.item"
 
     @Bean
     fun blockchain(): Blockchain {

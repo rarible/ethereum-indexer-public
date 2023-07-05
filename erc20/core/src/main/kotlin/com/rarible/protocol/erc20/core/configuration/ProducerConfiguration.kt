@@ -36,8 +36,7 @@ class ProducerConfiguration(
 
         return Erc20EventService(
             erc20EventListener,
-            properties,
-            applicationEnvironmentInfo
+            properties
         )
     }
 

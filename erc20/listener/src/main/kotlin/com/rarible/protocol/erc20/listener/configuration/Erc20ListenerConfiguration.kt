@@ -35,7 +35,7 @@ class Erc20ListenerConfiguration(
 ) {
 
     private val erc20BalanceConsumerGroup =
-        "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.erc20.indexer.erc20-balance"
+        "protocol.${commonProperties.blockchain.value}.erc20.indexer.erc20-balance"
 
     @Bean
     fun raribleKafkaConsumerFactory(): RaribleKafkaConsumerFactory {
