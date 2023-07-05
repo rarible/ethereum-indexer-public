@@ -11,5 +11,6 @@ data class FeatureFlags(
     @Deprecated("Need remove this flag in release 1.31")
     val pendingDisabled: Boolean = true,
     val enableTokenMetaSelfRepair: Boolean = false,
-    val filterScamToken: Boolean = false
+    val filterScamToken: Boolean = false,
+    val saveTokenByteCode: Boolean = true,
 )

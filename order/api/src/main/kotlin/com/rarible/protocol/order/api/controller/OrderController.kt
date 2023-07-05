@@ -104,7 +104,7 @@ class OrderController(
             val reduced = orderReduceService.updateOrder(hash.toOrderId().hash)
             if (reduced != null && withApproval) {
                 val hasApproved = approveService.checkApprove(reduced.maker, reduced.make.type.token, reduced.platform)
-                orderUpdateService.updateApproval(reduced, hasApproved, orderOffchainEventMarks())
+                orderUpdateService.reduceApproval(reduced, hasApproved, orderOffchainEventMarks())
                 reduced.copy(approved = hasApproved)
             } else reduced
         }

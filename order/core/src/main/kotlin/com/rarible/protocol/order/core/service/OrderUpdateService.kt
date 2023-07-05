@@ -18,6 +18,7 @@ import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.core.service.updater.CustomOrderUpdater
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -77,6 +78,18 @@ class OrderUpdateService(
     }
 
     suspend fun updateApproval(
+        order: Order,
+        approved: Boolean,
+        eventTimeMarks: EventTimeMarks
+    ) {
+        val hash = order.hash
+
+        val latestVersion = orderVersionRepository.findLatestByHash(hash) ?: order.toOrderVersion()
+        orderVersionRepository.save(latestVersion.copy(approved = approved)).awaitSingle()
+        reduceApproval(order, approved, eventTimeMarks)
+    }
+
+    suspend fun reduceApproval(
         order: Order,
         approved: Boolean,
         eventTimeMarks: EventTimeMarks

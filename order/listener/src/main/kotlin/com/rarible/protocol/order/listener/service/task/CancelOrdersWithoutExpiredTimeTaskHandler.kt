@@ -10,7 +10,6 @@ import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderStatus.Companion.ALL_EXCEPT_CANCELLED
-import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -85,28 +84,7 @@ class CancelOrdersWithoutExpiredTimeTaskHandler(
         val orderVersions = orderVersionRepository.findAllByHash(hash).toList()
         if (orderVersions.isEmpty()) {
             val order = orderRepository.findById(hash) ?: return
-            val orderVersion = OrderVersion(
-                maker = order.maker,
-                make = order.make,
-                take = order.take,
-                taker = order.taker,
-                type = order.type,
-                salt = order.salt,
-                start = order.start,
-                end = order.end,
-                data = order.data,
-                signature = order.signature,
-                platform = order.platform,
-                hash = order.hash,
-                approved = order.approved,
-                createdAt = order.createdAt,
-                makePriceUsd = null,
-                takePriceUsd = null,
-                makePrice = null,
-                takePrice = null,
-                makeUsd = null,
-                takeUsd = null
-            )
+            val orderVersion = order.toOrderVersion()
             orderVersionRepository.save(orderVersion).awaitFirst()
         }
     }

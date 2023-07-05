@@ -13,6 +13,7 @@ import com.rarible.core.common.component5
 import com.rarible.core.common.orNull
 import com.rarible.protocol.contracts.Signatures
 import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.model.calculateFunctionId
@@ -39,7 +40,7 @@ import java.util.*
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class TokenProvider(
     private val sender: MonoTransactionSender,
-    private val tokenByteCodeProvider: TokenByteCodeProvider,
+    private val tokenByteCodeService: TokenByteCodeService,
     private val tokeByteCodeFilters: List<TokeByteCodeFilter>
 ) {
     fun fetchToken(address: Address): Mono<Token> {
@@ -66,16 +67,17 @@ class TokenProvider(
     }
 
     fun detectScam(token: Token): Mono<Token> = mono {
-        val code = tokenByteCodeProvider.fetchByteCode(token.id) ?: return@mono token
-        val isValidToken = tokeByteCodeFilters.all { it.isValid(code) }
+        val result = getBytecode(token.id) ?: return@mono token
+        val isValidToken = tokeByteCodeFilters.all { it.isValid(result.code) }
         if (isValidToken) {
             token
         } else {
+            logger.info("This collection was blocked: ${token.id}")
             token.copy(
                 standard = TokenStandard.NONE,
                 scam = true
             )
-        }
+        }.withByteCodeHash(result.hash)
     }
 
     /**
@@ -120,7 +122,7 @@ class TokenProvider(
      */
     suspend fun fetchTokenStandardBySignature(address: Address): TokenStandard {
         logStandard(address, "determine standard by presence of function signatures")
-        val bytecode = getBytecode(address) ?: return TokenStandard.NONE
+        val bytecode = getBytecode(address)?.code ?: return TokenStandard.NONE
 
         val hexBytecode = bytecode.hex()
         for (standard in TokenStandard.values()) {
@@ -183,11 +185,11 @@ class TokenProvider(
             .onErrorResume { false.toMono() }
     }
 
-    private suspend fun getBytecode(address: Address): Binary? {
-        return tokenByteCodeProvider.fetchByteCode(address)
+    private suspend fun getBytecode(address: Address): TokenByteCode? {
+        return tokenByteCodeService.getByteCode(address)
     }
 
-    private fun getBytecodeWithMono(address: Address): Mono<Binary> = mono { getBytecode(address) }
+    private fun getBytecodeWithMono(address: Address): Mono<Binary> = mono { getBytecode(address)?.code }
 
     private fun <T : Any> Mono<T>.emptyIfError(): Mono<Optional<T>> {
         return this

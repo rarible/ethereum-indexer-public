@@ -16,14 +16,12 @@ import com.rarible.reservoir.client.ReservoirClient
 import com.rarible.reservoir.client.model.ReservoirResult
 import com.rarible.reservoir.client.model.common.Amount
 import com.rarible.reservoir.client.model.common.Currency
-import com.rarible.reservoir.client.model.common.OrderKind
 import com.rarible.reservoir.client.model.common.Price
 import com.rarible.reservoir.client.model.v3.EventInfo
 import com.rarible.reservoir.client.model.v3.EventKind
 import com.rarible.reservoir.client.model.v3.ReservoirOrder
 import com.rarible.reservoir.client.model.v3.ReservoirOrderEvent
 import com.rarible.reservoir.client.model.v3.ReservoirOrderEvents
-import com.rarible.reservoir.client.model.v3.Source
 import io.daonomic.rpc.domain.Word
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
@@ -133,7 +131,7 @@ internal class ReservoirOrdersReconciliationWorkerTest {
             contract = AddressFactory.create(),
             id = id.toString(),
             isDynamic = false,
-            kind = OrderKind.SEAPORT_V1_5,
+            kind = "SEAPORT_V1_5",
             maker = AddressFactory.create(),
             price = Price(
                 currency = Currency(
@@ -149,7 +147,7 @@ internal class ReservoirOrdersReconciliationWorkerTest {
                 netAmount = null,
             ),
             quantityRemaining = randomBigInt(),
-            source = Source.OPEN_SEA,
+            source = "OPEN_SEA",
             validFrom = Instant.now(),
             validUntil = Instant.now(),
             status = status,

@@ -261,7 +261,9 @@ class TokenServiceIt : AbstractIntegrationTest() {
                 TokenFeature.BURN,
                 TokenFeature.MINT_AND_TRANSFER
             ),
-            standard = TokenStandard.ERC721
+            standard = TokenStandard.ERC721,
+            //Byte code MUST be always the same for test contract
+            byteCodeHash = Word.apply("0x66a01ac3911dbf81d3f7a37e56590a632b3d61f59feb0f10cacc9a2b9d565598")
         )
         assertThat(token).isEqualToIgnoringGivenFields(
             expectedToken,

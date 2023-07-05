@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -74,7 +75,7 @@ class OrderVersionRepository(
     }
 
     fun updateMulti(query: Query, update: UpdateDefinition): Mono<UpdateResult> {
-        return template.updateMulti(query, update,  COLLECTION)
+        return template.updateMulti(query, update, COLLECTION)
     }
 
     fun find(query: Query): Flow<OrderVersion> {
@@ -112,6 +113,16 @@ class OrderVersionRepository(
     }
 
     fun findAllByHash(hash: Word): Flow<OrderVersion> = findAllByHash(hash, null, null).asFlow()
+
+    suspend fun findLatestByHash(hash: Word): OrderVersion? =
+        template.find<OrderVersion>(
+            Query(where(OrderVersion::hash).isEqualTo(hash)).with(
+                Sort.by(
+                    Sort.Direction.DESC,
+                    OrderVersion::id.name
+                )
+            ), COLLECTION
+        ).asFlow().firstOrNull()
 
     fun findAllByHash(hash: Word?, fromHash: Word?, platforms: List<Platform>?): Flux<OrderVersion> {
         var criteria = when {
