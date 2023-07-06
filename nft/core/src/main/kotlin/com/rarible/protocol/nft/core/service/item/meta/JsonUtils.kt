@@ -45,6 +45,10 @@ fun ObjectNode.parseAttributes(milliTimestamps: Boolean = false): List<ItemAttri
     return emptyList()
 }
 
+fun ObjectNode.getAttribute(key: String) : ItemAttribute? {
+    return this.getText(key)?.let { ItemAttribute(key, it) }
+}
+
 private fun JsonNode.toAttribute(milliTimestamps: Boolean): ItemAttribute? {
     val key = getText("key", "trait_type") ?: return null
     val valueField = getText("value") ?: return ItemAttribute(key, null, null, null)
