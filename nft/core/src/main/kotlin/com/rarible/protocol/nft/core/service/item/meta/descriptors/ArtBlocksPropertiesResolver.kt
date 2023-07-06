@@ -21,7 +21,7 @@ class ArtBlocksPropertiesResolver(
 ) : AbstractRariblePropertiesResolver(urlService, rawPropertiesProvider, tokenUriResolver) {
 
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
-        if (itemId.token != ART_BLOCKS_ADDRESS) {
+        if (!ART_BLOCKS_ADDRESSES.contains(itemId.token)) {
             return null
         }
         return super.resolve(itemId)
@@ -47,6 +47,12 @@ class ArtBlocksPropertiesResolver(
     }
 
     companion object {
-        val ART_BLOCKS_ADDRESS = Address.apply("0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270")
+        val ART_BLOCKS_ADDRESSES = listOf(
+            "0x059edd72cd353df5106d2b9cc5ab83a52287ac3a",
+            "0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270",
+            "0x99a9B7c1116f9ceEB1652de04d5969CcE509B069",
+            "0x942bc2d3e7a589fe5bd4a5c6ef9727dfd82f5c8a",
+            "0xea698596b6009a622c3ed00dd5a8b5d1cae4fc36"
+        ).map(Address::apply).toSet()
     }
 }

@@ -11,10 +11,13 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import scalether.domain.Address
 import java.math.BigInteger
 
 @ItemMetaTest
 class ArtBlocksPropertiesResolverTest : BasePropertiesResolverTest() {
+
+    private val token = Address.apply("0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270")
 
     private val resolver = ArtBlocksPropertiesResolver(
         urlService,
@@ -23,13 +26,13 @@ class ArtBlocksPropertiesResolverTest : BasePropertiesResolverTest() {
     )
 
     @BeforeEach
-    fun mock() = mockTokenStandard(ArtBlocksPropertiesResolver.ART_BLOCKS_ADDRESS, TokenStandard.ERC721)
+    fun mock() = mockTokenStandard(token, TokenStandard.ERC721)
 
     @Test
     fun `get properties`() = runBlocking<Unit> {
         val properties = resolver.resolve(
             ItemId(
-                ArtBlocksPropertiesResolver.ART_BLOCKS_ADDRESS,
+                token,
                 EthUInt256.of(BigInteger("114000001"))
             )
         )
