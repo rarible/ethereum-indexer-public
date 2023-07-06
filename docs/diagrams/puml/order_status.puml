@@ -25,7 +25,8 @@ note on link
 end note
 NOT_STARTED --> ACTIVE : activate by start/end job
 ACTIVE --> INACTIVE : remove approval or makeStock = 0
-ACTIVE --> CANCELED : cancel event
+ACTIVE --> CANCELED : cancel event by user
+ACTIVE --> CANCELED : cancel event from kafka by balance
 ACTIVE --> CANCELED : cancel via admin api
 ACTIVE --> ACTIVE : match event
 INACTIVE --> ACTIVE : received approval

@@ -2,8 +2,8 @@
 
 SDK -> ETHEREUM: calling approve for token
 ETHEREUM -> listener: approval event (get by blockchain-scanner)
-listener -> "blockchain-scanner.order.log.approval-history" : kafka message
-"blockchain-scanner.order.log.approval-history" -> listener: kafka message
+listener -> "log.approval-history" : kafka message
+"log.approval-history" -> listener: kafka message
 listener -> approve_history: saving approval
 SDK -> api: creating sell order
 activate api
@@ -18,7 +18,7 @@ api -> SDK: order
 deactivate api
 
 box "Kafka"
-participant "blockchain-scanner.order.log.approval-history"
+participant "log.approval-history"
 end box
 
 box "Order indexer"

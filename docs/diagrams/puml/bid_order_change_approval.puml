@@ -1,0 +1,27 @@
+@startuml
+
+SDK -> ETHEREUM: calling approve for erc20
+ETHEREUM -> erc20: approval event (get by blockchain-scanner)
+erc20 -> "log.balance-history" : kafka message
+"log.balance-history" -> erc20: kafka message
+erc20 -> "erc20.allowance" : allowance message
+"erc20.allowance" -> listener : allowance message
+
+listener -> order: get existed orders
+listener -> listener: set order approval
+listener -> order: saving orders with new status
+
+box "Kafka"
+participant "erc20.allowance"
+participant "log.balance-history"
+end box
+
+box "Order indexer"
+participant listener
+end box
+
+box "Mongo"
+participant order
+end box
+
+@enduml
