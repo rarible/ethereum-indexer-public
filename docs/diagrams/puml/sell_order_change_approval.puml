@@ -1,7 +1,9 @@
 @startuml
 
 SDK -> ETHEREUM: calling approve for token
-ETHEREUM -> listener: approval event
+ETHEREUM -> listener: approval event (get by blockchain-scanner)
+listener -> "blockchain-scanner.order.log.approval-history" : kafka message
+"blockchain-scanner.order.log.approval-history" -> listener: kafka message
 listener -> approve_history: saving approval
 listener -> order: get existed order
 listener -> listener: reducing order
@@ -9,6 +11,9 @@ listener -> approve_history: getting last approval
 listener -> listener: set order approval
 listener -> order: saving order
 
+box "Kafka"
+participant "blockchain-scanner.order.log.approval-history"
+end box
 
 box "Order indexer"
 participant listener

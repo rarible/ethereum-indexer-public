@@ -2,12 +2,16 @@
 
 ## Order status overview
 
-![](puml/order_status.svg)
+![](diagrams/svg/order_status.svg)
 
 ## Creating a sell order
 
-![](puml/sell_order_creating.svg)
+![](diagrams/svg/sell_order_creating.svg)
 
 ## Changing approval for a sell order
 
-![](puml/sell_order_change_approval.svg)
+![](diagrams/svg/sell_order_change_approval.svg)
+
+## Changing approval for a bid
+
+![](diagrams/svg/bid_order_change_approval.svg)

@@ -1,7 +1,9 @@
 @startuml
 
 SDK -> ETHEREUM: calling approve for token
-ETHEREUM -> listener: approval event
+ETHEREUM -> listener: approval event (get by blockchain-scanner)
+listener -> "blockchain-scanner.order.log.approval-history" : kafka message
+"blockchain-scanner.order.log.approval-history" -> listener: kafka message
 listener -> approve_history: saving approval
 SDK -> api: creating sell order
 activate api
@@ -15,6 +17,9 @@ api -> order: saving order
 api -> SDK: order
 deactivate api
 
+box "Kafka"
+participant "blockchain-scanner.order.log.approval-history"
+end box
 
 box "Order indexer"
 participant api
