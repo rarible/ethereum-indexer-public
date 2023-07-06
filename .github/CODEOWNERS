@@ -1,4 +1,5 @@
 # devops team configuratin files
+* @rarible/backend-protocol-team
 /.github/ @rarible/devops-team
 /cicd/ @rarible/devops-team
 /Jenkinsfile @rarible/devops-team
