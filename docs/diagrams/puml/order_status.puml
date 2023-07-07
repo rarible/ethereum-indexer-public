@@ -1,0 +1,37 @@
+@startuml
+
+ACTIVE: has approval
+ACTIVE: makeStock > 0
+ACTIVE: makeStock < filled
+FILLED: makeStock = filled
+NOT_STARTED: start > now
+ENDED: end < now
+CANCELED: canceled = true
+INACTIVE: no approval for make asset
+INACTIVE: or no ownership for make asset
+INACTIVE: or makeStock = 0
+
+[*] --> ACTIVE : create order
+note on link
+  has approval
+end note
+[*] --> NOT_STARTED : create order
+note on link
+  start > now
+end note
+[*] --> INACTIVE : create order
+note on link
+  no approval
+end note
+NOT_STARTED --> ACTIVE : activate by start/end job
+ACTIVE --> INACTIVE : remove approval
+ACTIVE --> CANCELED : cancel event by user
+ACTIVE --> INACTIVE : balance event (makeStock = 0)
+ACTIVE --> CANCELED : cancel via admin api
+ACTIVE --> ACTIVE : match event
+INACTIVE --> ACTIVE : received approval
+INACTIVE --> ACTIVE : balance event (makeStock > 0)
+ACTIVE --> FILLED : match event
+ACTIVE --> ENDED : deactivate by start/end job
+
+@enduml

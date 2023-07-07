@@ -17,6 +17,8 @@ Indexers were built using Spring Framework and use these external services:
 * MongoDB for main data storage
 * Kafka for handling events
 
+[Order diagrams](docs/order.md)
+
 ## Running Indexer with Docker Compose
 
 ### Requirements
