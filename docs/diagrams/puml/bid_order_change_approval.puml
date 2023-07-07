@@ -4,16 +4,17 @@ SDK -> ETHEREUM: calling approve for erc20
 ETHEREUM -> erc20: approval event (get by blockchain-scanner)
 erc20 -> "log.balance-history" : kafka message
 "log.balance-history" -> erc20: kafka message
-erc20 -> "erc20.allowance" : allowance message
-"erc20.allowance" -> listener : allowance message
+erc20 -> "erc20.balance" : allowance message
+"erc20.balance" -> listener : allowance message
 
 listener -> order: get existed orders
 listener -> listener : get platform by operator
 listener -> listener: set order approval
+listener -> ETHEREUM: check approval (it must be onchain due to no event after bid is accepted)
 listener -> order: saving orders with new status
 
 box "Kafka"
-participant "erc20.allowance"
+participant "erc20.balance"
 participant "log.balance-history"
 end box
 
