@@ -8,6 +8,7 @@ import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.model.SubscriberGroups
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
+import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.Erc20RegistrationService
 import com.rarible.protocol.erc20.listener.service.IgnoredOwnersResolver
 import org.slf4j.LoggerFactory
@@ -20,12 +21,14 @@ class DepositLogSubscriber(
     private val registrationService: Erc20RegistrationService,
     ignoredOwnersResolver: IgnoredOwnersResolver,
     metrics: DescriptorMetrics,
+    commonProps: Erc20ListenerProperties,
 ) : AbstractBalanceLogEventSubscriber(
     ignoredOwnersResolver = ignoredOwnersResolver,
     metrics = metrics,
     group = SubscriberGroups.ERC20_HISTORY,
     topic = DepositEvent.id(),
-    collection = Erc20TransferHistoryRepository.COLLECTION
+    collection = Erc20TransferHistoryRepository.COLLECTION,
+    tokens = commonProps.tokens,
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
