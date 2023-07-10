@@ -12,11 +12,13 @@ import com.rarible.protocol.erc20.core.model.SubscriberGroup
 import com.rarible.protocol.erc20.listener.service.IgnoredOwnersResolver
 import io.daonomic.rpc.domain.Word
 import org.bson.types.ObjectId
+import scalether.domain.Address
 import scalether.domain.response.Log
 import java.util.Date
 
 abstract class AbstractBalanceLogEventSubscriber(
     ignoredOwnersResolver: IgnoredOwnersResolver,
+    tokens: List<String>,
     private val metrics: DescriptorMetrics,
     group: SubscriberGroup,
     topic: Word,
@@ -24,6 +26,7 @@ abstract class AbstractBalanceLogEventSubscriber(
 ) : EthereumLogEventSubscriber() {
 
     private val ignoredOwners = ignoredOwnersResolver.resolve()
+    private val whitelist = tokens.map(Address::apply).toSet()
 
     private val descriptor = EthereumDescriptor(
         ethTopic = topic,
@@ -41,7 +44,7 @@ abstract class AbstractBalanceLogEventSubscriber(
     ): List<EthereumLogRecord> {
         //TODO here we should send index and totalLogs
         val converted = convert(log.ethLog, Date(block.timestamp * 1000))
-            .filterByOwner()
+            .filterByOwnerAndToken()
         return converted.map {
             ReversedEthereumLogRecord(
                 id = ObjectId().toHexString(),
@@ -51,9 +54,9 @@ abstract class AbstractBalanceLogEventSubscriber(
         }
     }
 
-    private fun Iterable<Erc20TokenHistory>.filterByOwner() =
+    private fun Iterable<Erc20TokenHistory>.filterByOwnerAndToken() =
         filterTo(ArrayList()) { log ->
-            val ignored = log.owner in ignoredOwners
+            val ignored = log.owner in ignoredOwners || (whitelist.isNotEmpty() && log.token !in whitelist)
             if (ignored) {
                 metrics.onSkipped("ignored")
             } else {
