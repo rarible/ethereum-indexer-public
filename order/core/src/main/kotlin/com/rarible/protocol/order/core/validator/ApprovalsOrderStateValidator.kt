@@ -19,10 +19,10 @@ class ApprovalsOrderStateValidator(
     override fun supportsValidation(order: Order) = true
 
     override suspend fun validate(order: Order) {
-        if (!approveService.checkOnChainApprove(order.maker, order.make.type, order.platform) ||
-            !approveService.checkOnChainErc20Allowance(order.maker, order.make)
-        ) {
-            logger.warn("Order validation error: hash=${order.hash}, approved=false")
+        val approved = approveService.checkOnChainApprove(order.maker, order.make.type, order.platform)
+        val correctAllowance = approveService.checkOnChainErc20Allowance(order.maker, order.make)
+        if (!approved || !correctAllowance) {
+            logger.warn("Order validation error: hash=${order.hash}, approved=$approved, correctAllowance=$correctAllowance")
             orderUpdateService.updateApproval(
                 order = order,
                 approved = false,
