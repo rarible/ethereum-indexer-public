@@ -4,6 +4,7 @@ import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.contract.model.Contract
 import com.rarible.core.contract.model.ContractType
+import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.Erc20RegistrationService
@@ -18,6 +19,7 @@ import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Instant
 
@@ -42,7 +44,7 @@ internal class TransferLogDescriptorTest {
     }
 
     @Test
-    fun `shouldn't ignore event records`() = runBlocking<Unit> {
+    fun `shouldn't ignore event records if empty properties`() = runBlocking<Unit> {
         val commonProps: Erc20ListenerProperties = mockk() {
             every { tokens } returns emptyList()
         }
@@ -71,9 +73,39 @@ internal class TransferLogDescriptorTest {
     }
 
     @Test
+    fun `shouldn't ignore event record if token is in whitelist`() = runBlocking<Unit> {
+        val commonProps: Erc20ListenerProperties = mockk() {
+            every { tokens } returns listOf(contract.id.hex())
+        }
+        val descriptor = TransferLogSubscriber(
+            registrationService,
+            ignoredOwnersResolver,
+            metrics,
+            commonProps
+        )
+        val log: EthereumBlockchainLog = mockk() {
+            every { ethLog } returns log(
+                topics = listOf(
+                    Word.apply("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+                    Word.apply("0x0000000000000000000000003474606e53eae51f6a4f787e8c8d33999c6eae61"),
+                    Word.apply("0x0000000000000000000000007f4b31f1578bb1d49d420379b7db20d08a5c8935"),
+                ),
+                data = "0x01",
+                address = Address.apply(contract.id)
+            )
+            every { index } returns 0
+            every { ethTransaction } returns transaction()
+        }
+
+        val records = descriptor.getEthereumEventRecords(block, log)
+        assertThat(records.size).isEqualTo(2)
+        verify(exactly = 2) { metrics.onSaved() }
+    }
+
+    @Test
     fun `should ignore event record`() = runBlocking<Unit> {
         val commonProps: Erc20ListenerProperties = mockk() {
-            every { tokens } returns listOf("0x3474606e53eae51f6a4f787e8c8d33999c6eae61")
+            every { tokens } returns listOf(randomAddress().hex())
         }
         val descriptor = TransferLogSubscriber(
             registrationService,

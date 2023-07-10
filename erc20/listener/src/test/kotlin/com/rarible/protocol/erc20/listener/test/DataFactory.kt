@@ -35,11 +35,11 @@ fun log(
     "" // type
 )
 
-fun transaction(): Transaction {
+fun transaction(from: Address = randomAddress(), to: Address = randomAddress()): Transaction {
     return mockk<Transaction> {
         every { input() } returns Binary.empty()
         every { hash() } returns Word.apply(randomWord())
-        every { from() } returns randomAddress()
-        every { to() } returns randomAddress()
+        every { from() } returns from
+        every { to() } returns to
     }
 }
