@@ -55,6 +55,11 @@ class CoreConfiguration(
     }
 
     @Bean
+    fun reduceProperties(): NftIndexerProperties.ReduceProperties {
+        return properties.reduce
+    }
+
+    @Bean
     fun scannerProperties(): NftIndexerProperties.ScannerProperties {
         return properties.scannerProperties
     }

@@ -14,8 +14,14 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
     @Transient
     var eventTimeMarks: EventTimeMarks? = null
 
+    sealed class ItemSupplyEvent : ItemEvent() {
+        abstract val supply: EthUInt256
+
+        abstract fun withSupply(supply: EthUInt256): ItemSupplyEvent
+    }
+
     data class ItemMintEvent(
-        val supply: EthUInt256,
+        override val supply: EthUInt256,
         val owner: Address,
         override val entityId: String,
         override val log: EthereumLog,
@@ -23,17 +29,21 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
          * Token URI. Applicable only to pending logs.
          */
         val tokenUri: String? = null
-    ) : ItemEvent() {
+    ) : ItemSupplyEvent() {
         override fun invert(): ItemBurnEvent = ItemEventInverter.invert(this)
+
+        override fun withSupply(supply: EthUInt256) = copy(supply = supply)
     }
 
     data class ItemBurnEvent(
         val owner: Address,
-        val supply: EthUInt256,
+        override val supply: EthUInt256,
         override val entityId: String,
         override val log: EthereumLog,
-    ) : ItemEvent() {
+    ) : ItemSupplyEvent() {
         override fun invert(): ItemMintEvent = ItemEventInverter.invert(this)
+
+        override fun withSupply(supply: EthUInt256) = copy(supply = supply)
     }
 
     data class ItemTransferEvent(

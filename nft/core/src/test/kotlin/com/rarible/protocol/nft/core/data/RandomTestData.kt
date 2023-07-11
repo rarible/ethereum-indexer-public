@@ -58,7 +58,8 @@ fun createRandomUrl(): String =
     "https://image.com/${randomString()}"
 
 fun createRandomEthereumLog(
-    transactionSender: Address = randomAddress()
+    transactionSender: Address = randomAddress(),
+    blockNumber: Long = randomLong(),
 ): EthereumLog =
     EthereumLog(
         transactionHash = randomWord(),
@@ -66,7 +67,7 @@ fun createRandomEthereumLog(
         address = randomAddress(),
         topic = Word.apply(randomWord()),
         blockHash = Word.apply(randomWord()),
-        blockNumber = randomLong(),
+        blockNumber = blockNumber,
         logIndex = randomInt(),
         minorLogIndex = randomInt(),
         index = randomInt(),
@@ -221,12 +222,17 @@ fun createRandomOpenSeaLazyItemMintEvent(): ItemEvent.OpenSeaLazyItemMintEvent {
 }
 
 fun createRandomMintItemEvent(
-    transactionSender: Address = randomAddress()
+    transactionSender: Address = randomAddress(),
+    supply: Int = randomInt(),
+    blockNumber: Long = randomLong(),
 ): ItemEvent.ItemMintEvent {
-    val log = createRandomEthereumLog(transactionSender = transactionSender)
+    val log = createRandomEthereumLog(
+        transactionSender = transactionSender,
+        blockNumber = blockNumber
+    )
     val event = ItemEvent.ItemMintEvent(
         owner = randomAddress(),
-        supply = EthUInt256.of(randomInt()),
+        supply = EthUInt256.of(supply),
         entityId = randomString(),
         log = log,
     )
@@ -234,10 +240,13 @@ fun createRandomMintItemEvent(
     return event
 }
 
-fun createRandomBurnItemEvent(): ItemEvent.ItemBurnEvent {
-    val log = createRandomEthereumLog()
+fun createRandomBurnItemEvent(
+    supply: Int = randomInt(),
+    blockNumber: Long = randomLong(),
+): ItemEvent.ItemBurnEvent {
+    val log = createRandomEthereumLog(blockNumber = blockNumber)
     val event = ItemEvent.ItemBurnEvent(
-        supply = EthUInt256.of(randomInt()),
+        supply = EthUInt256.of(supply),
         owner = randomAddress(),
         entityId = randomString(),
         log = log,
@@ -273,17 +282,21 @@ fun createRandomOwnershipTransferToEvent(
     owner: Address = randomAddress(),
     from: Address = randomAddress(),
     token: Address = randomAddress(),
-    tokenId: EthUInt256 = EthUInt256.of(randomBigInt())
+    tokenId: EthUInt256 = EthUInt256.of(randomBigInt()),
+    value: Int = randomInt(),
+    blockNumber: Long = randomLong(),
 ): OwnershipEvent.TransferToEvent {
     val entityId = OwnershipId(
         token = token,
         tokenId = tokenId,
         owner = owner
     )
-    val log = createRandomEthereumLog()
+    val log = createRandomEthereumLog(
+        blockNumber = blockNumber
+    )
     val event = OwnershipEvent.TransferToEvent(
         from = from,
-        value = EthUInt256.of(randomInt()),
+        value = EthUInt256.of(value),
         entityId = entityId.stringValue,
         log = log,
     )
@@ -313,11 +326,16 @@ fun createRandomOwnership(
     )
 }
 
-fun createRandomOwnershipTransferFromEvent(): OwnershipEvent.TransferFromEvent {
-    val log = createRandomEthereumLog()
+fun createRandomOwnershipTransferFromEvent(
+    value: Int = randomInt(),
+    blockNumber: Long = randomLong(),
+): OwnershipEvent.TransferFromEvent {
+    val log = createRandomEthereumLog(
+        blockNumber = blockNumber
+    )
     val event = OwnershipEvent.TransferFromEvent(
         to = randomAddress(),
-        value = EthUInt256.of(randomInt()),
+        value = EthUInt256.of(value),
         entityId = randomString(),
         log = log,
     )

@@ -13,4 +13,3 @@ class EventStatusItemReducer(
     forwardChainItemReducer: ForwardChainItemReducer,
     reversedChainItemReducer: ReversedChainItemReducer
 ) : EventStatusReducer<ItemId, ItemEvent, Item>(forwardChainItemReducer, reversedChainItemReducer)
-
