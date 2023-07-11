@@ -2,7 +2,6 @@ package com.rarible.protocol.nft.core.service.item.reduce
 
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
-import com.rarible.core.apm.withSpan
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
@@ -34,27 +33,20 @@ class ItemEventReduceService(
     }
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
-        withSpan(
-            name = "onItemEvents",
-            labels = listOf(
-                "itemId" to (events.firstOrNull()?.record?.asEthereumLogRecord()?.let { itemEventConverter.convert(it) }
-                    ?: ""))
-        ) {
-            try {
-                events
-                    .onEach { onNftItemLogEventListener.onLogEvent(it) }
-                    .mapNotNull {
-                        itemEventConverter.convert(
-                            it.record.asEthereumLogRecord(),
-                            it.eventTimeMarks.addIndexerIn()
-                        )
-                    }
-                    .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
-                    .let { delegate.reduceAll(it) }
-            } catch (ex: Exception) {
-                logger.error("Error on entity events $events", ex)
-                throw ex
-            }
+        try {
+            events
+                .onEach { onNftItemLogEventListener.onLogEvent(it) }
+                .mapNotNull {
+                    itemEventConverter.convert(
+                        it.record.asEthereumLogRecord(),
+                        it.eventTimeMarks.addIndexerIn()
+                    )
+                }
+                .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
+                .let { delegate.reduceAll(it) }
+        } catch (ex: Exception) {
+            logger.error("Error on entity events $events", ex)
+            throw ex
         }
     }
 }
