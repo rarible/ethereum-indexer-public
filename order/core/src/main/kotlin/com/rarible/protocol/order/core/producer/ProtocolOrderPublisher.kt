@@ -33,7 +33,6 @@ import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.PublishProperties
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.ItemId
-import com.rarible.protocol.order.core.model.order.logger
 import org.springframework.stereotype.Component
 
 @Component
@@ -56,7 +55,7 @@ class ProtocolOrderPublisher(
         }
         val message = KafkaMessage(
             key = key,
-            value = event as OrderEventDto,
+            value = event,
             headers = orderEventHeaders,
             id = event.eventId
         )
