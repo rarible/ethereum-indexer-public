@@ -3,11 +3,8 @@ package com.rarible.protocol.order.listener.service.order
 import com.rarible.core.apm.withTransaction
 import com.rarible.core.daemon.job.JobHandler
 import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
-import com.rarible.protocol.order.core.misc.toDto
-import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.listener.configuration.StartEndWorkerProperties
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,14 +13,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
-import java.util.UUID
 
 @Component
 @ExperimentalCoroutinesApi
 class OrderStartEndCheckerHandler(
     private val orderRepository: OrderRepository,
-    private val orderDtoConverter: OrderDtoConverter,
-    private val publisher: ProtocolOrderPublisher,
+    private val orderListener: OrderListener,
     private val properties: StartEndWorkerProperties,
     private val orderExpiredMetric: RegisteredCounter,
     private val orderStartedMetric: RegisteredCounter
@@ -57,15 +52,9 @@ class OrderStartEndCheckerHandler(
                         .cancelEndedBid()
                         .withUpdatedStatus(now)
                 )
-                if (isExpired == true) orderExpiredMetric.increment() else orderStartedMetric.increment()
+                if (isExpired) orderExpiredMetric.increment() else orderStartedMetric.increment()
                 logger.info("Change order ${saved.id} status to ${saved.status}")
-                val updateEvent = OrderUpdateEventDto(
-                    eventId = UUID.randomUUID().toString(),
-                    orderId = saved.id.toString(),
-                    order = orderDtoConverter.convert(saved),
-                    eventTimeMarks = eventTimeMarks.toDto()
-                )
-                publisher.publish(updateEvent)
+                orderListener.onOrder(order, eventTimeMarks, false)
             }
     }
 }

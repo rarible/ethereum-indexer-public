@@ -8,6 +8,7 @@ import com.rarible.protocol.erc20.core.model.Erc20TokenApproval
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.model.SubscriberGroups
 import com.rarible.protocol.erc20.core.repository.Erc20ApprovalHistoryRepository
+import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.Erc20RegistrationService
 import com.rarible.protocol.erc20.listener.service.IgnoredOwnersResolver
 import org.slf4j.LoggerFactory
@@ -19,13 +20,15 @@ import java.util.Date
 class ApprovalLogSubscriber(
     ignoredOwnersResolver: IgnoredOwnersResolver,
     metrics: DescriptorMetrics,
-    private val registrationService: Erc20RegistrationService
+    private val registrationService: Erc20RegistrationService,
+    commonProps: Erc20ListenerProperties
 ) : AbstractBalanceLogEventSubscriber(
     ignoredOwnersResolver = ignoredOwnersResolver,
     metrics = metrics,
     group = SubscriberGroups.ERC20_HISTORY,
     topic = ApprovalEvent.id(),
-    collection = Erc20ApprovalHistoryRepository.COLLECTION
+    collection = Erc20ApprovalHistoryRepository.COLLECTION,
+    tokens = commonProps.tokens,
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)

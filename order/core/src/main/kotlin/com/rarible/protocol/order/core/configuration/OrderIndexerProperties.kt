@@ -131,7 +131,7 @@ data class OrderIndexerProperties(
         val getPoolInfoFromChain: Boolean = true,
         val sudoswapEnabled: Boolean = true,
         val blurEnabled: Boolean = false,
-        val markIgnoredEvent: Boolean = true,
+        val markIgnoredEvent: Boolean = false,
         val removeOpenSeaOrdersInTask: Boolean = false,
         val parseBlurMarketPlaceV2: Boolean = false,
         val cancelOrderOnGetSignatureError: Boolean = true,

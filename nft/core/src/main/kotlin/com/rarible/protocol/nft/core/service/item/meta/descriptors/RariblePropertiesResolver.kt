@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.common.ifNotBlank
 import com.rarible.core.meta.resource.model.UrlResource
 import com.rarible.protocol.nft.core.model.ItemId
@@ -75,9 +76,12 @@ abstract class AbstractRariblePropertiesResolver(
         return ItemPropertiesParser.parse(
             itemId = itemId,
             httpUrl = urlService.resolveInternalHttpUrl(resource),
-            rawProperties = rawProperties
+            rawProperties = rawProperties,
+            mapper = this::mapProperties
         )
     }
+
+    protected open fun mapProperties(itemId: ItemId, node: ObjectNode) = JsonItemPropertiesMapper.map(itemId, node)
 
     protected open fun parseTokenUrl(itemId: ItemId, tokenUri: String): UrlResource {
         return urlService.parseUrl(tokenUri, itemId.toString()) ?: throw MetaException(

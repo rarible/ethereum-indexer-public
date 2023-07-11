@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.AavegotchiPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.AlchemistCruciblePropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.OriginalUrlPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.ArtBlocksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoKittiesPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EmblemVaultV2Resolver
@@ -14,6 +14,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPrope
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.OriginalUrlPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.PegaxyPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RectguyCatsPropertiesResolver
@@ -44,6 +45,7 @@ class ItemPropertiesResolverProvider(
     aavegotchiPropertiesResolver: AavegotchiPropertiesResolver,
     alchemistCruciblePropertiesResolver: AlchemistCruciblePropertiesResolver,
     pegaxyPropertiesResolver: PegaxyPropertiesResolver,
+    artBlocksPropertiesResolver: ArtBlocksPropertiesResolver,
     rectguyCatsPropertiesResolver: RectguyCatsPropertiesResolver,
     sandboxPropertiesResolver: SandboxPropertiesResolver,
     originalUrlPropertiesResolver: OriginalUrlPropertiesResolver,
@@ -70,6 +72,7 @@ class ItemPropertiesResolverProvider(
         aavegotchiPropertiesResolver,
         alchemistCruciblePropertiesResolver,
         pegaxyPropertiesResolver,
+        artBlocksPropertiesResolver,
         rectguyCatsPropertiesResolver,
         sandboxPropertiesResolver,
         originalUrlPropertiesResolver,

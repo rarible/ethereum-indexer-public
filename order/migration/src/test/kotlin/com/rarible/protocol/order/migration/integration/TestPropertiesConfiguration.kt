@@ -8,7 +8,6 @@ import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.coEvery
 import io.mockk.mockk
-import org.apache.commons.lang3.RandomUtils
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
