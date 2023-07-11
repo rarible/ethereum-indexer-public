@@ -22,7 +22,7 @@ class PoolEthereumEventHandler(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override suspend fun handleSingle(event: PoolEvent) {
-        val eventTimeMarks = event.events.firstNotNullOfOrNull { it.eventTimeMarks } ?: orderOffchainEventMarks()
+        val eventTimeMarks = event.events.firstNotNullOfOrNull { it.eventTimeMarks }?.addIndexerIn() ?: orderOffchainEventMarks()
         orderUpdateService.update(event.hash, eventTimeMarks)
 
         event.events.forEach {
