@@ -216,6 +216,16 @@ class OrderControllerFt : AbstractIntegrationTest() {
         }.withMessageContaining("400 Bad Request")
     }
 
+    @Test
+    fun `should create order with null end - fail`() {
+        val (privateKey, _, signer) = generateNewKeys()
+        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN), EthUInt256.TEN, OrderRaribleV2DataV1(emptyList(), emptyList()))
+        val formDto = order.toForm(EIP712Domain("", "", BigInteger.ONE, AddressFactory.create()), privateKey)
+        assertThatExceptionOfType(OrderControllerApi.ErrorUpsertOrder::class.java).isThrownBy {
+            orderClient.upsertOrder(formDto).block()
+        }.withMessageContaining("400 Bad Request")
+    }
+
     @AfterEach
     fun afterEach() {
         clearMocks(orderService)
