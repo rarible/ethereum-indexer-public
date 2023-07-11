@@ -163,7 +163,7 @@ class OrderController(
     }
 
     override suspend fun upsertOrder(form: OrderFormDto): ResponseEntity<OrderDto> {
-        if (form.end == null) {
+        if (form.end == null || form.end == 0L) {
             throw ValidationApiException("Missed end date")
         }
         val order = orderService.put(form)
