@@ -2,23 +2,20 @@ package com.rarible.protocol.order.migration.mongock.mongo
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
-import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
-import com.rarible.protocol.order.core.misc.toDto
-import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 @ChangeLog(order = "00006")
 class ChangeLog00006ExportOrderEvents {
     @ChangeSet(id = "ChangeLog00006ExportOrderEvents.exportAllOrdersEvents", order = "1", author = "protocol")
     fun createIndexForAll(
         @NonLockGuarded orderRepository: OrderRepository,
-        @NonLockGuarded publisher: ProtocolOrderPublisher,
+        @NonLockGuarded orderListener: OrderListener,
         @NonLockGuarded orderDtoConverter: OrderDtoConverter
     ) = runBlocking {
         val logger = LoggerFactory.getLogger(javaClass)
@@ -28,14 +25,7 @@ class ChangeLog00006ExportOrderEvents {
 
         orderRepository.findAll().collect { order ->
             try {
-                val updateEvent = OrderUpdateEventDto(
-                    eventId = UUID.randomUUID().toString(),
-                    orderId = order.id.toString(),
-                    order = orderDtoConverter.convert(order),
-                    eventTimeMarks = orderOffchainEventMarks().toDto()
-                )
-                publisher.publish(updateEvent)
-
+                orderListener.onOrder(order, orderOffchainEventMarks(), false)
                 counter++
 
                 if (counter % 50000L == 0L) {

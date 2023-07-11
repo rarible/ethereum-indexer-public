@@ -17,9 +17,10 @@ class OrderListener(
     private val orderDtoConverter: OrderDtoConverter
 ) {
 
-    suspend fun onOrder(order: Order, eventTimeMarks: EventTimeMarks?) {
+    suspend fun onOrder(order: Order, eventTimeMarks: EventTimeMarks?, useLastEventId: Boolean = true) {
+        val eventId = if (useLastEventId) order.lastEventId else null
         val updateEvent = OrderUpdateEventDto(
-            eventId = order.lastEventId ?: UUID.randomUUID().toString(),
+            eventId = eventId ?: UUID.randomUUID().toString(),
             orderId = order.id.toString(),
             order = orderDtoConverter.convert(order),
             eventTimeMarks = (eventTimeMarks ?: orderOffchainEventMarks()).addIndexerOut().toDto()

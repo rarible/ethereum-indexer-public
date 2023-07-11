@@ -1,11 +1,8 @@
 package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.task.TaskHandler
-import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
-import com.rarible.protocol.order.core.misc.toDto
-import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.flow.Flow
@@ -14,14 +11,12 @@ import kotlinx.coroutines.time.delay
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.util.Date
-import java.util.UUID
 
 @Component
 class OrderPublishTaskHandler(
     private val orderRepository: OrderRepository,
-    private val publisher: ProtocolOrderPublisher,
-    private val properties: OrderListenerProperties,
-    private val orderDtoConverter: OrderDtoConverter
+    private val orderListener: OrderListener,
+    private val properties: OrderListenerProperties
 ) : TaskHandler<Long> {
 
     override val type: String
@@ -34,13 +29,7 @@ class OrderPublishTaskHandler(
     override fun runLongTask(from: Long?, param: String): Flow<Long> {
         return orderRepository.findAllBeforeLastUpdateAt(from?.let { Date(it) }, null, null)
             .map { order ->
-                val updateEvent = OrderUpdateEventDto(
-                    eventId = UUID.randomUUID().toString(),
-                    orderId = order.id.toString(),
-                    order = orderDtoConverter.convert(order),
-                    eventTimeMarks = orderOffchainEventMarks().toDto()
-                )
-                publisher.publish(updateEvent)
+                orderListener.onOrder(order, orderOffchainEventMarks(), false)
                 delay(Duration.ofMillis(properties.publishTaskDelayMs))
 
                 order.lastUpdateAt.toEpochMilli()
