@@ -4,13 +4,10 @@ import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
-import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
-import com.rarible.protocol.order.core.misc.toDto
 import com.rarible.protocol.order.core.model.OrderUsdValue
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -21,7 +18,6 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import java.util.UUID
 
 @ChangeLog(order = "00007")
 class ChangeLog00006FixOrderUsdValues {
@@ -30,8 +26,7 @@ class ChangeLog00006FixOrderUsdValues {
         @NonLockGuarded template: ReactiveMongoTemplate,
         @NonLockGuarded orderVersionRepository: OrderVersionRepository,
         @NonLockGuarded priceUpdateService: PriceUpdateService,
-        @NonLockGuarded publisher: ProtocolOrderPublisher,
-        @NonLockGuarded orderDtoConverter: OrderDtoConverter
+        @NonLockGuarded orderListener: OrderListener
     ) = runBlocking {
         val logger = LoggerFactory.getLogger(javaClass)
         val orderRepository = MongoOrderRepository(template)
@@ -76,13 +71,7 @@ class ChangeLog00006FixOrderUsdValues {
         }
         orderRepository.findActive().collect { order ->
             try {
-                val updateEvent = OrderUpdateEventDto(
-                    eventId = UUID.randomUUID().toString(),
-                    orderId = order.id.toString(),
-                    order = orderDtoConverter.convert(order),
-                    eventTimeMarks = orderOffchainEventMarks().toDto()
-                )
-                publisher.publish(updateEvent)
+                orderListener.onOrder(order, orderOffchainEventMarks(), false)
 
                 counter++
 

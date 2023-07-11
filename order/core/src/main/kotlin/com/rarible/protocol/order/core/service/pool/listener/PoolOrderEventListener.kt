@@ -5,6 +5,7 @@ import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.AmmOrderNftUpdateEventDto
+import com.rarible.protocol.order.core.misc.addIndexerOut
 import com.rarible.protocol.order.core.misc.toDto
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.PoolCreate
@@ -67,7 +68,7 @@ class PoolOrderEventListener(
                     orderId = hash.toString(),
                     inNft = nftDelta.getInNft(collection, reverted),
                     outNft = nftDelta.getOutNft(collection, reverted),
-                    eventTimeMarks = eventTimeMarks.toDto()
+                    eventTimeMarks = eventTimeMarks.addIndexerOut().toDto()
                 )
             )
         }
