@@ -6,6 +6,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.data.createRandomBurnItemEvent
 import com.rarible.protocol.nft.core.data.createRandomCreatorsItemEvent
+import com.rarible.protocol.nft.core.data.createRandomItem
 import com.rarible.protocol.nft.core.data.createRandomItemId
 import com.rarible.protocol.nft.core.data.createRandomLazyMintItemEvent
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
@@ -29,9 +30,6 @@ import java.math.BigInteger
 internal class ItemReducerFt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var itemReducer: ItemReducer
-
-    @Autowired
-    private lateinit var properties: NftIndexerProperties
 
     @Autowired
     private lateinit var itemTemplateProvider: ItemTemplateProvider
@@ -335,6 +333,70 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
         assertThat(reducedItem.revertableEvents).containsExactlyElementsOf(events)
         assertThat(reducedItem.deleted).isFalse()
+    }
+
+    @Test
+    fun `revert compacted events`() = runBlocking<Unit> {
+        val item = createRandomItem().copy(
+            supply = EthUInt256.ZERO,
+            lazySupply = EthUInt256.ZERO,
+            deleted = true,
+            revertableEvents = emptyList()
+        )
+        val block1 = (1..101).map {
+            createRandomMintItemEvent()
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = it)
+                .copy(supply = EthUInt256.of(1))
+        }
+        val block2 = (1..50).map {
+            createRandomBurnItemEvent()
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2, logIndex = it)
+                .copy(supply = EthUInt256.of(1))
+        }
+        val block3 = (1..50).map {
+            createRandomBurnItemEvent()
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 3, logIndex = it)
+                .copy(supply = EthUInt256.of(1))
+        }
+        val events = listOf(block1, block2, block3).flatten()
+
+        val reducedItem = reduce(item, events)
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.of(1))
+        assertThat(reducedItem.revertableEvents).hasSizeLessThanOrEqualTo(properties.reduce.maxRevertableEventsAmount)
+        assertThat(reducedItem.deleted).isFalse()
+
+        val revertedBlock3 = block3.map { event ->
+            event.withNewValues(
+                EthereumBlockStatus.REVERTED,
+                blockNumber = event.log.blockNumber,
+                logIndex = event.log.logIndex
+            )
+        }.reversed()
+        val reducedItemWithRevertedBlock3 = reduce(reducedItem, revertedBlock3)
+        assertThat(reducedItemWithRevertedBlock3.supply).isEqualTo(EthUInt256.of(51))
+        assertThat(reducedItemWithRevertedBlock3.deleted).isFalse()
+
+        val revertedBlock2 = block2.map { event ->
+            event.withNewValues(
+                EthereumBlockStatus.REVERTED,
+                blockNumber = event.log.blockNumber,
+                logIndex = event.log.logIndex
+            )
+        }.reversed()
+        val reducedItemWithRevertedBlock2 = reduce(reducedItemWithRevertedBlock3, revertedBlock2)
+        assertThat(reducedItemWithRevertedBlock2.supply).isEqualTo(EthUInt256.of(101))
+        assertThat(reducedItemWithRevertedBlock2.deleted).isFalse()
+
+        val revertedBlock1 = block1.map { event ->
+            event.withNewValues(
+                EthereumBlockStatus.REVERTED,
+                blockNumber = event.log.blockNumber,
+                logIndex = event.log.logIndex
+            )
+        }.reversed()
+        val reducedItemWithRevertedBlock1 = reduce(reducedItemWithRevertedBlock2, revertedBlock1)
+        assertThat(reducedItemWithRevertedBlock1.supply).isEqualTo(EthUInt256.of(0))
+        assertThat(reducedItemWithRevertedBlock1.deleted).isTrue()
     }
 
     @Test

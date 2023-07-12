@@ -5,6 +5,7 @@ import com.rarible.protocol.nft.core.data.createRandomItem
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardChainItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.reversed.ReversedChainItemReducer
+import com.rarible.protocol.nft.core.service.item.reduce.reversed.RevertItemCompactEventsReducer
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -18,7 +19,8 @@ internal class EventStatusItemReducerTest {
 
     private val eventStatusItemReducer = EventStatusItemReducer(
         forwardChainItemReducer = forwardChainItemReducer,
-        reversedChainItemReducer = reversedChainItemReducer
+        reversedChainItemReducer = reversedChainItemReducer,
+        revertItemCompactEventsReducer = RevertItemCompactEventsReducer(),
     )
 
     @Test
