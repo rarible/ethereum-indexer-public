@@ -21,6 +21,15 @@ data class Erc20UpdateEvent(
     override val type: Erc20BalanceEventType = Erc20BalanceEventType.UPDATE
 }
 
+data class Erc20AllowanceEvent(
+    override val event: Erc20Event?,
+    override val eventTimeMarks: EventTimeMarks?,
+    val allowance: Erc20Allowance
+): Erc20BalanceEvent() {
+    override val type: Erc20BalanceEventType = Erc20BalanceEventType.ALLOWANCE
+}
+
 enum class Erc20BalanceEventType {
-    UPDATE
+    UPDATE,
+    ALLOWANCE,
 }
