@@ -5,6 +5,7 @@ import com.rarible.protocol.erc20.core.randomIncomeTransferEvent
 import com.rarible.protocol.erc20.core.repository.data.randomBalance
 import com.rarible.protocol.erc20.core.service.reduce.forward.ForwardChainErc20BalanceReducer
 import com.rarible.protocol.erc20.core.service.reduce.reversed.ReversedChainErc20BalanceReducer
+import com.rarible.protocol.erc20.core.service.reduce.reversed.RevertBalanceCompactEventsReducer
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -19,7 +20,8 @@ internal class EventStatusErc20BalanceReducerTest{
 
     private val eventStatusErc20BalanceReducer = EventStatusErc20BalanceReducer(
         forwardChainErc20BalanceReducer = forwardChainErc20BalanceReducer,
-        reversedChainErc20BalanceReducer = reversedChainErc20BalanceReducer
+        reversedChainErc20BalanceReducer = reversedChainErc20BalanceReducer,
+        revertBalanceCompactEventsReducer = RevertBalanceCompactEventsReducer()
     )
 
     @Test

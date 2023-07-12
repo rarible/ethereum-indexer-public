@@ -17,9 +17,13 @@ class CompactItemEventsReducer(
 
     override fun compact(events: List<ItemEvent>): List<ItemEvent> {
         return when (val last = events.last()) {
-            is ItemEvent.ItemSupplyEvent -> {
-                val supply = events.filterIsInstance<ItemEvent.ItemSupplyEvent>().sumOf { it.supply.value }
-                listOf(last.withSupply(EthUInt256.of(supply)))
+            is ItemEvent.ItemMintEvent,
+            is ItemEvent.ItemBurnEvent -> {
+                val supply = events.sumOf { it.supply().value }
+                listOf(last
+                    .withSupply(EthUInt256.of(supply))
+                    .withCompact(true)
+                )
             }
             is ItemEvent.ItemCreatorsEvent,
             is ItemEvent.ItemTransferEvent,

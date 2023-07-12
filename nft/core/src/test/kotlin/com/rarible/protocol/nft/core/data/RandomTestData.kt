@@ -36,7 +36,6 @@ import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.core.repository.data.createAddress
-import com.rarible.protocol.nft.core.repository.data.createItemHistory
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
@@ -321,7 +320,7 @@ fun createRandomOwnership(
         value = EthUInt256.of(BigInteger.valueOf(ThreadLocalRandom.current().nextLong(1, 10000))),
         lazyValue = EthUInt256.of(BigInteger.valueOf(ThreadLocalRandom.current().nextLong(1, 10000))),
         date = nowMillis(),
-        pending = (1..ThreadLocalRandom.current().nextInt(1, 20)).map { createItemHistory() },
+        pending = emptyList(),
         lastUpdatedAt = nowMillis()
     )
 }

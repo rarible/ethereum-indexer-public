@@ -20,7 +20,10 @@ class CompactOwnershipEventsReducer(
             is OwnershipEvent.TransferToEvent,
             is OwnershipEvent.TransferFromEvent -> {
                 val transferValue = EthUInt256.of(events.sumOf { it.value.value })
-                listOf(last.withValue(transferValue))
+                listOf(last
+                    .withValue(transferValue)
+                    .withCompact(true)
+                )
             }
             is OwnershipEvent.ChangeLazyValueEvent,
             is OwnershipEvent.LazyBurnEvent,
@@ -28,4 +31,5 @@ class CompactOwnershipEventsReducer(
         }
     }
 }
+
 

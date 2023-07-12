@@ -18,6 +18,7 @@ sealed class TokenEvent : EthereumEntityEvent<TokenEvent>() {
         val symbol: String,
         override val entityId: String,
         override val log: EthereumLog,
+        override val compact: Boolean = false
     ) : TokenEvent()
 
     data class TokenChangeOwnershipEvent(
@@ -25,5 +26,6 @@ sealed class TokenEvent : EthereumEntityEvent<TokenEvent>() {
         val previousOwner: Address,
         override val entityId: String,
         override val log: EthereumLog,
+        override val compact: Boolean = false
     ) : TokenEvent()
 }

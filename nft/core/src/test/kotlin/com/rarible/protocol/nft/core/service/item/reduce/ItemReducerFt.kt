@@ -32,9 +32,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
     private lateinit var itemReducer: ItemReducer
 
     @Autowired
-    private lateinit var properties: NftIndexerProperties
-
-    @Autowired
     private lateinit var itemTemplateProvider: ItemTemplateProvider
 
     @Test
