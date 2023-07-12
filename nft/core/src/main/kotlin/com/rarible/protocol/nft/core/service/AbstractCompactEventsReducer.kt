@@ -13,9 +13,9 @@ abstract class AbstractCompactEventsReducer<Id, Event : EthereumEntityEvent<Even
 
     override suspend fun reduce(entity: E, event: Event): E {
         if (featureFlags.compactRevertableEvents.not() ||
-            entity.revertableEvents.size < properties.maxRevertableEventsAmount
-        ) return entity
-
+            entity.revertableEvents.size < properties.maxRevertableEventsAmount) {
+            return entity
+        }
         return super.reduce(entity, event)
     }
 }
