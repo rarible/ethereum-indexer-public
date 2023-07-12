@@ -98,7 +98,7 @@ data class OrderFilterSellByItem(
             when {
                 // In most cases there are not a lot of order of same maker for same item - platform/status indexes
                 // might be omitted here
-                maker != null -> OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_MAKER_SORT_BY_PRICE_DEFINITION
+                //maker != null -> OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_MAKER_SORT_BY_PRICE_DEFINITION
                 // The most "popular" request for "best sell order" - by item/currency/status
                 !status.isNullOrEmpty() -> OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_CURRENCY_STATUS_SORT_BY_PRICE_DEFINITION
                 // In other cases - use index for item/currency only (ideally platform, but not so popular query)
