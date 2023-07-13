@@ -8,6 +8,7 @@ import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.core.model.BalanceId
+import com.rarible.protocol.erc20.core.model.Erc20Allowance
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
@@ -59,6 +60,22 @@ fun randomBalance(
         lastUpdatedAt = lastUpdatedAt,
         revertableEvents = emptyList(),
         blockNumber = blockNumber
+    )
+}
+
+fun randomAllowance(
+    token: Address = randomAddress(),
+    owner: Address = randomAddress(),
+    createdAt: Instant = nowMillis(),
+    lastUpdatedAt: Instant = nowMillis(),
+    allowance: EthUInt256 = EthUInt256.of(randomBigInt()),
+): Erc20Allowance {
+    return Erc20Allowance(
+        token = token,
+        owner = owner,
+        allowance = allowance,
+        createdAt = createdAt,
+        lastUpdatedAt = lastUpdatedAt,
     )
 }
 

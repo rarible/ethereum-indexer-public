@@ -1,6 +1,7 @@
 package com.rarible.protocol.erc20.core.service
 
 import com.rarible.contracts.erc20.IERC20
+import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.ethereum.domain.EthUInt256
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
+import java.math.BigInteger
 
 @Component
 class Erc20BalanceService(
@@ -47,10 +49,14 @@ class Erc20BalanceService(
 
     suspend fun onChainUpdate(balanceId: BalanceId, event: Erc20MarkedEvent?): Erc20Balance? {
         return optimisticLock {
-            val erc20Balance = get(contract = balanceId.token, owner = balanceId.owner) ?: run {
-                logger.error("Can't get $balanceId from db")
-                return@optimisticLock  null
-            }
+            val erc20Balance = get(contract = balanceId.token, owner = balanceId.owner) ?: Erc20Balance(
+                owner = balanceId.owner,
+                token = balanceId.token,
+                balance = EthUInt256(BigInteger.ZERO),
+                createdAt = nowMillis(),
+                lastUpdatedAt = nowMillis(),
+                blockNumber = event?.event?.log?.blockNumber,
+            )
             val balance = getBlockchainBalance(balanceId) ?: run {
                 logger.error("Can't get $balanceId from blockchain")
                 return@optimisticLock null

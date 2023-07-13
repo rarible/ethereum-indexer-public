@@ -4,6 +4,7 @@ import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.core.event.Erc20BalanceEventListener
 import com.rarible.protocol.erc20.core.model.Erc20Balance
+import com.rarible.protocol.erc20.core.model.Erc20UpdateEvent
 import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
 import com.rarible.protocol.erc20.core.repository.data.randomBalance
 import com.rarible.protocol.erc20.core.repository.data.randomBalanceId
@@ -38,18 +39,20 @@ class Erc20BalanceServiceTest {
         coEvery { erc20BalanceRepository.save(balance.withBalance(chainValue)) } answers {
             it.invocation.args.first() as Erc20Balance
         }
-        every { sender.call(
-            Transaction(
-                balanceId.token,
-                null,
-                null,
-                null,
-                null,
-                //Call ERC20 balance method
-                Binary.apply("0x70a08231000000000000000000000000${balanceId.owner.hex()}"),
-                null
+        every {
+            sender.call(
+                Transaction(
+                    balanceId.token,
+                    null,
+                    null,
+                    null,
+                    null,
+                    //Call ERC20 balance method
+                    Binary.apply("0x70a08231000000000000000000000000${balanceId.owner.hex()}"),
+                    null
+                )
             )
-        ) } returns Mono.just(Int32Type.encode(chainValue.value))
+        } returns Mono.just(Int32Type.encode(chainValue.value))
 
         coEvery { erc20BalanceEventListeners.onUpdate(any()) } returns Unit
 
@@ -57,8 +60,53 @@ class Erc20BalanceServiceTest {
         assertThat(updated).isNotNull
         assertThat(updated?.balance).isEqualTo(chainValue)
 
-        coVerify { erc20BalanceEventListeners.onUpdate(withArg {
-            assertThat(it.balance).isEqualTo(updated)
-        }) }
+        coVerify {
+            erc20BalanceEventListeners.onUpdate(withArg {
+                assertThat((it as Erc20UpdateEvent).balance).isEqualTo(updated)
+            })
+        }
+    }
+
+    @Test
+    @Suppress("ReactiveStreamsUnusedPublisher")
+    fun `update on chain - balance not found in db`() = runBlocking<Unit> {
+        val balanceId = randomBalanceId()
+        val chainValue = EthUInt256.of(randomBigInt())
+
+        coEvery { erc20BalanceRepository.get(balanceId) } returns null
+
+        coEvery {
+            erc20BalanceRepository.save(match {
+                it.owner == balanceId.owner && it.token == balanceId.token && it.balance == chainValue
+            })
+        } answers {
+            it.invocation.args.first() as Erc20Balance
+        }
+        every {
+            sender.call(
+                Transaction(
+                    balanceId.token,
+                    null,
+                    null,
+                    null,
+                    null,
+                    //Call ERC20 balance method
+                    Binary.apply("0x70a08231000000000000000000000000${balanceId.owner.hex()}"),
+                    null
+                )
+            )
+        } returns Mono.just(Int32Type.encode(chainValue.value))
+
+        coEvery { erc20BalanceEventListeners.onUpdate(any()) } returns Unit
+
+        val updated = service.onChainUpdate(balanceId, null)
+        assertThat(updated).isNotNull
+        assertThat(updated?.balance).isEqualTo(chainValue)
+
+        coVerify {
+            erc20BalanceEventListeners.onUpdate(withArg {
+                assertThat((it as Erc20UpdateEvent).balance).isEqualTo(updated)
+            })
+        }
     }
 }
