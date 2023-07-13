@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.api.controller
 
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
@@ -12,8 +13,8 @@ import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV3BuyDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV3SellDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
+import com.rarible.protocol.dto.RaribleV2OrderFormDto
 import com.rarible.protocol.order.api.client.OrderControllerApi
-import com.rarible.protocol.order.api.converter.toAddress
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.service.order.OrderService
@@ -214,6 +215,32 @@ class OrderControllerFt : AbstractIntegrationTest() {
                 null
             ).block()
         }.withMessageContaining("400 Bad Request")
+    }
+
+    @Test
+    fun `should create order with null end - fail`() {
+        val (privateKey, _, signer) = generateNewKeys()
+        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN), EthUInt256.TEN, OrderRaribleV2DataV1(emptyList(), emptyList()))
+        val formDto = order.toForm(EIP712Domain("", "", BigInteger.ONE, AddressFactory.create()), privateKey)
+        val request: MutableMap<String, Object> = objectMapper.convertValue<Map<String, Object>>(formDto).toMutableMap()
+        request.remove("end")
+        assertThatExceptionOfType(HttpClientErrorException.BadRequest::class.java).isThrownBy {
+            restTemplate.postForObject(
+                "http://localhost:${port}/v0.1/orders",
+                request,
+                OrderDto::class.java
+            )
+        }.withMessageContaining("Missed end date")
+    }
+
+    @Test
+    fun `should create order with invalid end - fail`() {
+        val (privateKey, _, signer) = generateNewKeys()
+        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN), EthUInt256.TEN, OrderRaribleV2DataV1(emptyList(), emptyList()))
+        val formDto = order.toForm(EIP712Domain("", "", BigInteger.ONE, AddressFactory.create()), privateKey) as RaribleV2OrderFormDto
+        assertThatExceptionOfType(OrderControllerApi.ErrorUpsertOrder::class.java).isThrownBy {
+            orderClient.upsertOrder(formDto.copy(start = nowMillis().plusSeconds(1000).epochSecond, end = nowMillis().epochSecond)).block()
+        }.withMessageContaining("Bad Request")
     }
 
     @AfterEach

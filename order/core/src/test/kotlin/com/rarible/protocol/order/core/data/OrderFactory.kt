@@ -68,7 +68,7 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
             salt = salt.value,
             data = OrderDataDtoConverter.convert(data) as OrderRaribleV2DataDto,
             start = start,
-            end = end,
+            end = end ?: Instant.MAX.epochSecond,
             signature = eip712Domain.hashToSign(Order.hash(this)).sign(privateKey)
         )
         OrderType.RARIBLE_V1 -> LegacyOrderFormDto(
@@ -79,7 +79,7 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
             salt = salt.value,
             data = OrderDataDtoConverter.convert(data) as OrderDataLegacyDto,
             start = start,
-            end = end,
+            end = end ?: Instant.MAX.epochSecond,
             signature = CommonSigner().hashToSign(legacyMessage()).sign(privateKey)
         )
         OrderType.OPEN_SEA_V1,
