@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.task.RunTask
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
@@ -38,7 +38,7 @@ class CancelInactiveOpenseaOrdersTaskHandler(
     override val type = "CANCEL_INACTIVE_OPENSEA_ORDERS"
 
     override suspend fun handleOrder(order: Order) {
-        val eventTimeMarks = orderOffchainEventMarks()
+        val eventTimeMarks = orderTaskEventMarks()
         cancelInactiveOrderUpdater.update(order)
         orderUpdateService.update(order.hash, eventTimeMarks)
     }

@@ -4,6 +4,7 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderActivityResult
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
@@ -31,11 +32,12 @@ class RevertIgnoredActivitiesTaskHandler(
     override fun runLongTask(from: String?, param: String): Flow<String> {
         return exchangeHistoryRepository.findIgnoredEvents(from, HistorySource.valueOf(param))
             .map { history ->
+                val eventTimeMarks = orderTaskEventMarks()
                 val result = OrderActivityResult.History(history)
                 val dto = orderActivityConverter.convert(result, reverted = true)
                     ?: error("Can't convert order history ${history.id}")
 
-                publisher.publish(dto)
+                publisher.publish(dto, eventTimeMarks)
                 saveWithRevertedStatus(history)
                 logger.info("Published ad saved ignored activity ${history.id}")
                 history.id

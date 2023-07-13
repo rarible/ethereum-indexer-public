@@ -16,5 +16,10 @@ fun EventTimeMarks.toDto(): EventTimeMarksDto {
 }
 
 fun nftOffchainEventMarks() = EventTimeMarks("offchain").add("source").addIndexerIn()
+fun nftTaskEventMarks() = EventTimeMarks("task").add("source").addIndexerIn()
+
+// Just for tests
+fun nftStubEventMarks() = EventTimeMarks("stub").add("source").addIndexerIn()
+
 
 

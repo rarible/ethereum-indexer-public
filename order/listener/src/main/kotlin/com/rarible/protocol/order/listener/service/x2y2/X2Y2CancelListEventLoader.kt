@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.x2y2
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.rarible.protocol.order.core.misc.orderIntegrationEventMarks
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.OrderState
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderStateRepository
@@ -47,7 +46,7 @@ class X2Y2CancelListEventLoader(
                 )
                 logger.x2y2Info("OffChain order cancel $hash")
                 orderStateRepository.save(cancelState)
-                orderUpdateService.update(hash, orderOffchainEventMarks())
+                orderUpdateService.update(hash, eventTimeMarks)
                 metrics.onOrderEventHandled(Platform.X2Y2, "cancel_offchain")
             }
 

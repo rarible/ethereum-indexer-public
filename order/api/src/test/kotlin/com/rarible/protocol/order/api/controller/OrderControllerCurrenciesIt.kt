@@ -200,6 +200,6 @@ class OrderControllerCurrenciesIt : AbstractIntegrationTest() {
     private fun AssetTypeDto.intern() = if (this is EthAssetTypeDto) ethAssetTypeDto else this
 
     private suspend fun saveOrderVersions(vararg order: OrderVersion) {
-        order.forEach { orderUpdateService.save(it) }
+        order.forEach { save(it) }
     }
 }

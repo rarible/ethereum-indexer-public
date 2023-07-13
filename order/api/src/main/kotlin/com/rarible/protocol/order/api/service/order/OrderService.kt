@@ -137,7 +137,7 @@ class OrderService(
     }
 
     suspend fun updateMakeStock(hash: Word): Order =
-        orderUpdateService.updateMakeStock(hash, null, null)
+        orderUpdateService.updateMakeStock(hash, null, orderOffchainEventMarks())
             ?: throw EntityNotFoundApiException("Order", hash)
 
     suspend fun findOrders(legacyFilter: OrderFilter, size: Int, continuation: String?): List<Order> {

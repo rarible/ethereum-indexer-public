@@ -178,7 +178,7 @@ internal class SeaportOrderLoaderTest {
         coEvery { openSeaOrderConverter.convert(clientOrder1) } returns orderVersion1
         every { openSeaOrderValidator.validate(orderVersion1) } returns true
         coEvery { orderRepository.findById(orderVersion1.hash) } returns null
-        coEvery { orderUpdateService.save(orderVersion1) } returns createOrder()
+        coEvery { orderUpdateService.save(orderVersion1, any()) } returns createOrder()
         coEvery { orderUpdateService.updateMakeStock(eq(orderVersion1.hash), any(), any()) } returns mockk()
 
         assertThrows<RuntimeException> {

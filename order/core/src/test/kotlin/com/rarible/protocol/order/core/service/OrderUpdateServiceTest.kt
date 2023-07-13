@@ -4,7 +4,7 @@ import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.event.OrderVersionListener
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -51,7 +51,7 @@ internal class OrderUpdateServiceTest {
         coEvery { orderReduceService.updateOrder(eq(hash)) } returns updatedOrder
         coEvery { orderListener.onOrder(eq(updatedOrder), any()) } returns Unit
 
-        orderUpdateService.update(hash, orderOffchainEventMarks())
+        orderUpdateService.update(hash, orderStubEventMarks())
 
         coVerify { orderListener.onOrder(eq(updatedOrder), any()) }
     }
@@ -67,7 +67,7 @@ internal class OrderUpdateServiceTest {
         coEvery { orderReduceService.updateOrder(order.hash) } returns updatedOrder
         coEvery { orderListener.onOrder(eq(updatedOrder), any()) } returns Unit
 
-        orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = orderOffchainEventMarks())
+        orderUpdateService.updateApproval(order = order, approved = false, eventTimeMarks = orderStubEventMarks())
 
         verify { orderVersionRepository.save(orderVersion.copy(approved = false)) }
         coVerify { orderReduceService.updateOrder(order.hash) }

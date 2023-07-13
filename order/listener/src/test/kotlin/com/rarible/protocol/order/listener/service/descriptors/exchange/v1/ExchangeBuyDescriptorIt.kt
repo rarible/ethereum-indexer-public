@@ -47,7 +47,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
 @IntegrationTest
-class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
+class ExchangeBuyDescriptorIt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var prepareTxService: PrepareTxService
 
@@ -151,7 +151,7 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
             )
         }
 
-        val orderLeft = orderUpdateService.save(orderVersionLeft)
+        val orderLeft = save(orderVersionLeft)
 
         val buyerFee = 500
 

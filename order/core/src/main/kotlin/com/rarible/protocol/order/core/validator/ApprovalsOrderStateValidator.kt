@@ -19,6 +19,7 @@ class ApprovalsOrderStateValidator(
     override fun supportsValidation(order: Order) = true
 
     override suspend fun validate(order: Order) {
+        val eventTimeMarks = orderOffchainEventMarks()
         val approved = approveService.checkOnChainApprove(order.maker, order.make.type, order.platform)
         val correctAllowance = approveService.checkOnChainErc20Allowance(order.maker, order.make)
         if (!approved || !correctAllowance) {
@@ -26,7 +27,7 @@ class ApprovalsOrderStateValidator(
             orderUpdateService.updateApproval(
                 order = order,
                 approved = false,
-                eventTimeMarks = orderOffchainEventMarks()
+                eventTimeMarks = eventTimeMarks
             )
             throw ValidationApiException("order ${order.platform}:${order.hash} is not approved")
         }

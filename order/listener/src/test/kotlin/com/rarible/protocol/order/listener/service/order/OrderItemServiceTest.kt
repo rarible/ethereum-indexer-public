@@ -3,7 +3,7 @@ package com.rarible.protocol.order.listener.service.order
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createNftItemDto
 import com.rarible.protocol.order.core.data.randomOrder
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderCancelService
@@ -45,7 +45,7 @@ class OrderItemServiceTest {
 
         coEvery { orderCancelService.cancelOrder(order.hash, any()) } returns Unit
 
-        orderItemService.onItemChanged(item, orderOffchainEventMarks())
+        orderItemService.onItemChanged(item, orderStubEventMarks())
 
         coVerify(exactly = 1) { orderCancelService.cancelOrder(order.hash, any()) }
     }
@@ -54,7 +54,7 @@ class OrderItemServiceTest {
     fun `on item changed - skipped, not suspicious`() = runBlocking<Unit> {
         val item = createNftItemDto()
 
-        orderItemService.onItemChanged(item, orderOffchainEventMarks())
+        orderItemService.onItemChanged(item, orderStubEventMarks())
 
         coVerify(exactly = 0) { orderCancelService.cancelOrder(any(), any()) }
     }

@@ -21,14 +21,18 @@ import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.MakeBalanceState
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -156,7 +160,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     protected lateinit var parity: MonoParity
 
-    protected lateinit var consumer: RaribleKafkaConsumer<ActivityDto>
+    protected lateinit var consumer: RaribleKafkaConsumer<EthActivityEventDto>
 
     private lateinit var consumingJob: Job
 
@@ -173,7 +177,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         consumingJob = GlobalScope.launch {
             consumer
                 .receiveAutoAck()
-                .collect { activities.add(it.value) }
+                .collect { activities.add(it.value.activity) }
         }
     }
 
@@ -358,13 +362,16 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         throw IllegalArgumentException("Unsupported history type")
     }
 
-    private fun createConsumer(): RaribleKafkaConsumer<ActivityDto> {
+    private fun createConsumer(): RaribleKafkaConsumer<EthActivityEventDto> {
         return RaribleKafkaConsumer(
             clientId = "test-consumer-order-activity",
             consumerGroup = "test-group-order-activity",
             valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = ActivityDto::class.java,
-            defaultTopic = ActivityTopicProvider.getTopic(application.name, orderIndexerProperties.blockchain.name.toLowerCase()),
+            valueClass = EthActivityEventDto::class.java,
+            defaultTopic = ActivityTopicProvider.getActivityTopic(
+                application.name,
+                orderIndexerProperties.blockchain.value
+            ),
             bootstrapServers = kafkaContainer.kafkaBoostrapServers(),
             offsetResetStrategy = OffsetResetStrategy.EARLIEST
         )
@@ -401,7 +408,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     }
 
     protected suspend fun updateOrderMakeStock(orderHash: Word, makeBalance: EthUInt256) {
-        orderUpdateService.updateMakeStock(orderHash, MakeBalanceState(makeBalance), null)
+        orderUpdateService.updateMakeStock(orderHash, MakeBalanceState(makeBalance), orderStubEventMarks())
     }
 
     protected suspend fun checkActivityWasPublished(asserter: ActivityDto.() -> Unit) = coroutineScope {
@@ -410,5 +417,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 .hasSizeGreaterThanOrEqualTo(1)
                 .anySatisfy(Consumer { it.asserter() })
         }
+    }
+
+    suspend fun save(orderVersion: OrderVersion): Order {
+        return orderUpdateService.save(orderVersion, orderStubEventMarks())
     }
 }

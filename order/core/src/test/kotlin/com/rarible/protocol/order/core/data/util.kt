@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.data
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
@@ -33,7 +33,7 @@ import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.dto.SeaportOrderTypeDto
 import com.rarible.protocol.dto.SeaportV1OrderDto
 import com.rarible.protocol.dto.X2Y2OrderDto
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.misc.toDto
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.ApprovalHistory
@@ -701,7 +701,7 @@ fun randomOrderEventDto(order: OrderDto = createOrderDto()): OrderUpdateEventDto
         eventId = randomString(),
         order = order,
         orderId = randomWord(),
-        eventTimeMarks = orderOffchainEventMarks().toDto()
+        eventTimeMarks = orderStubEventMarks().toDto()
     )
 }
 

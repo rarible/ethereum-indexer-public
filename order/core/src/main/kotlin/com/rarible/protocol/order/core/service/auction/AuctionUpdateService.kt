@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.service.auction
 import com.rarible.core.common.optimisticLock
 import com.rarible.core.reduce.service.UpdateService
 import com.rarible.protocol.order.core.event.AuctionListener
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Auction
 import com.rarible.protocol.order.core.model.AuctionOffchainHistory
 import com.rarible.protocol.order.core.model.AuctionStatus
@@ -16,8 +17,10 @@ class AuctionUpdateService(
     private val auctionStateService: AuctionStateService
 ) : UpdateService<Auction> {
 
-
+    // TODO legacy reducer?
     override suspend fun update(data: Auction) {
+        // TODO make it right when we start to rework auctions
+        val eventTimeMarks = orderOffchainEventMarks()
         if (data.deleted.not()) {
             val updatedAuction = optimisticLock {
                 val currentAuction = auctionRepository.findById(data.hash)
@@ -35,7 +38,11 @@ class AuctionUpdateService(
                     // Means we got FINISHED event from chain before status job recalculated 'ongoing' field
                     // In such case we need to send ENDED activity event before FINISHED
                     if (currentAuction.ongoing && data.status == AuctionStatus.FINISHED) {
-                        auctionStateService.onAuctionOngoingStateUpdated(updated, AuctionOffchainHistory.Type.ENDED)
+                        auctionStateService.onAuctionOngoingStateUpdated(
+                            updated,
+                            AuctionOffchainHistory.Type.ENDED,
+                            eventTimeMarks
+                        )
                     }
                 }
                 updated

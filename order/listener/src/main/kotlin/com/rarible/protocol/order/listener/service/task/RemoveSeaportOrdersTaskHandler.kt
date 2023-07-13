@@ -6,7 +6,7 @@ import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.continuation.page.PageSize
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderState
@@ -79,7 +79,7 @@ class RemoveSeaportOrdersTaskHandler(
                     orderVersionRepository.deleteByHash(it.hash)
                     orderStateRepository.remove(it.hash)
                 } else {
-                    val eventTimeMarks = orderOffchainEventMarks()
+                    val eventTimeMarks = orderTaskEventMarks()
                     val state = OrderState(id = it.hash, canceled = true)
                     orderStateRepository.save(state)
                     orderUpdateService.update(it.hash, eventTimeMarks)

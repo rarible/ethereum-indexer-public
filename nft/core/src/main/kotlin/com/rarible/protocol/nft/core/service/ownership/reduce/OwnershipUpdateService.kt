@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.ownership.reduce
 
 import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.misc.nftOffchainEventMarks
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
@@ -29,8 +30,9 @@ class OwnershipUpdateService(
     }
 
     override suspend fun update(entity: Ownership, event: OwnershipEvent?): Ownership {
+        val eventTimeMarks = event?.eventTimeMarks ?: nftOffchainEventMarks()
         val savedOwnership = ownershipService.save(entity)
-        eventListenerListener.onOwnershipChanged(savedOwnership, event).awaitFirstOrNull()
+        eventListenerListener.onOwnershipChanged(savedOwnership, eventTimeMarks).awaitFirstOrNull()
         logUpdatedOwnership(savedOwnership)
         return savedOwnership
     }

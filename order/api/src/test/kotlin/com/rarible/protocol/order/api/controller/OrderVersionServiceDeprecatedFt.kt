@@ -311,7 +311,7 @@ class OrderVersionControllerDepricatedFt : AbstractIntegrationTest() {
             if (status == BidStatus.CANCELLED) {
                 cancelOrder(orderVersion.hash)
             }
-            orderUpdateService.save(orderVersion)
+            save(orderVersion)
         }
     }
 

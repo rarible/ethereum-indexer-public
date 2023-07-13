@@ -4,7 +4,10 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
@@ -33,7 +36,10 @@ import scalether.domain.Address
 import scalether.domain.AddressFactory
 import scalether.domain.response.TransactionReceipt
 import scalether.java.Lists
-import scalether.transaction.*
+import scalether.transaction.MonoSigningTransactionSender
+import scalether.transaction.MonoSimpleNonceProvider
+import scalether.transaction.MonoTransactionPoller
+import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import javax.annotation.PostConstruct
 
@@ -158,5 +164,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
             return log.data as T
         }
         throw IllegalArgumentException("Unsupported history type")
+    }
+
+    suspend fun save(orderVersion: OrderVersion): Order {
+        return orderUpdateService.save(orderVersion, orderStubEventMarks())
     }
 }

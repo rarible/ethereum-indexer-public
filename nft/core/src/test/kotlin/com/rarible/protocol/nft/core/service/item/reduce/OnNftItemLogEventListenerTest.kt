@@ -26,7 +26,7 @@ class OnNftItemLogEventListenerTest {
 
     @BeforeEach
     fun beforeEach() {
-        coEvery { publisher.publish(any<NftActivityDto>()) } returns Unit
+        coEvery { publisher.publish(any<NftActivityDto>(), any()) } returns Unit
     }
 
     @Test
@@ -36,7 +36,7 @@ class OnNftItemLogEventListenerTest {
 
         listener.onLogEvent(LogRecordEvent(record, false, EventTimeMarks("test")))
 
-        coVerify(exactly = 1) { publisher.publish(any<NftActivityDto>()) }
+        coVerify(exactly = 1) { publisher.publish(any<NftActivityDto>(), any()) }
     }
 
     @Test
@@ -50,7 +50,7 @@ class OnNftItemLogEventListenerTest {
 
         listener.onLogEvent(event)
 
-        coVerify(exactly = 0) { publisher.publish(any<NftActivityDto>()) }
+        coVerify(exactly = 0) { publisher.publish(any<NftActivityDto>(), any()) }
     }
 
     @Test
@@ -60,7 +60,7 @@ class OnNftItemLogEventListenerTest {
 
         listener.onLogEvent(LogRecordEvent(record, true, EventTimeMarks("test")))
 
-        coVerify(exactly = 1) { publisher.publish(any<NftActivityDto>()) }
+        coVerify(exactly = 1) { publisher.publish(any<NftActivityDto>(), any()) }
     }
 
     @Test
@@ -69,7 +69,7 @@ class OnNftItemLogEventListenerTest {
 
         listener.onLogEvent(LogRecordEvent(record, true, EventTimeMarks("test")))
 
-        coVerify(exactly = 0) { publisher.publish(any<NftActivityDto>()) }
+        coVerify(exactly = 0) { publisher.publish(any<NftActivityDto>(), any()) }
     }
 
 }

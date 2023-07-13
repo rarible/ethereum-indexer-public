@@ -2,9 +2,9 @@ package com.rarible.protocol.order.core.producer
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
-import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.AmmNftAssetTypeDto
 import com.rarible.protocol.dto.AssetTypeDto
@@ -20,17 +20,20 @@ import com.rarible.protocol.dto.Erc1155LazyAssetTypeDto
 import com.rarible.protocol.dto.Erc20AssetTypeDto
 import com.rarible.protocol.dto.Erc721AssetTypeDto
 import com.rarible.protocol.dto.Erc721LazyAssetTypeDto
+import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.EthAssetTypeDto
 import com.rarible.protocol.dto.GenerativeArtAssetTypeDto
 import com.rarible.protocol.dto.OrderIndexerTopicProvider
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.PublishProperties
+import com.rarible.protocol.order.core.misc.addIndexerOut
+import com.rarible.protocol.order.core.misc.toDto
 import com.rarible.protocol.order.core.model.ItemId
 import org.springframework.stereotype.Component
 
 @Component
 @CaptureSpan(type = SpanType.KAFKA)
 class ProtocolAuctionPublisher(
-    private val auctionActivityProducer: RaribleKafkaProducer<ActivityDto>,
+    private val auctionActivityProducer: RaribleKafkaProducer<EthActivityEventDto>,
     private val auctionEventProducer: RaribleKafkaProducer<AuctionEventDto>,
     private val publishProperties: PublishProperties
 ) {
@@ -51,13 +54,13 @@ class ProtocolAuctionPublisher(
         auctionEventProducer.send(message).ensureSuccess()
     }
 
-    suspend fun publish(event: AuctionActivityDto) {
-        val key = event.auction.hash.toString()
+    suspend fun publish(activity: AuctionActivityDto, eventTimeMarks: EventTimeMarks) {
+        val key = activity.auction.hash.toString()
         val message = KafkaMessage(
             key = key,
-            value = event as ActivityDto,
+            value = EthActivityEventDto(activity, eventTimeMarks.addIndexerOut().toDto()),
             headers = auctionActivityHeaders,
-            id = event.id
+            id = activity.id
         )
         if (publishProperties.publishAuctionActivity) {
             auctionActivityProducer.send(message).ensureSuccess()

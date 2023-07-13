@@ -32,6 +32,8 @@ class PoolActivityListener(
             is PoolNftDeposit,
             is PoolNftWithdraw -> return
         }
-        orderActivityConverter.convert(activity, reverted)?.let { orderPublisher.publish(it) }
+        orderActivityConverter.convert(activity, reverted)?.let {
+            orderPublisher.publish(it, eventTimeMarks)
+        }
     }
 }

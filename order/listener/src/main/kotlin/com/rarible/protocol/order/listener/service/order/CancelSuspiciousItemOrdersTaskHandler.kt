@@ -2,7 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.order.logger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -30,7 +30,7 @@ class CancelSuspiciousItemOrdersTaskHandler(
 
             cursor = page.continuation
             val suspicious = page.items.filter { it.isSuspiciousOnOS == true }
-            suspicious.forEach { orderItemService.onItemChanged(it, orderOffchainEventMarks()) }
+            suspicious.forEach { orderItemService.onItemChanged(it, orderTaskEventMarks()) }
 
             logger.info("Found {} suspicious Items in batch of {}", suspicious.size, page.items.size)
 

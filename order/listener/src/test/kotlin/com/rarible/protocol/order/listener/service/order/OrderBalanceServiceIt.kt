@@ -35,7 +35,7 @@ import scalether.domain.AddressFactory
 import java.math.BigInteger
 
 @IntegrationTest
-class OrderBalanceServiceTest : AbstractIntegrationTest() {
+class OrderBalanceServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var orderBalanceService: OrderBalanceService
@@ -75,7 +75,7 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
             take = take
         )
 
-        listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
+        listOf(order1, order2, order3, order4).forEach { save(it) }
         cancelOrder(order3.hash)
 
         val updatedBalance = Erc20BalanceDto(
@@ -130,7 +130,7 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
             data = createOrderOpenSeaV1DataV1().copy(exchange = legacyOpenSea),
             makeStock = oldStock
         )
-        orderUpdateService.save(order1)
+        save(order1)
         orderRepository.save(order2)
 
         val updatedBalance = Erc20BalanceDto(
@@ -192,7 +192,7 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
         clearMocks(assetBalanceProvider)
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(oldStock)
 
-        listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
+        listOf(order1, order2, order3, order4).forEach { save(it) }
         cancelOrder(order3.hash)
 
         val event = createNftOwnershipUpdateEvent(ownership)
@@ -241,7 +241,7 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
             data = createOrderOpenSeaV1DataV1().copy(exchange = legacyOpenSea),
             makeStock = oldStock
         )
-        orderUpdateService.save(order1)
+        save(order1)
         orderRepository.save(order2)
 
         val event = createNftOwnershipUpdateEvent(ownership)
@@ -266,7 +266,7 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
         val orderVersion = createOrderVersionForOwnership(ownership, 10, 10)
             .copy(createdAt = now.minusSeconds(10))
 
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
 
         val event = createNftOwnershipUpdateEvent(ownership)
 
@@ -287,7 +287,7 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
         )
 
         val orderVersion = createOrderVersionForOwnership(ownership, 10, 10)
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
 
         val event = createNftOwnershipUpdateEvent(ownership)
 
@@ -316,7 +316,7 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
 
         val orderVersion = createOrderVersionForOwnership(ownership, 1, 10)
             .copy(createdAt = now.minusSeconds(120))
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
 
         assertThat(orderRepository.findById(order.hash)?.makeStock).isEqualTo(initialStock)
 
@@ -341,7 +341,7 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
         val orderVersion = createOrderVersionForOwnership(ownership, 1, 10)
             .copy(createdAt = now.minusSeconds(1))
 
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
 
         val event = createNftOwnershipDeleteEvent(ownership)
 

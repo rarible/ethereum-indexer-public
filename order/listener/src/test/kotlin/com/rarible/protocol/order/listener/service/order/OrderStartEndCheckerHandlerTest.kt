@@ -65,7 +65,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             start = nowMillis().minus(Duration.ofHours(1)).epochSecond,
             end = nowMillis().plus(Duration.ofHours(1)).epochSecond
         )
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.ACTIVE)
 
         // rewind end for matching expired query
@@ -90,7 +90,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             start = null,
             end = nowMillis().plus(properties.cancelOffset.dividedBy(2)).epochSecond
         )
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.ACTIVE)
 
         check(orderVersion.hash, OrderStatus.ACTIVE)
@@ -112,7 +112,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             start = nowMillis().minus(Duration.ofHours(1)).epochSecond,
             end = nowMillis().plus(Duration.ofHours(1)).epochSecond
         )
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.ACTIVE)
 
         // rewind end for matching expired query
@@ -137,8 +137,8 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             start = nowMillis().minus(Duration.ofHours(1)).epochSecond,
             end = nowMillis().plus(Duration.ofHours(1)).epochSecond
         )
-        val order = orderUpdateService.save(orderVersion)
-        val updated =  mongo.save(order.copy(makeStock = EthUInt256.ZERO)).awaitSingle()
+        val order = save(orderVersion)
+        val updated = mongo.save(order.copy(makeStock = EthUInt256.ZERO)).awaitSingle()
         assertThat(updated.status).isEqualTo(OrderStatus.INACTIVE)
 
         // rewind end for matching expired query
@@ -161,8 +161,8 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             start = nowMillis().minus(Duration.ofHours(1)).epochSecond,
             end = 0
         )
-        val order = orderUpdateService.save(orderVersion)
-        val updated =  mongo.save(order.copy(makeStock = EthUInt256.ZERO)).awaitSingle()
+        val order = save(orderVersion)
+        val updated = mongo.save(order.copy(makeStock = EthUInt256.ZERO)).awaitSingle()
         assertThat(updated.status).isEqualTo(OrderStatus.INACTIVE)
 
         handler.handle()
@@ -182,7 +182,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             start = nowMillis().plus(Duration.ofHours(1)).epochSecond,
             end = nowMillis().plus(Duration.ofHours(2)).epochSecond
         )
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)
 
         // rewind start for matching (start, end) interval
@@ -206,7 +206,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             start = nowMillis().plus(Duration.ofHours(1)).epochSecond,
             end = 0
         )
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)
 
         // rewind start for matching (start, end) interval
@@ -231,7 +231,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             end = nowMillis().plus(Duration.ofHours(2)).epochSecond
         )
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(EthUInt256.ZERO)
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)
 
         // rewind start for matching (start, end) interval
@@ -255,7 +255,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             start = nowMillis().plus(Duration.ofHours(1)).epochSecond,
             end = Instant.now().plusSeconds(1000).epochSecond,
         )
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)
 
         // rewind start for matching (start, end) interval
@@ -279,7 +279,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             start = nowMillis().plus(Duration.ofHours(1)).epochSecond,
             end = 0
         )
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)
 
         // rewind start for matching (start, end) interval
@@ -303,7 +303,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
             start = null,
             end = nowMillis().plus(Duration.ofHours(2)).epochSecond
         )
-        val order = orderUpdateService.save(orderVersion)
+        val order = save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.ACTIVE)
 
         // rewind start for matching (start, end) interval

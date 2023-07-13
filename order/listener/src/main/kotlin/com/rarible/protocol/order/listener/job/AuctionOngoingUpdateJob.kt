@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.apm.withTransaction
+import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.AuctionOffchainHistory
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.core.service.auction.AuctionStateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,12 +27,22 @@ class AuctionOngoingUpdateJob(
 
         withTransaction("auction_ongoing_update") {
             auctionRepository.findOngoingNotUpdatedIds().collect {
+                val eventTimeMarks = orderOffchainEventMarks()
                 val auction = auctionStateService.updateOngoingState(it, true)
-                auctionStateService.onAuctionOngoingStateUpdated(auction, AuctionOffchainHistory.Type.STARTED)
+                auctionStateService.onAuctionOngoingStateUpdated(
+                    auction,
+                    AuctionOffchainHistory.Type.STARTED,
+                    eventTimeMarks
+                )
             }
             auctionRepository.findEndedNotUpdatedIds(properties.updateAuctionOngoingStateEndLag).collect {
+                val eventTimeMarks = orderOffchainEventMarks()
                 val auction = auctionStateService.updateOngoingState(it, false)
-                auctionStateService.onAuctionOngoingStateUpdated(auction, AuctionOffchainHistory.Type.ENDED)
+                auctionStateService.onAuctionOngoingStateUpdated(
+                    auction,
+                    AuctionOffchainHistory.Type.ENDED,
+                    eventTimeMarks
+                )
             }
         }
     }

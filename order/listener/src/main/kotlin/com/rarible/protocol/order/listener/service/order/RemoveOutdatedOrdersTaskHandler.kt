@@ -2,7 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.task.TaskHandler
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataVersion
 import com.rarible.protocol.order.core.model.OrderStatus
@@ -46,7 +46,7 @@ class RemoveOutdatedOrdersTaskHandler(
 
     private suspend fun updateOrder(order: Order): String {
         logger.info("Canceling order: ${order.id}")
-        orderCancelService.cancelOrder(order.hash, orderOffchainEventMarks())
+        orderCancelService.cancelOrder(order.hash, orderTaskEventMarks())
         return order.id.toString()
     }
 

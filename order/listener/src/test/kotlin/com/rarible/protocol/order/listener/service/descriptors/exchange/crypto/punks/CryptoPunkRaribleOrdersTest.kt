@@ -142,7 +142,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
         val (buyerAddress, buyerSender) = newSender()
         depositInitialBalance(buyerAddress, punkPrice)
-        val sellOrder = orderUpdateService.save(sellOrderVersion)
+        val sellOrder = save(sellOrderVersion)
         val preparedBuyTx = prepareTxService.prepareTransaction(
             sellOrder,
             PrepareOrderTxFormDto(buyerAddress, BigInteger.ONE, emptyList(), emptyList())
@@ -285,7 +285,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
                 signature = eip712Domain.hashToSign(Order.hash(it)).sign(sellerPrivateKey)
             )
         }
-        val sellOrder = orderUpdateService.save(sellOrderVersion)
+        val sellOrder = save(sellOrderVersion)
 
         // Add on-chain sell order
         val onChainPunkPrice = BigInteger.valueOf(200000)
@@ -383,7 +383,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
                 signature = eip712Domain.hashToSign(Order.hash(it)).sign(bidderPrivateKey)
             )
         }
-        val bidOrder = orderUpdateService.save(bidOrderVersion)
+        val bidOrder = save(bidOrderVersion)
 
         // Allow to sell the punk to the CryptoPunks transfer proxy for 0 ETH.
         cryptoPunksMarket.offerPunkForSaleToAddress(punkIndex, BigInteger.ZERO, punkTransferProxy.address())

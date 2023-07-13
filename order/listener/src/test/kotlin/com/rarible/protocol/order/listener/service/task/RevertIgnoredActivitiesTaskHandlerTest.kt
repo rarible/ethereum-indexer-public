@@ -42,7 +42,7 @@ class RevertIgnoredActivitiesTaskHandlerTest {
             mockk(),
         ).onEach {
             coEvery {
-                publisher.publish(it)
+                publisher.publish(it, any())
             } returns Unit
         }
         val events = listOf(

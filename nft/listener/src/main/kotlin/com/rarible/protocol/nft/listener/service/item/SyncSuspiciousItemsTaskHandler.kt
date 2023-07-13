@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.listener.service.item
 
 import com.rarible.core.kafka.chunked
 import com.rarible.core.task.TaskHandler
+import com.rarible.protocol.nft.core.misc.nftTaskEventMarks
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -36,8 +37,9 @@ class SyncSuspiciousItemsTaskHandler(
                 itemRepository
                     .searchByIds(chunk.map { it.id }.toSet())
                     .map { item ->
+                        val eventTimeMarks = nftTaskEventMarks()
                         logger.info("Suspicious item event: itemId={}, suspicious={}", item.id, item.isSuspiciousOnOS)
-                        eventListener.onItemChanged(item).awaitFirstOrNull()
+                        eventListener.onItemChanged(item, eventTimeMarks).awaitFirstOrNull()
                         item.id.stringValue
                     }
                     .last()

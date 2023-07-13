@@ -3,7 +3,12 @@ package com.rarible.protocol.order.core.producer
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.AuctionEventDto
+import com.rarible.protocol.dto.EthActivityEventDto
+import com.rarible.protocol.dto.NftOrdersPriceUpdateEventDto
+import com.rarible.protocol.dto.OrderEventDto
+import com.rarible.protocol.dto.OrderIndexerTopicProvider
 
 class ProducerFactory(
     private val kafkaReplicaSet: String,
@@ -36,12 +41,12 @@ class ProducerFactory(
         )
     }
 
-    fun createOrderActivitiesProducer(): RaribleKafkaProducer<ActivityDto> {
+    fun createOrderActivitiesProducer(): RaribleKafkaProducer<EthActivityEventDto> {
         return RaribleKafkaProducer(
             clientId = orderActivityClientId,
             valueSerializerClass = JsonSerializer::class.java,
-            valueClass = ActivityDto::class.java,
-            defaultTopic = ActivityTopicProvider.getTopic(environment, blockchain.name.toLowerCase()),
+            valueClass = EthActivityEventDto::class.java,
+            defaultTopic = ActivityTopicProvider.getActivityTopic(environment, blockchain.value),
             bootstrapServers = kafkaReplicaSet
         )
     }
@@ -56,12 +61,12 @@ class ProducerFactory(
         )
     }
 
-    fun createAuctionActivitiesProducer(): RaribleKafkaProducer<ActivityDto> {
+    fun createAuctionActivitiesProducer(): RaribleKafkaProducer<EthActivityEventDto> {
         return RaribleKafkaProducer(
             clientId = auctionActivityClientId,
             valueSerializerClass = JsonSerializer::class.java,
-            valueClass = ActivityDto::class.java,
-            defaultTopic = ActivityTopicProvider.getTopic(environment, blockchain.name.toLowerCase()),
+            valueClass = EthActivityEventDto::class.java,
+            defaultTopic = ActivityTopicProvider.getActivityTopic(environment, blockchain.value),
             bootstrapServers = kafkaReplicaSet
         )
     }

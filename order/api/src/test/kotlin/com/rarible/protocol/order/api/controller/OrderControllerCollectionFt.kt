@@ -162,7 +162,7 @@ class OrderControllerCollectionFt : AbstractIntegrationTest() {
     }
 
     private suspend fun saveOrderVersions(vararg order: OrderVersion) {
-        order.forEach { orderUpdateService.save(it) }
+        order.forEach { save(it) }
     }
 
     private suspend fun saveOrders(vararg order: Order) {

@@ -1,20 +1,19 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.misc.addIndexerOut
-import com.rarible.protocol.nft.core.misc.nftOffchainEventMarks
 import com.rarible.protocol.nft.core.misc.toDto
 import com.rarible.protocol.nft.core.model.Ownership
-import com.rarible.protocol.nft.core.model.OwnershipEvent
 import java.util.UUID
 
 object OwnershipEventDtoConverter {
 
-    fun convert(source: Ownership, event: OwnershipEvent? = null): NftOwnershipEventDto {
+    fun convert(source: Ownership, eventTimeMarks: EventTimeMarks): NftOwnershipEventDto {
 
-        val marks = (event?.eventTimeMarks ?: nftOffchainEventMarks()).addIndexerOut().toDto()
+        val marks = eventTimeMarks.addIndexerOut().toDto()
 
         return if (source.deleted) {
             NftOwnershipDeleteEventDto(

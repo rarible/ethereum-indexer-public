@@ -4,7 +4,7 @@ import com.rarible.core.logging.withTraceId
 import com.rarible.core.task.RunTask
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Order
@@ -74,7 +74,7 @@ class CancelOrdersWithoutExpiredTimeTaskHandler(
     private suspend fun processOrder(
         it: Order
     ): Long {
-        val eventTimeMarks = orderOffchainEventMarks()
+        val eventTimeMarks = orderTaskEventMarks()
         fixOrder(it.hash)
         orderUpdateService.update(it.hash, eventTimeMarks)
         return it.createdAt.epochSecond

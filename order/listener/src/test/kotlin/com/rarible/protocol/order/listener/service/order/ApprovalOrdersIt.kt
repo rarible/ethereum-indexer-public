@@ -27,7 +27,8 @@ import java.time.temporal.ChronoUnit
 @ExperimentalCoroutinesApi
 @FlowPreview
 @IntegrationTest
-class ApprovalOrdersTest : AbstractIntegrationTest() {
+class ApprovalOrdersIt : AbstractIntegrationTest() {
+
     @Autowired
     private lateinit var approveService: ApproveService
 
@@ -130,6 +131,6 @@ class ApprovalOrdersTest : AbstractIntegrationTest() {
             platform = platform,
             end = nowMillis().plus(7, ChronoUnit.DAYS).epochSecond,
         )
-        return orderUpdateService.save(version)
+        return save(version)
     }
 }

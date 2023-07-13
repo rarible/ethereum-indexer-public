@@ -88,6 +88,7 @@ class ReservoirOrdersReconciliationWorker(
     }
 
     private suspend fun handleCancelEvent(event: ReservoirOrderEvent) {
+        val eventTimeMarks = orderOffchainEventMarks()
         val id = Word.apply(event.order.id)
         val order = orderRepository.findById(id) ?: return
         if (order.status == com.rarible.protocol.order.core.model.OrderStatus.ACTIVE) {
@@ -98,7 +99,7 @@ class ReservoirOrdersReconciliationWorker(
             if (properties.cancelEnabled) {
                 orderCancelService.cancelOrder(
                     id = id,
-                    eventTimeMarksDto = orderOffchainEventMarks(),
+                    eventTimeMarksDto = eventTimeMarks,
                 )
             }
         }

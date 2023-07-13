@@ -39,16 +39,16 @@ class SyncSuspiciousItemsTaskHandlerTest {
             emit(state2)
         }
         coEvery { itemRepository.searchByIds(setOf(state1.id, state2.id)) } returns listOf(item1, item2)
-        every { eventListener.onItemChanged(item1) } returns Mono.empty()
-        every { eventListener.onItemChanged(item2) } returns Mono.empty()
+        every { eventListener.onItemChanged(item1, any()) } returns Mono.empty()
+        every { eventListener.onItemChanged(item2, any()) } returns Mono.empty()
 
         val savedItemId = task.runLongTask(from.stringValue, "").toList().last()
         assertThat(savedItemId).isEqualTo(state2.id.stringValue)
 
         verify(exactly = 1) {
             itemExStateRepository.getAll(from)
-            eventListener.onItemChanged(item1)
-            eventListener.onItemChanged(item2)
+            eventListener.onItemChanged(item1, any())
+            eventListener.onItemChanged(item2, any())
         }
         coVerify(exactly = 1) {
             itemRepository.searchByIds(setOf(state1.id, state2.id))

@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.ifNotBlank
 import com.rarible.core.task.TaskHandler
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -17,7 +18,7 @@ import kotlinx.coroutines.time.delay
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.util.*
+import java.util.Date
 
 @Component
 class OrderUpdateTaskHandler(
@@ -49,7 +50,7 @@ class OrderUpdateTaskHandler(
     }
 
     private suspend fun handleOrder(order: Order) {
-        val (updatedOrder, updated) = orderUpdateService.updateMakeStockFull(order.hash, null, null)
+        val (updatedOrder, updated) = orderUpdateService.updateMakeStockFull(order.hash, null, orderTaskEventMarks())
         if (updated) {
             logger.info("Order ${updatedOrder?.id} has been updated by task '$ORDER_UPDATE', oldStatus=${order.status}, newStatus=${updatedOrder?.status}")
             delay(Duration.ofMillis(properties.publishTaskDelayMs))

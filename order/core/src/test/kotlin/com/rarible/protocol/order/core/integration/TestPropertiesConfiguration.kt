@@ -40,7 +40,7 @@ class TestPropertiesConfiguration {
     fun mockOrderPublisher(): ProtocolOrderPublisher {
         return mockk {
             coEvery { publish(any<OrderEventDto>()) } returns Unit
-            coEvery { publish(any<OrderActivityDto>()) } returns Unit
+            coEvery { publish(any<OrderActivityDto>(), any()) } returns Unit
         }
     }
 
