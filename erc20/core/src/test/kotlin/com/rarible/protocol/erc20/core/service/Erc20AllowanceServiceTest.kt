@@ -14,7 +14,6 @@ import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
@@ -32,7 +31,6 @@ import scalether.transaction.MonoTransactionSender
 
 @ExtendWith(MockKExtension::class)
 internal class Erc20AllowanceServiceTest {
-    @InjectMockKs
     private lateinit var erc20AllowanceService: Erc20AllowanceService
 
     @MockK
@@ -41,7 +39,6 @@ internal class Erc20AllowanceServiceTest {
     @MockK
     private lateinit var erc20AllowanceRepository: Erc20AllowanceRepository
 
-    @SpyK
     private var erc20BalanceEventListeners: MutableList<Erc20BalanceEventListener> = mutableListOf()
 
     @MockK
@@ -56,6 +53,12 @@ internal class Erc20AllowanceServiceTest {
     @BeforeEach
     fun before() {
         erc20BalanceEventListeners.add(erc20BalanceEventListener)
+        erc20AllowanceService = Erc20AllowanceService(
+            sender = sender,
+            erc20AllowanceRepository = erc20AllowanceRepository,
+            erc20BalanceEventListeners = erc20BalanceEventListeners,
+            erc20IndexerProperties = erc20IndexerProperties,
+        )
     }
 
     @Test
