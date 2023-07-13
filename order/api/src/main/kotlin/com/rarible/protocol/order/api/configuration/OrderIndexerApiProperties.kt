@@ -8,5 +8,6 @@ internal const val RARIBLE_PROTOCOL_ORDER_API = "api"
 @ConstructorBinding
 @ConfigurationProperties(RARIBLE_PROTOCOL_ORDER_API)
 data class OrderIndexerApiProperties(
-    val skipHeavyRequest: Boolean = false
+    val skipHeavyRequest: Boolean = false,
+    val maxOrderEndDate: Long? = null
 )
