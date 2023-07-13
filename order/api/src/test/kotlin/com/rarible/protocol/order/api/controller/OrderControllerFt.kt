@@ -13,6 +13,7 @@ import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV3BuyDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV3SellDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
+import com.rarible.protocol.dto.RaribleV2OrderFormDto
 import com.rarible.protocol.order.api.client.OrderControllerApi
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
@@ -230,6 +231,16 @@ class OrderControllerFt : AbstractIntegrationTest() {
                 OrderDto::class.java
             )
         }.withMessageContaining("Missed end date")
+    }
+
+    @Test
+    fun `should create order with invalid end - fail`() {
+        val (privateKey, _, signer) = generateNewKeys()
+        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN), EthUInt256.TEN, OrderRaribleV2DataV1(emptyList(), emptyList()))
+        val formDto = order.toForm(EIP712Domain("", "", BigInteger.ONE, AddressFactory.create()), privateKey) as RaribleV2OrderFormDto
+        assertThatExceptionOfType(OrderControllerApi.ErrorUpsertOrder::class.java).isThrownBy {
+            orderClient.upsertOrder(formDto.copy(start = nowMillis().plusSeconds(1000).epochSecond, end = nowMillis().epochSecond)).block()
+        }.withMessageContaining("Bad Request")
     }
 
     @AfterEach

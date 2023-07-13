@@ -163,9 +163,7 @@ class OrderController(
     }
 
     override suspend fun upsertOrder(form: OrderFormDto): ResponseEntity<OrderDto> {
-        if (form.end == null || form.end == 0L) {
-            throw ValidationApiException("Missed end date")
-        }
+        validateStartEnd(form)
         val order = orderService.put(form)
         val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)
@@ -628,6 +626,17 @@ class OrderController(
             result.map { orderDtoConverter.convert(it) },
             nextContinuation
         )
+    }
+
+    private fun validateStartEnd(form: OrderFormDto) {
+        when {
+            form.end == 0L -> {
+                throw ValidationApiException("Missed end date")
+            }
+            form.start != null && form.end <= form.start!! -> {
+                throw ValidationApiException("End date must be greater than start")
+            }
+        }
     }
 
     private fun safeAddress(value: String?): Address? {
