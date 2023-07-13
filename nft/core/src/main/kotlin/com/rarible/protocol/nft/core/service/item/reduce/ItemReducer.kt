@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.misc.combineIntoChain
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
+import com.rarible.protocol.nft.core.service.item.reduce.status.CompactItemEventsReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.ItemCalculatedFieldsReducer
 import org.springframework.stereotype.Component
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component
 @Component
 class ItemReducer(
     eventStatusItemReducer: EventStatusItemReducer,
+    compactItemEventsReducer: CompactItemEventsReducer,
     lazyItemReducer: LazyItemReducer,
     itemMetricReducer: ItemMetricReducer
 ) : Reducer<ItemEvent, Item> {
@@ -21,6 +23,7 @@ class ItemReducer(
         LoggingReducer(),
         itemMetricReducer,
         eventStatusItemReducer,
+        compactItemEventsReducer,
         ItemCalculatedFieldsReducer()
     )
     private val lazyItemReducer = combineIntoChain(

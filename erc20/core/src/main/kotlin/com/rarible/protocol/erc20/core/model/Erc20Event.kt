@@ -14,6 +14,8 @@ sealed class Erc20Event : EthereumEntityEvent<Erc20Event>() {
     abstract val value: EthUInt256
     abstract val date: Date
 
+    abstract fun withValue(value: EthUInt256): Erc20Event
+
     data class Erc20IncomeTransferEvent(
         override val entityId: String,
         override val log: EthereumLog,
@@ -21,9 +23,12 @@ sealed class Erc20Event : EthereumEntityEvent<Erc20Event>() {
         override val owner: Address,
         override val value: EthUInt256,
         override val token: Address,
-        override val date: Date
+        override val date: Date,
+        override val compact: Boolean = false,
     ) : Erc20Event() {
         override fun invert(): Erc20Event = Erc20EventInverter.invert(this)
+
+        override fun withValue(value: EthUInt256) = copy(value = value)
     }
 
     data class Erc20OutcomeTransferEvent(
@@ -33,9 +38,12 @@ sealed class Erc20Event : EthereumEntityEvent<Erc20Event>() {
         override val owner: Address,
         override val value: EthUInt256,
         override val token: Address,
-        override val date: Date
+        override val date: Date,
+        override val compact: Boolean = false,
     ) : Erc20Event() {
         override fun invert(): Erc20Event = Erc20EventInverter.invert(this)
+
+        override fun withValue(value: EthUInt256) = copy(value = value)
     }
 
     data class Erc20DepositEvent(
@@ -45,9 +53,12 @@ sealed class Erc20Event : EthereumEntityEvent<Erc20Event>() {
         override val owner: Address,
         override val value: EthUInt256,
         override val token: Address,
-        override val date: Date
+        override val date: Date,
+        override val compact: Boolean = false,
     ) : Erc20Event() {
         override fun invert(): Erc20Event = Erc20EventInverter.invert(this)
+
+        override fun withValue(value: EthUInt256) = copy(value = value)
     }
 
     data class Erc20WithdrawalEvent(
@@ -57,9 +68,12 @@ sealed class Erc20Event : EthereumEntityEvent<Erc20Event>() {
         override val owner: Address,
         override val value: EthUInt256,
         override val token: Address,
-        override val date: Date
+        override val date: Date,
+        override val compact: Boolean = false,
     ) : Erc20Event() {
         override fun invert(): Erc20Event = Erc20EventInverter.invert(this)
+
+        override fun withValue(value: EthUInt256) = copy(value = value)
     }
 
     data class Erc20TokenApprovalEvent(
@@ -71,8 +85,11 @@ sealed class Erc20Event : EthereumEntityEvent<Erc20Event>() {
         override val token: Address,
         override val date: Date,
 
-        val spender: Address
+        val spender: Address,
+        override val compact: Boolean = false,
     ) : Erc20Event() {
         override fun invert(): Erc20Event = this
+
+        override fun withValue(value: EthUInt256) = copy(value = value)
     }
 }

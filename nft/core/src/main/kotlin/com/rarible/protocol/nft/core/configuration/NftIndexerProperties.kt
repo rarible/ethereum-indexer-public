@@ -39,6 +39,7 @@ data class NftIndexerProperties(
     val scamByteCodes: ScamByteCodeProperties = ScamByteCodeProperties(),
     val ipfs: IpfsProperties,
     val ownershipFetchBatchSize: Int = 1000,
+    val reduce: ReduceProperties = ReduceProperties(),
 ) : MetricProperties {
     data class ActionProperties(
         val burnDelay: Duration = Duration.ofHours(24)
@@ -73,5 +74,9 @@ data class NftIndexerProperties(
 
     data class ScamByteCodeProperties(
         val markers: List<ByteCodeMarker> = emptyList()
+    )
+
+    data class ReduceProperties(
+        val maxRevertableEventsAmount: Int = 12 * 2 // 12 blocks with 2 events per block
     )
 }

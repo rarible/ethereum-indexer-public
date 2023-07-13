@@ -9,11 +9,11 @@ common:
   cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
   ensDomainsContractAddress: "0x0000000000000000000000000000000000000000"
   metricRootPath: "nft-metrics"
-  reduceProperties:
-    skipOwnerships: true
   ipfs:
     ipfsGateway: "https://ipfs.io"
     ipfsPublicGateway: "https://rarible.mypinata.cloud"
+  featureFlags:
+    compactRevertableEvents: true
 
 api:
   opensea:
