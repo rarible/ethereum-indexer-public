@@ -1,6 +1,7 @@
 package com.rarible.protocol.erc20.core.service
 
 import com.rarible.contracts.erc20.IERC20
+import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.ethereum.domain.EthUInt256
@@ -16,7 +17,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
-import java.time.Instant
 
 @Service
 class Erc20AllowanceService(
@@ -36,8 +36,8 @@ class Erc20AllowanceService(
                 owner = id.owner,
                 token = id.token,
                 allowance = getBlockchainAllowance(id) ?: EthUInt256(BigInteger.ZERO),
-                createdAt = Instant.now(),
-                lastUpdatedAt = Instant.now(),
+                createdAt = nowMillis(),
+                lastUpdatedAt = nowMillis(),
             )
         }
 
@@ -64,8 +64,8 @@ class Erc20AllowanceService(
                 token = balanceId.token,
                 owner = balanceId.owner,
                 allowance = EthUInt256(BigInteger.ZERO),
-                createdAt = Instant.now(),
-                lastUpdatedAt = Instant.now(),
+                createdAt = nowMillis(),
+                lastUpdatedAt = nowMillis(),
             )
             val allowance = getBlockchainAllowance(balanceId) ?: run {
                 logger.error("Can't get allowance $balanceId from blockchain")

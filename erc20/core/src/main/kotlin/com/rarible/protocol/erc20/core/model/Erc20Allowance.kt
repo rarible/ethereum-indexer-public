@@ -1,5 +1,6 @@
 package com.rarible.protocol.erc20.core.model
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.entity.reducer.model.Entity
 import com.rarible.ethereum.domain.EthUInt256
 import org.springframework.data.annotation.AccessType
@@ -38,5 +39,5 @@ data class Erc20Allowance(
     override fun withRevertableEvents(events: List<Erc20Event>): Erc20Allowance = this
 
     fun withAllowance(allowance: EthUInt256): Erc20Allowance =
-        copy(allowance = allowance, lastUpdatedAt = Instant.now())
+        copy(allowance = allowance, lastUpdatedAt = nowMillis())
 }

@@ -1,6 +1,7 @@
 package com.rarible.protocol.erc20.core.service
 
 import com.rarible.contracts.erc20.IERC20
+import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.ethereum.domain.EthUInt256
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
-import java.time.Instant
 
 @Component
 class Erc20BalanceService(
@@ -53,8 +53,8 @@ class Erc20BalanceService(
                 owner = balanceId.owner,
                 token = balanceId.token,
                 balance = EthUInt256(BigInteger.ZERO),
-                createdAt = Instant.now(),
-                lastUpdatedAt = Instant.now(),
+                createdAt = nowMillis(),
+                lastUpdatedAt = nowMillis(),
                 blockNumber = event?.event?.log?.blockNumber,
             )
             val balance = getBlockchainBalance(balanceId) ?: run {

@@ -1,6 +1,7 @@
 package com.rarible.protocol.erc20.core.service.reduce
 
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.protocol.erc20.core.misc.addIndexerIn
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Event
 import com.rarible.protocol.erc20.core.service.Erc20AllowanceService
@@ -27,7 +28,7 @@ class Erc20EventChainUpdateService(
         try {
             val balanceId = BalanceId.parseId(entityId)
             val erc20Events = events.map {
-                erc20EventConverter.convert(it.record.asEthereumLogRecord(), it.eventTimeMarks)
+                erc20EventConverter.convert(it.record.asEthereumLogRecord(), it.eventTimeMarks.addIndexerIn())
             }
             val approvalEvent = erc20Events.lastOrNull { it?.event is Erc20Event.Erc20TokenApprovalEvent }
             if (approvalEvent != null) {
