@@ -34,7 +34,7 @@ internal class AdminControllerTest : AbstractIntegrationTest() {
     @Suppress("BlockingMethodInNonBlockingContext")
     fun `should cancel order`() = runBlocking<Unit> {
         val orderVersion = createOrderVersion()
-        val savedOrder = orderUpdateService.save(orderVersion)
+        val savedOrder = save(orderVersion)
         assertThat(savedOrder.status).isNotEqualTo(OrderStatus.CANCELLED)
 
         restTemplate.postForEntity(
@@ -52,7 +52,7 @@ internal class AdminControllerTest : AbstractIntegrationTest() {
     fun `should change cancel state`() = runBlocking<Unit> {
         val orderVersion = createOrderVersion()
         orderStateRepository.save(OrderState(orderVersion.hash, canceled = true))
-        val savedOrder = orderUpdateService.save(orderVersion)
+        val savedOrder = save(orderVersion)
         assertThat(savedOrder.status).isEqualTo(OrderStatus.CANCELLED)
 
         restTemplate.postForEntity(

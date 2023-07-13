@@ -16,8 +16,11 @@ fun EventTimeMarks.toDto(): EventTimeMarksDto {
 }
 
 fun orderOffchainEventMarks() = EventTimeMarks("offchain").add("source").addIndexerIn()
+fun orderTaskEventMarks() = EventTimeMarks("task").add("source").addIndexerIn()
 fun orderIntegrationEventMarks(date: Instant) = EventTimeMarks("integration").add("source", date).addIndexerIn()
 
+// Just for tests
+fun orderStubEventMarks() = EventTimeMarks("stub").add("source").addIndexerIn()
 
 
 

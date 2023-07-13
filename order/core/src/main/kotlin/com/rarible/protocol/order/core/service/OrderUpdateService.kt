@@ -53,7 +53,7 @@ class OrderUpdateService(
      */
     suspend fun save(
         orderVersion: OrderVersion,
-        eventTimeMarks: EventTimeMarks? = null
+        eventTimeMarks: EventTimeMarks
     ): Order {
         orderVersionRepository.save(orderVersion).awaitFirst()
         val order = optimisticLock {
@@ -61,7 +61,7 @@ class OrderUpdateService(
         }
         checkNotNull(order) { "Order ${orderVersion.hash} has not been updated" }
         orderListener.onOrder(order, eventTimeMarks)
-        orderVersionListener.onOrderVersion(orderVersion)
+        orderVersionListener.onOrderVersion(orderVersion, eventTimeMarks)
         return order
     }
 
@@ -102,13 +102,13 @@ class OrderUpdateService(
     suspend fun updateMakeStock(
         hash: Word,
         makeBalanceState: MakeBalanceState?,
-        eventTimeMarks: EventTimeMarks?
+        eventTimeMarks: EventTimeMarks
     ): Order? = updateMakeStockFull(hash, makeBalanceState, eventTimeMarks).first
 
     suspend fun updateMakeStockFull(
         hash: Word,
         makeBalanceState: MakeBalanceState?,
-        eventTimeMarks: EventTimeMarks?
+        eventTimeMarks: EventTimeMarks
     ): Pair<Order?, Boolean> {
         val order = orderRepository.findById(hash) ?: return null to false
         return updateMakeStock(order, makeBalanceState, eventTimeMarks)
@@ -120,7 +120,7 @@ class OrderUpdateService(
     suspend fun updateMakeStock(
         order: Order,
         makeBalanceState: MakeBalanceState?,
-        eventTimeMarks: EventTimeMarks?
+        eventTimeMarks: EventTimeMarks
     ): Pair<Order, Boolean> = optimisticLock {
         val makeBalance = makeBalanceState ?: assetMakeBalanceProvider.getMakeBalance(order)
         val knownMakeBalance = makeBalance.value
@@ -161,7 +161,7 @@ class OrderUpdateService(
         }
     }
 
-    private suspend fun updateOrder(updated: Order, eventTimeMarks: EventTimeMarks?): Order {
+    private suspend fun updateOrder(updated: Order, eventTimeMarks: EventTimeMarks): Order {
         val result = customUpdaters.fold(updated) { order, updater -> updater.update(order) }
         val savedOrder = orderRepository.save(result)
         orderListener.onOrder(savedOrder, eventTimeMarks)

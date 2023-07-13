@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.service.auction
 
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.order.core.converters.dto.AuctionActivityConverter
 import com.rarible.protocol.order.core.model.Auction
@@ -39,12 +40,16 @@ class AuctionStateService(
         }
     }
 
-    suspend fun onAuctionOngoingStateUpdated(auction: Auction?, type: AuctionOffchainHistory.Type) {
+    suspend fun onAuctionOngoingStateUpdated(
+        auction: Auction?,
+        type: AuctionOffchainHistory.Type,
+        eventTimeMarks: EventTimeMarks
+    ) {
         auction?.let {
             val history = toHistory(auction, type)
             auctionOffchainHistoryRepository.save(history)
             val event = auctionActivityConverter.convert(history, auction)
-            eventPublisher.publish(event)
+            eventPublisher.publish(event, eventTimeMarks)
 
             logger.info("Ongoing state updated fo Auction {}: {} at {}", auction.hash, history.type, history.date)
         }

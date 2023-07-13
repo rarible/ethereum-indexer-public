@@ -8,8 +8,6 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.client.NoopWebClientCustomizer
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
@@ -23,12 +21,15 @@ import com.rarible.protocol.order.api.client.OrderBidControllerApi
 import com.rarible.protocol.order.api.client.OrderControllerApi
 import com.rarible.protocol.order.api.client.OrderEncodeControllerApi
 import com.rarible.protocol.order.api.client.OrderIndexerApiClientFactory
-import com.rarible.protocol.order.api.client.OrderTransactionControllerApi
 import com.rarible.protocol.order.api.client.OrderSignatureControllerApi
+import com.rarible.protocol.order.api.client.OrderTransactionControllerApi
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.MakeBalanceState
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionOffchainHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
@@ -255,5 +256,9 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
         auctionClient = clientsFactory.createAuctionApiClient(Blockchain.ETHEREUM.name)
         auctionActivityClient = clientsFactory.createAuctionActivityApiClient(Blockchain.ETHEREUM.name)
         orderSignatureClient = clientsFactory.createOrderSignatureApiClient(Blockchain.ETHEREUM.name)
+    }
+
+    suspend fun save(orderVersion: OrderVersion): Order {
+        return orderUpdateService.save(orderVersion, orderStubEventMarks())
     }
 }

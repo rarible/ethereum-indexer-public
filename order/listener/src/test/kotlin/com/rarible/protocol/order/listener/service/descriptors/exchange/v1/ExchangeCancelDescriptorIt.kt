@@ -37,7 +37,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
 @IntegrationTest
-class ExchangeCancelDescriptorTest : AbstractIntegrationTest() {
+class ExchangeCancelDescriptorIt : AbstractIntegrationTest() {
     companion object {
         lateinit var userSender: MonoSigningTransactionSender
         lateinit var token: TestERC1155
@@ -111,7 +111,7 @@ class ExchangeCancelDescriptorTest : AbstractIntegrationTest() {
             makeUsd = null,
             takeUsd = null
         )
-        orderUpdateService.save(orderLeftVersion)
+        save(orderLeftVersion)
 
         val orderKey = Tuple4(sender.from(), salt, Tuple3(token.address(), tokenId, ERC1155.value), Tuple3(buyToken.address(), buyTokenId, ERC1155.value))
 

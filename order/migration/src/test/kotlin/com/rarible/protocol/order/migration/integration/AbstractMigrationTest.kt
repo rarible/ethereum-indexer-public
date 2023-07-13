@@ -28,7 +28,7 @@ abstract class AbstractMigrationTest {
         io.mockk.clearMocks(assetMakeBalanceProvider)
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(EthUInt256.ZERO)
         io.mockk.clearMocks(protocolOrderPublisher)
-        coEvery { protocolOrderPublisher.publish(any() as OrderActivityDto) } returns Unit
+        coEvery { protocolOrderPublisher.publish(any() as OrderActivityDto, any()) } returns Unit
         coEvery { protocolOrderPublisher.publish(any() as OrderEventDto) } returns Unit
         coEvery { protocolOrderPublisher.publish(any() as NftOrdersPriceUpdateEventDto) } returns Unit
     }

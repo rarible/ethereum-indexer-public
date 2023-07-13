@@ -6,7 +6,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.isEqualToOrder
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
@@ -242,7 +242,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
         exchangeHistoryRepository.findReversedEthereumLogRecords(orderHash, null).asFlow().collect { logEvent ->
             exchangeHistoryRepository.save(logEvent.copy(status = EthereumBlockStatus.REVERTED)).awaitFirst()
         }
-        orderUpdateService.update(orderHash, orderOffchainEventMarks())
+        orderUpdateService.update(orderHash, orderStubEventMarks())
         assertThat(orderVersionRepository.findAllByHash(orderHash).count()).isEqualTo(0)
         assertThat(orderRepository.findById(orderHash)).isNull()
     }
@@ -358,6 +358,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
                 is CollectionAssetType -> 0
                 is AmmNftAssetType -> 0
                 is EthAssetType -> 18
+                else -> 0
             }
 
             val expectedOrder = orderVersion.toOrderExactFields().copy(

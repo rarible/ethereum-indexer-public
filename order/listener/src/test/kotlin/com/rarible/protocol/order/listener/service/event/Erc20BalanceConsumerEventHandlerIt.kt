@@ -23,10 +23,10 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import scalether.domain.AddressFactory
 import java.time.Duration
-import java.util.*
+import java.util.UUID
 
 @IntegrationTest
-internal class Erc20BalanceConsumerEventHandlerTest : AbstractIntegrationTest() {
+internal class Erc20BalanceConsumerEventHandlerIt : AbstractIntegrationTest() {
 
     // TODO PT-798
     @Disabled
@@ -48,7 +48,7 @@ internal class Erc20BalanceConsumerEventHandlerTest : AbstractIntegrationTest() 
             make = Asset(Erc20AssetType(erc20), EthUInt256.TEN),
             take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
         )
-        orderUpdateService.save(orderVersion)
+        save(orderVersion)
 
         val event = Erc20BalanceUpdateEventDto(
             eventId = UUID.randomUUID().toString(),

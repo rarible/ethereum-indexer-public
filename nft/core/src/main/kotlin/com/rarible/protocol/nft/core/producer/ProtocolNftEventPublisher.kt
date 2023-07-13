@@ -2,10 +2,11 @@ package com.rarible.protocol.nft.core.producer
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
-import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
@@ -15,6 +16,8 @@ import com.rarible.protocol.dto.NftItemEventTopicProvider
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
+import com.rarible.protocol.nft.core.misc.addIndexerOut
+import com.rarible.protocol.nft.core.misc.toDto
 import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipId
@@ -27,7 +30,7 @@ class ProtocolNftEventPublisher(
     private val collectionEventsProducer: RaribleKafkaProducer<NftCollectionEventDto>,
     private val itemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val ownershipEventProducer: RaribleKafkaProducer<NftOwnershipEventDto>,
-    private val nftItemActivityProducer: RaribleKafkaProducer<ActivityDto>,
+    private val nftItemActivityProducer: RaribleKafkaProducer<EthActivityEventDto>,
     private val actionProducer: RaribleKafkaProducer<ActionEvent>
 ) {
     suspend fun publish(event: NftCollectionEventDto) {
@@ -68,16 +71,16 @@ class ProtocolNftEventPublisher(
         }
     }
 
-    suspend fun publish(event: NftActivityDto) {
-        val itemId = "${event.contract}:${event.tokenId}"
+    suspend fun publish(activity: NftActivityDto, eventTimeMarks: EventTimeMarks) {
+        val itemId = "${activity.contract}:${activity.tokenId}"
         val message = KafkaMessage(
             key = itemId,
-            value = event as ActivityDto,
+            value = EthActivityEventDto(activity, eventTimeMarks.addIndexerOut().toDto()),
             headers = ITEM_ACTIVITY_HEADERS,
             id = itemId
         )
         nftItemActivityProducer.send(message).ensureSuccess()
-        logger.info("Sent item activity event ${event.id}: $event")
+        logger.info("Sent item activity event ${activity.id}: $activity")
     }
 
     suspend fun publish(event: ActionEvent) {

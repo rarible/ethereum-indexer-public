@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.converters.dto.AuctionActivityConverter
 import com.rarible.protocol.order.core.converters.dto.AuctionBidDtoConverter
 import com.rarible.protocol.order.core.converters.dto.AuctionDtoConverter
 import com.rarible.protocol.order.core.data.randomAuction
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.model.AuctionOffchainHistory
 import com.rarible.protocol.order.core.producer.ProtocolAuctionPublisher
 import com.rarible.protocol.order.core.repository.auction.AuctionOffchainHistoryRepository
@@ -50,7 +51,7 @@ class AuctionStateServiceTest {
     @BeforeEach
     fun beforeEach() {
         coEvery { auctionOffchainHistoryRepository.save(any()) } returnsArgument 0
-        coEvery { eventPublisher.publish(any<AuctionActivityDto>()) } returns Unit
+        coEvery { eventPublisher.publish(any<AuctionActivityDto>(), any()) } returns Unit
         coEvery { primeNormalizer.normalize(any()) } returns BigDecimal.ZERO
         coEvery { primeNormalizer.normalize(any(), any()) } returns BigDecimal.ZERO
         coEvery { auctionRepository.save(any()) } returnsArgument 0
@@ -67,7 +68,11 @@ class AuctionStateServiceTest {
         assertThat(updated).isNotNull
         assertThat(updated!!.ongoing).isTrue()
 
-        auctionStateService.onAuctionOngoingStateUpdated(updated, AuctionOffchainHistory.Type.STARTED)
+        auctionStateService.onAuctionOngoingStateUpdated(
+            updated,
+            AuctionOffchainHistory.Type.STARTED,
+            orderStubEventMarks()
+        )
 
         coVerify(exactly = 1) { auctionOffchainHistoryRepository.save(any()) }
         coVerify(exactly = 1) {
@@ -77,11 +82,11 @@ class AuctionStateServiceTest {
         }
 
         // Ensure only 1 event was sent
-        coVerify(exactly = 1) { eventPublisher.publish(any<AuctionActivityDto>()) }
+        coVerify(exactly = 1) { eventPublisher.publish(any<AuctionActivityDto>(), any()) }
         coVerify(exactly = 1) {
             eventPublisher.publish(match<AuctionActivityDto> {
                 it.auction.hash == started.hash && it is AuctionActivityStartDto
-            })
+            }, any())
         }
     }
 
@@ -108,7 +113,11 @@ class AuctionStateServiceTest {
         assertThat(updated).isNotNull
         assertThat(updated!!.ongoing).isFalse()
 
-        auctionStateService.onAuctionOngoingStateUpdated(updated!!, AuctionOffchainHistory.Type.ENDED)
+        auctionStateService.onAuctionOngoingStateUpdated(
+            updated,
+            AuctionOffchainHistory.Type.ENDED,
+            orderStubEventMarks()
+        )
 
         coVerify(exactly = 1) { auctionOffchainHistoryRepository.save(any()) }
         coVerify(exactly = 1) {
@@ -118,11 +127,11 @@ class AuctionStateServiceTest {
         }
 
         // Ensure only 1 event was sent
-        coVerify(exactly = 1) { eventPublisher.publish(any<AuctionActivityDto>()) }
+        coVerify(exactly = 1) { eventPublisher.publish(any<AuctionActivityDto>(), any()) }
         coVerify(exactly = 1) {
             eventPublisher.publish(match<AuctionActivityDto> {
                 it.auction.hash == ended.hash && it is AuctionActivityEndDto
-            })
+            }, any())
         }
     }
 
@@ -137,7 +146,6 @@ class AuctionStateServiceTest {
 
         // Nothing happened
         coVerify(exactly = 0) { auctionOffchainHistoryRepository.save(any()) }
-        coVerify(exactly = 0) { eventPublisher.publish(any<AuctionActivityDto>()) }
+        coVerify(exactly = 0) { eventPublisher.publish(any<AuctionActivityDto>(), any()) }
     }
-
 }

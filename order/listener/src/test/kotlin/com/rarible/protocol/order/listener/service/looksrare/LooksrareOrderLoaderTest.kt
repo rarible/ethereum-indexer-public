@@ -134,6 +134,6 @@ internal class LooksrareOrderLoaderTest {
 
         coEvery { looksrareOrderService.getNextSellOrders(listedAfter) } returns listOf(looksrareOrder1)
         coEvery { looksrareOrderConverter.convert(looksrareOrder1) } returns orderVersion1
-        coVerify(exactly = 0) { orderUpdateService.save(orderVersion1) }
+        coVerify(exactly = 0) { orderUpdateService.save(orderVersion1, any()) }
     }
 }

@@ -91,7 +91,7 @@ class AuctionUpdateServiceTest {
 
         // Auction doesn't exist in DB
         coEvery { auctionRepository.findById(auction.hash) } returns existing
-        coEvery { auctionStateService.onAuctionOngoingStateUpdated(any(), any()) } returns Unit
+        coEvery { auctionStateService.onAuctionOngoingStateUpdated(any(), any(), any()) } returns Unit
 
         auctionUpdateService.update(auction)
 
@@ -101,7 +101,7 @@ class AuctionUpdateServiceTest {
             })
         }
         coVerify(exactly = 1) {
-            auctionStateService.onAuctionOngoingStateUpdated(expected, AuctionOffchainHistory.Type.ENDED)
+            auctionStateService.onAuctionOngoingStateUpdated(expected, AuctionOffchainHistory.Type.ENDED, any())
         }
         coVerify(exactly = 1) { auctionListener.onAuctionUpdate(expected) }
     }

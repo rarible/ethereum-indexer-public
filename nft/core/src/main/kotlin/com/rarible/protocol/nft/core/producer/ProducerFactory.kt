@@ -3,8 +3,8 @@ package com.rarible.protocol.nft.core.producer
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.dto.NftItemEventDto
@@ -50,12 +50,12 @@ class ProducerFactory(
         )
     }
 
-    fun createItemActivityProducer(): RaribleKafkaProducer<ActivityDto> {
+    fun createItemActivityProducer(): RaribleKafkaProducer<EthActivityEventDto> {
         return RaribleKafkaProducer(
             clientId = "$clientId.item-activity",
             valueSerializerClass = JsonSerializer::class.java,
-            valueClass = ActivityDto::class.java,
-            defaultTopic = ActivityTopicProvider.getTopic(environment, blockchain.value),
+            valueClass = EthActivityEventDto::class.java,
+            defaultTopic = ActivityTopicProvider.getActivityTopic(environment, blockchain.value),
             bootstrapServers = kafkaReplicaSet
         )
     }

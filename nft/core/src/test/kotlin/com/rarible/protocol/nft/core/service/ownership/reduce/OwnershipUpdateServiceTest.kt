@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import reactor.core.publisher.Mono
 
-
 @ExtendWith(MockKExtension::class)
 class OwnershipUpdateServiceTest {
 
@@ -53,7 +52,7 @@ class OwnershipUpdateServiceTest {
         coEvery { ownershipService.search(any(), any(), any()) } returnsMany
                 listOf(listOf(ownership1, ownership2), listOf(ownership3))
         coEvery { ownershipService.save(any()) } coAnswers { args[0] as Ownership }
-        coEvery { eventListenerListener.onOwnershipChanged(any()) } returns Mono.empty()
+        coEvery { eventListenerListener.onOwnershipChanged(any(), any()) } returns Mono.empty()
         val deleted1 = ownership1.copy(deleted = true)
         val deleted2 = ownership2.copy(deleted = true)
         val deleted3 = ownership3.copy(deleted = true)
@@ -70,16 +69,18 @@ class OwnershipUpdateServiceTest {
                 sort = OwnershipFilter.Sort.LAST_UPDATE
             ), null, 2)
             ownershipService.save(deleted1)
-            eventListenerListener.onOwnershipChanged(deleted1)
+            eventListenerListener.onOwnershipChanged(deleted1, any())
             ownershipService.save(deleted2)
-            eventListenerListener.onOwnershipChanged(deleted2)
-            ownershipService.search(OwnershipFilterByItem(
-                contract = itemId.token,
-                tokenId = itemId.tokenId.value,
-                sort = OwnershipFilter.Sort.LAST_UPDATE
-            ), any(), 2)
+            eventListenerListener.onOwnershipChanged(deleted2, any())
+            ownershipService.search(
+                OwnershipFilterByItem(
+                    contract = itemId.token,
+                    tokenId = itemId.tokenId.value,
+                    sort = OwnershipFilter.Sort.LAST_UPDATE
+                ), any(), 2
+            )
             ownershipService.save(deleted3)
-            eventListenerListener.onOwnershipChanged(deleted3)
+            eventListenerListener.onOwnershipChanged(deleted3, any())
 
         }
         confirmVerified(ownershipService, eventListenerListener)

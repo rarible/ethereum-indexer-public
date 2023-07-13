@@ -5,7 +5,7 @@ import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.order.core.event.OrderListener
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.OrderUsdValue
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
@@ -71,7 +71,7 @@ class ChangeLog00006FixOrderUsdValues {
         }
         orderRepository.findActive().collect { order ->
             try {
-                orderListener.onOrder(order, orderOffchainEventMarks(), false)
+                orderListener.onOrder(order, orderTaskEventMarks(), false)
 
                 counter++
 

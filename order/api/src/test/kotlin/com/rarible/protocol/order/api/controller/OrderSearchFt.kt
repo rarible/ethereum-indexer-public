@@ -722,6 +722,6 @@ class OrderSearchFt : AbstractIntegrationTest() {
     }
 
     private suspend fun reduceOrder(vararg order: OrderVersion): List<Order> {
-        return order.map { orderUpdateService.save(it) }
+        return order.map { save(it) }
     }
 }

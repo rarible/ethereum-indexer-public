@@ -44,15 +44,15 @@ class AuctionOngoingUpdateJobTest {
         coEvery { auctionStateService.updateOngoingState(ended.hash, false) } returns ended
         coEvery { auctionStateService.updateOngoingState(notActual.hash, false) } returns null
 
-        coEvery { auctionStateService.onAuctionOngoingStateUpdated(any(), any()) } returns Unit
+        coEvery { auctionStateService.onAuctionOngoingStateUpdated(any(), any(), any()) } returns Unit
 
         job.execute()
 
         coVerify(exactly = 1) {
-            auctionStateService.onAuctionOngoingStateUpdated(ended, AuctionOffchainHistory.Type.ENDED)
+            auctionStateService.onAuctionOngoingStateUpdated(ended, AuctionOffchainHistory.Type.ENDED, any())
         }
         coVerify(exactly = 1) {
-            auctionStateService.onAuctionOngoingStateUpdated(started, AuctionOffchainHistory.Type.STARTED)
+            auctionStateService.onAuctionOngoingStateUpdated(started, AuctionOffchainHistory.Type.STARTED, any())
         }
 
     }

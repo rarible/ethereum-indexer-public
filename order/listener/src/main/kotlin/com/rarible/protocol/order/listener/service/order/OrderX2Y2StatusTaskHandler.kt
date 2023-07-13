@@ -2,14 +2,12 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.itemId
 import com.rarible.protocol.order.core.model.nft
-import com.rarible.protocol.order.core.model.token
-import com.rarible.protocol.order.core.model.tokenId
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.updater.CancelInactiveOrderUpdater
@@ -34,7 +32,7 @@ class OrderX2Y2StatusTaskHandler(
     }
 
     override suspend fun handleOrder(order: Order) {
-        val eventTimeMarks = orderOffchainEventMarks()
+        val eventTimeMarks = orderTaskEventMarks()
         val isActive = x2y2Service.isActiveOrder(order)
         if (isActive.not() && properties.fixX2Y2) {
             logger.info(

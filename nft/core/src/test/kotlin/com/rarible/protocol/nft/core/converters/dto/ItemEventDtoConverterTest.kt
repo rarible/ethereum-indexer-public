@@ -3,7 +3,7 @@ package com.rarible.protocol.nft.core.converters.dto
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.nft.core.data.createRandomItem
-import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
+import com.rarible.protocol.nft.core.misc.nftStubEventMarks
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.TemporalUnitLessThanOffset
 import org.junit.jupiter.api.Test
@@ -14,40 +14,23 @@ class ItemEventDtoConverterTest {
     private val timeDelta = TemporalUnitLessThanOffset(5, ChronoUnit.SECONDS)
 
     @Test
-    fun `convert - ok, with event`() {
+    fun `convert - ok`() {
         val item = createRandomItem()
-        val mint = createRandomMintItemEvent()
 
-        val dto = ItemEventDtoConverter.convert(item, mint) as NftItemUpdateEventDto
+        val inputTimeMarks = nftStubEventMarks()
+        val dto = ItemEventDtoConverter.convert(item, inputTimeMarks) as NftItemUpdateEventDto
         val timeMarks = dto.eventTimeMarks!!
 
         assertThat(dto.item).isEqualTo(ItemDtoConverter.convert(item))
 
-        assertThat(timeMarks.source).isEqualTo("blockchain")
+        assertThat(timeMarks.source).isEqualTo("stub")
         assertThat(timeMarks.marks[0].name).isEqualTo("source")
-        assertThat(timeMarks.marks[0].date.epochSecond).isEqualTo(mint.log.blockTimestamp)
+        assertThat(timeMarks.marks[0].date).isEqualTo(inputTimeMarks.marks[0].date)
         assertThat(timeMarks.marks[1].name).isEqualTo("indexer-in_nft")
-        assertThat(timeMarks.marks[1].date).isEqualTo(mint.eventTimeMarks!!.marks[1].date)
+        assertThat(timeMarks.marks[1].date).isEqualTo(inputTimeMarks.marks[1].date)
 
         assertThat(timeMarks.marks[2].name).isEqualTo("indexer-out_nft")
         assertThat(timeMarks.marks[2].date).isCloseTo(nowMillis(), timeDelta)
-    }
-
-    @Test
-    fun `convert - ok, without event`() {
-        val item = createRandomItem()
-
-        val dto = ItemEventDtoConverter.convert(item, null) as NftItemUpdateEventDto
-        val timeMarks = dto.eventTimeMarks!!
-
-        assertThat(dto.item).isEqualTo(ItemDtoConverter.convert(item))
-
-        assertThat(timeMarks.source).isEqualTo("offchain")
-        assertThat(timeMarks.marks[0].name).isEqualTo("source")
-        assertThat(timeMarks.marks[0].date).isCloseTo(nowMillis(), timeDelta)
-
-        assertThat(timeMarks.marks[1].name).isEqualTo("indexer-in_nft")
-        assertThat(timeMarks.marks[1].date).isCloseTo(nowMillis(), timeDelta)
     }
 
 }

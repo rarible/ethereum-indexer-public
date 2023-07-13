@@ -4,7 +4,7 @@ import com.rarible.core.task.TaskService
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.order.core.data.randomErc721
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
@@ -52,7 +52,7 @@ class OrderUpdateApprovalTaskHandlerTest : AbstractIntegrationTest() {
         listOf(orderVersion1, orderVersion2).forEach {
             orderVersionRepository.save(it).awaitSingle()
         }
-        orderUpdateService.update(hash, orderOffchainEventMarks())
+        orderUpdateService.update(hash, orderStubEventMarks())
         val updated = orderRepository.findById(hash)
         assertThat(updated?.approved).isEqualTo(true)
 
@@ -84,7 +84,7 @@ class OrderUpdateApprovalTaskHandlerTest : AbstractIntegrationTest() {
         listOf(orderVersion1, orderVersion2).forEach {
             orderVersionRepository.save(it).awaitSingle()
         }
-        orderUpdateService.update(hash, orderOffchainEventMarks())
+        orderUpdateService.update(hash, orderStubEventMarks())
         val updated = orderRepository.findById(hash)
         assertThat(updated?.approved).isEqualTo(true)
 

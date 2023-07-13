@@ -7,7 +7,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createOrderX2Y2DataV1
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.data.randomEth
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
@@ -93,7 +93,7 @@ class OrderX2Y2StatusTaskHandlerTest : AbstractIntegrationTest() {
             platform = Platform.X2Y2
         )
         orderVersionRepository.save(orderVersion).awaitSingle()
-        orderUpdateService.update(hash, orderOffchainEventMarks())
+        orderUpdateService.update(hash, orderStubEventMarks())
 
         val updated = orderRepository.findById(hash)
         Assertions.assertThat(updated?.status).isNotEqualTo(OrderStatus.CANCELLED)

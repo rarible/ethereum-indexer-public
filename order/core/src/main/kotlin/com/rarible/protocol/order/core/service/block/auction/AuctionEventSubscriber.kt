@@ -4,7 +4,10 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
+import com.rarible.core.common.EventTimeMarks
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.order.core.converters.dto.AuctionActivityConverter
+import com.rarible.protocol.order.core.misc.addIndexerIn
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.AuctionHistory
 import com.rarible.protocol.order.core.model.AuctionReduceEvent
@@ -25,26 +28,31 @@ class AuctionEventSubscriber(
 
     val logger: Logger = LoggerFactory.getLogger(javaClass)
 
+    // TODO looks fishy
     override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
+        val indexerInMark = nowMillis()
         val auctionEvents = events
-            .map { event -> event.record.asEthereumLogRecord() }
-            .filter { log -> log.data is AuctionHistory }
+            .filter { log -> (log.record.asEthereumLogRecord()).data is AuctionHistory }
 
         val reduceEvent = auctionEvents
-            .map { log -> AuctionReduceEvent(log) }
-            .distinct()
+            .map { log -> Pair(log, AuctionReduceEvent(log.record.asEthereumLogRecord())) }
+            .distinctBy { it.second }
 
         // Reduce events first in order to have Auctions in DB
-        auctionReduceService.onEvents(reduceEvent)
+        auctionReduceService.onEvents(reduceEvent.map { it.second })
         // Then send all kafka Auction Activity events with attached actual Auctions
         auctionEvents
-            .filter { it.status == EthereumBlockStatus.CONFIRMED }
-            .forEach { publicActivity(it) }
+            .forEach {
+                val record = it.record.asEthereumLogRecord()
+                if (record.status == EthereumBlockStatus.CONFIRMED) {
+                    publicActivity(record, it.eventTimeMarks.addIndexerIn(indexerInMark))
+                }
+            }
     }
 
-    suspend fun publicActivity(logEvent: ReversedEthereumLogRecord) {
+    suspend fun publicActivity(logEvent: ReversedEthereumLogRecord, eventTimeMarks: EventTimeMarks) {
         logger.info("Auction log event: id=${logEvent.id}, dataType=${logEvent.data::class.java.simpleName}")
-        auctionActivityConverter.convert(logEvent)?.let { eventPublisher.publish(it) }
+        auctionActivityConverter.convert(logEvent)?.let { eventPublisher.publish(it, eventTimeMarks) }
     }
 }
 

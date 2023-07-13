@@ -193,8 +193,8 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             orderVersionRepository.save(createOrderVersion().copy(hash = it.hash)).awaitFirst()
         }
         coEvery {
-            orderListener.onOrder(any(), null)
-            orderListener.onOrder(any(), null)
+            orderListener.onOrder(any(), any())
+            orderListener.onOrder(any(), any())
         } returns Unit
 
 

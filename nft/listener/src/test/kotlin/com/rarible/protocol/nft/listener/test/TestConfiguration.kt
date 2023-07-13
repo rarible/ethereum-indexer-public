@@ -6,8 +6,8 @@ import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.ethereum.cache.CacheableMonoEthereum
-import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
@@ -83,16 +83,19 @@ class TestConfiguration {
     }
 
     @Bean
-    fun testActivityHandler(): TestKafkaHandler<ActivityDto> = TestKafkaHandler()
+    fun testActivityHandler(): TestKafkaHandler<EthActivityEventDto> = TestKafkaHandler()
 
     @Bean
-    fun testActivityWorker(handler: TestKafkaHandler<ActivityDto>): ConsumerWorker<ActivityDto> {
+    fun testActivityWorker(handler: TestKafkaHandler<EthActivityEventDto>): ConsumerWorker<EthActivityEventDto> {
         val consumer = RaribleKafkaConsumer(
             clientId = "test-consumer-order-activity",
             consumerGroup = "test-group-order-activity",
             valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = ActivityDto::class.java,
-            defaultTopic = ActivityTopicProvider.getTopic(application.name, nftIndexerProperties.blockchain.value),
+            valueClass = EthActivityEventDto::class.java,
+            defaultTopic = ActivityTopicProvider.getActivityTopic(
+                application.name,
+                nftIndexerProperties.blockchain.value
+            ),
             bootstrapServers = nftIndexerProperties.kafkaReplicaSet,
             offsetResetStrategy = OffsetResetStrategy.EARLIEST
         )

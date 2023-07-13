@@ -11,7 +11,7 @@ import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
 import com.rarible.protocol.order.core.data.randomPoolSpotPriceUpdate
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.model.PoolActivityResult
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
@@ -54,21 +54,21 @@ internal class PoolActivityListenerTest {
         val activityDto = mockk<OrderActivityDto>()
 
         coEvery { orderActivityConverter.convert(PoolActivityResult.History(logEvent), reverted) } returns activityDto
-        coEvery { orderPublisher.publish(activityDto) } returns Unit
+        coEvery { orderPublisher.publish(activityDto, any()) } returns Unit
 
-        listener.onPoolEvent(logEvent, orderOffchainEventMarks())
+        listener.onPoolEvent(logEvent, orderStubEventMarks())
 
         coVerify { orderActivityConverter.convert(PoolActivityResult.History(logEvent), reverted) }
-        coVerify { orderPublisher.publish(activityDto) }
+        coVerify { orderPublisher.publish(activityDto, any()) }
     }
 
     @ParameterizedTest
     @MethodSource("otherEvents")
     fun `should not publish events`(event: PoolHistory) = runBlocking<Unit> {
         val logEvent = createLogEvent(event)
-        listener.onPoolEvent(logEvent, orderOffchainEventMarks())
+        listener.onPoolEvent(logEvent, orderStubEventMarks())
 
         coVerify(exactly = 0) { orderActivityConverter.convert(any(), any()) }
-        coVerify(exactly = 0) { orderPublisher.publish(any<OrderActivityDto>()) }
+        coVerify(exactly = 0) { orderPublisher.publish(any<OrderActivityDto>(), any()) }
     }
 }

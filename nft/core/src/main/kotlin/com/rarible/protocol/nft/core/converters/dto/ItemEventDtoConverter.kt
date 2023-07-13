@@ -1,21 +1,20 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.nft.core.misc.addIndexerOut
-import com.rarible.protocol.nft.core.misc.nftOffchainEventMarks
 import com.rarible.protocol.nft.core.misc.toDto
 import com.rarible.protocol.nft.core.model.Item
-import com.rarible.protocol.nft.core.model.ItemEvent
 import java.util.UUID
 
 object ItemEventDtoConverter {
 
-    fun convert(item: Item, event: ItemEvent?): NftItemEventDto {
+    fun convert(item: Item, eventTimeMarks: EventTimeMarks): NftItemEventDto {
         val eventId = UUID.randomUUID().toString()
 
-        val marks = (event?.eventTimeMarks ?: nftOffchainEventMarks()).addIndexerOut().toDto()
+        val marks = eventTimeMarks.addIndexerOut().toDto()
 
         return if (item.deleted) {
             NftItemDeleteEventDto(

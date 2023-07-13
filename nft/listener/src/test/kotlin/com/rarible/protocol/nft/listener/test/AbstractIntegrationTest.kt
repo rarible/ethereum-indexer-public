@@ -4,7 +4,7 @@ import com.rarible.blockchain.scanner.block.BlockRepository
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.ActivityDto
+import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.MintDto
 import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.dto.TransferDto
@@ -89,7 +89,7 @@ abstract class AbstractIntegrationTest {
     protected var blockRepository: BlockRepository? = null
 
     @Autowired
-    private lateinit var testActivityHandler: TestKafkaHandler<ActivityDto>
+    private lateinit var testActivityHandler: TestKafkaHandler<EthActivityEventDto>
 
     @Autowired
     protected lateinit var tokenProvider: TokenProvider
@@ -177,7 +177,7 @@ abstract class AbstractIntegrationTest {
 
         Wait.waitAssert {
             assertThat(events).hasSizeGreaterThanOrEqualTo(1)
-            val activity = events.find { event -> event.id == logEvent?.id.toString() }
+            val activity = events.find { event -> event.activity.id == logEvent?.id.toString() }?.activity
             assertThat(activity).isNotNull
             assertThat(activity?.javaClass).isEqualTo(activityType)
             when (activity) {

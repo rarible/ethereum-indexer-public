@@ -3,7 +3,7 @@ package com.rarible.protocol.order.core.producer
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.KafkaSendResult
 import com.rarible.core.kafka.RaribleKafkaProducer
-import com.rarible.protocol.dto.ActivityDto
+import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.NftOrdersPriceUpdateEventDto
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderEventDto
@@ -25,7 +25,7 @@ import java.util.stream.Stream
 
 internal class ProtocolOrderPublisherTest {
     private val ordersPriceUpdateEventProducer = mockk<RaribleKafkaProducer<NftOrdersPriceUpdateEventDto>>()
-    private val orderActivityProducer = mockk<RaribleKafkaProducer<ActivityDto>>()
+    private val orderActivityProducer = mockk<RaribleKafkaProducer<EthActivityEventDto>>()
     private val publishProperties = mockk<OrderIndexerProperties.PublishProperties>()
     private val orderEventProducer = mockk<RaribleKafkaProducer<OrderEventDto>> {
         coEvery { send(any<KafkaMessage<OrderEventDto>>()) } returns KafkaSendResult.Success("ok")

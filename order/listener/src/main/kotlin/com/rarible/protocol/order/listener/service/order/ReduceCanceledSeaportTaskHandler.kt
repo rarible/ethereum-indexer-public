@@ -3,7 +3,7 @@ package com.rarible.protocol.order.listener.service.order
 import com.rarible.core.task.TaskHandler
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.ItemType
@@ -60,7 +60,7 @@ class ReduceCanceledSeaportTaskHandler(
                 )
         ).map { log ->
             val cancel = log.data as OrderExchangeHistory
-            orderUpdateService.update(cancel.hash, orderOffchainEventMarks())
+            orderUpdateService.update(cancel.hash, orderTaskEventMarks())
             CancelOpenSeaState(cancel.date, log.id.toString())
         }
     }

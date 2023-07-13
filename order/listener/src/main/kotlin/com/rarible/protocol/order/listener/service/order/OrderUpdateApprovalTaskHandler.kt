@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.EventTimeMarks
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -27,7 +27,7 @@ class OrderUpdateApprovalTaskHandler(
 
     override suspend fun handleOrder(order: Order) {
         if (order.make.type.nft.not()) return
-        val eventTimeMarks = orderOffchainEventMarks()
+        val eventTimeMarks = orderTaskEventMarks()
         logger.info(
             "Checking approve: hash={}, platform={}, lastUpdated={}",
             order.hash, order.platform, order.lastUpdateAt

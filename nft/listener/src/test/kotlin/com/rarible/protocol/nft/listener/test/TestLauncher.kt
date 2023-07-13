@@ -4,7 +4,7 @@ import com.rarible.blockchain.scanner.block.Block
 import com.rarible.blockchain.scanner.block.BlockRepository
 import com.rarible.blockchain.scanner.block.BlockStatus
 import com.rarible.core.daemon.sequential.ConsumerWorker
-import com.rarible.protocol.dto.ActivityDto
+import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -15,7 +15,7 @@ import scalether.core.MonoEthereum
 
 @Component
 class TestLauncher(
-    private val activityWorker: ConsumerWorker<ActivityDto>,
+    private val activityWorker: ConsumerWorker<EthActivityEventDto>,
     private val collectionWorker: ConsumerWorker<NftCollectionEventDto>,
     private val blockRepository: BlockRepository,
     private val ethereum: MonoEthereum

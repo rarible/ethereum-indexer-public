@@ -66,7 +66,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun `should calculate order for existed order`() = runBlocking<Unit> {
         val order = createOrderVersion()
-        orderUpdateService.save(order)
+        save(order)
 
         val sideMatchDate1 = nowMillis() + Duration.ofHours(2)
         val sideMatchDate2 = nowMillis() + Duration.ofHours(1)
@@ -130,7 +130,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val orderVersion = createOrderVersion()
         val orderCreatedAt = orderVersion.createdAt
 
-        orderUpdateService.save(orderVersion)
+        save(orderVersion)
 
         prepareStorage(
             OrderCancel(
@@ -216,14 +216,12 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val take = Asset(Erc20AssetType(randomAddress()), EthUInt256.of(10))
         val orderVersion = createOrderVersion().copy(make = make, take = take)
         val hash = orderVersion.hash
-        val saved = orderUpdateService.save(orderVersion)
+        val saved = save(orderVersion)
         assertThat(saved.take.value).isEqualTo(take.value)
         assertThat(orderRepository.findById(hash)?.take?.value).isEqualTo(take.value)
         val newTakeValue = EthUInt256.Companion.of(5)
-        val updated = orderUpdateService.save(
-            orderVersion.copy(
-                take = orderVersion.take.copy(value = newTakeValue)
-            )
+        val updated = save(
+            orderVersion.copy(take = orderVersion.take.copy(value = newTakeValue))
         )
         assertThat(updated.take.value).isEqualTo(newTakeValue)
         assertThat(orderRepository.findById(hash)?.take?.value).isEqualTo(newTakeValue)
@@ -239,7 +237,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             createdAt = now
         )
         val hash = orderVersion.hash
-        orderUpdateService.save(orderVersion)
+        save(orderVersion)
 
         val nonce = ChangeNonceHistory(
             maker = orderVersion.maker,
@@ -281,7 +279,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             createdAt = now
         )
         val hash = orderVersion.hash
-        orderUpdateService.save(orderVersion)
+        save(orderVersion)
 
         val nonce = ChangeNonceHistory(
             maker = orderVersion.maker,
@@ -321,7 +319,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             createdAt = now
         )
         val hash = orderVersion.hash
-        orderUpdateService.save(orderVersion)
+        save(orderVersion)
 
         val nonce = ChangeNonceHistory(
             maker = orderVersion.maker,
@@ -363,7 +361,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             createdAt = now
         )
         val hash = orderVersion.hash
-        orderUpdateService.save(orderVersion)
+        save(orderVersion)
 
         val nonce = ChangeNonceHistory(
             maker = orderVersion.maker,
@@ -406,7 +404,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             makePrice = BigDecimal.valueOf(1, 18)
         )
         val hash = orderVersion.hash
-        orderUpdateService.save(orderVersion)
+        save(orderVersion)
 
         val nonce = ChangeNonceHistory(
             maker = orderVersion.maker,
@@ -443,7 +441,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             type = OrderType.OPEN_SEA_V1,
             createdAt = now
         )
-        val savedOrder = orderUpdateService.save(orderVersion)
+        val savedOrder = save(orderVersion)
         assertThat(savedOrder.status).isEqualTo(OrderStatus.CANCELLED)
     }
 
@@ -459,6 +457,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                         counterHex = EthUInt256.ZERO,
                         counter = 0L
                     )
+
                     OrderType.CRYPTO_PUNKS -> OrderCryptoPunksData
                     OrderType.LOOKSRARE -> createOrderLooksrareDataV1()
                     OrderType.LOOKSRARE_V2 -> createOrderLooksrareDataV2()
@@ -468,7 +467,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 },
                 createdAt = nowMillis()
             )
-            val savedOrder = orderUpdateService.save(orderVersion)
+            val savedOrder = save(orderVersion)
             assertThat(savedOrder.status).isNotEqualTo(OrderStatus.CANCELLED)
         }
     }
@@ -483,7 +482,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             make = randomErc721(),
             take = randomErc20(EthUInt256.TEN)
         )
-        orderUpdateService.save(order)
+        save(order)
 
         prepareStorage(
             OrderSideMatch(
@@ -519,7 +518,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             make = randomErc1155(EthUInt256.ONE),
             take = randomErc20(EthUInt256.TEN)
         )
-        orderUpdateService.save(order)
+        save(order)
 
         prepareStorage(
             OrderSideMatch(
@@ -579,7 +578,11 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 fee = BigInteger.ZERO,
             )
         val createPool = randomSellOnChainAmmOrder(poolData).copy(hash = hash, currency = Address.ZERO())
-        val nftOut = randomPoolNftWithdraw().copy(hash = hash, collection = createPool.collection, tokenIds = createPool.tokenIds)
+        val nftOut = randomPoolNftWithdraw().copy(
+            hash = hash,
+            collection = createPool.collection,
+            tokenIds = createPool.tokenIds
+        )
 
         prepareStorage(createPool, nftOut)
         val result = orderReduceService.updateOrder(hash)!!
@@ -604,7 +607,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun `should apply state as final order state`() = runBlocking<Unit> {
         val order = createOrderVersion()
-        val saved = orderUpdateService.save(order)
+        val saved = save(order)
         assertThat(saved.status).isNotEqualTo(OrderStatus.CANCELLED)
         orderStateRepository.save(OrderState(saved.hash, canceled = true))
         val updated = orderReduceService.updateOrder(order.hash)
@@ -623,7 +626,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         )
         approvalHistoryRepository.save(createLogEvent(approvalTrue, blockNumber = 1))
 
-        val saved = orderUpdateService.save(order)
+        val saved = save(order)
         assertThat(saved.status).isEqualTo(OrderStatus.ACTIVE)
 
         val approvalFalse = randomApproveHistory(
@@ -647,7 +650,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             platform = Platform.RARIBLE,
             approved = false
         )
-        val saved = orderUpdateService.save(order)
+        val saved = save(order)
         assertThat(saved.status).isEqualTo(OrderStatus.INACTIVE)
     }
 
@@ -655,8 +658,9 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     fun `should become active after getting approval`() = runBlocking<Unit> {
         val order = createOrderVersion().copy(
             make = randomErc721(), take = randomErc20(), platform = Platform.RARIBLE,
-            approved = false)
-        val saved = orderUpdateService.save(order)
+            approved = false
+        )
+        val saved = save(order)
         assertThat(saved.status).isEqualTo(OrderStatus.INACTIVE)
 
         // we received approval after the order creation
@@ -681,7 +685,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             approved = false,
             end = null,
         )
-        val saved = orderUpdateService.save(order)
+        val saved = save(order)
         assertThat(saved.status).isEqualTo(OrderStatus.CANCELLED)
     }
 
@@ -694,7 +698,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             approved = true,
             end = null,
         )
-        val saved = orderUpdateService.save(order)
+        val saved = save(order)
         assertThat(saved.status).isEqualTo(OrderStatus.ACTIVE)
     }
 
@@ -707,7 +711,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             approved = true,
             end = null,
         )
-        val saved = orderUpdateService.save(order)
+        val saved = save(order)
         assertThat(saved.status).isEqualTo(OrderStatus.CANCELLED)
     }
 

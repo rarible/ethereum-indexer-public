@@ -3,6 +3,7 @@ package com.rarible.protocol.order.migration.mongock.mongo
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -34,7 +35,7 @@ class ChangeLog00014RecalculateMakeStock {
 
         template.query<Order>().matching(query).all().asFlow().collect { order ->
             try {
-                val updated = orderUpdateService.updateMakeStock(order.hash, null, null)
+                val updated = orderUpdateService.updateMakeStock(order.hash, null, orderTaskEventMarks())
                 if (updated?.makeStock != EthUInt256.ZERO) {
                     nonZeroStock++
                 } else {

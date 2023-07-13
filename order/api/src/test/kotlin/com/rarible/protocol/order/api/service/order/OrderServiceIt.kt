@@ -169,15 +169,13 @@ class OrderServiceIt : AbstractOrderIt() {
         assertThat(orderVersionRepository.count().awaitFirst()).isEqualTo(1)
 
         val version = orderVersionRepository.findAll().awaitFirst()
-        assertThat(version.make.value)
-            .isEqualTo(order.make.value)
-        assertThat(version.take.value)
-            .isEqualTo(order.take.value)
+        assertThat(version.make.value).isEqualTo(order.make.value)
+        assertThat(version.take.value).isEqualTo(order.take.value)
 
         coVerify {
             protocolOrderPublisher.publish(withArg<OrderActivityDto> {
                 assertThat(it.id).isEqualTo(version.id.toString())
-            })
+            }, any())
         }
 
         val changed = order.copy(
@@ -192,7 +190,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         assertThat(orderVersionRepository.count().awaitFirst()).isEqualTo(2)
 
-        coVerify(atLeast = 2) { protocolOrderPublisher.publish(any<OrderActivityDto>()) }
+        coVerify(atLeast = 2) { protocolOrderPublisher.publish(any<OrderActivityDto>(), any()) }
     }
 
     @Test
@@ -986,8 +984,8 @@ class OrderServiceIt : AbstractOrderIt() {
 
         orderRepository.save(ammOrder)
         poolHistoryRepository.save(
-           ReversedEthereumLogRecord(
-               id = ObjectId().toHexString(),
+            ReversedEthereumLogRecord(
+                id = ObjectId().toHexString(),
                 data = nftIn,
                 address = randomAddress(),
                 topic = Word.apply(ByteArray(32)),

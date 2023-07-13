@@ -2,7 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.order.core.event.OrderListener
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +29,7 @@ class OrderPublishTaskHandler(
     override fun runLongTask(from: Long?, param: String): Flow<Long> {
         return orderRepository.findAllBeforeLastUpdateAt(from?.let { Date(it) }, null, null)
             .map { order ->
-                orderListener.onOrder(order, orderOffchainEventMarks(), false)
+                orderListener.onOrder(order, orderTaskEventMarks(), false)
                 delay(Duration.ofMillis(properties.publishTaskDelayMs))
 
                 order.lastUpdateAt.toEpochMilli()

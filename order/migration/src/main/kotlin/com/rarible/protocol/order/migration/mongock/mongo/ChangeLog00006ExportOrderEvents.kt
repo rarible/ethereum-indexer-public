@@ -4,7 +4,7 @@ import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.event.OrderListener
-import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.misc.orderTaskEventMarks
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.runBlocking
@@ -25,7 +25,7 @@ class ChangeLog00006ExportOrderEvents {
 
         orderRepository.findAll().collect { order ->
             try {
-                orderListener.onOrder(order, orderOffchainEventMarks(), false)
+                orderListener.onOrder(order, orderTaskEventMarks(), false)
                 counter++
 
                 if (counter % 50000L == 0L) {

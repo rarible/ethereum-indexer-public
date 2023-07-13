@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
 import com.rarible.core.entity.reducer.service.EntityService
+import com.rarible.protocol.nft.core.misc.nftOffchainEventMarks
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
@@ -22,8 +23,9 @@ class ItemUpdateService(
     }
 
     override suspend fun update(entity: Item, event: ItemEvent?): Item {
+        val eventTimeMarks = event?.eventTimeMarks ?: nftOffchainEventMarks()
         val savedItem = itemRepository.save(entity).awaitFirst()
-        eventListenerListener.onItemChanged(savedItem, event).awaitFirstOrNull()
+        eventListenerListener.onItemChanged(savedItem, eventTimeMarks).awaitFirstOrNull()
         logUpdatedItem(savedItem)
         return savedItem
     }

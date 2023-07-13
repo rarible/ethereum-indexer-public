@@ -21,7 +21,7 @@ class OrderCancelServiceTest : AbstractIntegrationTest() {
         val version = createOrderVersion().copy(
             signature = Binary(randomBytes())
         )
-        val saved = orderUpdateService.save(version)
+        val saved = save(version)
         assertThat(saved.status).isNotEqualTo(OrderStatus.CANCELLED)
         assertThat(saved.signature).isNotNull
 

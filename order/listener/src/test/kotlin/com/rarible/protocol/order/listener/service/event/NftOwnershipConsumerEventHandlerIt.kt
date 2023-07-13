@@ -24,10 +24,10 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import scalether.domain.AddressFactory
 import java.time.Duration
-import java.util.*
+import java.util.UUID
 
 @IntegrationTest
-internal class NftOwnershipConsumerEventHandlerTest : AbstractIntegrationTest() {
+internal class NftOwnershipConsumerEventHandlerIt : AbstractIntegrationTest() {
 
     // TODO PT-798
     @Disabled
@@ -50,7 +50,7 @@ internal class NftOwnershipConsumerEventHandlerTest : AbstractIntegrationTest() 
             make = Asset(Erc1155AssetType(collection, toneId), EthUInt256.TEN),
             take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
         )
-        orderUpdateService.save(orderVersion)
+        save(orderVersion)
 
         val event = NftOwnershipUpdateEventDto(
             eventId = UUID.randomUUID().toString(),

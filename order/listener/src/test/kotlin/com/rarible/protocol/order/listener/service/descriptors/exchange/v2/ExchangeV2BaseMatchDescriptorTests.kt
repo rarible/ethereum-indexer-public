@@ -80,7 +80,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         )
         // to make the makeStock = 10
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(sellOrder.make.value)
-        orderUpdateService.save(sellOrder).let {
+        save(sellOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
         token1155
@@ -210,7 +210,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         )
         // to make the makeStock = 10
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(sellOrder.make.value)
-        orderUpdateService.save(sellOrder).let {
+        save(sellOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
 
@@ -344,7 +344,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             marketplaceMarker = data.marketplaceMarker
         )
 
-        orderUpdateService.save(bidOrder)
+        save(bidOrder)
 
         token1.mint(userSender1.from(), BigInteger.TEN).execute().verifySuccess()
         token721.mint(userSender2.from(), BigInteger.ONE).execute().verifySuccess()
@@ -448,7 +448,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         )
         // to make the makeStock = 10
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(sellOrder.make.value)
-        orderUpdateService.save(sellOrder).let {
+        save(sellOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
 
@@ -576,7 +576,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         )
         // to make the makeStock = 10
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(sellOrder.make.value)
-        orderUpdateService.save(sellOrder).let {
+        save(sellOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
 
@@ -673,7 +673,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         )
         // to make the makeStock = 100
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(bidOrder.make.value + data.originFeeFirst!!.value.value)
-        orderUpdateService.save(bidOrder).let {
+        save(bidOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.of(100))
         }
 
@@ -797,7 +797,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             BigInteger.ZERO,
             rightOrderData
         )
-        orderUpdateService.save(bidOrder)
+        save(bidOrder)
 
         token1.mint(userSender1.from(), BigInteger.TEN).execute().verifySuccess()
         token721.mint(userSender2.from(), BigInteger.ONE).execute().verifySuccess()
@@ -914,7 +914,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
 
         // to make the makeStock = 10
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(sellOrder.make.value)
-        orderUpdateService.save(sellOrder).let {
+        save(sellOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
 
@@ -1035,7 +1035,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
 
         // to make the makeStock = 10
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(sellOrder.make.value)
-        orderUpdateService.save(sellOrder).let {
+        save(sellOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
 
@@ -1154,7 +1154,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
 
         // to make the makeStock = 100
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(bidOrder.make.value)
-        orderUpdateService.save(bidOrder).let {
+        save(bidOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.of(100))
         }
 
@@ -1267,7 +1267,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         )
         val rightOrderHash = Order.hashKey(userSender2.from(), bidOrder.take.type, bidOrder.make.type, BigInteger.ZERO, bidOrder.data)
 
-        orderUpdateService.save(bidOrder)
+        save(bidOrder)
 
         token1.mint(userSender1.from(), BigInteger.TEN).execute().verifySuccess()
         token721.mint(userSender2.from(), BigInteger.ONE).execute().verifySuccess()
@@ -1378,7 +1378,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             takeUsd = null
         )
         val rightOrderHash = Order.hashKey(userSender2.from(), bidOrder.take.type, bidOrder.make.type, BigInteger.ZERO, bidOrder.data)
-        orderUpdateService.save(bidOrder)
+        save(bidOrder)
 
         token1.mint(userSender1.from(), BigInteger.valueOf(100)).execute().verifySuccess()
         token721.mint(userSender2.from(), BigInteger.ONE).execute().verifySuccess()

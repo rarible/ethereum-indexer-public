@@ -23,7 +23,7 @@ import scalether.contract.MonoPreparedTransaction
 
 @IntegrationTest
 @FlowPreview
-class ExchangeV2CancelDescriptorTest : AbstractExchangeV2Test() {
+class ExchangeV2CancelDescriptorIt : AbstractExchangeV2Test() {
 
     @Test
     fun convertLegacyV2() = runBlocking {
@@ -61,7 +61,7 @@ class ExchangeV2CancelDescriptorTest : AbstractExchangeV2Test() {
             makeUsd = null,
             takeUsd = null
         )
-        orderUpdateService.save(orderVersion)
+        save(orderVersion)
         val order = orderVersion.toOrderExactFields()
 
         cancel(order).withSender(userSender1).execute().verifySuccess()
