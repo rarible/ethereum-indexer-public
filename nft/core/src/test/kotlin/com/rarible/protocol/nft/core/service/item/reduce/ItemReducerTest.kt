@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.service.item.reduce
 import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
+import com.rarible.protocol.nft.core.service.item.reduce.status.CompactItemEventsReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
@@ -14,7 +15,13 @@ internal class ItemReducerTest {
     private val lazyItemReducer = mockk<LazyItemReducer>()
     private val itemMetricReducer = mockk<ItemMetricReducer>()
     private val eventStatusItemReducer = mockk<EventStatusItemReducer>()
-    private val itemReducer = ItemReducer(eventStatusItemReducer, lazyItemReducer, itemMetricReducer)
+    private val compactItemEventsReducer = mockk<CompactItemEventsReducer>()
+    private val itemReducer = ItemReducer(
+        eventStatusItemReducer,
+        compactItemEventsReducer,
+        lazyItemReducer,
+        itemMetricReducer
+    )
 
     companion object {
         @JvmStatic
@@ -36,6 +43,7 @@ internal class ItemReducerTest {
         val item = createRandomItem()
 
         coEvery { itemMetricReducer.reduce(item, event) } returns item
+        coEvery { compactItemEventsReducer.reduce(item, event) } returns item
         coEvery { eventStatusItemReducer.reduce(item, event) } returns item
         itemReducer.reduce(item, event)
 
@@ -50,6 +58,7 @@ internal class ItemReducerTest {
         val item = createRandomItem()
 
         coEvery { itemMetricReducer.reduce(item, event) } returns item
+        coEvery { compactItemEventsReducer.reduce(item, event) } returns item
         coEvery { lazyItemReducer.reduce(item, event) } returns item
         itemReducer.reduce(item, event)
 

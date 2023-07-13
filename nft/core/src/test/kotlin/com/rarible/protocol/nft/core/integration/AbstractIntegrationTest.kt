@@ -117,7 +117,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     private lateinit var application: ApplicationEnvironmentInfo
 
     @Autowired
-    private lateinit var properties: NftIndexerProperties
+    protected lateinit var properties: NftIndexerProperties
 
     @Autowired
     protected lateinit var ethereum: MonoEthereum

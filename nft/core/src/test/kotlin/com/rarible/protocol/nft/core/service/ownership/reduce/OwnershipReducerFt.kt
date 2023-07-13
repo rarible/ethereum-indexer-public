@@ -135,6 +135,70 @@ internal class OwnershipReducerFt : AbstractIntegrationTest() {
         ))
     }
 
+    @Test
+    fun `revert compacted events`() = runBlocking<Unit> {
+        val ownership = createRandomOwnership().copy(
+            lazyValue = EthUInt256.ZERO,
+            value = EthUInt256.ZERO,
+            deleted = true,
+            revertableEvents = emptyList()
+        )
+        val block1 = (1..101).map {
+            createRandomOwnershipTransferToEvent()
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = it)
+                .copy(value = EthUInt256.of(1))
+        }
+        val block2 = (1..50).map {
+            createRandomOwnershipTransferFromEvent()
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 2, logIndex = it)
+                .copy(value = EthUInt256.of(1))
+        }
+        val block3 = (1..50).map {
+            createRandomOwnershipTransferFromEvent()
+                .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 3, logIndex = it)
+                .copy(value = EthUInt256.of(1))
+        }
+        val events = listOf(block1, block2, block3).flatten()
+
+        val reducedOwnership = reduce(ownership, events)
+        assertThat(reducedOwnership.value).isEqualTo(EthUInt256.of(1))
+        assertThat(reducedOwnership.revertableEvents).hasSizeLessThanOrEqualTo(properties.reduce.maxRevertableEventsAmount)
+        assertThat(reducedOwnership.deleted).isFalse()
+
+        val revertedBlock3 = block3.map { event ->
+            event.withNewValues(
+                EthereumBlockStatus.REVERTED,
+                blockNumber = event.log.blockNumber,
+                logIndex = event.log.logIndex
+            )
+        }.reversed()
+        val reducedOwnershipWithRevertedBlock3 = reduce(reducedOwnership, revertedBlock3)
+        assertThat(reducedOwnershipWithRevertedBlock3.value).isEqualTo(EthUInt256.of(51))
+        assertThat(reducedOwnershipWithRevertedBlock3.deleted).isFalse()
+
+        val revertedBlock2 = block2.map { event ->
+            event.withNewValues(
+                EthereumBlockStatus.REVERTED,
+                blockNumber = event.log.blockNumber,
+                logIndex = event.log.logIndex
+            )
+        }.reversed()
+        val reducedOwnershipWithRevertedBlock2 = reduce(reducedOwnershipWithRevertedBlock3, revertedBlock2)
+        assertThat(reducedOwnershipWithRevertedBlock2.value).isEqualTo(EthUInt256.of(101))
+        assertThat(reducedOwnershipWithRevertedBlock2.deleted).isFalse()
+
+        val revertedBlock1 = block1.map { event ->
+            event.withNewValues(
+                EthereumBlockStatus.REVERTED,
+                blockNumber = event.log.blockNumber,
+                logIndex = event.log.logIndex
+            )
+        }.reversed()
+        val reducedOwnershipWithRevertedBlock1 = reduce(reducedOwnershipWithRevertedBlock2, revertedBlock1)
+        assertThat(reducedOwnershipWithRevertedBlock1.value).isEqualTo(EthUInt256.of(0))
+        assertThat(reducedOwnershipWithRevertedBlock1.deleted).isTrue()
+    }
+
     private fun initial(): Ownership {
         val ownershipId = createRandomOwnershipId()
         return ownershipTemplateProvider.getEntityTemplate(ownershipId)
