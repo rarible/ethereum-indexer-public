@@ -26,18 +26,34 @@ class Erc20AllowanceService(
     erc20IndexerProperties: Erc20IndexerProperties,
 ) : EntityService<BalanceId, Erc20Allowance, Erc20MarkedEvent> {
     private val transferProxyAddress = erc20IndexerProperties.erc20TransferProxy
+    private val saveToDb = erc20IndexerProperties.featureFlags.enableSaveAllowanceToDb
 
-    override suspend fun get(id: BalanceId): Erc20Allowance? = erc20AllowanceRepository.get(id)
+    override suspend fun get(id: BalanceId): Erc20Allowance? =
+        if (saveToDb) {
+            erc20AllowanceRepository.get(id)
+        } else {
+            Erc20Allowance(
+                owner = id.owner,
+                token = id.token,
+                allowance = getBlockchainAllowance(id) ?: EthUInt256(BigInteger.ZERO),
+                createdAt = Instant.now(),
+                lastUpdatedAt = Instant.now(),
+            )
+        }
 
     override suspend fun update(entity: Erc20Allowance, event: Erc20MarkedEvent?): Erc20Allowance {
-        val result = erc20AllowanceRepository.save(entity)
+        val result = if (saveToDb) {
+            erc20AllowanceRepository.save(entity)
+        } else {
+            entity
+        }
         erc20BalanceEventListeners.forEach {
             it.onUpdate(Erc20AllowanceEvent(event?.event, event?.eventTimeMarks, entity))
         }
         return result
     }
 
-    suspend fun getBlockchainAllowance(id: BalanceId): EthUInt256? {
+    private suspend fun getBlockchainAllowance(id: BalanceId): EthUInt256? {
         return IERC20(id.token, sender).allowance(id.owner, transferProxyAddress).awaitSingleOrNull()
             ?.let { EthUInt256(it) }
     }
