@@ -7,14 +7,20 @@ import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicReference
 
 @Component
 class ForeignOrderMetrics(
     properties: OrderIndexerProperties,
-    meterRegistry: MeterRegistry
+    meterRegistry: MeterRegistry,
 ) : BaseOrderMetrics(meterRegistry) {
 
     private val blockchain = properties.blockchain
+    private val latestOrderCratedAt = Platform.values().associateWith { AtomicReference(Instant.now()) }
+
+    init {
+        registerLatestOrderGauge()
+    }
 
     // Downloaded via API, successfully handled/saved
     fun onDownloadedOrderHandled(platform: Platform) {
@@ -69,17 +75,8 @@ class ForeignOrderMetrics(
     fun onLatestOrderReceived(
         platform: Platform,
         date: Instant,
-        type: String = "order"
     ) {
-        meterRegistry.gauge(
-            FOREIGN_ORDER_DOWNLOAD_DELAY,
-            listOf(
-                tag(blockchain),
-                tag(platform),
-                type(type.lowercase())
-            ),
-            Duration.between(date, Instant.now()).seconds
-        )
+        latestOrderCratedAt[platform]?.set(date)
     }
 
     private fun onDownloadedOrderHandled(
@@ -130,8 +127,28 @@ class ForeignOrderMetrics(
         ).increment()
     }
 
-    private companion object {
+    private fun registerLatestOrderGauge() {
+        Platform.values()
+            .filter { it in FOREIGN_PLATFORM }
+            .map { platform ->
+                fun getLatestOrder(): Long {
+                    val latestCreatedAt = latestOrderCratedAt[platform]?.get() ?: error("Latest order for $platform is not set")
+                    return Duration.between(latestCreatedAt, Instant.now()).seconds
+                }
+                meterRegistry.gauge(
+                    FOREIGN_ORDER_DOWNLOAD_DELAY,
+                    listOf(
+                        tag(blockchain),
+                        tag(platform),
+                        type("order")
+                    ),
+                    getLatestOrder()
+                )
+            }
+    }
 
+    private companion object {
+        val FOREIGN_PLATFORM = Platform.values().filter { it != Platform.RARIBLE }
         const val FOREIGN_ORDER_DOWNLOAD = "foreign_order_download"
         const val FOREIGN_ORDER_DOWNLOAD_DELAY = "foreign_order_download_delay"
         const val FOREIGN_ORDER_EVENT = "foreign_order_event"
