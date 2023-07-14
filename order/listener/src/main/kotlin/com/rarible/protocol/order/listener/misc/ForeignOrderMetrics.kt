@@ -128,15 +128,16 @@ class ForeignOrderMetrics(
     }
 
     private fun registerLatestOrderGauge() {
+        val foreignPlatform = Platform.values().filter { it != Platform.RARIBLE }
         Platform.values()
-            .filter { it in FOREIGN_PLATFORM }
+            .filter { it in foreignPlatform }
             .map { platform ->
                 fun getLatestOrder(): Long {
                     val latestCreatedAt = latestOrderCratedAt[platform]?.get() ?: error("Latest order for $platform is not set")
                     return Duration.between(latestCreatedAt, Instant.now()).seconds
                 }
                 meterRegistry.gauge(
-                    FOREIGN_ORDER_DOWNLOAD_DELAY,
+                    FOREIGN_ORDER_DOWNLOAD_DELAY_LATEST,
                     listOf(
                         tag(blockchain),
                         tag(platform),
@@ -148,9 +149,9 @@ class ForeignOrderMetrics(
     }
 
     private companion object {
-        val FOREIGN_PLATFORM = Platform.values().filter { it != Platform.RARIBLE }
         const val FOREIGN_ORDER_DOWNLOAD = "foreign_order_download"
         const val FOREIGN_ORDER_DOWNLOAD_DELAY = "foreign_order_download_delay"
+        const val FOREIGN_ORDER_DOWNLOAD_DELAY_LATEST = "foreign_order_download_delay_latest"
         const val FOREIGN_ORDER_EVENT = "foreign_order_event"
         const val FOREIGN_ORDER_INCONSISTENCY = "foreign_order_inconsistency"
     }
