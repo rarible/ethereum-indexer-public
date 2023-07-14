@@ -82,6 +82,9 @@ class X2Y2OrderLoader(
         return try {
             val orders = x2y2OrderService.getNextSellOrders(cursor)
             orders.data.forEach { metrics.onOrderReceived(Platform.X2Y2, it.createdAt) }
+            orders.data.maxOfOrNull { it.createdAt }?.let {
+                metrics.onLatestOrderReceived(Platform.X2Y2, it)
+            }
             orders
         } catch (ex: Throwable) {
             logger.x2y2Error("Can't get next orders with cursor $cursor", ex)

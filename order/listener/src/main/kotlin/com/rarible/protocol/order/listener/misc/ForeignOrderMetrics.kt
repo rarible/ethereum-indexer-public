@@ -66,6 +66,22 @@ class ForeignOrderMetrics(
         ).record(Duration.between(date, Instant.now()))
     }
 
+    fun onLatestOrderReceived(
+        platform: Platform,
+        date: Instant,
+        type: String = "order"
+    ) {
+        meterRegistry.gauge(
+            FOREIGN_ORDER_DOWNLOAD_DELAY,
+            listOf(
+                tag(blockchain),
+                tag(platform),
+                type(type.lowercase())
+            ),
+            Duration.between(date, Instant.now()).seconds
+        )
+    }
+
     private fun onDownloadedOrderHandled(
         platform: Platform,
         status: String,
