@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.misc
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.metric.BaseOrderMetrics
 import com.rarible.protocol.order.core.model.Platform
+import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -132,19 +133,18 @@ class ForeignOrderMetrics(
         Platform.values()
             .filter { it in foreignPlatform }
             .map { platform ->
-                fun getLatestOrder(): Long {
-                    val latestCreatedAt = latestOrderCratedAt[platform]?.get() ?: error("Latest order for $platform is not set")
-                    return Duration.between(latestCreatedAt, Instant.now()).seconds
+                fun getLatestOrder(): Double? {
+                    val latestCreatedAt = latestOrderCratedAt[platform]?.get() ?: return null
+                    return (Instant.now().epochSecond - latestCreatedAt.epochSecond).toDouble()
                 }
-                meterRegistry.gauge(
-                    FOREIGN_ORDER_DOWNLOAD_DELAY_LATEST,
-                    listOf(
-                        tag(blockchain),
-                        tag(platform),
-                        type("order")
-                    ),
-                    getLatestOrder()
-                )
+                Gauge.builder(FOREIGN_ORDER_DOWNLOAD_DELAY_LATEST) { getLatestOrder() }
+                    .tags(
+                        listOf(
+                            tag(blockchain),
+                            tag(platform),
+                            type("order")
+                        )
+                    )
             }
     }
 
