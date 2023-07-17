@@ -8,15 +8,13 @@ import io.micrometer.core.instrument.MeterRegistry
 
 class MeasurableOpenSeaOrderService(
     private val delegate: OpenSeaOrderService,
-    private val micrometer: MeterRegistry,
-    private val blockchain: Blockchain,
     private val metrics: ForeignOrderMetrics
 ) : OpenSeaOrderService {
 
     override suspend fun getNextSellOrders(nextCursor: String?, loadAhead: Boolean): SeaportOrders {
         val orders = delegate.getNextSellOrders(nextCursor, loadAhead)
         orders.orders.maxOfOrNull { it.createdAt }?.let {
-            metrics.onOrderReceived(Platform.OPEN_SEA, it)
+            metrics.onLatestOrderReceived(Platform.OPEN_SEA, it)
         }
         return orders
     }

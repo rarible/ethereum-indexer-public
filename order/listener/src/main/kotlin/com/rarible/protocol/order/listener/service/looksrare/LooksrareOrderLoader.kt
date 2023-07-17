@@ -73,6 +73,9 @@ class LooksrareOrderLoader(
         return try {
             val orders = looksrareOrderService.getNextSellOrders(cursor)
             orders.forEach { metrics.onOrderReceived(Platform.LOOKSRARE, it.startTime) }
+            orders.maxOfOrNull { it.createdAt }?.let {
+                metrics.onLatestOrderReceived(Platform.LOOKSRARE, it)
+            }
             orders
         } catch (ex: Throwable) {
             logger.looksrareError("Can't get next orders with createdAfter=${cursor.createdAfter.epochSecond}", ex)
