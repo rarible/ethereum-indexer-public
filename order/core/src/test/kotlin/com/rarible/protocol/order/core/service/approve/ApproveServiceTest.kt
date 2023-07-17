@@ -28,6 +28,7 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
 
 internal class ApproveServiceTest {
 
+    private val erc20Service = mockk<Erc20Service>()
     private val transferProxyAddresses = randomProxyAddresses()
     private val approveRepository = mockk<ApprovalHistoryRepository>()
     private val sender = mockk<ReadOnlyMonoTransactionSender>()
@@ -37,6 +38,7 @@ internal class ApproveServiceTest {
         every { onApprovalOnChainCheck(any(), any()) } returns Unit
     }
     private val approveService = ApproveService(
+        erc20Service,
         approveRepository,
         featureFlags,
         sender,

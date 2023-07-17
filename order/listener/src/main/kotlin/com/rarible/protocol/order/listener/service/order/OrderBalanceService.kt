@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.Erc20AllowanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
@@ -14,8 +15,10 @@ import com.rarible.protocol.order.core.misc.addIndexerIn
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.StockType
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.balance.StockService
 import kotlinx.coroutines.flow.filter
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -27,9 +30,10 @@ import java.time.Instant
 class OrderBalanceService(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
-    private val orderIndexerProperties: OrderIndexerProperties
+    private val orderIndexerProperties: OrderIndexerProperties,
+    private val stockService: StockService,
+    private val ff: OrderIndexerProperties.FeatureFlags,
 ) {
-
     private val logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun handle(event: Erc20BalanceEventDto) {
@@ -37,24 +41,35 @@ class OrderBalanceService(
             logger.warn("EventTimeMarks not found in Erc20BalanceEventDto")
             orderOffchainEventMarks()
         }
-        when (event) {
+        val stockEvent = when (event) {
             is Erc20BalanceUpdateEventDto -> {
-                val maker = event.balance.owner
-                val token = event.balance.contract
-                val stock = EthUInt256.of(event.balance.balance)
-
-                orderRepository
-                    .findByTargetBalanceAndNotCanceled(maker, token)
-                    .filter { order -> order.isNoLegacyOpenSea() }
-                    .collect {
-                        orderUpdateService.updateMakeStock(
-                            hash = it.hash,
-                            makeBalanceState = MakeBalanceState(stock, event.lastUpdatedAt),
-                            eventTimeMarks = eventTimeMarks
-                        )
-                    }
+                ChangeBidStockEvent(
+                    maker = event.balance.owner,
+                    token = event.balance.contract,
+                    stock = EthUInt256.of(event.balance.balance),
+                    stockType = StockType.BALANCE
+                )
             }
-        }
+            is Erc20AllowanceEventDto -> {
+                ChangeBidStockEvent(
+                    maker = event.allowance.owner,
+                    token = event.allowance.contract,
+                    stock = EthUInt256.of(event.allowance.allowance),
+                    stockType = StockType.ALLOWANCE
+                )
+            }
+        }.withOnChainStock()
+
+        orderRepository
+            .findByTargetBalanceAndNotCanceled(stockEvent.maker, stockEvent.token)
+            .filter { order -> order.isNoLegacyOpenSea() }
+            .collect {
+                orderUpdateService.updateMakeStock(
+                    hash = it.hash,
+                    makeBalanceState = MakeBalanceState(stockEvent.stock, event.lastUpdatedAt),
+                    eventTimeMarks = eventTimeMarks
+                )
+            }
     }
 
     suspend fun handle(event: NftOwnershipEventDto) {
@@ -119,6 +134,22 @@ class OrderBalanceService(
                     eventTimeMarks = eventTimeMarks
                 )
             }
+    }
+
+    private data class ChangeBidStockEvent(
+        val maker: Address,
+        val token: Address,
+        val stock: EthUInt256,
+        val stockType: StockType
+    )
+
+    private suspend fun ChangeBidStockEvent.withOnChainStock(): ChangeBidStockEvent {
+        return if (ff.checkBidStockOnChain) {
+            val onChainStock = stockService.getOnChainStock(maker, token, stockType)
+            copy(stock = EthUInt256.Companion.of(onChainStock))
+        } else {
+            this
+        }
     }
 
     private fun Order.isNoLegacyOpenSea(): Boolean {
