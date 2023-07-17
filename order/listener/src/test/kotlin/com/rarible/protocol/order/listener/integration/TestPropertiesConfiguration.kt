@@ -7,6 +7,7 @@ import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.erc20.api.client.BalanceControllerApi
+import com.rarible.protocol.order.core.service.approve.Erc20Service
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import com.rarible.protocol.order.listener.data.createErc20BalanceDto
 import com.rarible.x2y2.client.X2Y2ApiClient
@@ -87,6 +88,10 @@ class TestPropertiesConfiguration {
     @Bean
     @Primary
     fun testEntityEventConsumer(): KafkaLogRecordEventConsumer = mockk()
+
+    @Bean
+    @Primary
+    fun testErc20Service(): Erc20Service = mockk()
 
     companion object {
 

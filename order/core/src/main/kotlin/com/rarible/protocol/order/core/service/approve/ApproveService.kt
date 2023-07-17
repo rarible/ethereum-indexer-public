@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.service.approve
 
-import com.rarible.contracts.erc20.IERC20
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.metric.ApprovalMetrics
@@ -19,11 +18,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
-import java.math.BigInteger
 
 @Component
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class ApproveService(
+    private val erc20Service: Erc20Service,
     private val approveRepository: ApprovalHistoryRepository,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
     private val sender: ReadOnlyMonoTransactionSender,
@@ -31,7 +30,6 @@ class ApproveService(
     transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
 ) {
     private val raribleTransferProxy = transferProxyAddresses.transferProxy
-    private val raribleErc20TransferProxy = transferProxyAddresses.erc20TransferProxy
     private val seaportTransferProxy = transferProxyAddresses.seaportTransferProxy
     private val x2y2TransferProxyErc721 = transferProxyAddresses.x2y2TransferProxyErc721
     private val x2y2TransferProxyErc1155 = transferProxyAddresses.x2y2TransferProxyErc1155
@@ -104,8 +102,7 @@ class ApproveService(
         if (make.type.nft) {
             return true
         }
-        val contract = IERC20(make.type.token, sender)
-        val result = contract.allowance(maker, raribleErc20TransferProxy).awaitFirst()
+        val result = erc20Service.getOnChainTransferProxyAllowance(maker, make.type.token)
         return result >= make.value.value
     }
 
