@@ -5,9 +5,13 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.Erc20AllowanceDto
+import com.rarible.protocol.dto.Erc20AllowanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceDto
+import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
@@ -17,6 +21,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.service.approve.Erc20Service
 import com.rarible.protocol.order.listener.data.createNftOwnershipDeleteEvent
 import com.rarible.protocol.order.listener.data.createNftOwnershipDeleteEventLegacy
 import com.rarible.protocol.order.listener.data.createNftOwnershipDto
@@ -31,8 +36,10 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
+import java.time.Instant
 
 @IntegrationTest
 class OrderBalanceServiceIt : AbstractIntegrationTest() {
@@ -40,8 +47,95 @@ class OrderBalanceServiceIt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var orderBalanceService: OrderBalanceService
 
+    @Autowired
+    private lateinit var erc20Service: Erc20Service
+
+    @Autowired
+    private lateinit var ff: OrderIndexerProperties.FeatureFlags
+
     @Test
-    fun `should update all not canceled balance orders`() = runBlocking<Unit> {
+    fun `update all not canceled balance orders - balance change`() = runBlocking {
+        ff.checkBidStockOnChain = false
+        `update all not canceled balance orders` { targetMaker, targetToken, newStock ->
+            val updatedBalance = Erc20BalanceDto(
+                owner = targetMaker,
+                contract = targetToken,
+                balance = newStock.value
+            )
+            Erc20BalanceUpdateEventDto(
+                eventId = randomString(),
+                balanceId = randomString(),
+                balance = updatedBalance
+            )
+        }
+    }
+
+    @Test
+    fun `update all not canceled balance orders - balance change, on-chain stock`() = runBlocking {
+        ff.checkBidStockOnChain = true
+        `update all not canceled balance orders` { targetMaker, targetToken, newStock ->
+            coEvery {
+                erc20Service.getOnChainBalance(targetMaker, targetToken)
+            } returns newStock.value
+
+            val updatedBalance = Erc20BalanceDto(
+                owner = targetMaker,
+                contract = targetToken,
+                balance = BigInteger.ZERO
+            )
+            Erc20BalanceUpdateEventDto(
+                eventId = randomString(),
+                balanceId = randomString(),
+                balance = updatedBalance
+            )
+        }
+    }
+
+    @Test
+    fun `update all not canceled balance orders - allowance change, on-chain stock`() = runBlocking {
+        ff.checkBidStockOnChain = false
+        `update all not canceled balance orders` { targetMaker, targetToken, newStock ->
+            val updatedAllowance = Erc20AllowanceDto(
+                owner = targetMaker,
+                contract = targetToken,
+                allowance = newStock.value,
+                createdAt = Instant.now(),
+                lastUpdatedAt = Instant.now()
+            )
+            Erc20AllowanceEventDto(
+                eventId = randomString(),
+                balanceId = randomString(),
+                allowance = updatedAllowance
+            )
+        }
+    }
+
+    @Test
+    fun `update all not canceled balance orders - allowance change`() = runBlocking {
+        ff.checkBidStockOnChain = true
+        `update all not canceled balance orders` { targetMaker, targetToken, newStock ->
+            coEvery {
+                erc20Service.getOnChainTransferProxyAllowance(targetMaker, targetToken)
+            } returns newStock.value
+
+            val updatedAllowance = Erc20AllowanceDto(
+                owner = targetMaker,
+                contract = targetToken,
+                allowance = BigInteger.ZERO,
+                createdAt = Instant.now(),
+                lastUpdatedAt = Instant.now()
+            )
+            Erc20AllowanceEventDto(
+                eventId = randomString(),
+                balanceId = randomString(),
+                allowance = updatedAllowance
+            )
+        }
+    }
+
+    suspend fun `update all not canceled balance orders`(
+        event: (Address, Address, EthUInt256) -> Erc20BalanceEventDto
+    ) {
         val targetMaker = AddressFactory.create()
         val targetToken = AddressFactory.create()
 
@@ -78,20 +172,9 @@ class OrderBalanceServiceIt : AbstractIntegrationTest() {
         listOf(order1, order2, order3, order4).forEach { save(it) }
         cancelOrder(order3.hash)
 
-        val updatedBalance = Erc20BalanceDto(
-            owner = targetMaker,
-            contract = targetToken,
-            balance = newStock.value
-        )
-        val event = Erc20BalanceUpdateEventDto(
-            eventId = randomString(),
-            balanceId = randomString(),
-            balance = updatedBalance
-        )
-
         // Background job might update makeStock before this event is handled => try until the event solely changes the makeStock.
         Wait.waitAssert {
-            orderBalanceService.handle(event)
+            orderBalanceService.handle(event(targetMaker, targetToken, newStock))
 
             assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(newStock)
             assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(newStock)
@@ -102,6 +185,7 @@ class OrderBalanceServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `should not update legacy OpenSea orders`() = runBlocking<Unit> {
+        ff.checkBidStockOnChain = false
         val legacyOpenSea = randomAddress()
         orderIndexerProperties.exchangeContractAddresses.openSeaV1 = legacyOpenSea
 
