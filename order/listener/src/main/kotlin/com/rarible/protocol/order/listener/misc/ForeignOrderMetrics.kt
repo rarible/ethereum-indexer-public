@@ -3,18 +3,25 @@ package com.rarible.protocol.order.listener.misc
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.metric.BaseOrderMetrics
 import com.rarible.protocol.order.core.model.Platform
+import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicReference
 
 @Component
 class ForeignOrderMetrics(
     properties: OrderIndexerProperties,
-    meterRegistry: MeterRegistry
+    meterRegistry: MeterRegistry,
 ) : BaseOrderMetrics(meterRegistry) {
 
     private val blockchain = properties.blockchain
+    private val latestOrderCratedAt = Platform.values().associateWith { AtomicReference(Instant.now()) }
+
+    init {
+        registerLatestOrderGauge()
+    }
 
     // Downloaded via API, successfully handled/saved
     fun onDownloadedOrderHandled(platform: Platform) {
@@ -66,6 +73,13 @@ class ForeignOrderMetrics(
         ).record(Duration.between(date, Instant.now()))
     }
 
+    fun onLatestOrderReceived(
+        platform: Platform,
+        date: Instant,
+    ) {
+        latestOrderCratedAt[platform]?.set(date)
+    }
+
     private fun onDownloadedOrderHandled(
         platform: Platform,
         status: String,
@@ -114,10 +128,30 @@ class ForeignOrderMetrics(
         ).increment()
     }
 
-    private companion object {
+    private fun registerLatestOrderGauge() {
+        val foreignPlatform = Platform.values().filter { it != Platform.RARIBLE }
+        Platform.values()
+            .filter { it in foreignPlatform }
+            .map { platform ->
+                fun getLatestOrder(): Double? {
+                    val latestCreatedAt = latestOrderCratedAt[platform]?.get() ?: return null
+                    return (Instant.now().epochSecond - latestCreatedAt.epochSecond).toDouble()
+                }
+                Gauge.builder(FOREIGN_ORDER_DOWNLOAD_DELAY_LATEST) { getLatestOrder() }
+                    .tags(
+                        listOf(
+                            tag(blockchain),
+                            tag(platform),
+                            type("order")
+                        )
+                    )
+            }
+    }
 
+    private companion object {
         const val FOREIGN_ORDER_DOWNLOAD = "foreign_order_download"
         const val FOREIGN_ORDER_DOWNLOAD_DELAY = "foreign_order_download_delay"
+        const val FOREIGN_ORDER_DOWNLOAD_DELAY_LATEST = "foreign_order_download_delay_latest"
         const val FOREIGN_ORDER_EVENT = "foreign_order_event"
         const val FOREIGN_ORDER_INCONSISTENCY = "foreign_order_inconsistency"
     }
