@@ -9,10 +9,12 @@ import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
 @IntegrationTest
+@Disabled("Rewrite after auction resurrection")
 internal class AuctionFinishedDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test
     fun `should finish auction`() = runBlocking<Unit> {
