@@ -13,7 +13,7 @@ class Erc20Service(
     private val sender: ReadOnlyMonoTransactionSender,
     transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
 ) {
-    private val raribleTransferProxy = transferProxyAddresses.transferProxy
+    private val raribleTransferProxy = transferProxyAddresses.erc20TransferProxy
 
     suspend fun getOnChainTransferProxyAllowance(maker: Address, token: Address): BigInteger {
         val contract = IERC20(token, sender)
