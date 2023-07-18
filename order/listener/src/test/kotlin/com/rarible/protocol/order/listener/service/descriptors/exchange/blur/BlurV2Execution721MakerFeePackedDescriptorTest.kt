@@ -69,6 +69,8 @@ class BlurV2Execution721MakerFeePackedDescriptorTest : AbstractBlurV2ExecutionDe
         assertThat(left.source).isEqualTo(HistorySource.BLUR)
         assertThat(left.adhoc).isFalse
         assertThat(left.counterAdhoc).isTrue
+        assertThat(left.originFees?.single()?.account).isEqualTo(Address.apply("0x29ffea86733d7feac7c353343f300e99b8910c77"))
+        assertThat(left.originFees?.single()?.value).isEqualTo(EthUInt256.of("50"))
 
         val right = matches.single { it.side == OrderSide.RIGHT }
         assertThat(right.counterHash).isEqualTo(Word.apply("0x5d5a001f37e18c020eddbd9e25fd98dabfe3f0a3d263b841dd2a7891f9eb6f25"))
@@ -83,6 +85,7 @@ class BlurV2Execution721MakerFeePackedDescriptorTest : AbstractBlurV2ExecutionDe
         assertThat(right.source).isEqualTo(HistorySource.BLUR)
         assertThat(right.adhoc).isTrue
         assertThat(right.counterAdhoc).isFalse
+        assertThat(right.originFees).isEmpty()
     }
 
     private val execution721MakerFeePackedTx = Binary.apply(

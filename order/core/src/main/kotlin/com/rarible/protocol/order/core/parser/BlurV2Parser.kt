@@ -204,8 +204,8 @@ object BlurV2Parser {
 
     private fun unpackFee(packed: Binary): UnpackedFee {
         return UnpackedFee(
-            rate = packed.slice(0, 19).toBigInteger(),
-            recipient = Address.apply(packed.slice(11, 31)),
+            rate = packed.slice(0, 12).toBigInteger(),
+            recipient = Address.apply(packed.slice(12, 32)),
         )
     }
 

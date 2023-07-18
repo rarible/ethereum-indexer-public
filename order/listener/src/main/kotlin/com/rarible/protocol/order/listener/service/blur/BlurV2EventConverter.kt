@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.blur
 
 import com.rarible.ethereum.common.keccak256
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.blur.exchange.v2.BlurExchangeV2
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
@@ -10,6 +11,7 @@ import com.rarible.protocol.order.core.model.BlurV2Take
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.parser.BlurV2Parser
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.trace.TraceCallService
@@ -56,6 +58,16 @@ class BlurV2EventConverter(
             BlurV2OrderType.ASK -> executionEvent.nft() to executionEvent.ethPayment()
             BlurV2OrderType.BID -> executionEvent.erc20Payment(Address.ZERO()) to executionEvent.nft()
         }
+        val makeOriginFees = listOfNotNull(
+            executionEvent.makerFee,
+        ).map {
+            Part(it.recipient, EthUInt256.of(it.rate))
+        }
+        val takeOriginFees = listOfNotNull(
+            executionEvent.takerFee,
+        ).map {
+            Part(it.recipient, EthUInt256.of(it.rate))
+        }
         val left = OrderSideMatch(
             hash = hash,
             counterHash = counterHash,
@@ -70,13 +82,13 @@ class BlurV2EventConverter(
             adhoc = false,
             source = HistorySource.BLUR,
             date = date,
+            originFees = makeOriginFees,
             makeUsd = null,
             takeUsd = null,
             makePriceUsd = null,
             takePriceUsd = null,
             counterAdhoc = true,
             origin = null,
-            originFees = null,
             externalOrderExecutedOnRarible = null,
         )
         val right = OrderSideMatch(
@@ -93,13 +105,13 @@ class BlurV2EventConverter(
             source = HistorySource.BLUR,
             counterAdhoc = false,
             date = date,
+            originFees = takeOriginFees,
             makeUsd = null,
             takeUsd = null,
             makePriceUsd = null,
             takePriceUsd = null,
             adhoc = true,
             origin = null,
-            originFees = null,
             externalOrderExecutedOnRarible = null,
         )
         return OrderSideMatch.addMarketplaceMarker(listOf(left, right), transaction.input())
