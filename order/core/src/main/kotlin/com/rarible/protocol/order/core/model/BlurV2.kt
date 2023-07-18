@@ -11,7 +11,7 @@ data class BlurV2Take(
     val exchanges: List<BlurV2Exchange>,
     val takerFee: BlurV2FeeRate,
     val signatures: Binary,
-    val tokenRecipient: Address? = null
+    val tokenRecipient: Address = Address.ZERO()
 )
 
 data class BlurV2TakeAsk(

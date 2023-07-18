@@ -1,11 +1,10 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.blur
 
 import com.rarible.protocol.contracts.exchange.blur.exchange.v2.Execution721MakerFeePackedEvent
-import com.rarible.protocol.contracts.exchange.blur.exchange.v2.Execution721TakerFeePackedEvent
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.parser.BlurV2Parser
 import com.rarible.protocol.order.core.service.ContractsProvider
-import com.rarible.protocol.order.listener.service.blur.BlurEventConverter
+import com.rarible.protocol.order.listener.service.blur.BlurV2EventConverter
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
@@ -13,9 +12,10 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-class BlurV3Execution721MakerFeePackedDescriptor(
+@EnableBlurV2
+class BlurV2Execution721MakerFeePackedDescriptor(
     contractsProvider: ContractsProvider,
-    private val blurEventConverter: BlurEventConverter,
+    private val blurV2EventConverter: BlurV2EventConverter,
 ) : ExchangeSubscriber<OrderSideMatch>(
     name = "blur_721_maker_fee_packed",
     topic = Execution721MakerFeePackedEvent.id(),
@@ -28,7 +28,7 @@ class BlurV3Execution721MakerFeePackedDescriptor(
         index: Int,
         totalLogs: Int
     ): List<OrderSideMatch> {
-        return blurEventConverter.convertBlurV2ExecutionEvent(
+        return blurV2EventConverter.convertBlurV2ExecutionEvent(
             log = log,
             transaction = transaction,
             index = index,

@@ -137,6 +137,7 @@ data class OrderIndexerProperties(
         val parseBlurMarketPlaceV2: Boolean = false,
         val cancelOrderOnGetSignatureError: Boolean = true,
         val enableOrderValidation: Boolean = true,
+        val blurV2Enabled: Boolean = true,
     )
 
     data class RaribleOrderExpirationProperties(

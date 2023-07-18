@@ -28,7 +28,7 @@ import java.math.BigInteger
 object BlurV2Parser {
     fun parserBlurV2(input: Binary, tx: Word): BlurV2Take {
         return when (input.methodSignatureId()) {
-            BlurExchangeV2.takeAskSignature() -> {
+            BlurExchangeV2.takeAskSignature().id() -> {
                 val value = getDecodedValue(BlurExchangeV2.takeAskSignature(), input)
                 BlurV2Take(
                     orders = parseBlurV2Order(value._1()._1()),
@@ -38,7 +38,7 @@ object BlurV2Parser {
                     tokenRecipient = value._1()._5(),
                 )
             }
-            BlurExchangeV2.takeAskSingleSignature() -> {
+            BlurExchangeV2.takeAskSingleSignature().id() -> {
                 val value = getDecodedValue(BlurExchangeV2.takeAskSingleSignature(), input)
                 BlurV2Take(
                     orders = parseBlurV2Order(arrayOf(value._1()._1())),
@@ -48,7 +48,7 @@ object BlurV2Parser {
                     tokenRecipient = value._1()._5(),
                 )
             }
-            BlurExchangeV2.takeAskPoolSignature() -> {
+            BlurExchangeV2.takeAskPoolSignature().id() -> {
                 val value = getDecodedValue(BlurExchangeV2.takeAskPoolSignature(), input)
                 BlurV2Take(
                     orders = parseBlurV2Order(value._1()._1()),
@@ -58,7 +58,7 @@ object BlurV2Parser {
                     tokenRecipient = value._1()._5(),
                 )
             }
-            BlurExchangeV2.takeAskSinglePoolSignature() -> {
+            BlurExchangeV2.takeAskSinglePoolSignature().id() -> {
                 val value = getDecodedValue(BlurExchangeV2.takeAskSinglePoolSignature(), input)
                 BlurV2Take(
                     orders = parseBlurV2Order(arrayOf(value._1()._1())),
@@ -68,7 +68,7 @@ object BlurV2Parser {
                     tokenRecipient = value._1()._5(),
                 )
             }
-            BlurExchangeV2.takeBidSignature() -> {
+            BlurExchangeV2.takeBidSignature().id() -> {
                 val value = getDecodedValue(BlurExchangeV2.takeBidSignature(), input)
                 BlurV2Take(
                     orders = parseBlurV2Order(value._1()._1()),
@@ -77,7 +77,7 @@ object BlurV2Parser {
                     signatures = Binary.apply(value._1()._4()),
                 )
             }
-            BlurExchangeV2.takeBidSingleSignature() -> {
+            BlurExchangeV2.takeBidSingleSignature().id() -> {
                 val value = getDecodedValue(BlurExchangeV2.takeBidSingleSignature(), input)
                 BlurV2Take(
                     orders = parseBlurV2Order(arrayOf(value._1()._1())),
@@ -187,17 +187,17 @@ object BlurV2Parser {
 
     private fun unpackPackTokenIdListingIndexTrader(packed: Binary): UnpackedTokenIdListingIndexTrader {
         return UnpackedTokenIdListingIndexTrader(
-            tokenId = packed.slice(0, 10).toBigInteger(),
+            tokenId = packed.slice(0, 11).toBigInteger(),
             listingIndex = packed.slice(11, 12).toBigInteger(),
-            trader = Address.apply(packed.slice(13, 32))
+            trader = Address.apply(packed.slice(12, 32))
         )
     }
 
     private fun unpackTypePriceCollection(packed: Binary): UnpackTypePriceCollection {
         return UnpackTypePriceCollection(
             orderType = BlurV2OrderType.fromValue(packed.slice(0, 1).toBigInteger()),
-            price = packed.slice(1, 19).toBigInteger(),
-            collection = Address.apply(packed.slice(20, 31))
+            price = packed.slice(1, 12).toBigInteger(),
+            collection = Address.apply(packed.slice(12, 32))
         )
     }
 
@@ -205,7 +205,7 @@ object BlurV2Parser {
     private fun unpackFee(packed: Binary): UnpackedFee {
         return UnpackedFee(
             rate = packed.slice(0, 19).toBigInteger(),
-            recipient = Address.apply(packed.slice(20, 31)),
+            recipient = Address.apply(packed.slice(11, 31)),
         )
     }
 

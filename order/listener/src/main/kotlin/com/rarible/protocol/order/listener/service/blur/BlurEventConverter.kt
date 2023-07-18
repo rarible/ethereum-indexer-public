@@ -1,9 +1,7 @@
 package com.rarible.protocol.order.listener.service.blur
 
-import com.rarible.ethereum.common.keccak256
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.blur.v1.evemts.OrdersMatchedEvent
-import com.rarible.protocol.contracts.exchange.blur.exchange.v2.BlurExchangeV2
 import com.rarible.protocol.contracts.exchange.blur.v1.BlurV1
 import com.rarible.protocol.contracts.exchange.blur.v1.OrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.blur.v2.BlurV2
@@ -14,9 +12,6 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.BlurExecution
 import com.rarible.protocol.order.core.model.BlurOrder
 import com.rarible.protocol.order.core.model.BlurOrderSide
-import com.rarible.protocol.order.core.model.BlurV2ExecutionEvent
-import com.rarible.protocol.order.core.model.BlurV2OrderType
-import com.rarible.protocol.order.core.model.BlurV2Take
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
@@ -28,7 +23,6 @@ import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.TokenStandard
 import com.rarible.protocol.order.core.parser.BlurOrderParser
-import com.rarible.protocol.order.core.parser.BlurV2Parser
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -56,80 +50,6 @@ class BlurEventConverter(
 ) : AbstractEventConverter(traceCallService, featureFlags) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
-
-    suspend fun convertBlurV2ExecutionEvent(
-        log: Log,
-        transaction: Transaction,
-        index: Int,
-        totalLogs: Int,
-        date: Instant,
-        converter: (Log) -> BlurV2ExecutionEvent,
-    ): List<OrderSideMatch> {
-        val takes = getTakes(log, transaction)
-        val orders = takes.map { it.orders }.flatten()
-        val exchanges = takes.map { it.exchanges }.flatten()
-        val executionEvent = converter(log)
-
-        val hash = Word.apply(executionEvent.orderHash)
-        val counterHash = keccak256(hash)
-
-        val (order, exchange) = if (orders.size == 1) {
-            orders.first() to exchanges.first()
-        } else {
-            TODO()
-        }
-        val (make, take) = when (executionEvent.orderType) {
-            BlurV2OrderType.ASK -> executionEvent.nft() to executionEvent.ethPayment()
-            BlurV2OrderType.BID -> executionEvent.erc20Payment(Address.ZERO()) to executionEvent.nft()
-        }
-        val left = OrderSideMatch(
-            hash = hash,
-            counterHash = counterHash,
-            maker = order.trader,
-            taker = executionEvent.transfer.trader,
-            side = OrderSide.LEFT,
-            make = make,
-            take = take,
-            fill = make.value,
-            makeValue = prizeNormalizer.normalize(make),
-            takeValue = prizeNormalizer.normalize(take),
-            adhoc = false,
-            source = HistorySource.BLUR,
-            date = date,
-            makeUsd = null,
-            takeUsd = null,
-            makePriceUsd = null,
-            takePriceUsd = null,
-            counterAdhoc = true,
-            origin = null,
-            originFees = null,
-            externalOrderExecutedOnRarible = null,
-        )
-        val right = OrderSideMatch(
-            hash = counterHash,
-            counterHash = hash,
-            maker = left.taker,
-            taker = left.maker,
-            side = OrderSide.RIGHT,
-            make = left.take,
-            take = left.make,
-            fill = take.value,
-            makeValue = prizeNormalizer.normalize(left.take),
-            takeValue = prizeNormalizer.normalize(left.make),
-            source = HistorySource.BLUR,
-            counterAdhoc = false,
-            date = date,
-            makeUsd = null,
-            takeUsd = null,
-            makePriceUsd = null,
-            takePriceUsd = null,
-            adhoc = true,
-            origin = null,
-            originFees = null,
-            externalOrderExecutedOnRarible = null,
-        )
-        return OrderSideMatch.addMarketplaceMarker(listOf(left, right), transaction.input())
-    }
 
     suspend fun convertToSideMatch(
         log: Log,
@@ -352,32 +272,6 @@ class BlurEventConverter(
             ).map { BlurOrderParser.parseExecutions(it, txHash) }.flatten()
         }
     }
-
-    private suspend fun getTakes(log: Log, transaction: Transaction): List<BlurV2Take> {
-        val txHash = transaction.hash()
-        val txInput = transaction.input()
-
-        return if (txInput.methodSignatureId() in blurV2ExchangeMethodIds) {
-            listOf(BlurV2Parser.parserBlurV2(txInput, txHash))
-        } else {
-            emptyList()
-        }.ifEmpty {
-            getMethodInput(
-                log,
-                transaction,
-                *blurV2ExchangeMethodIds.toTypedArray()
-            ).map { BlurV2Parser.parserBlurV2(it, txHash) }
-        }
-    }
-
-    private val blurV2ExchangeMethodIds = setOf(
-        BlurExchangeV2.takeAskSignature().id(),
-        BlurExchangeV2.takeAskSingleSignature().id(),
-        BlurExchangeV2.takeBidSignature().id(),
-        BlurExchangeV2.takeBidSingleSignature().id(),
-        BlurExchangeV2.takeAskPoolSignature().id(),
-        BlurExchangeV2.takeAskSinglePoolSignature().id()
-    )
 
     private data class OrderAssets(
         val make: Asset,
