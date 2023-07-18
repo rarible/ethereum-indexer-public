@@ -33,6 +33,7 @@ internal class LooksrareOrderLoaderTest {
     private val metrics = mockk<ForeignOrderMetrics> {
         every { onDownloadedOrderHandled(Platform.LOOKSRARE) } returns Unit
         every { onOrderReceived(Platform.LOOKSRARE, any()) } returns Unit
+        every { onLatestOrderReceived(Platform.LOOKSRARE, any()) } returns Unit
     }
 
     private val loader = LooksrareOrderLoader(
