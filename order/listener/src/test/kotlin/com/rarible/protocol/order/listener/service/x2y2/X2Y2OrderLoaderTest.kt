@@ -12,6 +12,7 @@ import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.x2y2.client.model.ApiListResponse
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
@@ -26,6 +27,7 @@ internal class X2Y2OrderLoaderTest {
     private val metrics: ForeignOrderMetrics = mockk() {
         coEvery { onDownloadedOrderHandled(Platform.X2Y2) } returns Unit
         coEvery { onOrderReceived(Platform.X2Y2, any()) } returns Unit
+        every { onLatestOrderReceived(Platform.X2Y2, any()) } returns Unit
     }
 
     private val handler = X2Y2OrderLoader(

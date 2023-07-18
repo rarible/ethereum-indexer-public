@@ -15,6 +15,7 @@ import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 import java.time.Instant
@@ -22,6 +23,7 @@ import java.time.Instant.now
 import java.time.temporal.ChronoUnit
 
 @IntegrationTest
+@Disabled("Rewrite after auction resurrection")
 internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test
     fun `should put bid`() = runBlocking<Unit> {
