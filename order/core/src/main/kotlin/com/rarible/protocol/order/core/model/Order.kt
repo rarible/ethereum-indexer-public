@@ -19,6 +19,7 @@ import scala.Tuple4
 import scala.Tuple5
 import scala.Tuple9
 import scalether.abi.AddressType
+import scalether.abi.BytesType
 import scalether.abi.Uint256Type
 import scalether.abi.Uint8Type
 import scalether.domain.Address
@@ -793,6 +794,33 @@ data class Order(
             )
         }
 
+        fun blurV2Hash(
+            order: BlurV2Order,
+            type: BlurV2OrderType,
+            nonce: BigInteger,
+        ): Word {
+            fun hashBlurV2FeeRate(feeRate: BlurV2FeeRate): Word {
+                return keccak256(
+                    BLUR_V2_FEE_RATE_TYPE_HASH
+                        .add(AddressType.encode(feeRate.recipient))
+                        .add(Uint256Type.encode(feeRate.rate))
+                )
+            }
+            return keccak256(
+                BLUR_V2_ORDER_TYPE_HASH
+                    .add(AddressType.encode(order.trader))
+                    .add(AddressType.encode((order.collection)))
+                    .add(order.listingsRoot.bytes())
+                    .add(Uint256Type.encode((order.numberOfListings)))
+                    .add(Uint256Type.encode((order.expirationTime)))
+                    .add(Uint256Type.encode((order.assetType.value.toBigInteger())))
+                    .add(hashBlurV2FeeRate(order.makerFee))
+                    .add(Uint256Type.encode((order.salt)))
+                    .add(Uint256Type.encode(type.value.toBigInteger()))
+                    .add(Uint256Type.encode(nonce))
+            )
+        }
+
         fun hashKey(
             maker: Address,
             makeAssetType: AssetType,
@@ -1033,3 +1061,12 @@ internal val BLUR_ORDER_TYPE_HASH = keccak256(BLUR_ORDER_TYPE_HASH_STRING.toByte
 internal val BLUR_FEE_TYPE_HASH = keccak256(BLUR_FEE_TYPE_HASH_STRING.toByteArray(StandardCharsets.UTF_8))
 
 val EXPIRED_BID_STATUSES = setOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE, OrderStatus.ENDED)
+
+internal val BLUR_V2_FEE_RATE_TYPE_STRING = "FeeRate(address recipient,uint16 rate)"
+
+internal val BLUR_V2_ORDER_TYPE_STRING =
+    "Order(address trader,address collection,bytes32 listingsRoot,uint256 numberOfListings,uint256 expirationTime,uint8 assetType,FeeRate makerFee,uint256 salt,uint8 orderType,uint256 nonce)$BLUR_V2_FEE_RATE_TYPE_STRING"
+
+internal val BLUR_V2_ORDER_TYPE_HASH = keccak256(BLUR_V2_ORDER_TYPE_STRING)
+
+internal val BLUR_V2_FEE_RATE_TYPE_HASH = keccak256(BLUR_V2_FEE_RATE_TYPE_STRING)

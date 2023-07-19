@@ -24,7 +24,7 @@ class BlurV2Execution721MakerFeePackedDescriptorTest : AbstractBlurV2ExecutionDe
     )
 
     @Test
-    fun `convert simple hash`() = runBlocking<Unit> {
+    fun `convert single sell`() = runBlocking<Unit> {
         // https://etherscan.io/tx/0x6e3baa0eedd5b4e14d2ffd751afee23fc64066b89e6eb5725a12fd0e9e334331#eventlog^
         val log = log(
             topics = listOf(

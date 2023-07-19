@@ -6,12 +6,15 @@ import com.rarible.protocol.contracts.exchange.blur.exchange.v2.BlurExchangeV2
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.BlurV2ExecutionEvent
+import com.rarible.protocol.order.core.model.BlurV2Order
 import com.rarible.protocol.order.core.model.BlurV2OrderType
 import com.rarible.protocol.order.core.model.BlurV2Take
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.parser.BlurV2Parser
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -19,10 +22,12 @@ import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.service.converter.AbstractEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.stereotype.Component
-import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import scalether.transaction.MonoTransactionSender
+import java.math.BigInteger
 import java.time.Instant
 
 @Component
@@ -31,6 +36,8 @@ class BlurV2EventConverter(
     featureFlags: OrderIndexerProperties.FeatureFlags,
     private val contractsProvider: ContractsProvider,
     private val prizeNormalizer: PriceNormalizer,
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
+    private val sender: MonoTransactionSender,
 ) : AbstractEventConverter(traceCallService, featureFlags) {
 
     suspend fun convertBlurV2ExecutionEvent(
@@ -45,16 +52,18 @@ class BlurV2EventConverter(
         val blurV2Take = blurV2Takes.single()
 
         val orders = blurV2Take.orders
-        val exchanges = blurV2Take.exchanges
         val executionEvent = converter(log)
 
         val hash = Word.apply(executionEvent.orderHash)
         val counterHash = keccak256(hash)
 
-        val (order, _) = if (orders.size == 1) {
-            orders.first() to exchanges.first()
+        val order = if (orders.size == 1) {
+            orders.first()
         } else {
-            TODO()
+            findOrder(orders, hash, executionEvent.orderType) ?: run {
+                logger.error("Can't find blur order for batch execution: tx=${transaction.hash()}")
+                return emptyList()
+            }
         }
         val (make, take) = when (executionEvent.orderType) {
             BlurV2OrderType.ASK -> executionEvent.nft() to executionEvent.ethPayment()
@@ -140,13 +149,41 @@ class BlurV2EventConverter(
         }
     }
 
+    private suspend fun findOrder(orders: List<BlurV2Order>, hash: Word, type: BlurV2OrderType): BlurV2Order? {
+        val market = BlurExchangeV2(contractsProvider.blurV2().single(), sender)
+        val groupedOrder = orders.groupBy { it.trader }
+        groupedOrder.forEach { (trader, orders) ->
+            val nonce = market.nonces(trader).execute().awaitSingle().toBigInteger()
+            val found = findOrder(orders, type, hash, nonce)
+            if (found != null) return found
+        }
+        return null
+    }
+
+    private suspend fun findOrder(
+        orders: List<BlurV2Order>,
+        type: BlurV2OrderType,
+        hash: Word,
+        maxNonce: BigInteger
+    ): BlurV2Order? {
+        for (order in orders) {
+            for (nonce in (maxNonce.longValueExact() downTo 0)) {
+                val calculatedHash = Order.blurV2Hash(order, type, nonce.toBigInteger())
+                if (hash == calculatedHash) return order
+            }
+        }
+        return null
+    }
+
     private fun parserBlurV2(input: Binary, tx: Word) = BlurV2Parser.parserBlurV2(input, tx)
 
     private val blurV2ExchangeMethodIds = setOf(
         BlurExchangeV2.takeAskSignature().id(),
         BlurExchangeV2.takeAskSingleSignature().id(),
+
         BlurExchangeV2.takeBidSignature().id(),
         BlurExchangeV2.takeBidSingleSignature().id(),
+
         BlurExchangeV2.takeAskPoolSignature().id(),
         BlurExchangeV2.takeAskSinglePoolSignature().id()
     )

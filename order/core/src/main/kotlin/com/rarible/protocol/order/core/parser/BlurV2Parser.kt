@@ -232,6 +232,7 @@ object BlurV2Parser {
             BlurV2Order(
                 trader = order._1(),
                 collection = order._2(),
+                listingsRoot = Binary.apply(order._3()),
                 numberOfListings = order._4(),
                 expirationTime = order._5(),
                 assetType = BlurV2AssetType.fromValue(order._6()),

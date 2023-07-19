@@ -19,16 +19,22 @@ import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import reactor.core.publisher.Mono
+import scalether.abi.Uint32Type
 import scalether.domain.Address
 import scalether.domain.`Address$`
 import scalether.domain.response.Transaction
+import scalether.transaction.MonoTransactionSender
+import java.math.BigInteger
 import java.time.Instant
 
 abstract class AbstractBlurV2ExecutionDescriptorTest {
+    protected val sender = mockk<MonoTransactionSender>()
     protected val blockTimestamp: Instant = Instant.ofEpochSecond(Instant.now().epochSecond)
     protected val weth = randomAddress()
+    protected val market = randomAddress()
     protected val contractsProvider = mockk<ContractsProvider> {
-        every { blurV2() } returns listOf(randomAddress())
+        every { blurV2() } returns listOf(market)
         every { weth() } returns weth
     }
     protected val traceCallService = mockk<TraceCallService>()
@@ -46,7 +52,7 @@ abstract class AbstractBlurV2ExecutionDescriptorTest {
         featureFlags = featureFlags,
         contractsProvider = contractsProvider,
         prizeNormalizer = prizeNormalizer,
-
+        sender = sender
     )
 
     protected fun mockkTransaction(
@@ -67,4 +73,13 @@ abstract class AbstractBlurV2ExecutionDescriptorTest {
             .filterIsInstance<ReversedEthereumLogRecord>()
             .map { it.data as T }
     }
+
+
+    protected fun mockkServerToGetNonce(
+        trader: Address,
+        market: Address,
+        nonoce: BigInteger
+    ) {
+    }
+
 }

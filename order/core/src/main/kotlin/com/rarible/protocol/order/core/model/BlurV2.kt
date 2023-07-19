@@ -65,6 +65,7 @@ data class BlurV2Taker(
 data class BlurV2Order(
     val trader: Address,
     val collection: Address,
+    val listingsRoot: Binary,
     val numberOfListings: BigInteger,
     val expirationTime: BigInteger,
     val assetType: BlurV2AssetType,
