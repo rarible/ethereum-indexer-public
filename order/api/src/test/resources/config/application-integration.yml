@@ -33,6 +33,11 @@ common:
   feature-flags:
     check-on-chain-approve: false
 
+api:
+  settings:
+    fees:
+      RARIBLE_V1: 1
+
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
 reindexBlocksJobEnabled: false
