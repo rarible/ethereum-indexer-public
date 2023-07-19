@@ -1,7 +1,6 @@
 package com.rarible.protocol.erc20.core.service.reduce
 
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
-import com.rarible.protocol.erc20.core.misc.addIndexerIn
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.service.Erc20BalanceService
 import org.slf4j.LoggerFactory
@@ -26,7 +25,7 @@ class Erc20EventChainUpdateService(
             val balanceId = BalanceId.parseId(entityId)
             val lastEvent = erc20EventConverter.convert(
                 events.last().record.asEthereumLogRecord(),
-                events.last().eventTimeMarks.addIndexerIn()
+                events.last().eventTimeMarks
             )
             val balance = erc20BalanceService.onChainUpdate(balanceId, lastEvent)
             if (balance == null) {
