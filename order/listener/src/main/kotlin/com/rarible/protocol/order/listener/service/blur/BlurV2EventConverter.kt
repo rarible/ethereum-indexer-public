@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.parser.BlurV2Parser
+import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.service.converter.AbstractEventConverter
@@ -28,6 +29,7 @@ import java.time.Instant
 class BlurV2EventConverter(
     traceCallService: TraceCallService,
     featureFlags: OrderIndexerProperties.FeatureFlags,
+    private val contractsProvider: ContractsProvider,
     private val prizeNormalizer: PriceNormalizer,
 ) : AbstractEventConverter(traceCallService, featureFlags) {
 
@@ -49,14 +51,18 @@ class BlurV2EventConverter(
         val hash = Word.apply(executionEvent.orderHash)
         val counterHash = keccak256(hash)
 
-        val (order, exchange) = if (orders.size == 1) {
+        val (order, _) = if (orders.size == 1) {
             orders.first() to exchanges.first()
         } else {
             TODO()
         }
         val (make, take) = when (executionEvent.orderType) {
             BlurV2OrderType.ASK -> executionEvent.nft() to executionEvent.ethPayment()
-            BlurV2OrderType.BID -> executionEvent.erc20Payment(Address.ZERO()) to executionEvent.nft()
+            BlurV2OrderType.BID -> executionEvent.erc20Payment(contractsProvider.weth()) to executionEvent.nft()
+        }
+        val taker = when (executionEvent.orderType) {
+            BlurV2OrderType.ASK -> blurV2Take.tokenRecipient
+            BlurV2OrderType.BID -> transaction.from()
         }
         val makeOriginFees = listOfNotNull(
             executionEvent.makerFee,
@@ -72,7 +78,7 @@ class BlurV2EventConverter(
             hash = hash,
             counterHash = counterHash,
             maker = order.trader,
-            taker = blurV2Take.tokenRecipient,
+            taker = taker,
             side = OrderSide.LEFT,
             make = make,
             take = take,
