@@ -3,7 +3,6 @@ package com.rarible.protocol.erc20.core.service.reduce
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
-import com.rarible.protocol.erc20.core.misc.addIndexerIn
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.model.Erc20MarkedEvent
@@ -41,7 +40,7 @@ class Erc20EventReduceService(
                 .mapNotNull {
                     erc20EventConverter.convert(
                         it.record.asEthereumLogRecord(),
-                        it.eventTimeMarks.addIndexerIn()
+                        it.eventTimeMarks
                     )
                 }
                 .let { delegate.reduceAll(it) }
