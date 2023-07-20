@@ -15,6 +15,7 @@ common:
     looksrare-transfer-manager-erc1155: "0xfed24ec7e22f573c2e08aef55aa6797ca2b3a051"
     looksrare-transfer-manager-non-compliant-erc721: "0x3e538190635f51435298ee58a7984961120510a1"
     looksrare-v2-transfer-manager: "0x000000000060c4ca14cfc4325359062ace33fe3d"
+    blurV2: "0xb2ecfe4e4d61f8790bbb9de2d1259b9e2410cea5"
   currency-contract-addresses:
     weth: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
   sudo-swap-addresses:
