@@ -1,21 +1,18 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.blur
 
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
-import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
-import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.listener.data.log
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
-import io.mockk.every
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
 import java.math.BigDecimal
@@ -58,41 +55,41 @@ class BlurV2Execution721TakerFeePackedDescriptorTest : AbstractBlurV2ExecutionDe
         )
 
         val matches = descriptor.convert<OrderSideMatch>(mockkBlock, ethereumBlockchainLog)
-        Assertions.assertThat(matches).hasSize(2)
+        assertThat(matches).hasSize(2)
 
         val left = matches.single { it.side == OrderSide.LEFT }
-        Assertions.assertThat(left.hash)
+        assertThat(left.hash)
             .isEqualTo(Word.apply("0x00ac3680a1ab578def3e4473c47ed80aa51b9bc3046cf80585a56f9a485f8e89"))
-        Assertions.assertThat(left.maker).isEqualTo(Address.apply("0x1e863363F0aeA30D45bc4224783B48cDd1f3d90d"))
-        Assertions.assertThat(left.taker).isEqualTo(Address.apply("0x1c4351C97177418cEC07FF733f107fb9879dBeD1"))
-        Assertions.assertThat(left.make).isEqualTo(expectedPayment)
-        Assertions.assertThat(left.take).isEqualTo(expectedNft)
-        Assertions.assertThat(left.fill).isEqualTo(expectedPayment.value)
-        Assertions.assertThat(left.date).isEqualTo(blockTimestamp)
-        Assertions.assertThat(left.takeValue).isEqualTo(BigDecimal.ONE)
-        Assertions.assertThat(left.makeValue).isEqualTo(BigDecimal("0.800000000000000000"))
-        Assertions.assertThat(left.source).isEqualTo(HistorySource.BLUR)
-        Assertions.assertThat(left.adhoc).isFalse
-        Assertions.assertThat(left.counterAdhoc).isTrue
-        Assertions.assertThat(left.originFees).isEmpty()
+        assertThat(left.maker).isEqualTo(Address.apply("0x1e863363F0aeA30D45bc4224783B48cDd1f3d90d"))
+        assertThat(left.taker).isEqualTo(Address.apply("0x1c4351C97177418cEC07FF733f107fb9879dBeD1"))
+        assertThat(left.make).isEqualTo(expectedPayment)
+        assertThat(left.take).isEqualTo(expectedNft)
+        assertThat(left.fill).isEqualTo(expectedPayment.value)
+        assertThat(left.date).isEqualTo(blockTimestamp)
+        assertThat(left.takeValue).isEqualTo(BigDecimal.ONE)
+        assertThat(left.makeValue).isEqualTo(BigDecimal("0.800000000000000000"))
+        assertThat(left.source).isEqualTo(HistorySource.BLUR)
+        assertThat(left.adhoc).isFalse
+        assertThat(left.counterAdhoc).isTrue
+        assertThat(left.originFees).isEmpty()
 
         val right = matches.single { it.side == OrderSide.RIGHT }
-        Assertions.assertThat(right.counterHash)
+        assertThat(right.counterHash)
             .isEqualTo(Word.apply("0x00ac3680a1ab578def3e4473c47ed80aa51b9bc3046cf80585a56f9a485f8e89"))
-        Assertions.assertThat(right.maker).isEqualTo(Address.apply("0x1c4351C97177418cEC07FF733f107fb9879dBeD1"))
-        Assertions.assertThat(right.taker).isEqualTo(Address.apply("0x1e863363F0aeA30D45bc4224783B48cDd1f3d90d"))
-        Assertions.assertThat(right.make).isEqualTo(expectedNft)
-        Assertions.assertThat(right.take).isEqualTo(expectedPayment)
-        Assertions.assertThat(right.fill).isEqualTo(expectedNft.value)
-        Assertions.assertThat(right.date).isEqualTo(blockTimestamp)
-        Assertions.assertThat(right.makeValue).isEqualTo(BigDecimal.ONE)
-        Assertions.assertThat(right.takeValue).isEqualTo(BigDecimal("0.800000000000000000"))
-        Assertions.assertThat(right.source).isEqualTo(HistorySource.BLUR)
-        Assertions.assertThat(right.adhoc).isTrue
-        Assertions.assertThat(right.counterAdhoc).isFalse
-        Assertions.assertThat(right.originFees?.single()?.account)
+        assertThat(right.maker).isEqualTo(Address.apply("0x1c4351C97177418cEC07FF733f107fb9879dBeD1"))
+        assertThat(right.taker).isEqualTo(Address.apply("0x1e863363F0aeA30D45bc4224783B48cDd1f3d90d"))
+        assertThat(right.make).isEqualTo(expectedNft)
+        assertThat(right.take).isEqualTo(expectedPayment)
+        assertThat(right.fill).isEqualTo(expectedNft.value)
+        assertThat(right.date).isEqualTo(blockTimestamp)
+        assertThat(right.makeValue).isEqualTo(BigDecimal.ONE)
+        assertThat(right.takeValue).isEqualTo(BigDecimal("0.800000000000000000"))
+        assertThat(right.source).isEqualTo(HistorySource.BLUR)
+        assertThat(right.adhoc).isTrue
+        assertThat(right.counterAdhoc).isFalse
+        assertThat(right.originFees?.single()?.account)
             .isEqualTo(Address.apply("0xc8f8e2f59dd95ff67c3d39109eca2e2a017d4c8a"))
-        Assertions.assertThat(right.originFees?.single()?.value)
+        assertThat(right.originFees?.single()?.value)
             .isEqualTo(EthUInt256.of(50))
     }
 

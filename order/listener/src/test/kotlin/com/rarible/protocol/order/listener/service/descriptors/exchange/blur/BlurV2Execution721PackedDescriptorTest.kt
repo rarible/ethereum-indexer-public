@@ -13,9 +13,8 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.testcontainers.shaded.com.github.dockerjava.core.dockerfile.DockerfileStatement.Add
 import reactor.core.publisher.Mono
 import scalether.abi.Uint32Type
 import scalether.domain.Address
@@ -57,39 +56,39 @@ class BlurV2Execution721PackedDescriptorTest : AbstractBlurV2ExecutionDescriptor
         )
 
         val matches = descriptor.convert<OrderSideMatch>(mockkBlock, ethereumBlockchainLog)
-        Assertions.assertThat(matches).hasSize(2)
+        assertThat(matches).hasSize(2)
 
         val left = matches.single { it.side == OrderSide.LEFT }
-        Assertions.assertThat(left.hash).isEqualTo(Word.apply("0x21b7d4ae06f010118c4c4e976182504160a6ad111f471ea8df38ad045ff7fa40"))
-        Assertions.assertThat(left.maker).isEqualTo(Address.apply("0x83fa03a1747aafe4e0f0ec3880740f49d74f1158"))
-        Assertions.assertThat(left.taker).isEqualTo(Address.apply("0xf770e42fd25d745e9f25ab57cca3e96f7fe62d14"))
-        Assertions.assertThat(left.make).isEqualTo(expectedNft)
-        Assertions.assertThat(left.take).isEqualTo(expectedPayment)
-        Assertions.assertThat(left.make).isEqualTo(expectedNft)
-        Assertions.assertThat(left.take).isEqualTo(expectedPayment)
-        Assertions.assertThat(left.fill).isEqualTo(expectedNft.value)
-        Assertions.assertThat(left.date).isEqualTo(blockTimestamp)
-        Assertions.assertThat(left.takeValue).isEqualTo(BigDecimal("0.015000000000000000"))
-        Assertions.assertThat(left.makeValue).isEqualTo(BigDecimal.ONE)
-        Assertions.assertThat(left.source).isEqualTo(HistorySource.BLUR)
-        Assertions.assertThat(left.adhoc).isFalse
-        Assertions.assertThat(left.counterAdhoc).isTrue
-        Assertions.assertThat(left.originFees).isEmpty()
+        assertThat(left.hash).isEqualTo(Word.apply("0x21b7d4ae06f010118c4c4e976182504160a6ad111f471ea8df38ad045ff7fa40"))
+        assertThat(left.maker).isEqualTo(Address.apply("0x83fa03a1747aafe4e0f0ec3880740f49d74f1158"))
+        assertThat(left.taker).isEqualTo(Address.apply("0xf770e42fd25d745e9f25ab57cca3e96f7fe62d14"))
+        assertThat(left.make).isEqualTo(expectedNft)
+        assertThat(left.take).isEqualTo(expectedPayment)
+        assertThat(left.make).isEqualTo(expectedNft)
+        assertThat(left.take).isEqualTo(expectedPayment)
+        assertThat(left.fill).isEqualTo(expectedNft.value)
+        assertThat(left.date).isEqualTo(blockTimestamp)
+        assertThat(left.takeValue).isEqualTo(BigDecimal("0.015000000000000000"))
+        assertThat(left.makeValue).isEqualTo(BigDecimal.ONE)
+        assertThat(left.source).isEqualTo(HistorySource.BLUR)
+        assertThat(left.adhoc).isFalse
+        assertThat(left.counterAdhoc).isTrue
+        assertThat(left.originFees).isEmpty()
 
         val right = matches.single { it.side == OrderSide.RIGHT }
-        Assertions.assertThat(right.counterHash).isEqualTo(Word.apply("0x21b7d4ae06f010118c4c4e976182504160a6ad111f471ea8df38ad045ff7fa40"))
-        Assertions.assertThat(right.maker).isEqualTo(Address.apply("0xf770e42fd25d745e9f25ab57cca3e96f7fe62d14"))
-        Assertions.assertThat(right.taker).isEqualTo(Address.apply("0x83fa03a1747aafe4e0f0ec3880740f49d74f1158"))
-        Assertions.assertThat(right.make).isEqualTo(expectedPayment)
-        Assertions.assertThat(right.take).isEqualTo(expectedNft)
-        Assertions.assertThat(right.fill).isEqualTo(expectedPayment.value)
-        Assertions.assertThat(right.date).isEqualTo(blockTimestamp)
-        Assertions.assertThat(right.takeValue).isEqualTo(BigDecimal.ONE)
-        Assertions.assertThat(right.makeValue).isEqualTo(BigDecimal("0.015000000000000000"))
-        Assertions.assertThat(right.source).isEqualTo(HistorySource.BLUR)
-        Assertions.assertThat(right.adhoc).isTrue
-        Assertions.assertThat(right.counterAdhoc).isFalse
-        Assertions.assertThat(right.originFees).isEmpty()
+        assertThat(right.counterHash).isEqualTo(Word.apply("0x21b7d4ae06f010118c4c4e976182504160a6ad111f471ea8df38ad045ff7fa40"))
+        assertThat(right.maker).isEqualTo(Address.apply("0xf770e42fd25d745e9f25ab57cca3e96f7fe62d14"))
+        assertThat(right.taker).isEqualTo(Address.apply("0x83fa03a1747aafe4e0f0ec3880740f49d74f1158"))
+        assertThat(right.make).isEqualTo(expectedPayment)
+        assertThat(right.take).isEqualTo(expectedNft)
+        assertThat(right.fill).isEqualTo(expectedPayment.value)
+        assertThat(right.date).isEqualTo(blockTimestamp)
+        assertThat(right.takeValue).isEqualTo(BigDecimal.ONE)
+        assertThat(right.makeValue).isEqualTo(BigDecimal("0.015000000000000000"))
+        assertThat(right.source).isEqualTo(HistorySource.BLUR)
+        assertThat(right.adhoc).isTrue
+        assertThat(right.counterAdhoc).isFalse
+        assertThat(right.originFees).isEmpty()
     }
 
     @Test
@@ -125,12 +124,12 @@ class BlurV2Execution721PackedDescriptorTest : AbstractBlurV2ExecutionDescriptor
         } returns Mono.just(Word.apply(Uint32Type.encode(BigInteger("0"))))
 
         val matches1 = descriptor.convert<OrderSideMatch>(mockkBlock, ethereumBlockchainLog1)
-        Assertions.assertThat(matches1).hasSize(2)
-        Assertions.assertThat(matches1.first().hash).isEqualTo(Word.apply("0xE169F8AF644CE38A96B0E965BEC1A512E70F32DF91C3389DB44BA8EA353AD231"))
+        assertThat(matches1).hasSize(2)
+        assertThat(matches1.first().hash).isEqualTo(Word.apply("0xE169F8AF644CE38A96B0E965BEC1A512E70F32DF91C3389DB44BA8EA353AD231"))
 
         val matches2 = descriptor.convert<OrderSideMatch>(mockkBlock, ethereumBlockchainLog2)
-        Assertions.assertThat(matches2).hasSize(2)
-        Assertions.assertThat(matches2.first().hash).isEqualTo(Word.apply("0x3BDF2102C79FCB71EA7E9960B22702005FA25B49E55F6349E4332E652F82DEF8"))
+        assertThat(matches2).hasSize(2)
+        assertThat(matches2.first().hash).isEqualTo(Word.apply("0x3BDF2102C79FCB71EA7E9960B22702005FA25B49E55F6349E4332E652F82DEF8"))
     }
 
 
