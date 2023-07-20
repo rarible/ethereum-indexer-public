@@ -9,5 +9,10 @@ internal const val RARIBLE_PROTOCOL_ORDER_API = "api"
 @ConfigurationProperties(RARIBLE_PROTOCOL_ORDER_API)
 data class OrderIndexerApiProperties(
     val skipHeavyRequest: Boolean = false,
-    val maxOrderEndDate: Long? = null
+    val maxOrderEndDate: Long? = null,
+    val settings: OrderSettingsProperties
+)
+
+data class OrderSettingsProperties(
+    val fees: Map<String, Int> = emptyMap()
 )

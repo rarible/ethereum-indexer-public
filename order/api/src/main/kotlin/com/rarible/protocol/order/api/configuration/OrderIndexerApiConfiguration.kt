@@ -23,7 +23,8 @@ import java.math.BigInteger
 @EnableLoggingContextFilter
 @EnableConfigurationProperties(OrderIndexerProperties::class, OrderIndexerApiProperties::class)
 class OrderIndexerApiConfiguration(
-    private val indexerProperties: OrderIndexerProperties
+    private val indexerProperties: OrderIndexerProperties,
+    private val apiProperties: OrderIndexerApiProperties
 ) {
 
     @Bean
@@ -35,6 +36,9 @@ class OrderIndexerApiConfiguration(
     fun blockchain(): Blockchain {
         return indexerProperties.blockchain
     }
+
+    @Bean
+    fun orderSettingsProperties() = apiProperties.settings
 
     @Bean
     fun daonomicLazyNftValidator(erc1271SignService: ERC1271SignService): LazyNftValidator {
