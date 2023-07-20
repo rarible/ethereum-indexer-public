@@ -1,0 +1,33 @@
+global:
+  network: rinkeby
+
+mantle-nft-api:
+  resources:
+    jvm:
+      max_direct_memory_megabytes: 128
+
+mantle-erc20-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 512
+
+mantle-order-api:
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+
+mantle-order-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 512
+
+mantle-nft-listener:
+  livenessProbe:
+    initialDelaySeconds: 360
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 512

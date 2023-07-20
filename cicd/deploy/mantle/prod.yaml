@@ -1,0 +1,43 @@
+global:
+  network: mainnet
+
+mantle-erc20-api:
+  replicas: 2
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 256
+
+mantle-erc20-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 2048
+
+mantle-order-api:
+  replicas: 2
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 256
+
+mantle-order-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 1024
+
+mantle-nft-api:
+  replicas: 3
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 512
+
+mantle-nft-listener:
+  environments:
+    MANAGEMENT_HEALTH_PROBES_ENABLED: false
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 2048
