@@ -53,6 +53,7 @@ class CollectionOrderStatService(
         Blockchain.ETHEREUM -> BlockchainDto.ETHEREUM
         Blockchain.POLYGON -> BlockchainDto.POLYGON
         Blockchain.OPTIMISM -> BlockchainDto.OPTIMISM
+        Blockchain.MANTLE -> BlockchainDto.POLYGON //TODO: Fix it
     }
 
     val makeNftKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / AssetType::nft
