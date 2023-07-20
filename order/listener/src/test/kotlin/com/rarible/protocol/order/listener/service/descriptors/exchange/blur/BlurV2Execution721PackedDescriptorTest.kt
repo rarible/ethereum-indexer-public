@@ -120,8 +120,8 @@ class BlurV2Execution721PackedDescriptorTest : AbstractBlurV2ExecutionDescriptor
             total = 2
         )
         every {
-            sender.sendTransaction(any())
-        } returns Mono.just(Word.apply(Uint32Type.encode(BigInteger("0"))))
+            sender.call(any())
+        } returns Mono.just(Uint32Type.encode(BigInteger("0")))
 
         val matches1 = descriptor.convert<OrderSideMatch>(mockkBlock, ethereumBlockchainLog1)
         assertThat(matches1).hasSize(2)

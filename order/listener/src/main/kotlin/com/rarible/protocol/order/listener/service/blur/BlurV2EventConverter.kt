@@ -22,6 +22,7 @@ import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.service.converter.AbstractEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.stereotype.Component
 import scalether.domain.response.Log
@@ -153,7 +154,7 @@ class BlurV2EventConverter(
         val market = BlurExchangeV2(contractsProvider.blurV2().single(), sender)
         val groupedOrder = orders.groupBy { it.trader }
         groupedOrder.forEach { (trader, orders) ->
-            val nonce = market.nonces(trader).execute().awaitSingle().toBigInteger()
+            val nonce = market.nonces(trader).call().awaitFirst()
             val found = findOrder(orders, type, hash, nonce)
             if (found != null) return found
         }
