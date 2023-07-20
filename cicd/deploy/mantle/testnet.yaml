@@ -9,8 +9,8 @@ mantle-nft-api:
 mantle-erc20-listener:
   resources:
     jvm:
-      xmx_megabytes: 1024
-      max_direct_memory_megabytes: 1024
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 512
 
 mantle-order-api:
   resources:
@@ -29,5 +29,5 @@ mantle-nft-listener:
     initialDelaySeconds: 360
   resources:
     jvm:
-      xmx_megabytes: 1024
+      xmx_megabytes: 512
       max_direct_memory_megabytes: 512
