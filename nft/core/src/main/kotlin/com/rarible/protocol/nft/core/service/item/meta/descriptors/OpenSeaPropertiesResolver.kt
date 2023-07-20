@@ -84,6 +84,7 @@ class OpenSeaPropertiesResolver(
             Blockchain.ETHEREUM -> "${openseaUrl}/asset/${itemId.token}/${itemId.tokenId.value}/"
             Blockchain.POLYGON -> "${openseaUrl}/metadata/matic/${itemId.token}/${itemId.tokenId.value}"
             Blockchain.OPTIMISM -> "${openseaUrl}/metadata/optimism/${itemId.token}/${itemId.tokenId.value}"
+            Blockchain.MANTLE -> throw IllegalStateException("OpenSea is not supported for ${properties.blockchain}")
         }
     }
 
@@ -107,7 +108,8 @@ class DefaultOpenSeaImageUrlParser(
         return when (blockchain) {
             Blockchain.ETHEREUM -> node.getText("image_original_url") ?: node.getText("image_url")
             Blockchain.POLYGON,
-            Blockchain.OPTIMISM -> node.getText("image")
+            Blockchain.OPTIMISM,
+            Blockchain.MANTLE -> node.getText("image")
         }
     }
 }

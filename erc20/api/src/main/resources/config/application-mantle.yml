@@ -1,0 +1,4 @@
+api:
+  blockchain: mantle
+common:
+  blockchain: mantle

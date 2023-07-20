@@ -1,0 +1,152 @@
+global:
+  blockchain: mantle
+  network: mainnet
+
+mantle-erc20-api:
+  image:
+    repository: ethereum-indexer-erc20-api
+  replicas: 2
+  service:
+    enabled: true
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  updateConfig:
+    order: start-first
+
+mantle-erc20-listener:
+  image:
+    repository: ethereum-indexer-erc20-listener
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+
+mantle-erc20-migration:
+  image:
+    repository: ethereum-indexer-erc20-migration
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180
+  restartPolicy:
+    condition: on-failure
+
+mantle-order-api:
+  image:
+    repository: ethereum-indexer-order-api
+  replicas: 2
+  service:
+    enabled: true
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180
+  updateConfig:
+    order: start-first
+
+mantle-order-listener:
+  image:
+    repository: ethereum-indexer-order-listener
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180
+
+mantle-order-migration:
+  image:
+    repository: ethereum-indexer-order-migration
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180
+  restartPolicy:
+    condition: on-failure
+
+mantle-nft-api:
+  image:
+    repository: ethereum-indexer-nft-api
+  replicas: 2
+  service:
+    enabled: true
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  resources:
+    jvm:
+      xmx_megabytes: 456
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180
+  updateConfig:
+    order: start-first
+
+mantle-nft-listener:
+  image:
+    repository: ethereum-indexer-nft-listener
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180
+
+mantle-nft-migration:
+  image:
+    repository: ethereum-indexer-nft-migration
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180
+  restartPolicy:
+    condition: on-failure

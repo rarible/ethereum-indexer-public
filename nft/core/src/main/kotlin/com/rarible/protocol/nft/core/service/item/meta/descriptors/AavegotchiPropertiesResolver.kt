@@ -43,7 +43,9 @@ class AavegotchiOpenSeaImageUrlParser(
         return when (blockchain) {
             // Original URL in Aavegotchi is broken, using image cached by OpenSea
             Blockchain.ETHEREUM -> node.getText("image_url")
-            Blockchain.POLYGON, Blockchain.OPTIMISM -> node.getText("image")
+            Blockchain.POLYGON,
+            Blockchain.OPTIMISM,
+            Blockchain.MANTLE -> node.getText("image")
         }
     }
 }
