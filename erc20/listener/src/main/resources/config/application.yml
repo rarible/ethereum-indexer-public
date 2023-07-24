@@ -28,7 +28,7 @@ rarible:
   core:
     apm:
       agent:
-        enabled: true
+        enabled: false
         server: http://elk_apm-server:8200
         packages: org.rarible.ethereum.erc20.api
   blockchain:
