@@ -137,7 +137,8 @@ class ForeignOrderMetrics(
                     val latestCreatedAt = latestOrderCratedAt[platform]?.get() ?: return null
                     return (Instant.now().epochSecond - latestCreatedAt.epochSecond).toDouble()
                 }
-                Gauge.builder(FOREIGN_ORDER_DOWNLOAD_DELAY_LATEST) { getLatestOrder() }
+                Gauge
+                    .builder(FOREIGN_ORDER_DOWNLOAD_DELAY_LATEST) { getLatestOrder() }
                     .tags(
                         listOf(
                             tag(blockchain),
@@ -145,6 +146,7 @@ class ForeignOrderMetrics(
                             type("order")
                         )
                     )
+                    .register(meterRegistry)
             }
     }
 
