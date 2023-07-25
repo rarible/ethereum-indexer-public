@@ -1,2 +1,4 @@
 common:
   blockchain: mantle
+  featureFlags:
+    sudoswapEnabled: false
