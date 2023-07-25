@@ -28,8 +28,8 @@ common:
     scanner-version: V2
 listener:
   seaport-load:
-    enabled: false
-    save-enabled: false
+    enabled: true
+    save-enabled: true
 rarible:
   seaport:
     network: mumbai
