@@ -9,4 +9,3 @@ fun createPart(): Part {
         value = ThreadLocalRandom.current().nextInt(1, 10000)
     )
 }
-

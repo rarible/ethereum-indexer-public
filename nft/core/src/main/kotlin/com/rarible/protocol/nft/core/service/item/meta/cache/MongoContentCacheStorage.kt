@@ -28,5 +28,4 @@ class MongoContentCacheStorage(
         val criteria = Criteria("_id").isEqualTo(url)
         template.remove(Query(criteria), collection).awaitFirstOrNull()
     }
-
 }

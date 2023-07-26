@@ -15,7 +15,6 @@ import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 import java.math.BigDecimal
 
-
 @TestConfiguration
 class TestPropertiesConfiguration {
     @Bean

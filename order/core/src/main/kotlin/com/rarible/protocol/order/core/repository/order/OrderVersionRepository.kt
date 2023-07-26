@@ -23,7 +23,14 @@ import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.UpdateDefinition
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono

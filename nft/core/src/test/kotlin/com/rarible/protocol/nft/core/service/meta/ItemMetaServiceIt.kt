@@ -58,5 +58,4 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
             itemMetaService.getMeta(itemId)
         }
     }
-
 }

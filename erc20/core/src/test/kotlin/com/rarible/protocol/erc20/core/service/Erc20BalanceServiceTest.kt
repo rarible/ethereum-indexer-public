@@ -47,7 +47,7 @@ class Erc20BalanceServiceTest {
                     null,
                     null,
                     null,
-                    //Call ERC20 balance method
+                    // Call ERC20 balance method
                     Binary.apply("0x70a08231000000000000000000000000${balanceId.owner.hex()}"),
                     null
                 )
@@ -90,7 +90,7 @@ class Erc20BalanceServiceTest {
                     null,
                     null,
                     null,
-                    //Call ERC20 balance method
+                    // Call ERC20 balance method
                     Binary.apply("0x70a08231000000000000000000000000${balanceId.owner.hex()}"),
                     null
                 )

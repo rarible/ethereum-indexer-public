@@ -34,7 +34,7 @@ interface PoolCurve {
         numItems: Int,
         feeMultiplier: BigInteger = BigInteger.ZERO,
         protocolFeeMultiplier: BigInteger = BigInteger.ZERO
-    ): List<SudoSwapPurchaseValue>  {
+    ): List<SudoSwapPurchaseValue> {
         val values = mutableListOf<SudoSwapPurchaseValue>()
         var lastPurchaseValue = SudoSwapPurchaseValue(
             newSpotPrice = spotPrice,

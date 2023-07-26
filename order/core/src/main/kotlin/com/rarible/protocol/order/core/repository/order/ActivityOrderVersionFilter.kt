@@ -127,7 +127,7 @@ sealed class UserActivityOrderVersionFilter(users: List<Address>) : ActivityOrde
     ) : UserActivityOrderVersionFilter(users) {
 
         override fun getCriteria(): Criteria {
-            return AllBid(activitySort,null).getCriteria()
+            return AllBid(activitySort, null).getCriteria()
                 .andOperator(makerCriteria)
                 .dateBoundary(activitySort, continuation, from, to)
                 .scrollTo(activitySort, continuation)
@@ -143,7 +143,7 @@ sealed class UserActivityOrderVersionFilter(users: List<Address>) : ActivityOrde
     ) : UserActivityOrderVersionFilter(users) {
 
         override fun getCriteria(): Criteria {
-            return AllList(activitySort,null).getCriteria()
+            return AllList(activitySort, null).getCriteria()
                 .andOperator(makerCriteria)
                 .dateBoundary(activitySort, continuation, from, to)
                 .scrollTo(activitySort, continuation)
@@ -158,7 +158,7 @@ sealed class CollectionActivityOrderVersionFilter : ActivityOrderVersionFilter()
 
         override fun getCriteria(): Criteria {
             val makeNftContractCriteria = makeNftContractKey isEqualTo contract
-            return AllList(activitySort,null).getCriteria()
+            return AllList(activitySort, null).getCriteria()
                 .andOperator(makeNftContractCriteria)
                 .scrollTo(activitySort, continuation)
         }
@@ -169,7 +169,7 @@ sealed class CollectionActivityOrderVersionFilter : ActivityOrderVersionFilter()
 
         override fun getCriteria(): Criteria {
             val takeNftContractCriteria = takeNftContractKey isEqualTo contract
-            return AllBid(activitySort,null).getCriteria()
+            return AllBid(activitySort, null).getCriteria()
                 .andOperator(takeNftContractCriteria)
                 .scrollTo(activitySort, continuation)
         }

@@ -423,7 +423,7 @@ class ZeroExOrderEventConverterTest {
 
         fun erc1155Asset(amount: BigInteger) = Asset(
             type = Erc1155AssetType(
-                //https://opensea.io/assets/matic/0x22d5f9b75c524fec1d6619787e582644cd4d7422/209
+                // https://opensea.io/assets/matic/0x22d5f9b75c524fec1d6619787e582644cd4d7422/209
                 token = Address.apply("0x22d5f9b75c524fec1d6619787e582644cd4d7422"),
                 tokenId = EthUInt256.of("0x00000000000000000000000000000000000000000000000000000000000000d1")
             ),

@@ -10,7 +10,7 @@ import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
 @Component
-object OpenSeaV1DataV1DtoConverter: Converter<OrderOpenSeaV1DataV1, OrderOpenSeaV1DataV1Dto> {
+object OpenSeaV1DataV1DtoConverter : Converter<OrderOpenSeaV1DataV1, OrderOpenSeaV1DataV1Dto> {
     override fun convert(source: OrderOpenSeaV1DataV1): OrderOpenSeaV1DataV1Dto {
         return OrderOpenSeaV1DataV1Dto(
             exchange = source.exchange,

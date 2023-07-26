@@ -13,5 +13,4 @@ object MetaStatusConverter {
             MetaException.Status.UnparseableJson -> EthMetaStatusDto.UNPARSEABLE_JSON
         }
     }
-
 }

@@ -10,7 +10,7 @@ class SeaportOrdersFetchWorker(
     private val handler: SeaportOrderLoadHandler,
     properties: SeaportLoadProperties,
     meterRegistry: MeterRegistry,
-): SequentialDaemonWorker(
+) : SequentialDaemonWorker(
     meterRegistry = meterRegistry,
     properties = DaemonWorkerProperties().copy(
         pollingPeriod = properties.pollingPeriod,

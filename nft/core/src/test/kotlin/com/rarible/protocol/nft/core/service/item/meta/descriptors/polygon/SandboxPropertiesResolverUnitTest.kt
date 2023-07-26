@@ -37,5 +37,4 @@ internal class SandboxPropertiesResolverUnitTest {
             "https://api.sandbox.game/lands/cb61dd01-f82a-4081-a3dd-8a9d22360ecb/preview"
         )
     }
-
 }

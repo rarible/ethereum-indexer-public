@@ -7,4 +7,3 @@ data class SudoSwapNftWithdrawDetail(
     val collection: Address,
     val nft: List<BigInteger>
 )
-

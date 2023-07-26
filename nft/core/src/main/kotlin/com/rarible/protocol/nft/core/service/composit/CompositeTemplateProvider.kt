@@ -1,7 +1,8 @@
 package com.rarible.protocol.nft.core.service.composit
 
 import com.rarible.core.entity.reducer.service.EntityTemplateProvider
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.CompositeEntity
+import com.rarible.protocol.nft.core.model.ItemId
 import org.springframework.stereotype.Component
 
 @Component

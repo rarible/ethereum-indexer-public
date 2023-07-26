@@ -16,4 +16,3 @@ object Erc20BalanceDtoConverter {
         )
     }
 }
-

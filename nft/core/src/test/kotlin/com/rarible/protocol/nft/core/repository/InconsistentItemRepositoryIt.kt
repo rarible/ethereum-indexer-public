@@ -6,10 +6,8 @@ import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItemContinuation
 import com.rarible.protocol.nft.core.model.InconsistentItemContinuation.Companion.fromInconsistentItem
-import com.rarible.protocol.nft.core.model.InconsistentItemFilter
 import com.rarible.protocol.nft.core.model.InconsistentItemFilterAll
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
-import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.inconsistentitem.InconsistentItemFilterCriteria.toCriteria
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -121,7 +119,6 @@ class InconsistentItemRepositoryIt : AbstractIntegrationTest() {
             totalResult.addAll(result)
             continuation = result.lastOrNull()?.fromInconsistentItem()
         } while (result.isNotEmpty())
-
 
         // then
         assertThat(totalResult).containsExactly(n1, n2, n3, n4)

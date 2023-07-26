@@ -185,5 +185,4 @@ internal class SudoSwapNftTransferDetectorTest {
         val tokenIds = detector.detectNftTransfers(outNft, collectionAddress)
         assertThat(tokenIds).containsExactly(BigInteger.valueOf(2))
     }
-
 }

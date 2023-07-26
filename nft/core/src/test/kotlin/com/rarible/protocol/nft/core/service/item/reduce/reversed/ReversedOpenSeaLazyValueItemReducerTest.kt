@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomEthereumLog
 import com.rarible.protocol.nft.core.data.createRandomItem
 import com.rarible.protocol.nft.core.data.createRandomOpenSeaLazyItemMintEvent
-import com.rarible.protocol.nft.core.data.createRandomTransferItemEvent
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test

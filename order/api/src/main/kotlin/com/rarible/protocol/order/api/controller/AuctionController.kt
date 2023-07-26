@@ -1,7 +1,13 @@
 package com.rarible.protocol.order.api.controller
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.AuctionBidsPaginationDto
+import com.rarible.protocol.dto.AuctionDto
+import com.rarible.protocol.dto.AuctionIdsDto
+import com.rarible.protocol.dto.AuctionSortDto
+import com.rarible.protocol.dto.AuctionStatusDto
+import com.rarible.protocol.dto.AuctionsPaginationDto
+import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.dto.parser.BigIntegerParser
 import com.rarible.protocol.dto.parser.HashParser

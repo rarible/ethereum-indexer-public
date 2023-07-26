@@ -7,4 +7,3 @@ import java.math.BigInteger
 fun BigInteger.toWord(): Word = Word(Uint256Type.encode(this).bytes())
 
 fun zeroWord(): Word = Word(ByteArray(32))
-

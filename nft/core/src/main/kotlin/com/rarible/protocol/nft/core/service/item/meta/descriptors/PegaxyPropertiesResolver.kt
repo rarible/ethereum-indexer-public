@@ -55,5 +55,4 @@ class PegaxyPropertiesResolver(
     companion object {
         val PEGAXY_ADDRESS = Address.apply("0xd50d167dd35d256e19e2fb76d6b9bf9f4c571a3e")
     }
-
 }

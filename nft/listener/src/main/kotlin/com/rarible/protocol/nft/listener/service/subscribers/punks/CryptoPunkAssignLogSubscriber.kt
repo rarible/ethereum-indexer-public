@@ -7,5 +7,5 @@ import com.rarible.protocol.nft.listener.service.subscribers.AbstractItemLogEven
 import org.springframework.stereotype.Component
 
 @Component
-class CryptoPunkAssignLogSubscriber(descriptor: CryptoPunkAssignLogDescriptor)
-    : AbstractItemLogEventSubscriber<ItemTransfer>(SubscriberGroups.ITEM_HISTORY, descriptor)
+class CryptoPunkAssignLogSubscriber(descriptor: CryptoPunkAssignLogDescriptor) :
+    AbstractItemLogEventSubscriber<ItemTransfer>(SubscriberGroups.ITEM_HISTORY, descriptor)

@@ -11,5 +11,4 @@ class WebFluxConfiguration : WebFluxConfigurer {
     override fun addFormatters(registry: FormatterRegistry) {
         registry.addFormatter(InstantFormatter())
     }
-
 }

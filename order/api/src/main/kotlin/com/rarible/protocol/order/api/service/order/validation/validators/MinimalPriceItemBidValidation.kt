@@ -50,7 +50,7 @@ class MinimalPriceItemBidValidation(
         logger.info("Get floor usd price $floorPriceUsd for collection $token")
         if (floorPriceUsd == null) {
             validateMinimumPrice(takePriceUsd)
-        } else if (floorPriceUsd >= takePriceUsd)  {
+        } else if (floorPriceUsd >= takePriceUsd) {
             validateWithFloorPrice(token, takePriceUsd, floorPriceUsd)
         }
     }

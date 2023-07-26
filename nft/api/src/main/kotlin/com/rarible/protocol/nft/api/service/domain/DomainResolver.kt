@@ -10,7 +10,3 @@ interface DomainResolver {
 
     suspend fun resolve(name: String): DomainResolveResult
 }
-
-
-
-

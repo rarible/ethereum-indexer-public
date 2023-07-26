@@ -54,6 +54,5 @@ class AuctionOngoingUpdateJobTest {
         coVerify(exactly = 1) {
             auctionStateService.onAuctionOngoingStateUpdated(started, AuctionOffchainHistory.Type.STARTED, any())
         }
-
     }
 }

@@ -22,5 +22,3 @@ object SeaportDataV1DtoConverter {
         }
     }
 }
-
-

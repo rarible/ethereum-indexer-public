@@ -311,7 +311,6 @@ class PrepareTxService(
         )
     }
 
-
     fun prepareCancelTxForOpenSeaV1(order: Order): PreparedTx {
         val data = order.data as OrderOpenSeaV1DataV1
         val signature = order.signature?.toSignatureData() ?: EMPTY_SIGNATURE

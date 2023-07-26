@@ -32,5 +32,4 @@ class ItemEventDtoConverterTest {
         assertThat(timeMarks.marks[2].name).isEqualTo("indexer-out_nft")
         assertThat(timeMarks.marks[2].date).isCloseTo(nowMillis(), timeDelta)
     }
-
 }

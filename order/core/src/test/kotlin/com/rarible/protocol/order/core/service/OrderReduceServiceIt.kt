@@ -563,7 +563,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(result.status).isEqualTo(OrderStatus.ACTIVE)
         assertThat(result.make.value).isEqualTo(EthUInt256.ONE)
         assertThat(result.makeStock).isEqualTo(EthUInt256.of(onChainAmmOrder.tokenIds.size))
-        //With liner curve price should be 'spotPrice + delta' (all fee are zero)
+        // With liner curve price should be 'spotPrice + delta' (all fee are zero)
         assertThat(result.makePrice).isEqualTo(BigDecimal("4.000000000000000000"))
     }
 

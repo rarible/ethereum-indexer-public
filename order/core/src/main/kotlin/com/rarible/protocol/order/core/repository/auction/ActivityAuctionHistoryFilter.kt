@@ -6,11 +6,25 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.continuation.DateIdContinuation
 import com.rarible.protocol.order.core.continuation.PriceIdContinuation
 import com.rarible.protocol.order.core.misc.safeQueryParam
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Auction
+import com.rarible.protocol.order.core.model.AuctionActivitySort
+import com.rarible.protocol.order.core.model.AuctionCancelled
+import com.rarible.protocol.order.core.model.AuctionFinished
+import com.rarible.protocol.order.core.model.AuctionHistory
+import com.rarible.protocol.order.core.model.AuctionHistoryType
+import com.rarible.protocol.order.core.model.BidPlaced
+import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.OnChainAuction
 import io.daonomic.rpc.domain.Word
 import org.bson.Document
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 import java.time.Instant
 
@@ -100,8 +114,9 @@ sealed class ActivityAuctionHistoryFilter {
             }
         }
 
-    class AllSync(private val continuation: String?,
-                  override val auctionActivitySort: AuctionActivitySort
+    class AllSync(
+        private val continuation: String?,
+        override val auctionActivitySort: AuctionActivitySort
     ) : ActivityAuctionHistoryFilter() {
         override fun getCriteria(): Criteria {
             return Criteria()
@@ -262,7 +277,6 @@ sealed class AuctionByItem(
         sort: AuctionActivitySort
     ) : AuctionByItem(token, tokenId, AuctionHistoryType.AUCTION_FINISHED, continuation, sort)
 }
-
 
 sealed class AuctionByCollection(
     protected val token: Address,

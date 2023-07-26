@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component
 
 @Component
 @ReadingConverter
-object BalanceIdReadingConverter: Converter<String, BalanceId> {
+object BalanceIdReadingConverter : Converter<String, BalanceId> {
     override fun convert(source: String): BalanceId = BalanceId.parseId(source)
 }

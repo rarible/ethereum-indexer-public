@@ -21,5 +21,5 @@ class BluechipTokenResolver(
 
     private data class Bluechip(
         val topCollections: Set<String>
-   )
+    )
 }

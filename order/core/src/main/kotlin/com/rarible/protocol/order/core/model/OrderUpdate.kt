@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.model
 
 import java.math.BigDecimal
-import java.util.*
+import java.util.Date
 
 data class OrderUpdate(
     val makeValue: BigDecimal,

@@ -7,4 +7,3 @@ enum class ActivitySort {
     SYNC_LATEST_FIRST,
     BY_ID;
 }
-

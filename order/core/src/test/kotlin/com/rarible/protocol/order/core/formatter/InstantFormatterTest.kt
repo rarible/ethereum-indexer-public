@@ -3,7 +3,7 @@ package com.rarible.protocol.order.core.formatter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.ZoneOffset
-import java.util.*
+import java.util.Locale
 
 internal class InstantFormatterTest {
 
@@ -40,5 +40,4 @@ internal class InstantFormatterTest {
         assertEquals(date1, date4)
         assertEquals(date1, date5)
     }
-
 }

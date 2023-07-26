@@ -5,7 +5,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
-abstract class AbstractEthereumEventHandler<E,M>(
+abstract class AbstractEthereumEventHandler<E, M>(
     private val properties: OrderIndexerProperties.EthereumEventHandleProperties,
 ) {
     suspend fun handle(events: List<E>) {

@@ -65,9 +65,6 @@ internal class OrderSideMatchTest {
         )
     }
 
-
-
-
     @Test
     fun `get real taker - from transaction`() {
         val expectedTaker = randomAddress()

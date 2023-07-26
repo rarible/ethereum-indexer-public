@@ -3,7 +3,11 @@ package com.rarible.protocol.order.core.service.asset
 import com.rarible.core.contract.model.ContractType
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
 import org.springframework.stereotype.Service
 import scalether.domain.Address
 

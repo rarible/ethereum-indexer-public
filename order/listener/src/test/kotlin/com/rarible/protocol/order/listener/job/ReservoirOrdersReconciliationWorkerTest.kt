@@ -4,6 +4,7 @@ import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
+import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.ReservoirAsksEventFetchState
@@ -98,7 +99,12 @@ internal class ReservoirOrdersReconciliationWorkerTest {
         coEvery { orderRepository.findById(inconsistentOrderId) } returns randomOrder().copy(
             platform = Platform.X2Y2
         )
-        coEvery { orderCancelService.cancelOrder(id = eq(inconsistentOrderId), eventTimeMarksDto = any()) } returns Unit
+        coEvery {
+            orderCancelService.cancelOrder(
+                id = eq(inconsistentOrderId),
+                eventTimeMarksDto = any()
+            )
+        } returns createSellOrder()
         coEvery { foreignOrderMetrics.onOrderInconsistency(platform = Platform.X2Y2, status = "CANCELED") } returns Unit
         coEvery { aggregatorStateRepository.save(ReservoirAsksEventFetchState(cursor = cursor2)) } returns Unit
         val timer = mockk<Timer>()

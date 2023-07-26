@@ -23,7 +23,6 @@ import com.rarible.protocol.order.listener.service.converter.AbstractEventConver
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.stereotype.Component
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction

@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.validator
 
 import com.rarible.protocol.order.core.data.createOrderX2Y2DataV1
+import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.model.Platform
@@ -44,7 +45,12 @@ internal class CheckingOrderStateValidatorTest {
             data = createOrderX2Y2DataV1()
         )
         coEvery { orderStateCheckService.isActiveOrder(order) } returns false
-        coEvery { orderCancelService.cancelOrder(id = eq(order.hash), eventTimeMarksDto = any()) } returns Unit
+        coEvery {
+            orderCancelService.cancelOrder(
+                id = eq(order.hash),
+                eventTimeMarksDto = any()
+            )
+        } returns createSellOrder()
 
         assertThatExceptionOfType(OrderDataException::class.java).isThrownBy {
             runBlocking {

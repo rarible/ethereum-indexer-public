@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
-import java.util.*
+import java.util.Date
 
 @CaptureSpan(type = SpanType.DB)
 @Component
@@ -91,7 +91,7 @@ class ExchangeHistoryRepository(
     }
 
     fun find(query: Query): Flow<ReversedEthereumLogRecord> {
-        return template.find(query,ReversedEthereumLogRecord::class.java, COLLECTION).asFlow()
+        return template.find(query, ReversedEthereumLogRecord::class.java, COLLECTION).asFlow()
     }
 
     fun findById(id: ObjectId): Mono<ReversedEthereumLogRecord> {
@@ -261,7 +261,7 @@ class ExchangeHistoryRepository(
         endDate: Date
     ): Flux<AggregatedData> {
         val match = Aggregation.match(
-            (ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / AssetType::nft  isEqualTo true)
+            (ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / AssetType::nft isEqualTo true)
                 .and(ReversedEthereumLogRecord::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
                 .and(ReversedEthereumLogRecord::data / OrderExchangeHistory::date).gt(startDate).lt(endDate)
                 .and(ReversedEthereumLogRecord::status).inValues(EthereumBlockStatus.PENDING, EthereumBlockStatus.CONFIRMED)

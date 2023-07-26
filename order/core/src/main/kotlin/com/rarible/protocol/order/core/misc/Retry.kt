@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.misc
 
 import kotlinx.coroutines.time.delay
-import java.lang.RuntimeException
 import java.time.Duration
 
 object Retry {

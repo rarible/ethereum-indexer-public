@@ -16,7 +16,9 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)

@@ -45,10 +45,10 @@ class CryptoPunkAssetMakeStockService(
         val seller = sellTuple._3()
         val minValue = sellTuple._4()
         val onlySellTo = sellTuple._5()
-        if (isForSale
-            && owner == seller
-            && minValue == BigInteger.ZERO
-            && onlySellTo == orderIndexerProperties.transferProxyAddresses.cryptoPunksTransferProxy
+        if (isForSale &&
+            owner == seller &&
+            minValue == BigInteger.ZERO &&
+            onlySellTo == orderIndexerProperties.transferProxyAddresses.cryptoPunksTransferProxy
         ) {
             return EthUInt256.ONE
         }

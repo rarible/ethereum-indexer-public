@@ -15,6 +15,6 @@ class TestLauncher(
 
     override fun run(vararg args: String?) {
         logger.info("Test context started, launching test consumers")
-        itemWorker.start();
+        itemWorker.start()
     }
 }

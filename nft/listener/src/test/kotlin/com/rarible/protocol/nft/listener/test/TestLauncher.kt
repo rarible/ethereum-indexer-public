@@ -25,8 +25,8 @@ class TestLauncher(
 
     override fun run(vararg args: String?) = runBlocking<Unit> {
         logger.info("Test context started, launching test consumers")
-        activityWorker.start();
-        collectionWorker.start();
+        activityWorker.start()
+        collectionWorker.start()
 
         // Only for initial case, otherwise we don't need it
         val currentBlock = blockRepository.getLastBlock()

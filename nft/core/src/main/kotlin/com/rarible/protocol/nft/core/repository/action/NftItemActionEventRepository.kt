@@ -92,4 +92,3 @@ class NftItemActionEventRepository(
         val LOG_SORT_ASC: Sort = Sort.by(DATA_TOKEN, DATA_TOKEN_ID, "_id")
     }
 }
-

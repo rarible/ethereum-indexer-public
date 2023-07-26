@@ -23,5 +23,4 @@ class Erc20BalanceFullReduceService(
     override fun isChanged(current: Erc20Balance?, result: Erc20Balance?): Boolean {
         return current?.balance != result?.balance
     }
-
 }

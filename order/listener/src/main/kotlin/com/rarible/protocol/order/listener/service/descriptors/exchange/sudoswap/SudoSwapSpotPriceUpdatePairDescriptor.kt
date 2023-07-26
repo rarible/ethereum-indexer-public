@@ -8,10 +8,10 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolSpotPriceUpdate
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import java.time.Instant
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -19,7 +19,7 @@ import scalether.domain.response.Transaction
 class SudoSwapSpotPriceUpdatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapUpdateSpotPriceEventCounter: RegisteredCounter
-): PoolSubscriber<PoolSpotPriceUpdate>(
+) : PoolSubscriber<PoolSpotPriceUpdate>(
     name = "sudo_spot_price_update",
     topic = SpotPriceUpdateEvent.id(),
     contracts = emptyList()
@@ -33,6 +33,6 @@ class SudoSwapSpotPriceUpdatePairDescriptor(
                 date = timestamp,
                 source = HistorySource.SUDOSWAP
             )
-        ) .also { sudoSwapUpdateSpotPriceEventCounter.increment() }
+        ).also { sudoSwapUpdateSpotPriceEventCounter.increment() }
     }
 }

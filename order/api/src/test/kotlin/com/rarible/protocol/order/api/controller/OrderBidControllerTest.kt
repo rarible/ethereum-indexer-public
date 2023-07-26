@@ -24,7 +24,7 @@ internal class OrderBidControllerTest {
     private lateinit var restTemplate: RestTemplate
 
     @Test
-    @Disabled //TODO: Fix me
+    @Disabled // TODO: Fix me
     fun `test query dates parsed`() {
         val response = queryBids("2021-06-29T10:00:00Z", "Tue Jun 29 11:00:00 GMT 2021")
         assertEquals(200, response.statusCodeValue)
@@ -46,10 +46,10 @@ internal class OrderBidControllerTest {
     private fun queryBids(dateFrom: String, dateTo: String): ResponseEntity<String> {
         val tokenId = BigInteger.valueOf(RandomUtils.nextLong(1000, 10000))
         val contract = AddressFactory.create()
-        val baseUrl = "http://localhost:${port}/v0.1/bids/byItem?"
-        val queryUrl = "${baseUrl}tokenId=${tokenId}&contract=${contract}&status=ACTIVE" +
-                "&startDate=${dateFrom}" +
-                "&endDate=${dateTo}"
+        val baseUrl = "http://localhost:$port/v0.1/bids/byItem?"
+        val queryUrl = "${baseUrl}tokenId=$tokenId&contract=$contract&status=ACTIVE" +
+                "&startDate=$dateFrom" +
+                "&endDate=$dateTo"
 
         return restTemplate.getForEntity(queryUrl, String::class.java)
     }

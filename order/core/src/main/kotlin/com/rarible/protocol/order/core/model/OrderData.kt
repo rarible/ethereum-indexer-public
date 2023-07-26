@@ -378,6 +378,5 @@ fun OrderData.getOriginFees(): List<Part>? {
         is OrderLooksrareDataV1,
         is OrderLooksrareDataV2,
         is OrderSudoSwapAmmDataV1 -> null
-
     }
 }

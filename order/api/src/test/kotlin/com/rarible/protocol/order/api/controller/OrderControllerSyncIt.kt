@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @IntegrationTest
-class OrderControllerSyncIt  : AbstractIntegrationTest() {
+class OrderControllerSyncIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var controller: OrderController
@@ -25,7 +25,7 @@ class OrderControllerSyncIt  : AbstractIntegrationTest() {
             orderRepository.save(randomOrder())
         }
 
-        var continuation : String? = null
+        var continuation: String? = null
         var pageCounter = 0
         val receivedOrders = mutableListOf<OrderDto>()
 
@@ -36,9 +36,9 @@ class OrderControllerSyncIt  : AbstractIntegrationTest() {
             pageCounter += 1
         } while (continuation != null)
 
-        assertThat(pageCounter).isEqualTo(ordersQuantity/ordersChunk + 1)
+        assertThat(pageCounter).isEqualTo(ordersQuantity / ordersChunk + 1)
         assertThat(receivedOrders).hasSize(ordersQuantity)
-        assertThat(receivedOrders).isSortedAccordingTo{ o1, o2 -> o2.dbUpdatedAt!!.compareTo(o1.dbUpdatedAt) }
+        assertThat(receivedOrders).isSortedAccordingTo { o1, o2 -> o2.dbUpdatedAt!!.compareTo(o1.dbUpdatedAt) }
     }
 
     @Test
@@ -50,7 +50,7 @@ class OrderControllerSyncIt  : AbstractIntegrationTest() {
             orderRepository.save(randomOrder())
         }
 
-        var continuation : String? = null
+        var continuation: String? = null
         var pageCounter = 0
         val receivedOrders = mutableListOf<OrderDto>()
 
@@ -61,9 +61,8 @@ class OrderControllerSyncIt  : AbstractIntegrationTest() {
             pageCounter += 1
         } while (continuation != null)
 
-        assertThat(pageCounter).isEqualTo(ordersQuantity/ordersChunk + 1)
+        assertThat(pageCounter).isEqualTo(ordersQuantity / ordersChunk + 1)
         assertThat(receivedOrders).hasSize(ordersQuantity)
-        assertThat(receivedOrders).isSortedAccordingTo{ o1, o2 -> o1.dbUpdatedAt!!.compareTo(o2.dbUpdatedAt) }
+        assertThat(receivedOrders).isSortedAccordingTo { o1, o2 -> o1.dbUpdatedAt!!.compareTo(o2.dbUpdatedAt) }
     }
-
 }

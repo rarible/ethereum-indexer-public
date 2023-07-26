@@ -475,7 +475,6 @@ class OrderTest {
             .isEqualTo(EthUInt256.of(25))
     }
 
-
     @ParameterizedTest
     @MethodSource("optionalRoyaltiesByPlatform")
     fun `should get right flag for royalties`(platform: Platform, expectedValue: Boolean) {
@@ -497,6 +496,5 @@ class OrderTest {
             assertThat(order.withMakeFill(isMakeFill = false).id)
                 .isNotEqualTo(order.withMakeFill(isMakeFill = true).id)
         }
-
     }
 }

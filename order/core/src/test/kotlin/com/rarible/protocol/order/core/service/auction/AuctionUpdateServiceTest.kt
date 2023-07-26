@@ -57,8 +57,8 @@ class AuctionUpdateServiceTest {
 
         coVerify(exactly = 1) {
             auctionRepository.save(match {
-                it.version == 10L && it.ongoing // Version and 'ongoing was NOT changed'
-                        && it.endTime == auction.endTime // But other fields applied from received auction
+                it.version == 10L && it.ongoing && // Version and 'ongoing was NOT changed'
+                        it.endTime == auction.endTime // But other fields applied from received auction
             })
         }
         coVerify(exactly = 1) { auctionListener.onAuctionUpdate(auction.copy(version = 10, ongoing = true)) }
@@ -117,5 +117,4 @@ class AuctionUpdateServiceTest {
         coVerify(exactly = 1) { auctionRepository.remove(auction.hash) }
         coVerify(exactly = 1) { auctionListener.onAuctionDelete(auction) }
     }
-
 }

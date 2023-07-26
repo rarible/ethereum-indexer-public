@@ -7,7 +7,7 @@ import com.rarible.protocol.order.core.converters.dto.AuctionDtoConverter
 import com.rarible.protocol.order.core.model.Auction
 import com.rarible.protocol.order.core.producer.ProtocolAuctionPublisher
 import org.springframework.stereotype.Component
-import java.util.*
+import java.util.UUID
 
 @Component
 class AuctionListener(

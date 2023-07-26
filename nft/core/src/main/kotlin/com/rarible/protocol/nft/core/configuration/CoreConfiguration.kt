@@ -143,7 +143,7 @@ class CoreConfiguration(
         @Value("\${api.proxy-url:}") proxyUrl: String,
         @Value("\${api.properties.request-timeout}") apiRequestTimeout: Long
     ): ExternalHttpClient {
-        val followRedirect = true  // TODO Move to properties?
+        val followRedirect = true // TODO Move to properties?
 
         val defaultHeaders = HttpHeaders()
         defaultHeaders.set(HttpHeaders.USER_AGENT, "rarible-protocol")

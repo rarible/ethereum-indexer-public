@@ -21,7 +21,7 @@ class ExchangeV2CancelDeprecatedDescriptor(
     contractsProvider: ContractsProvider,
     private val orderRepository: OrderRepository,
     private val raribleCancelEventMetric: RegisteredCounter
-): ExchangeSubscriber<OrderCancel>(
+) : ExchangeSubscriber<OrderCancel>(
     name = "rari_v2_cancel_deprecated",
     topic = CancelEventDeprecated.id(),
     contracts = contractsProvider.raribleExchangeV2()

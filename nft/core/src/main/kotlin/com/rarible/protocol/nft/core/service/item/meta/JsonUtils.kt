@@ -45,7 +45,7 @@ fun ObjectNode.parseAttributes(milliTimestamps: Boolean = false): List<ItemAttri
     return emptyList()
 }
 
-fun ObjectNode.getAttribute(key: String) : ItemAttribute? {
+fun ObjectNode.getAttribute(key: String): ItemAttribute? {
     return this.getText(key)?.let { ItemAttribute(key, it) }
 }
 

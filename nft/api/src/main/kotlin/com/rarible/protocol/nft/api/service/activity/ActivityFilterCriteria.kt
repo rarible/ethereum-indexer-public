@@ -1,15 +1,15 @@
 package com.rarible.protocol.nft.api.service.activity
 
-//import com.rarible.core.model.type.EthUInt256
-//import com.rarible.protocol.dto.activity.ActivityContinuationDto
-//import com.rarible.protocol.nft.core.model.ItemType
-//import org.springframework.data.domain.Sort
-//import org.springframework.data.mongodb.core.query.Criteria
-//import org.springframework.data.mongodb.core.query.Query
-//import org.springframework.data.mongodb.core.query.isEqualTo
-//import scalether.domain.Address
+// import com.rarible.core.model.type.EthUInt256
+// import com.rarible.protocol.dto.activity.ActivityContinuationDto
+// import com.rarible.protocol.nft.core.model.ItemType
+// import org.springframework.data.domain.Sort
+// import org.springframework.data.mongodb.core.query.Criteria
+// import org.springframework.data.mongodb.core.query.Query
+// import org.springframework.data.mongodb.core.query.isEqualTo
+// import scalether.domain.Address
 //
-//object ActivityFilterCriteria {
+// object ActivityFilterCriteria {
 //    private const val DEFAULT_LIMIT = 50
 //
 //    private val sort = Sort.by(
@@ -72,4 +72,4 @@ package com.rarible.protocol.nft.api.service.activity
 //                    .and("id").lt(continuation.afterId)
 //            )
 //        }
-//}
+// }

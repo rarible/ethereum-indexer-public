@@ -77,14 +77,14 @@ class BalanceBatchCheckerHandler(
         blockBuffer.asIterable().take(maxOf(blockBuffer.size - props.confirms, 0)).forEach {
             val eventBlockNumber = it.key
             val events = blockBuffer.remove(eventBlockNumber)
-            logger.info("Start process ${events?.size} balances from ${eventBlockNumber} block [${blockBuffer.size} cached block]")
+            logger.info("Start process ${events?.size} balances from $eventBlockNumber block [${blockBuffer.size} cached block]")
             events?.forEach { (t, u) ->
                 val balanceId = BalanceId.parseId(t)
                 val blockChainBalance = getBalance(balanceId.token, balanceId.owner, eventBlockNumber)
                 checkerMetrics.onCheck()
                 if (u.value != blockChainBalance) {
                     checkerMetrics.onInvalid()
-                    logger.error("Balance is invalid: [id=${balanceId} balance=${u.value}(actual=${blockChainBalance}) block=${eventBlockNumber}")
+                    logger.error("Balance is invalid: [id=$balanceId balance=${u.value}(actual=$blockChainBalance) block=$eventBlockNumber")
                 }
             }
         }
@@ -138,5 +138,4 @@ class BalanceBatchCheckerHandler(
         // balance
         val value: BigInteger
     )
-
 }

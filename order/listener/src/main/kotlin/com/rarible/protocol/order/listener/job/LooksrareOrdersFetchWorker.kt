@@ -10,7 +10,7 @@ class LooksrareOrdersFetchWorker(
     private val handler: LooksrareOrderLoadHandler,
     properties: LooksrareLoadProperties,
     meterRegistry: MeterRegistry,
-): SequentialDaemonWorker(
+) : SequentialDaemonWorker(
     meterRegistry = meterRegistry,
     properties = DaemonWorkerProperties().copy(
         pollingPeriod = properties.pollingPeriod,

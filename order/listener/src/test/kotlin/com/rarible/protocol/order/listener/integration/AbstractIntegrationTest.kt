@@ -188,7 +188,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @BeforeEach
     fun cleanDatabase() = runBlocking<Unit> {
-        //TODO: previous tests (when running the whole package) might not have finished before the next test starts.
+        // TODO: previous tests (when running the whole package) might not have finished before the next test starts.
         // Such activities might insert the old order right after cleaning the database here.
         // We need a proper way of ending activities in the tests.
         delay(300)
@@ -245,7 +245,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         ).toMono()
 
         clearMocks(assetBalanceProvider)
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } coAnswers r@ {
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } coAnswers r@{
             val asset = secondArg<Asset>()
             if (asset.type is EthAssetType) {
                 return@r MakeBalanceState(asset.value)

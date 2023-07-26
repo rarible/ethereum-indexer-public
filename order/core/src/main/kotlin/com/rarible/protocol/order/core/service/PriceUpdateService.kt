@@ -145,7 +145,6 @@ class PriceUpdateService(
         }
     }
 
-
     private fun usdPrice(usdRate: BigDecimal, nftPart: BigDecimal, payingPart: BigDecimal): BigDecimal {
         if (nftPart.signum() == 0) {
             return BigDecimal.ZERO
@@ -162,7 +161,7 @@ class PriceUpdateService(
             Blockchain.ETHEREUM -> BlockchainDto.ETHEREUM
             Blockchain.POLYGON -> BlockchainDto.POLYGON
             Blockchain.OPTIMISM -> BlockchainDto.OPTIMISM
-            Blockchain.MANTLE -> BlockchainDto.POLYGON //TODO: Fix it
+            Blockchain.MANTLE -> BlockchainDto.POLYGON // TODO: Fix it
         }
     }
 }

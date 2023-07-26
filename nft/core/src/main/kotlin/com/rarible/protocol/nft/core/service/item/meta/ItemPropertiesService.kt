@@ -66,6 +66,6 @@ class ItemPropertiesService(
     }
 
     private fun ItemProperties.isFull(): Boolean =
-        this.name.isNotBlank()
-            && this.content.imageOriginal != null
+        this.name.isNotBlank() &&
+            this.content.imageOriginal != null
 }

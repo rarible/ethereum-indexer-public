@@ -222,7 +222,9 @@ class OrderSearchFt : AbstractIntegrationTest() {
     @ParameterizedTest
     @MethodSource("orders4All")
     fun `should find all orders by query`(
-        orders: List<Order>, order: Order, statuses: List<OrderStatusDto>?
+        orders: List<Order>,
+        order: Order,
+        statuses: List<OrderStatusDto>?
     ) = runBlocking<Unit> {
         saveOrder(*orders.shuffled().toTypedArray())
 
@@ -354,7 +356,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             null,
             null,
             PlatformDto.SUDOSWAP,
-            null, 1, null, randomAddress().prefixed() //other currency
+            null, 1, null, randomAddress().prefixed() // other currency
         ).awaitFirst()
 
         assertThat(result2.orders.size).isEqualTo(0)

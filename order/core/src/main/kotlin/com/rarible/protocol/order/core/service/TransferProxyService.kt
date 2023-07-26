@@ -1,7 +1,17 @@
 package com.rarible.protocol.order.core.service
 
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.AmmNftAssetType
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.CollectionAssetType
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

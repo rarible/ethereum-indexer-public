@@ -21,5 +21,4 @@ class LazyItemIpfsGatewayResolver(
         }
         return null
     }
-
 }

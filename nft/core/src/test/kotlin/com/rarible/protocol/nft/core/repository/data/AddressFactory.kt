@@ -8,4 +8,3 @@ fun createAddress(): Address {
     ThreadLocalRandom.current().nextBytes(bytes)
     return Address.apply(bytes)
 }
-

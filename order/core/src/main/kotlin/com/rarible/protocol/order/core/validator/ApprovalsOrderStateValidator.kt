@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.validator
 
+import com.rarible.core.logging.addToMdc
 import com.rarible.protocol.order.core.exception.ValidationApiException
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order
@@ -23,7 +24,12 @@ class ApprovalsOrderStateValidator(
         val approved = approveService.checkOnChainApprove(order.maker, order.make.type, order.platform)
         val correctAllowance = approveService.checkOnChainErc20Allowance(order.maker, order.make)
         if (!approved || !correctAllowance) {
-            logger.warn("Order validation error: hash=${order.hash}, approved=$approved, correctAllowance=$correctAllowance")
+            logger.warn(
+                "Order validation error: hash=${order.hash}, approved=$approved, correctAllowance=$correctAllowance"
+            )
+            addToMdc("orderType" to order.type.name) {
+                logger.info("Unexpected order cancellation: ${order.type}:${order.hash}")
+            }
             orderUpdateService.updateApproval(
                 order = order,
                 approved = false,

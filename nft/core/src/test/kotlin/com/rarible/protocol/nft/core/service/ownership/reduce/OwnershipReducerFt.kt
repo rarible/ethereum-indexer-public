@@ -2,7 +2,11 @@ package com.rarible.protocol.nft.core.service.ownership.reduce
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.data.*
+import com.rarible.protocol.nft.core.data.createRandomOwnership
+import com.rarible.protocol.nft.core.data.createRandomOwnershipId
+import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferFromEvent
+import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferToEvent
+import com.rarible.protocol.nft.core.data.withNewValues
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Ownership

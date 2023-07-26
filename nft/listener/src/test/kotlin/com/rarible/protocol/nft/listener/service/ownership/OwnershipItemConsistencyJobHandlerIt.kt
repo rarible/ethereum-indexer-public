@@ -182,7 +182,6 @@ class OwnershipItemConsistencyJobHandlerIt : AbstractIntegrationTest() {
         assertThat(unfixedCounter.count()).isEqualTo(unfixedBefore + 2)
     }
 
-
     private fun initHandler(offset: Duration = Duration.ofSeconds(30)) {
         handler = OwnershipItemConsistencyJobHandler(
             jobStateRepository,

@@ -5,10 +5,8 @@ import com.rarible.core.apm.SpanType
 import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItem.Companion.COLLECTION
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
-import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.InconsistentItemRepository.Indexes.ALL_INDEXES
-import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst

@@ -8,7 +8,6 @@ import com.rarible.protocol.nft.core.service.item.meta.properties.JsonOpenSeaCol
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService.Companion.logProperties
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
@@ -24,7 +23,7 @@ class OpenseaTokenPropertiesResolver(
     override suspend fun resolve(collectionId: Address): TokenProperties? {
         if (openseaUrl.isBlank()) return null
 
-        val url = "${openseaUrl}/asset_contract/${collectionId.prefixed()}"
+        val url = "$openseaUrl/asset_contract/${collectionId.prefixed()}"
         logProperties(collectionId, "OpenSea: getting Collection properties from $url")
 
         val rawProperties = externalHttpClient.getBody(url = url, id = collectionId.prefixed()) ?: return null

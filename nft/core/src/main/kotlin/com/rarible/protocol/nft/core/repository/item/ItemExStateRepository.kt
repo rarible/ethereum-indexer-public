@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.repository.item
 
-import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemExState
 import com.rarible.protocol.nft.core.model.ItemId
 import kotlinx.coroutines.flow.Flow
@@ -36,5 +35,4 @@ class ItemExStateRepository(
         const val ID_FILED = "_id"
         val SORT_ID_ASC: Sort = Sort.by(Sort.Order.asc(ID_FILED))
     }
-
 }

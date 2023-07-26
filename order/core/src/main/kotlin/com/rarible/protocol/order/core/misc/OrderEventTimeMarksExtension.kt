@@ -21,6 +21,3 @@ fun orderIntegrationEventMarks(date: Instant) = EventTimeMarks("integration").ad
 
 // Just for tests
 fun orderStubEventMarks() = EventTimeMarks("stub").add("source").addIndexerIn()
-
-
-

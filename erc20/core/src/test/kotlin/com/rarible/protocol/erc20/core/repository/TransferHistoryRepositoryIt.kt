@@ -251,4 +251,3 @@ class TransferHistoryRepositoryIt : AbstractIntegrationTest() {
             historyRepository.save(log).awaitFirst()
         }
 }
-

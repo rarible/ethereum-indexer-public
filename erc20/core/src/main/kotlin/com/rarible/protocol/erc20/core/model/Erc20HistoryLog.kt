@@ -32,4 +32,3 @@ data class Erc20TokenApprovalHistoryLog(
     override val log: ReversedEthereumLogRecord,
     override val history: Erc20TokenApproval
 ) : Erc20HistoryLog()
-

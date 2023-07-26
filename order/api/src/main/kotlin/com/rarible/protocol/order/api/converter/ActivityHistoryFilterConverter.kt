@@ -1,14 +1,23 @@
 package com.rarible.protocol.order.api.converter
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.dto.OrderActivityFilterAllDto.Types.*
+import com.rarible.protocol.dto.ActivityContinuationDto
+import com.rarible.protocol.dto.OrderActivityFilterAllDto
+import com.rarible.protocol.dto.OrderActivityFilterAllDto.Types.BID
+import com.rarible.protocol.dto.OrderActivityFilterAllDto.Types.CANCEL_BID
+import com.rarible.protocol.dto.OrderActivityFilterAllDto.Types.CANCEL_LIST
+import com.rarible.protocol.dto.OrderActivityFilterAllDto.Types.LIST
+import com.rarible.protocol.dto.OrderActivityFilterAllDto.Types.MATCH
+import com.rarible.protocol.dto.OrderActivityFilterByCollectionDto
+import com.rarible.protocol.dto.OrderActivityFilterByItemDto
+import com.rarible.protocol.dto.OrderActivityFilterByUserDto
+import com.rarible.protocol.dto.OrderActivityFilterDto
 import com.rarible.protocol.order.api.configuration.OrderIndexerApiProperties
+import com.rarible.protocol.order.core.model.ActivitySort
 import com.rarible.protocol.order.core.repository.exchange.ActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.repository.exchange.CollectionActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.repository.exchange.ItemActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.repository.exchange.UserActivityExchangeHistoryFilter
-import com.rarible.protocol.order.core.model.ActivitySort
 import org.springframework.stereotype.Component
 import java.time.Instant
 

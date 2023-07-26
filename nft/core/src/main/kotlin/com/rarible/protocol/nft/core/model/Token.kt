@@ -49,12 +49,12 @@ data class Token(
     }
 
     fun hasChanges(token: Token): Boolean {
-        return standard != token.standard
-                || name != token.name
-                || symbol != token.symbol
-                || features != token.features
-                || owner != token.owner
-                || scam != token.scam
+        return standard != token.standard ||
+                name != token.name ||
+                symbol != token.symbol ||
+                features != token.features ||
+                owner != token.owner ||
+                scam != token.scam
     }
 
     companion object {

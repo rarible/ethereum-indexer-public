@@ -60,7 +60,7 @@ class ParametersOrderValidatorTest {
     }
 
     @Test
-    fun `bid price validation`() = runBlocking<Unit>{
+    fun `bid price validation`() = runBlocking<Unit> {
         val order = createOrderVersion(make, take)
         assertThrows<OrderUpdateException> {
             validator.validate(

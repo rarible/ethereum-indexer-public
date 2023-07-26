@@ -7,7 +7,7 @@ import com.rarible.protocol.dto.PartDto
 import io.daonomic.rpc.domain.Binary
 import scalether.domain.AddressFactory
 import java.math.BigInteger
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.ThreadLocalRandom
 
 fun createLazyErc721Dto(): LazyErc721Dto {

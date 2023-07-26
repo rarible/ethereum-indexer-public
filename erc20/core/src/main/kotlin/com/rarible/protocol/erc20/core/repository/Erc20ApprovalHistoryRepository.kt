@@ -67,4 +67,3 @@ class Erc20ApprovalHistoryRepository(
             )
     }
 }
-

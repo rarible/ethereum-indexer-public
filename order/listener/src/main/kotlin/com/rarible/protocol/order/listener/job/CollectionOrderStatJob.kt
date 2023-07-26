@@ -66,5 +66,4 @@ class CollectionOrderStatJob(
             }.awaitAll()
         }
     }
-
 }

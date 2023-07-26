@@ -17,5 +17,4 @@ object MessageHelper {
         val hash = Hash.sha3(encoded.bytes())
         return Hex.to(hash)
     }
-
 }

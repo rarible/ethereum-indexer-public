@@ -10,10 +10,10 @@ import com.rarible.protocol.order.core.model.PoolNftDeposit
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import java.time.Instant
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -22,7 +22,7 @@ class SudoSwapDepositNftPairDescriptor(
     contractsProvider: ContractsProvider,
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapDepositNftEventCounter: RegisteredCounter
-): PoolSubscriber<PoolNftDeposit>(
+) : PoolSubscriber<PoolNftDeposit>(
     name = "sudo_nft_deposit",
     topic = NFTDepositEvent.id(),
     contracts = contractsProvider.pairFactoryV1()

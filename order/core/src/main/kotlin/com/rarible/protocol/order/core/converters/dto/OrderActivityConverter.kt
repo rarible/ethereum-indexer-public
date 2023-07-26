@@ -21,7 +21,13 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
-import com.rarible.protocol.order.core.model.Platform.*
+import com.rarible.protocol.order.core.model.Platform.BLUR
+import com.rarible.protocol.order.core.model.Platform.CRYPTO_PUNKS
+import com.rarible.protocol.order.core.model.Platform.LOOKSRARE
+import com.rarible.protocol.order.core.model.Platform.OPEN_SEA
+import com.rarible.protocol.order.core.model.Platform.RARIBLE
+import com.rarible.protocol.order.core.model.Platform.SUDOSWAP
+import com.rarible.protocol.order.core.model.Platform.X2Y2
 import com.rarible.protocol.order.core.model.PoolActivityResult
 import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.PoolNftChange
@@ -146,7 +152,7 @@ class OrderActivityConverter(
                     lastUpdatedAt = history.updatedAt
                 )
             } else if (data.taker != null) {
-                //TODO[punk]: Sell orders (as for CryptoPunks sell orders) which are dedicated to only a concrete address (via "offer for sale to address" method call)
+                // TODO[punk]: Sell orders (as for CryptoPunks sell orders) which are dedicated to only a concrete address (via "offer for sale to address" method call)
                 // are not supported by frontend, and thus the backend should not return them.
                 null
             } else {

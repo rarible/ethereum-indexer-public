@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.core.model
 
 import scalether.domain.Address
 
-sealed class TokenFilter  {
+sealed class TokenFilter {
     abstract val continuation: String?
     abstract val size: Int
 
@@ -15,6 +15,5 @@ sealed class TokenFilter  {
         val owner: Address,
         override val continuation: String?,
         override val size: Int
-   ) : TokenFilter()
+    ) : TokenFilter()
 }
-

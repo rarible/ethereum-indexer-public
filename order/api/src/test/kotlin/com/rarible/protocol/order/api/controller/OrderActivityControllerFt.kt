@@ -4,8 +4,35 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.api.data.*
+import com.rarible.protocol.dto.ActivitySortDto
+import com.rarible.protocol.dto.NftOwnershipsDto
+import com.rarible.protocol.dto.OrderActivityDto
+import com.rarible.protocol.dto.OrderActivityFilterAllDto
+import com.rarible.protocol.dto.OrderActivityFilterByCollectionDto
+import com.rarible.protocol.dto.OrderActivityFilterByItemDto
+import com.rarible.protocol.dto.OrderActivityFilterByUserDto
+import com.rarible.protocol.dto.OrderActivityFilterDto
+import com.rarible.protocol.dto.OrderActivityListDto
+import com.rarible.protocol.order.api.data.createCollectionBidOrderVersion
+import com.rarible.protocol.order.api.data.createCollectionOrderVersion
+import com.rarible.protocol.order.api.data.createErc1155BidOrderVersion
+import com.rarible.protocol.order.api.data.createErc1155ListOrderVersion
+import com.rarible.protocol.order.api.data.createErc721BidOrderVersion
+import com.rarible.protocol.order.api.data.createErc721ListOrderVersion
+import com.rarible.protocol.order.api.data.createLogEvent
+import com.rarible.protocol.order.api.data.orderErc1155BidCancel
+import com.rarible.protocol.order.api.data.orderErc1155SellCancel
+import com.rarible.protocol.order.api.data.orderErc1155SellSideMatch
+import com.rarible.protocol.order.api.data.orderErc721BidCancel
+import com.rarible.protocol.order.api.data.orderErc721SellCancel
+import com.rarible.protocol.order.api.data.orderErc721SellSideMatch
+import com.rarible.protocol.order.api.data.withCreatedAt
+import com.rarible.protocol.order.api.data.withDate
+import com.rarible.protocol.order.api.data.withMakeNft
+import com.rarible.protocol.order.api.data.withMakeToken
+import com.rarible.protocol.order.api.data.withMakeValue
+import com.rarible.protocol.order.api.data.withTakeNft
+import com.rarible.protocol.order.api.data.withTakeToken
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.data.createNftOwnershipDto
@@ -958,7 +985,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ActivitySortDto.LATEST_FIRST
                 )
             },
-            //Data for cancel_sell and cancel_bid
+            // Data for cancel_sell and cancel_bid
             Arguments.of(
                 listOf(
                     createLogEvent(orderErc1155SellCancel().copy(date = now.minus(1, ChronoUnit.MINUTES))),

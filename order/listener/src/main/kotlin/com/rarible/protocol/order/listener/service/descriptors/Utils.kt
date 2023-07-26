@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.listener.service.descriptors
 
 import com.rarible.protocol.order.core.misc.isSingleton
-import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV2
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1

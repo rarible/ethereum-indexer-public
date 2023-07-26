@@ -123,4 +123,3 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
         coEvery { erc721SignService.isSigner(any(), any() as Word, any()) } returns true
     }
 }
-

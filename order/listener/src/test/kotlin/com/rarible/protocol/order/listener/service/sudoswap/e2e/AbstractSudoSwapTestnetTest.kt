@@ -77,7 +77,7 @@ abstract class AbstractSudoSwapTestnetTest {
 
     private fun createEthereum(ethereumUri: String): MonoEthereum {
         val requestTimeoutMs = 10000
-        val readWriteTimeoutMs  = 10000
+        val readWriteTimeoutMs = 10000
         val maxFrameSize = 1024 * 1024
         val retryMaxAttempts = 5L
         val retryBackoffDelay = 100L
@@ -174,14 +174,14 @@ abstract class AbstractSudoSwapTestnetTest {
     ): Pair<Address, Word> {
         val factory = LSSVMPairFactoryV1(sudoswapPairFactory, sender)
         val result = factory.createPairETH(
-            nft, //_nft
-            bondingCurve, //_bondingCurve
-            assetRecipient, //_assetRecipient
-            poolType.value.toBigInteger(), //_poolType
-            delta, //_delta
-            fee, //_fee
-            spotPrice, //_spotPrice
-            tokenIds.toTypedArray() //_initialNFTIDs
+            nft, // _nft
+            bondingCurve, // _bondingCurve
+            assetRecipient, // _assetRecipient
+            poolType.value.toBigInteger(), // _poolType
+            delta, // _delta
+            fee, // _fee
+            spotPrice, // _spotPrice
+            tokenIds.toTypedArray() // _initialNFTIDs
         ).run {
             (if (value != null) this.withValue(value) else this).withSender(sender).execute().verifySuccess()
         }

@@ -52,7 +52,7 @@ class ItemCreatorService(
         return knownOrigin.editionOfTokenId(tokenId.value)
             .flatMap { edition ->
                 if (edition == BigInteger.ZERO) {
-                    //edition not found. not existing item in known origin
+                    // edition not found. not existing item in known origin
                     Mono.empty()
                 } else {
                     knownOrigin.detailsOfEdition(edition)

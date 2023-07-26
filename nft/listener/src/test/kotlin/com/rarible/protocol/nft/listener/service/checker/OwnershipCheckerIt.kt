@@ -138,5 +138,4 @@ class OwnershipCheckerIt : AbstractIntegrationTest() {
             ImmutableTag(BaseMetrics.BLOCKCHAIN, Blockchain.ETHEREUM.value.lowercase()),
             ImmutableTag(BaseMetrics.STATUS, name))).count()
     }
-
 }

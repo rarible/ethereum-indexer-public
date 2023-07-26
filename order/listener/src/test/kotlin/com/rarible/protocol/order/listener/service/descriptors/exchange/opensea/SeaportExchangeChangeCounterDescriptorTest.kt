@@ -1,11 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
-import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
-import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.test.data.randomAddress
-import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
@@ -20,7 +16,6 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
-import scalether.domain.response.Transaction
 import java.time.Instant
 
 internal class SeaportExchangeChangeCounterDescriptorTest {

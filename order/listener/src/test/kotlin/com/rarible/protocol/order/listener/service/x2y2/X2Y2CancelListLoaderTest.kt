@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
 import com.rarible.core.test.data.randomString
+import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -56,8 +57,8 @@ internal class X2Y2CancelListLoaderTest {
 
         coEvery { orderStateRepository.save(any()) } returns mockk()
 
-        coEvery { orderUpdateService.update(offChainEvent1.order.itemHash, any()) } returns Unit
-        coEvery { orderUpdateService.update(offChainEvent2.order.itemHash, any()) } returns Unit
+        coEvery { orderUpdateService.update(offChainEvent1.order.itemHash, any()) } returns createSellOrder()
+        coEvery { orderUpdateService.update(offChainEvent2.order.itemHash, any()) } returns createSellOrder()
 
         handler.load(null)
 

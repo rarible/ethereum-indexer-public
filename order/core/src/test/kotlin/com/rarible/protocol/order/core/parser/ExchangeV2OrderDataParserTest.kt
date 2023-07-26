@@ -41,5 +41,4 @@ class ExchangeV2OrderDataParserTest {
             assertThat(marketplaceMarker!!).isEqualTo(expected.marketplaceMarker)
         }
     }
-
 }

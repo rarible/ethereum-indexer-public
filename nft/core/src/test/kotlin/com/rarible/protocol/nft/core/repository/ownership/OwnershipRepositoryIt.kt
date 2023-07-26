@@ -5,9 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomOwnership
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
-import com.rarible.protocol.nft.core.misc.isEqualToItem
 import com.rarible.protocol.nft.core.misc.isEqualToOwnership
-import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipFilter
@@ -17,7 +15,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,7 +22,6 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
-import java.math.BigInteger
 import java.time.Duration
 
 @IntegrationTest

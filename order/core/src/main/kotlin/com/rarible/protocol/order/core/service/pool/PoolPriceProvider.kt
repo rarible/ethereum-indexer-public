@@ -37,7 +37,7 @@ class PoolPriceProvider(
         }
     }
 
-    suspend fun getNftBuyPrice(order: Order, nftCount: Int): PoolBuyInfo  {
+    suspend fun getNftBuyPrice(order: Order, nftCount: Int): PoolBuyInfo {
         val data = getAmmOrderData(order) ?: return PoolBuyInfo.ZERO
         return when (data) {
             is OrderSudoSwapAmmDataV1 -> {
@@ -55,7 +55,7 @@ class PoolPriceProvider(
         }
     }
 
-    suspend fun getNftSellPrice(order: Order, nftCount: Int): PoolSellInfo  {
+    suspend fun getNftSellPrice(order: Order, nftCount: Int): PoolSellInfo {
         val data = getAmmOrderData(order) ?: return PoolSellInfo.ZERO
         return when (data) {
             is OrderSudoSwapAmmDataV1 -> {
@@ -80,6 +80,4 @@ class PoolPriceProvider(
             else -> order.data
         }
     }
-
-
 }

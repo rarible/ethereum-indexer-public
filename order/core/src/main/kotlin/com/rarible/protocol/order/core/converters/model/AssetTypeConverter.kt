@@ -28,7 +28,6 @@ import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
-
 @Component
 object AssetTypeConverter : Converter<AssetTypeDto, AssetType> {
     override fun convert(source: AssetTypeDto): AssetType {

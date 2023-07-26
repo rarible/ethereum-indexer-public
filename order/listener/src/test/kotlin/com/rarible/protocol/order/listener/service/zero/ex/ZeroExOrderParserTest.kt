@@ -655,7 +655,7 @@ class ZeroExOrderParserTest {
                 Word.apply(ByteArray(32)), // blockHash
                 BigInteger.ZERO, // blockNumber
                 Address.ZERO(), // address
-                Binary.apply(// data
+                Binary.apply( // data
                     "0000000000000000000000000000000000000000000000000000000000000160" +
                         "00000000000000000000000000000000000000000000000000000000000001c0" +
                         "0000000000000000000000000000000000000000000000000000000000000340" +

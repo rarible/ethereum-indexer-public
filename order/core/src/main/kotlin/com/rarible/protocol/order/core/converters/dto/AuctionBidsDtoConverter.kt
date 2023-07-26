@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.converters.dto
 
-import com.rarible.protocol.order.core.model.AuctionBidEntityDto
 import com.rarible.protocol.order.core.model.AuctionBidEntity
+import com.rarible.protocol.order.core.model.AuctionBidEntityDto
 import org.springframework.stereotype.Component
 
 @Component

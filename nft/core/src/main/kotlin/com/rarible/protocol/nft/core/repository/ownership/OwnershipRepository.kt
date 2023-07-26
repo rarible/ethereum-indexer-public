@@ -89,7 +89,7 @@ class OwnershipRepository(
      * Delete all ownerships by itemId
      *
      * @param itemId    Item ID
-     * @return          flux of deleted ownerships
+     * @return flux of deleted ownerships
      */
     @Deprecated("Not to be actively used, as we don't typically remove ownerships")
     fun deleteAllByItemId(itemId: ItemId): Flux<Ownership> {

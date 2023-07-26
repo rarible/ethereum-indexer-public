@@ -90,7 +90,10 @@ class ItemReduceService(
     }
 
     private fun findLazyItemsHistory(
-        token: Address?, tokenId: EthUInt256?, from: ItemId?, to: ItemId?
+        token: Address?,
+        tokenId: EthUInt256?,
+        from: ItemId?,
+        to: ItemId?
     ): Flux<HistoryLog> {
         return lazyHistoryRepository.find(token, tokenId, from, to).map {
             HistoryLog(

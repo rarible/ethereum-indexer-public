@@ -51,6 +51,4 @@ class OrderEthereumEventHandler(
         val hash: Word,
         val source: LogRecordEvent
     )
-
 }
-

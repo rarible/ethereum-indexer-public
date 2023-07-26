@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.validator
 
+import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.exception.ValidationApiException
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -27,7 +28,7 @@ internal class StatusOrderStateValidatorTest {
         val order = randomOrder(
             end = Instant.now().minusSeconds(100).epochSecond
         )
-        coEvery { orderUpdateService.update(order.hash, any()) } returns Unit
+        coEvery { orderUpdateService.update(order.hash, any()) } returns createSellOrder()
 
         assertThatExceptionOfType(ValidationApiException::class.java).isThrownBy {
             runBlocking {

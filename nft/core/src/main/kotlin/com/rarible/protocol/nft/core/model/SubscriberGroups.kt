@@ -5,4 +5,3 @@ object SubscriberGroups {
     const val TOKEN_HISTORY = "token-history"
     const val SET_BASE_URI = "set-base-uri"
 }
-

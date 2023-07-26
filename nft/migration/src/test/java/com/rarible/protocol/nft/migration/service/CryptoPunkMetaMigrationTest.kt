@@ -26,7 +26,7 @@ class CryptoPunkMetaMigrationTest : AbstractIntegrationTest() {
     private lateinit var cryptoPunksPropertiesResolver: CryptoPunksPropertiesResolver
 
     @Test
-    @Disabled //Api doesn't work
+    @Disabled // Api doesn't work
     fun `should get attributes after migration`() = runBlocking<Unit> {
         val tokenId = BigInteger.valueOf(2L)
         ChangeLog00013InsertAttributesForCryptoPunks().insertCryptoPunksAttributes(

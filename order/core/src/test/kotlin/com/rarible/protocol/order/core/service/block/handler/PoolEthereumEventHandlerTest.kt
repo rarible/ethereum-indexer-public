@@ -5,6 +5,7 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createLogRecordEvent
 import com.rarible.protocol.order.core.data.createOrderCancel
 import com.rarible.protocol.order.core.data.createOrderSideMatch
+import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomApproveHistory
 import com.rarible.protocol.order.core.data.randomAuctionCreated
 import com.rarible.protocol.order.core.data.randomPoolDeltaUpdate
@@ -48,9 +49,11 @@ internal class PoolEthereumEventHandlerTest {
             poolOrderEventListener.onPoolEvent(event2.record.asEthereumLogRecord(), any())
             poolOrderEventListener.onPoolEvent(event3.record.asEthereumLogRecord(), any())
             poolOrderEventListener.onPoolEvent(event4.record.asEthereumLogRecord(), any())
+        } returns Unit
+        coEvery {
             orderUpdateService.update(eq(hash1), any())
             orderUpdateService.update(eq(hash2), any())
-        } returns Unit
+        } returns createSellOrder()
 
         every { properties.parallel } returns false
 

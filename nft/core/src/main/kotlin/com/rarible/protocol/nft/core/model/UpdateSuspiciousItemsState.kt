@@ -25,4 +25,3 @@ data class UpdateSuspiciousItemsState(
         const val STATE_ID = "update-suspicious-items"
     }
 }
-

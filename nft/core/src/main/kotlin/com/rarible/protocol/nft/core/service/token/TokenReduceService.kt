@@ -33,7 +33,7 @@ class TokenReduceService(
     }
 
     private fun reduce(logs: Flux<LogEvent>) = mono {
-        //Expect not too many events for single Collection
+        // Expect not too many events for single Collection
         val events = logs.collectList().awaitFirst().mapNotNull { TokenEventConverter.convert(it) }
         val tokenId = events.firstOrNull()?.entityId ?: return@mono null
         reduce(Address.apply(tokenId), events)
@@ -44,5 +44,4 @@ class TokenReduceService(
         val result = events.fold(entity) { e, event -> tokenReducer.reduce(e, event) }
         tokenUpdateService.update(result)
     }
-
 }

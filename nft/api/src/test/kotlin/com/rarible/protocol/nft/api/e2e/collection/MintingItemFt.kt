@@ -22,7 +22,7 @@ import org.web3jold.crypto.Keys
 import scalether.abi.Uint256Type
 import scalether.domain.Address
 import java.math.BigInteger
-import java.util.*
+import java.util.UUID
 
 @End2EndTest
 class MintingItemFt : AbstractIntegrationTest() {

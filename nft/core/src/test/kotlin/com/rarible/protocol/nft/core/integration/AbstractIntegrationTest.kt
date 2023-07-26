@@ -261,9 +261,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
             val filteredEvents = itemEvents.filter { event ->
                 when (event) {
                     is NftItemUpdateEventDto -> {
-                        event.item.contract == token
-                            && event.item.tokenId == tokenId.value
-                            && (event.item.pending?.size ?: 0) == pendingSize
+                        event.item.contract == token &&
+                            event.item.tokenId == tokenId.value &&
+                            (event.item.pending?.size ?: 0) == pendingSize
                     }
                     is NftItemDeleteEventDto -> {
                         event.item.token == token && event.item.tokenId == tokenId.value
@@ -273,7 +273,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
             assertThat(filteredEvents).hasSizeGreaterThanOrEqualTo(1)
             filteredEvents.forEach { assertThat(it).isInstanceOf(eventType) }
-
         }
     }
 

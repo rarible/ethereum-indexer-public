@@ -113,5 +113,4 @@ class TestConfiguration {
     @Bean
     @Primary
     fun testEntityEventConsumer(): KafkaEntityEventConsumer = mockk()
-
 }

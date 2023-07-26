@@ -111,7 +111,7 @@ class AuctionActivityConverter(
     suspend fun convert(history: AuctionOffchainHistory, auction: Auction? = null): AuctionActivityDto {
         val existingAuction = auction
             ?: auctionRepository.findById(history.hash)
-            ?: throw IllegalArgumentException("Auction with hash ${history.hash} not found for AuctionOffchainHistory ${history}")
+            ?: throw IllegalArgumentException("Auction with hash ${history.hash} not found for AuctionOffchainHistory $history")
 
         val auctionDto = auctionDtoConverter.convert(existingAuction)
         val source = convert(history.source)
@@ -142,7 +142,6 @@ class AuctionActivityConverter(
             else -> throw IllegalArgumentException("Not supported auction history source")
         }
     }
-
 
     private companion object {
         val DEFAULT_BLOCK_HASH: Word = Word.apply(ByteArray(32))

@@ -8,7 +8,7 @@ data class ItemId(
     val token: Address,
     val tokenId: EthUInt256
 ) {
-    constructor(token: Address, tokenId: BigInteger): this(token, EthUInt256.of(tokenId))
+    constructor(token: Address, tokenId: BigInteger) : this(token, EthUInt256.of(tokenId))
 
     val stringValue: String
         get() = "$token:$tokenId"

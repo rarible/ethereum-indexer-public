@@ -37,4 +37,3 @@ data class BidV1(
 enum class AuctionBidVersion {
     RARIBLE_AUCTION_V1_DATA_V1,
 }
-

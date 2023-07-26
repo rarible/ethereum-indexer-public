@@ -1,7 +1,12 @@
 package com.rarible.protocol.order.api.data
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CollectionAssetType
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
 import scalether.domain.Address
 
 fun createEthAsset() = Asset(
@@ -14,7 +19,7 @@ fun createErc20Asset() = Asset(
     EthUInt256.of((1L..1000L).random())
 )
 
-fun createErc721Asset(assetType: Erc721AssetType = createErc721AssetType() ) = Asset(
+fun createErc721Asset(assetType: Erc721AssetType = createErc721AssetType()) = Asset(
     assetType,
     EthUInt256.ONE
 )
@@ -24,7 +29,7 @@ fun createErc1155Asset(assetType: Erc1155AssetType = createErc1155AssetType()) =
     EthUInt256.of((2L..1000L).random())
 )
 
-fun createCollectionAsset(assetType: CollectionAssetType = createCollectionAssetType() ) = Asset(
+fun createCollectionAsset(assetType: CollectionAssetType = createCollectionAssetType()) = Asset(
     assetType,
     EthUInt256.ONE
 )

@@ -40,7 +40,7 @@ class AuctionActivityController(
         val offchainFilters = auctionOffchainFilterConverter.convert(filter, activitySort, continuation)
         val result = auctionActivityService.search(historyFilters, offchainFilters, activitySort, requestSize)
             .mapNotNull {
-                when(it) {
+                when (it) {
                     is AuctionActivityResult.History -> auctionActivityConverter.convert(it.value)
                     is AuctionActivityResult.OffchainHistory -> auctionActivityConverter.convert(it.value)
                 }
@@ -58,7 +58,7 @@ class AuctionActivityController(
         val result = auctionActivityService
             .findByIds(activitiesByIdRequestDto.ids)
             .mapNotNull {
-                when(it) {
+                when (it) {
                     is AuctionActivityResult.History -> auctionActivityConverter.convert(it.value)
                     is AuctionActivityResult.OffchainHistory -> auctionActivityConverter.convert(it.value)
                 }
@@ -79,7 +79,7 @@ class AuctionActivityController(
         val offchainFilter = ActivityAuctionOffchainFilter.AllSync(continuation, activitySort)
         val result = auctionActivityService.search(listOf(historyFilter), listOf(offchainFilter), activitySort, requestSize)
             .mapNotNull {
-                when(it) {
+                when (it) {
                     is AuctionActivityResult.History -> auctionActivityConverter.convert(it.value)
                     is AuctionActivityResult.OffchainHistory -> auctionActivityConverter.convert(it.value)
                 }

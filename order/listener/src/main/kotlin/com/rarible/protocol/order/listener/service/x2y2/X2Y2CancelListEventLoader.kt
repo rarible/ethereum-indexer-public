@@ -36,7 +36,13 @@ class X2Y2CancelListEventLoader(
         val result = safeGetNextEvents(EventType.CANCEL_LISTING, cursor)
         result.data
             .filter { it.tx == null }
-            .filter { orderStateRepository.getById(it.order.itemHash) == null }
+            .filter {
+                val state = orderStateRepository.getById(it.order.itemHash)
+                if (state != null) {
+                    logger.x2y2Info("There is already order state: $state")
+                }
+                state == null
+            }
             .forEach {
                 val hash = it.order.itemHash
                 val eventTimeMarks = orderIntegrationEventMarks(it.createdAt)

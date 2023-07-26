@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.looksrare.client.model.v2.LooksrareOrder
-import com.rarible.protocol.order.core.misc.orderIntegrationEventMarks
 import com.rarible.looksrare.client.model.v2.Status
 import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.core.misc.looksrareError
 import com.rarible.protocol.order.core.misc.looksrareInfo
+import com.rarible.protocol.order.core.misc.orderIntegrationEventMarks
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -102,7 +102,7 @@ class LooksrareOrderLoader(
         val max = orders.maxByOrNull { it.createdAt } ?: return this
         val min = orders.minByOrNull { it.createdAt } ?: return this
 
-        //Need to save max seen created order to continue from it after we fetch all old orders
+        // Need to save max seen created order to continue from it after we fetch all old orders
         val savingMaxSeenCreated = maxSeenCreated?.let { maxOf(max.createdAt, it) } ?: max.createdAt
 
         return if (min.createdAt > createdAfter) {

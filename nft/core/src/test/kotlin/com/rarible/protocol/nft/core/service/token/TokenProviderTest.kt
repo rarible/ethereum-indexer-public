@@ -95,5 +95,4 @@ internal class TokenProviderTest {
         val fetchedStandard = tokenProvider.fetchTokenStandard(token)
         assertThat(fetchedStandard).isEqualTo(standard)
     }
-
 }

@@ -55,7 +55,7 @@ class FindNonParseableLogEntriesTaskHandler(
         } else {
             collection.find()
         }.asFlow()
-        //TODO: this flow may return earlier than expected, probably because of a too long iteration.
+        // TODO: this flow may return earlier than expected, probably because of a too long iteration.
         // We need to throw an exception if the last seen object ID before completion is less than the max known ID.
 
         var totalProcessed = 0
@@ -102,5 +102,4 @@ class FindNonParseableLogEntriesTaskHandler(
     private companion object {
         private val logger: Logger = LoggerFactory.getLogger(FindNonParseableLogEntriesTaskHandler::class.java)
     }
-
 }

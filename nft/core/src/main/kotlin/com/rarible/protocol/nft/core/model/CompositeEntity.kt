@@ -9,8 +9,8 @@ data class CompositeEntity(
     val ownerships: MutableMap<Address, Ownership>,
     val firstEvent: CompositeEvent? = null
 ) : Identifiable<ItemId> {
-    constructor(id: ItemId): this(id, null, mutableMapOf(), null)
-    constructor(item: Item): this(item.id, item, mutableMapOf(), null)
+    constructor(id: ItemId) : this(id, null, mutableMapOf(), null)
+    constructor(item: Item) : this(item.id, item, mutableMapOf(), null)
 
     override val version: Long? = null
 }

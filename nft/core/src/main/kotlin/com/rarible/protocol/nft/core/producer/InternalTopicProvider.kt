@@ -5,7 +5,7 @@ import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.model.ActionEvent
-import java.util.*
+import java.util.UUID
 
 object InternalTopicProvider {
     const val VERSION = "v1"

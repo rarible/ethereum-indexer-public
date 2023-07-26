@@ -6,4 +6,3 @@ data class Continuation(
     val afterDate: Instant,
     val afterId: String
 )
-

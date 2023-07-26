@@ -28,5 +28,4 @@ object ApprovalHistoryRepositoryIndexes {
     val ALL_INDEXES = listOf(
         LAST_APPROVAL_EVENT,
     )
-
 }

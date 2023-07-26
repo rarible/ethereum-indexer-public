@@ -25,7 +25,7 @@ class ActionEventHandler(
     private val itemReduceService: ItemReduceService
 ) : ConsumerEventHandler<ActionEvent> {
 
-    override suspend fun handle(event: ActionEvent) = when(event) {
+    override suspend fun handle(event: ActionEvent) = when (event) {
         is BurnItemActionEvent -> {
             handleBurnActionEvent(event)
         }

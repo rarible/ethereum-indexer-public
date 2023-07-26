@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.listener.service.suspicios
 
 import com.rarible.core.test.data.randomAddress
-import com.rarible.protocol.nft.core.data.randomItemMeta
 import com.rarible.protocol.nft.core.data.randomUpdateSuspiciousItemsState
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
 import com.rarible.protocol.nft.core.repository.JobStateRepository

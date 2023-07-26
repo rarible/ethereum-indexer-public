@@ -95,7 +95,7 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
         return copy(
             seller = baseAuction.seller,
             buyer = baseAuction.buyer,
-            sell =  baseAuction.sell,
+            sell = baseAuction.sell,
             buy = baseAuction.buy,
             lastBid = baseAuction.lastBid,
             endTime = baseAuction.endTime,
@@ -158,4 +158,3 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
         }
     }
 }
-

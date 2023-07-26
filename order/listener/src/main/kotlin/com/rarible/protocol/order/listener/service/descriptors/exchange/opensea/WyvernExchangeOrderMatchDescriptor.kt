@@ -8,12 +8,11 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderParser
-import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.time.Instant
 
-//@Service //TODO: Activate after move to a new scanner
+// @Service //TODO: Activate after move to a new scanner
 @CaptureSpan(type = SpanType.EVENT)
 class WyvernExchangeOrderMatchDescriptor(
     private val contractsProvider: ContractsProvider,
@@ -28,7 +27,7 @@ class WyvernExchangeOrderMatchDescriptor(
         val event = OrdersMatchedEvent.apply(log)
         val eip712 = log.address() == contractsProvider.openSeaV2()
 
-        val orders= openSeaOrderParser.parseMatchedOrders(
+        val orders = openSeaOrderParser.parseMatchedOrders(
             txHash = transaction.hash(),
             txInput = transaction.input(),
             event = event,

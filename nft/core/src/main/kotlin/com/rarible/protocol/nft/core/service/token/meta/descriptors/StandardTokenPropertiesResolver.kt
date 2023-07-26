@@ -12,7 +12,6 @@ import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService.Companion.logProperties
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 

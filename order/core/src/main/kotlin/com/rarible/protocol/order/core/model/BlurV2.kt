@@ -126,7 +126,7 @@ data class BlurV2FeeRate(
     val rate: BigInteger,
 )
 
-enum class BlurV2OrderType(val value: Int){
+enum class BlurV2OrderType(val value: Int) {
     ASK(0),
     BID(1),
     ;
@@ -159,4 +159,3 @@ enum class BlurV2AssetType(val value: Int) {
         }
     }
 }
-

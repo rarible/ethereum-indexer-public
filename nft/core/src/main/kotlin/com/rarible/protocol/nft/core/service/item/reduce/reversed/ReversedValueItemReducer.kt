@@ -22,4 +22,3 @@ class ReversedValueItemReducer : Reducer<ItemEvent, Item> {
         }
     }
 }
-

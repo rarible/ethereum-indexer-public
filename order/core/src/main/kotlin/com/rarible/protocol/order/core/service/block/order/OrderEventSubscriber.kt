@@ -16,4 +16,3 @@ class OrderEventSubscriber(
         orderEthereumEventHandler.handle(events)
     }
 }
-

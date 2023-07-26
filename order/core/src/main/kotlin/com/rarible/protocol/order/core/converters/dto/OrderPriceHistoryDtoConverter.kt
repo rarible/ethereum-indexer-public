@@ -14,5 +14,4 @@ object OrderPriceHistoryDtoConverter : Converter<OrderPriceHistoryRecord, OrderP
             makeValue = source.makeValue
         )
     }
-
 }

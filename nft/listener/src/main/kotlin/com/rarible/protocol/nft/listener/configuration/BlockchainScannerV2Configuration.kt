@@ -87,7 +87,7 @@ class BlockchainScannerV2Configuration(
         }
     }
 
-    //TODO: Remove this workaround after full migrate to blockchain scanner v2
+    // TODO: Remove this workaround after full migrate to blockchain scanner v2
     @Bean
     @ConditionalOnMissingBean(LogEventDescriptorHolder::class)
     fun logEventDescriptorHolder(list: List<LogEventDescriptor<*>>): LogEventDescriptorHolder {

@@ -218,7 +218,7 @@ class BlurEventConverter(
         val currency = getCurrencyAsset(order)
         val (make, take) = when (order.side) {
             BlurOrderSide.SELL -> nft to currency
-            BlurOrderSide.BUY ->  currency to nft
+            BlurOrderSide.BUY -> currency to nft
         }
         return OrderAssets(make, take)
     }

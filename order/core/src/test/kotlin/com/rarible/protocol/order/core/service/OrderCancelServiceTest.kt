@@ -25,10 +25,11 @@ class OrderCancelServiceTest : AbstractIntegrationTest() {
         assertThat(saved.status).isNotEqualTo(OrderStatus.CANCELLED)
         assertThat(saved.signature).isNotNull
 
-        orderCancelService.cancelOrder(version.hash)
+        val result = orderCancelService.cancelOrder(version.hash)
 
         val canceled = orderRepository.findById(version.hash)
         assertThat(canceled?.status).isEqualTo(OrderStatus.CANCELLED)
         assertThat(canceled?.signature).isNull()
+        assertThat(result).isEqualTo(canceled)
     }
 }

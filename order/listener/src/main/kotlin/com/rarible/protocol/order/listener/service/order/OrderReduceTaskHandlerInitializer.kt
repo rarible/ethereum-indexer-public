@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 @ExperimentalCoroutinesApi
 @Component
 @Profile("!integration")
-class OrderReduceTaskHandlerInitializer (
+class OrderReduceTaskHandlerInitializer(
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val taskService: TaskService
 ) {

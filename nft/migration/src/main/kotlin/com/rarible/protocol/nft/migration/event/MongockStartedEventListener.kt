@@ -13,4 +13,3 @@ class MongockStartedEventListener : ApplicationListener<SpringMigrationStartedEv
         logger.info("Start migration: ${event.timestamp}")
     }
 }
-

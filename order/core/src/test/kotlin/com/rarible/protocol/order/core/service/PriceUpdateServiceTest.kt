@@ -7,7 +7,15 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.BlockchainDto
 import com.rarible.protocol.currency.dto.CurrencyRateDto
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderUsdValue
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.mockk

@@ -61,5 +61,4 @@ data class OrderFilterSellByCollectionAndCurrency(
     }
 
     private fun hint(): Document = OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION.indexKeys
-
 }

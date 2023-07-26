@@ -14,11 +14,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import scalether.transaction.MonoTransactionSender
-import org.web3j.ens.EnsResolver;
-import org.web3j.protocol.Web3j;
-import org.web3j.protocol.http.HttpService;
+import org.web3j.ens.EnsResolver
+import org.web3j.protocol.Web3j
+import org.web3j.protocol.http.HttpService
 import java.math.BigInteger
-
 
 @Configuration
 @EnableConfigurationProperties(NftIndexerApiProperties::class)
@@ -48,7 +47,8 @@ class NftIndexerApiConfiguration(
 
     @Bean
     fun daonomicLazyNftValidator(
-        sender: MonoTransactionSender, erc1271SignService: ERC1271SignService
+        sender: MonoTransactionSender,
+        erc1271SignService: ERC1271SignService
     ): LazyNftValidator {
         return LazyNftValidator(
             erc1271SignService,

@@ -15,11 +15,11 @@ import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import java.time.Instant
 import org.springframework.stereotype.Service
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -28,7 +28,7 @@ class SudoSwapCreatePairDescriptor(
     private val contractsProvider: ContractsProvider,
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapCreatePairEventCounter: RegisteredCounter
-): PoolSubscriber<PoolCreate>(
+) : PoolSubscriber<PoolCreate>(
     name = "sudo_new_pair",
     topic = NewPairEvent.id(),
     contracts = contractsProvider.pairFactoryV1()

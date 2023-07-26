@@ -42,5 +42,4 @@ class OrderDataValidator : OrderVersionValidator {
             throw OrderDataException("Payouts sum not equal 100%")
         }
     }
-
 }

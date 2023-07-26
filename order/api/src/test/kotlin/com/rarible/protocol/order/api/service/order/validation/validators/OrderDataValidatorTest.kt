@@ -13,7 +13,6 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
-
 class OrderDataValidatorTest {
 
     private val orderVersion = mockk<OrderVersion>()

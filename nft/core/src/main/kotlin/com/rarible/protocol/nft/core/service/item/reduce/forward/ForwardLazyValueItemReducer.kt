@@ -15,9 +15,9 @@ class ForwardLazyValueItemReducer : Reducer<ItemEvent, Item> {
         return when (event) {
             is ItemEvent.ItemMintEvent -> {
                 if (entity.isLazyItem()) {
-                    //On mint of lazy item it's lazySupply decreases
+                    // On mint of lazy item it's lazySupply decreases
                     val lazySupply = entity.lazySupply - event.supply
-                    //We also should to decreases supply as it is contains lazy part
+                    // We also should to decreases supply as it is contains lazy part
                     val supply = entity.supply - event.supply
                     entity.copy(lazySupply = lazySupply, supply = supply)
                 } else {

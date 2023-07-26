@@ -3,7 +3,9 @@ package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.auction.v1.event.AuctionCancelledEvent
 import com.rarible.protocol.order.core.configuration.EnableAuction
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Auction
+import com.rarible.protocol.order.core.model.AuctionCancelled
+import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
 import org.springframework.stereotype.Service

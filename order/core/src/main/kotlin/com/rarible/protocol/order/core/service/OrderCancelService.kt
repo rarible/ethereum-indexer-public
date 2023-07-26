@@ -1,9 +1,10 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.model.Order
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
-import com.rarible.core.common.EventTimeMarks
 
 @Component
 class OrderCancelService(
@@ -14,9 +15,9 @@ class OrderCancelService(
     suspend fun cancelOrder(
         id: Word,
         eventTimeMarksDto: EventTimeMarks = orderOffchainEventMarks()
-    ) {
+    ): Order? {
         orderStateService.setCancelState(id)
         orderVersionCleanSignatureService.cleanSignature(id)
-        orderUpdateService.update(id, eventTimeMarksDto)
+        return orderUpdateService.update(id, eventTimeMarksDto)
     }
 }

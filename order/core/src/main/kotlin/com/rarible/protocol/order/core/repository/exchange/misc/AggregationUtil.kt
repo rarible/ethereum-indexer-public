@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty
 import org.springframework.lang.Nullable
 import org.springframework.util.ObjectUtils
-import java.util.*
+import java.util.Optional
 import java.util.stream.Collectors
 
 internal class AggregationUtil(

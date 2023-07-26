@@ -19,7 +19,6 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -61,7 +60,7 @@ internal class SuspiciousItemsServiceTest {
         val item = createItem(itemId).copy(isSuspiciousOnOS = expectedSuspicious.not())
         val savedExState = if (exStateExist) randomItemExState(itemId) else null
 
-        val openSeaItems = randomOpenSeaAssets(listOf(asset) )
+        val openSeaItems = randomOpenSeaAssets(listOf(asset))
 
         val stateAsset = randomUpdateSuspiciousItemsStateAsset()
         every { itemRepository.findById(itemId) } returns Mono.just(item)
@@ -93,7 +92,7 @@ internal class SuspiciousItemsServiceTest {
         val itemId = ItemId(asset.assetContract.address, asset.tokenId)
         val item = createItem(itemId).copy(isSuspiciousOnOS = expectedSuspicious)
 
-        val openSeaItems = randomOpenSeaAssets(listOf(asset) )
+        val openSeaItems = randomOpenSeaAssets(listOf(asset))
 
         val stateAsset = randomUpdateSuspiciousItemsStateAsset()
         every { itemRepository.findById(itemId) } returns Mono.just(item)

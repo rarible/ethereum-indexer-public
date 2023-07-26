@@ -70,7 +70,7 @@ class CollectionDescriptorIt : AbstractIntegrationTest() {
                     standard = TokenStandard.ERC1155,
                     version = savedToken?.version,
                     isRaribleContract = true,
-                    //Byte code MUST be always the same for test contract
+                    // Byte code MUST be always the same for test contract
                     byteCodeHash = Word.apply("0xc91d15681fef753028aa737fe7a8d5cb027936c63003656fce82b25c0ad3e084")
                 ),
                 Token::revertableEvents.name,
@@ -117,7 +117,7 @@ class CollectionDescriptorIt : AbstractIntegrationTest() {
                     standard = TokenStandard.ERC1155,
                     version = savedToken?.version,
                     isRaribleContract = true,
-                    //Byte code MUST be always the same for test contract
+                    // Byte code MUST be always the same for test contract
                     byteCodeHash = Word.apply("0x4d5b9d151267956dfa723742471de92a7126f83f093ca8b22554a8c0220e5eba")
                 ),
                 Token::revertableEvents.name,

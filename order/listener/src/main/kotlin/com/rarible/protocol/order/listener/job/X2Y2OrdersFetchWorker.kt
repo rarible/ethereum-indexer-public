@@ -10,7 +10,7 @@ class X2Y2OrdersFetchWorker(
     private val handler: X2Y2OrderLoadHandler,
     properties: X2Y2OrderLoadProperties,
     meterRegistry: MeterRegistry
-): SequentialDaemonWorker(
+) : SequentialDaemonWorker(
     meterRegistry,
     DaemonWorkerProperties(
         pollingPeriod = properties.pollingPeriod,

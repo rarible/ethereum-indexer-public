@@ -102,8 +102,10 @@ class OrderController(
         value = ["/v0.1/orders/{hash}/reduce"],
         produces = ["application/json"]
     )
-    suspend fun reduceOrder(@PathVariable hash: String,
-                            @RequestParam(name = "withApproval", required = false, defaultValue = "false") withApproval: Boolean): OrderDto? {
+    suspend fun reduceOrder(
+        @PathVariable hash: String,
+        @RequestParam(name = "withApproval", required = false, defaultValue = "false") withApproval: Boolean
+    ): OrderDto? {
         val order = optimisticLock {
             val reduced = orderReduceService.updateOrder(hash.toOrderId().hash)
             if (reduced != null && withApproval) {
@@ -587,9 +589,9 @@ class OrderController(
         val statuses = filter.status ?: emptyList()
 
         // Works only for ACTIVE and SUDOSWAP orders without origin filter, otherwise AMM orders can't get into result
-        val includeSudoswap = (statuses.isEmpty() || statuses.contains(OrderStatusDto.ACTIVE))
-            && (filter.platforms.isEmpty() || filter.platforms.contains(PlatformDto.SUDOSWAP))
-            && filter.origin == null
+        val includeSudoswap = (statuses.isEmpty() || statuses.contains(OrderStatusDto.ACTIVE)) &&
+            (filter.platforms.isEmpty() || filter.platforms.contains(PlatformDto.SUDOSWAP)) &&
+            filter.origin == null
 
         if (!includeSudoswap) {
             return searchOrders(filter, continuation, size)
@@ -603,8 +605,8 @@ class OrderController(
             1
         ).firstOrNull() ?: return searchOrders(filter, continuation, size) // Nothing found, using regular search
 
-        val matchesFilter = (filter.maker == null || ammOrder.maker == filter.maker)
-            && (filter.currency == null || filter.currency == ammOrder.currency.token)
+        val matchesFilter = (filter.maker == null || ammOrder.maker == filter.maker) &&
+            (filter.currency == null || filter.currency == ammOrder.currency.token)
 
         // if AMM order found, this page should be the last anyway
         return if (matchesFilter) {
@@ -640,8 +642,8 @@ class OrderController(
             form.start != null && form.end <= form.start!! -> {
                 throw ValidationApiException("End date must be greater than start")
             }
-            apiProperties.maxOrderEndDate != null
-                    && (form.end - nowMillis().epochSecond) > apiProperties.maxOrderEndDate -> {
+            apiProperties.maxOrderEndDate != null &&
+                    (form.end - nowMillis().epochSecond) > apiProperties.maxOrderEndDate -> {
                 throw ValidationApiException("Maximum end date is ${Duration.ofSeconds(apiProperties.maxOrderEndDate)} from now")
             }
         }

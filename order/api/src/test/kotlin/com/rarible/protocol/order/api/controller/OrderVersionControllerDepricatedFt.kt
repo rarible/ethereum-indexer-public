@@ -129,7 +129,6 @@ class OrderVersionControllerDepricatedFt : AbstractIntegrationTest() {
                 )
             }
         )
-
     }
 
     @ParameterizedTest

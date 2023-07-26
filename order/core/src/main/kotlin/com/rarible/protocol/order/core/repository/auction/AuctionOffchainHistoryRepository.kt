@@ -103,5 +103,4 @@ class AuctionOffchainHistoryRepository(
     companion object {
         const val COLLECTION = "auction_offchain_history"
     }
-
 }

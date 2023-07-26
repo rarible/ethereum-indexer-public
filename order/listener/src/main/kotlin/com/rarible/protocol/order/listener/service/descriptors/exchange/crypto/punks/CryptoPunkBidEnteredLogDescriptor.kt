@@ -18,8 +18,8 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
-import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Service
@@ -114,6 +114,5 @@ class CryptoPunkBidEnteredLogDescriptor(
             }
             return null
         }
-
     }
 }

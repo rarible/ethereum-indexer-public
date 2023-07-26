@@ -7,9 +7,7 @@ import com.rarible.protocol.order.core.model.LooksrareV2FetchState
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

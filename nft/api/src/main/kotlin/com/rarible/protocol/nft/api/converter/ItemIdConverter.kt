@@ -15,4 +15,3 @@ object ItemIdConverter : Converter<String, ItemId> {
         }
     }
 }
-

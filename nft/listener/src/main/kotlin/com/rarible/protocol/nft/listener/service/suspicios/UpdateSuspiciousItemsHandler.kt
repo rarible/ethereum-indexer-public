@@ -79,4 +79,3 @@ class UpdateSuspiciousItemsHandler(
         val logger: Logger = LoggerFactory.getLogger(UpdateSuspiciousItemsHandler::class.java)
     }
 }
-

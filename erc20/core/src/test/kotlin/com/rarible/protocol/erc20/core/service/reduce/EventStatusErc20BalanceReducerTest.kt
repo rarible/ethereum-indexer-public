@@ -13,7 +13,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
-internal class EventStatusErc20BalanceReducerTest{
+internal class EventStatusErc20BalanceReducerTest {
 
     private val forwardChainErc20BalanceReducer = mockk<ForwardChainErc20BalanceReducer>()
     private val reversedChainErc20BalanceReducer = mockk<ReversedChainErc20BalanceReducer>()
@@ -89,5 +89,4 @@ internal class EventStatusErc20BalanceReducerTest{
         coVerify(exactly = 0) { forwardChainErc20BalanceReducer.reduce(any(), any()) }
         coVerify(exactly = 0) { reversedChainErc20BalanceReducer.reduce(any(), any()) }
     }
-
 }

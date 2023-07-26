@@ -16,5 +16,3 @@ fun EventTimeMarks.toDto(): EventTimeMarksDto {
 }
 
 fun erc20OffchainEventMarks() = EventTimeMarks("offchain").add("source").addIndexerIn()
-
-

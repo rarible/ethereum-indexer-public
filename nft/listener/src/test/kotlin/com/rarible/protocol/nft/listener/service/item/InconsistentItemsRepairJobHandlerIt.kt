@@ -156,7 +156,6 @@ class InconsistentItemsRepairJobHandlerIt : AbstractIntegrationTest() {
         assertThat(delayGauge.get()).isNotEqualTo(delayBefore)
         assertThat(checkedCounter.count()).isEqualTo(checkedBefore + 1)
         assertThat(unfixedCounter.count()).isEqualTo(unfixedBefore + 1)
-
     }
 
     @Test

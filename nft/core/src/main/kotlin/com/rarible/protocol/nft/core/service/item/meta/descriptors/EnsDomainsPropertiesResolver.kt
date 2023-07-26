@@ -135,7 +135,7 @@ class EnsDomainsPropertiesProvider(
     }
 
     private fun getUrl(itemId: ItemId): String {
-        return "${URL}/${NETWORK}/${contractAddress}/${itemId.tokenId.value}"
+        return "$URL/$NETWORK/$contractAddress/${itemId.tokenId.value}"
     }
 
     private fun map(json: ObjectNode, rawProperties: String): ItemProperties {

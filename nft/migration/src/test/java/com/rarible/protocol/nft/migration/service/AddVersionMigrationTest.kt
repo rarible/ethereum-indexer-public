@@ -16,7 +16,6 @@ import org.springframework.data.mongodb.core.findAll
 @Disabled
 class AddVersionMigrationTest : AbstractIntegrationTest() {
 
-
     @Test
     fun `should update version field`() = runBlocking<Unit> {
 
@@ -42,5 +41,4 @@ class AddVersionMigrationTest : AbstractIntegrationTest() {
     }
 
     data class Entity(val _id: String, val version: Long?)
-
 }

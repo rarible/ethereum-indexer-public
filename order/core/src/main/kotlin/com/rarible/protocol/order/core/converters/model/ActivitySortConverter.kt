@@ -22,4 +22,3 @@ object ActivitySyncSortConverter : Converter<SyncSortDto, ActivitySort> {
         }
     }
 }
-

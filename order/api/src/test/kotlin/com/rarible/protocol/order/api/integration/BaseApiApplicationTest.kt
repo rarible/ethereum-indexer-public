@@ -2,7 +2,6 @@ package com.rarible.protocol.order.api.integration
 
 import com.rarible.core.test.containers.MongodbTestContainer
 import com.rarible.core.test.containers.OpenEthereumTestContainer
-import com.rarible.ethereum.domain.Blockchain
 
 abstract class BaseApiApplicationTest {
     init {

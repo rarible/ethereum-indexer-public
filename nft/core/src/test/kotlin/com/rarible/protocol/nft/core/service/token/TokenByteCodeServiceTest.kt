@@ -2,7 +2,6 @@ package com.rarible.protocol.nft.core.service.token
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.nft.core.model.FeatureFlags
-import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.repository.token.TokenByteCodeRepository
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -10,10 +9,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import scalether.util.Hash
 

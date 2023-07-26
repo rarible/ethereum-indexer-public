@@ -53,5 +53,4 @@ class OrderSignatureControllerTest {
 
         assertThat(controller.validate(form).body).isEqualTo(false)
     }
-
 }

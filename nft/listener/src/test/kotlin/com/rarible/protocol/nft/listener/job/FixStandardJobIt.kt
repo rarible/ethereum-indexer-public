@@ -100,7 +100,6 @@ internal class FixStandardJobIt : AbstractIntegrationTest() {
         // fire fixing job
         job.execute()
 
-
         // check standard
         Wait.waitAssert {
             val updated = tokenRepository.findById(erc721.address()).awaitFirst()

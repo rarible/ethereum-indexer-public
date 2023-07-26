@@ -16,7 +16,7 @@ class OrderValidator(
         orderVersionValidators.map { async { it.validate(orderVersion) } }.awaitAll()
     }
 
-    suspend fun validate(order: Order, update: OrderVersion) = coroutineScope<Unit>  {
+    suspend fun validate(order: Order, update: OrderVersion) = coroutineScope<Unit> {
         orderPatchValidators.map { async { it.validate(order, update) } }.awaitAll()
     }
 }

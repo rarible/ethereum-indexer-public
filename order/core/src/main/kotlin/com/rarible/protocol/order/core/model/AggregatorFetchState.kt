@@ -119,4 +119,3 @@ data class ReservoirAsksEventFetchState(
         const val ID = "reservoir-asks-event-fetch"
     }
 }
-

@@ -131,7 +131,7 @@ class FindNonParseableLogEntriesTaskHandlerIt : AbstractIntegrationTest() {
                     callback,
                     ItemHistory::class.java,
                     collectionName
-                ).collect {  }
+                ).collect { }
             assertThat(nonParseableIds).isEqualTo(badIds.toSet())
         }
     }

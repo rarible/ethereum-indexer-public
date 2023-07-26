@@ -49,15 +49,15 @@ internal class EnsDomainBurnActionExecutorTest {
             val now = nowMillis()
             return Stream.of(
                 Arguments.of(
-                    //actionAt, expirationAt
+                    // actionAt, expirationAt
                     now, now,
                 ),
                 Arguments.of(
-                    //actionAt, expirationAt
+                    // actionAt, expirationAt
                     now, now - Duration.ofHours(1)
                 ),
                 Arguments.of(
-                    //actionAt, expirationAt
+                    // actionAt, expirationAt
                     now, null
                 )
             )

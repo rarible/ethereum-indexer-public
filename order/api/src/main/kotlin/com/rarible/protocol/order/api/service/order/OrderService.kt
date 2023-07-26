@@ -254,7 +254,7 @@ class OrderService(
     }
 
     private suspend fun getLazyNft(token: Address, tokenId: EthUInt256): LazyNftDto? {
-        val itemId = "${token}:${tokenId}"
+        val itemId = "$token:$tokenId"
         val lazySupply = nftItemApiService.getNftItemById(itemId)?.lazySupply ?: BigInteger.ZERO
 
         return if (lazySupply > BigInteger.ZERO) {
@@ -267,4 +267,3 @@ class OrderService(
 
 private fun List<PartDto>.toPartList() =
     map { Part(it.account, EthUInt256.of(it.value.toLong())) }
-

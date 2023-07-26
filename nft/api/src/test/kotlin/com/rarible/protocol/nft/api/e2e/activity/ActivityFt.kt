@@ -587,7 +587,6 @@ class ActivityFt : AbstractIntegrationTest() {
         }
     }
 
-
     @ParameterizedTest
     @MethodSource("allFilter")
     fun `should get all for single requests`(
@@ -625,7 +624,7 @@ class ActivityFt : AbstractIntegrationTest() {
     }
 
     private suspend fun save(vararg history: LogEvent) {
-        history.forEach { historyRepository.save(it).awaitFirst()  }
+        history.forEach { historyRepository.save(it).awaitFirst() }
     }
 
     private fun checkItem(activity: NftActivityDto, history: LogEvent) {

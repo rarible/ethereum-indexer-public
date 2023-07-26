@@ -152,5 +152,4 @@ class LazyNftValidatorTest {
             standard = TokenStandard.ERC721
         )
     }
-
 }

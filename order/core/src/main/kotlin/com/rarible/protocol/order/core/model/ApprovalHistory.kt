@@ -17,7 +17,7 @@ data class ApprovalHistory(
     val owner: Address,
     val operator: Address,
     val approved: Boolean,
-): EventData {
+) : EventData {
     override fun getKey(log: EthereumLog): String {
         return "$owner.$collection.$operator"
     }

@@ -23,4 +23,3 @@ class RevertedOwnershipValueReducer : Reducer<OwnershipEvent, Ownership> {
         return entity.copy(value = value)
     }
 }
-

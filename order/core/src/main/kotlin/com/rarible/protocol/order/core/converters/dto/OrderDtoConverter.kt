@@ -113,7 +113,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when(orderStatus) {
+                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when (orderStatus) {
                     OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
                     else -> source.signature.orEmpty()
                 },
@@ -145,7 +145,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when(orderStatus) {
+                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when (orderStatus) {
                     OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
                     else -> source.signature.orEmpty()
                 },
@@ -179,7 +179,7 @@ class OrderDtoConverter(
                 start = source.start,
                 end = source.end,
                 salt = source.salt.value.toWord(),
-                signature = when(orderStatus) {
+                signature = when (orderStatus) {
                     OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
                     else -> source.signature.orEmpty()
                 },
@@ -212,7 +212,7 @@ class OrderDtoConverter(
                 start = source.start,
                 end = source.end,
                 salt = source.salt.value.toWord(),
-                signature = when(orderStatus) {
+                signature = when (orderStatus) {
                     OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
                     else -> source.signature.orEmpty()
                 },
@@ -243,7 +243,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when(orderStatus) {
+                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when (orderStatus) {
                     OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
                     else -> source.signature.orEmpty()
                 },
@@ -276,7 +276,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when(orderStatus) {
+                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when (orderStatus) {
                     OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
                     else -> source.signature.orEmpty()
                 },
@@ -309,7 +309,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when(orderStatus) {
+                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when (orderStatus) {
                     OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
                     else -> source.signature.orEmpty()
                 },
@@ -335,7 +335,7 @@ class OrderDtoConverter(
     }
 
     private fun convertSignature(status: OrderStatusDto, signature: Binary?): Binary? {
-        return when(status) {
+        return when (status) {
             OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
             else -> signature.orEmpty()
         }?.let { commonSigner.fixSignature(it) }

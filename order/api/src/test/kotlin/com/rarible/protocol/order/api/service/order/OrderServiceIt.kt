@@ -140,7 +140,7 @@ class OrderServiceIt : AbstractOrderIt() {
     companion object {
         @JvmStatic
         fun allPlatform(): Stream<Platform> {
-            //TODO: Remove filter after blur order will be added
+            // TODO: Remove filter after blur order will be added
             return Platform.values().asSequence().asStream().filter { it != Platform.BLUR }
         }
     }

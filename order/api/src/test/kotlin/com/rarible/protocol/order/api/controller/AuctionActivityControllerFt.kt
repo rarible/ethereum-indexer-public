@@ -588,7 +588,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                     AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.ENDED)),
                     ActivitySortDto.LATEST_FIRST
                 )
-            }, run {  // all filter with all statuses
+            }, run { // all filter with all statuses
                 val auction = randomAuction()
                 Arguments.of(
                     listOf(auction),
@@ -608,7 +608,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
-            }, run {  // all filter with all statuses reversed
+            }, run { // all filter with all statuses reversed
                 val auction = randomAuction()
                 Arguments.of(
                     listOf(auction),

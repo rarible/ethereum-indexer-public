@@ -1,7 +1,7 @@
 package com.rarible.protocol.erc20.core
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
@@ -16,7 +16,7 @@ import com.rarible.protocol.erc20.core.model.Erc20Event
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.time.Instant
-import java.util.*
+import java.util.Date
 
 fun randomEthereumLog(
     transactionSender: Address = randomAddress()

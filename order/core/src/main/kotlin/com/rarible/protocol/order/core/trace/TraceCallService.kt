@@ -27,4 +27,3 @@ interface TraceCallService {
         vararg ids: Binary
     ): List<Binary>
 }
-

@@ -153,4 +153,3 @@ fun randomOpenSeaAsset(): Asset {
         tokenId = randomBigInt()
     )
 }
-

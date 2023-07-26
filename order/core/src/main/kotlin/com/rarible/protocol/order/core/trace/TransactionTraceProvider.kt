@@ -14,4 +14,3 @@ interface TransactionTraceProvider {
      */
     suspend fun traceAndFindAllCallsTo(transactionHash: Word, to: Address, ids: Set<Binary>): List<SimpleTraceResult>
 }
-

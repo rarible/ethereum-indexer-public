@@ -9,13 +9,12 @@ import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.NonceSubscriber
-import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 
-//@Service //TODO: Activate after move to a new scanner
+// @Service //TODO: Activate after move to a new scanner
 @CaptureSpan(type = SpanType.EVENT)
 class WyvernExchangeChangeNoneDescriptor(
     contractsProvider: ContractsProvider,

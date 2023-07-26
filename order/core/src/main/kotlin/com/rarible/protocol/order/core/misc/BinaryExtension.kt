@@ -2,7 +2,7 @@ package com.rarible.protocol.order.core.misc
 
 import io.daonomic.rpc.domain.Binary
 import java.math.BigInteger
-import java.util.*
+import java.util.Arrays
 
 operator fun Binary.plus(other: Binary): Binary {
     return this.add(other)

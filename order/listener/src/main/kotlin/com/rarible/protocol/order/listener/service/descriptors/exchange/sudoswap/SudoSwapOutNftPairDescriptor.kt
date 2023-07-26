@@ -13,8 +13,8 @@ import com.rarible.protocol.order.core.model.SudoSwapTargetOutNftDetail
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
-import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
+import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
 import org.slf4j.Logger
@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
-import java.lang.IllegalStateException
 import java.time.Instant
 
 @Service
@@ -38,13 +37,13 @@ class SudoSwapOutNftPairDescriptor(
     private val priceUpdateService: PriceUpdateService,
     private val sudoSwapLoad: SudoSwapLoadProperties,
     private val featureFlags: OrderIndexerProperties.FeatureFlags
-): PoolSubscriber<PoolTargetNftOut>(
+) : PoolSubscriber<PoolTargetNftOut>(
     name = "sudo_nft_out_pair",
     topic = SwapNFTOutPairEvent.id(),
     contracts = emptyList()
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftOut> {
-        logger.info("log=${log}, transaction=${transaction}, index=${index}, totalLogs=${totalLogs}")
+        logger.info("log=$log, transaction=$transaction, index=$index, totalLogs=$totalLogs")
         if (log.address() in sudoSwapLoad.ignorePairs) {
             return emptyList()
         }

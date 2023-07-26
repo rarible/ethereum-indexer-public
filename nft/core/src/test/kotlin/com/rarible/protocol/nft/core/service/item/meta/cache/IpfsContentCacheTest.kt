@@ -17,5 +17,4 @@ class IpfsContentCacheTest {
             ipfsContentCache.save(resource, "content")
         }
     }
-
 }

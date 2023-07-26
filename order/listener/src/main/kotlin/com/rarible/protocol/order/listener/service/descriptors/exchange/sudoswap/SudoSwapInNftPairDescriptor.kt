@@ -10,15 +10,14 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
-import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
-import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
-import java.time.Instant
+import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
+import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
-import java.lang.IllegalStateException
+import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -31,13 +30,13 @@ class SudoSwapInNftPairDescriptor(
     private val priceUpdateService: PriceUpdateService,
     private val sudoSwapLoad: SudoSwapLoadProperties,
     private val featureFlags: OrderIndexerProperties.FeatureFlags
-): PoolSubscriber<PoolTargetNftIn>(
+) : PoolSubscriber<PoolTargetNftIn>(
     name = "sudo_nft_in_pair",
     topic = SwapNFTInPairEvent.id(),
     contracts = emptyList()
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftIn> {
-        //TODO: Remove this in release 1.41
+        // TODO: Remove this in release 1.41
         if (log.address() in sudoSwapLoad.ignorePairs) {
             return emptyList()
         }

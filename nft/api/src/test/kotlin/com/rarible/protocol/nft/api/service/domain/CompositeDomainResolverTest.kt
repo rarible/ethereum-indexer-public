@@ -31,7 +31,7 @@ class CompositeDomainResolverTest {
     }
 
     @Test
-    fun `resolve - false, invalid name`()  {
+    fun `resolve - false, invalid name`() {
         val name = randomEnsDomain()
         every { resolver.isValidName(name) } returns false
 
@@ -43,7 +43,7 @@ class CompositeDomainResolverTest {
     }
 
     @Test
-    fun `resolve - false, unsupported tld`()  {
+    fun `resolve - false, unsupported tld`() {
         val name = "test.xyz"
         assertThrows<ValidationApiException> {
             runBlocking {

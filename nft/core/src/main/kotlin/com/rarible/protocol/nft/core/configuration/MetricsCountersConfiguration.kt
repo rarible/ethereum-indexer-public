@@ -30,19 +30,19 @@ class MetricsCountersConfiguration(
 
     @Bean
     @Qualifier("IncomeBurnActionCounter")
-    fun incomeBurnActionMetric(): RegisteredCounter{
+    fun incomeBurnActionMetric(): RegisteredCounter {
         return IncomeBurnActionMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
     @Qualifier("ExecutedBurnActionCounter")
-    fun executedBurnActionMetric(): RegisteredCounter{
+    fun executedBurnActionMetric(): RegisteredCounter {
         return ExecutedBurnActionMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
     @Qualifier("ErrorBurnActionMetric")
-    fun errorBurnActionMetric(): RegisteredCounter{
+    fun errorBurnActionMetric(): RegisteredCounter {
         return ErrorBurnActionMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 }

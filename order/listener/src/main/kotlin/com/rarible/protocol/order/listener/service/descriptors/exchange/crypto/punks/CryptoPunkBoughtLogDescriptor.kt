@@ -213,9 +213,9 @@ class CryptoPunkBoughtLogDescriptor(
             throw e
         }
         return logs.find {
-            it.topics().head() == TransferEvent.id()
-                    && it.transactionHash() == punkBoughtEvent.log().transactionHash()
-                    && it.logIndex() == punkBoughtEvent.log().logIndex().minus(BigInteger.ONE)
+            it.topics().head() == TransferEvent.id() &&
+                    it.transactionHash() == punkBoughtEvent.log().transactionHash() &&
+                    it.logIndex() == punkBoughtEvent.log().logIndex().minus(BigInteger.ONE)
         }
             ?.let { TransferEvent.apply(it) }
             ?.to()

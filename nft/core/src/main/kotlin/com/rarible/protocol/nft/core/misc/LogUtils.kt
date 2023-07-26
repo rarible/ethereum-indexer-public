@@ -5,7 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 import org.slf4j.MDC
 
-//TODO: Put in some common place for other indexers
+// TODO: Put in some common place for other indexers
 object LogUtils {
     suspend fun <T> addToMdc(
         vararg values: Pair<String, String>,

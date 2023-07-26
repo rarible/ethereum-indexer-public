@@ -4,9 +4,6 @@ import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItemContinuation
 import com.rarible.protocol.nft.core.model.InconsistentItemFilter
 import com.rarible.protocol.nft.core.model.InconsistentItemFilterAll
-import com.rarible.protocol.nft.core.model.Ownership
-import com.rarible.protocol.nft.core.model.OwnershipContinuation
-import com.rarible.protocol.nft.core.model.OwnershipFilter
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query

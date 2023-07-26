@@ -80,5 +80,4 @@ object JsonPropertiesParser {
     private fun trim(data: String): String {
         return data.trim { it.isWhitespace() || it in emptyChars }
     }
-
 }

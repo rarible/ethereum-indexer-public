@@ -42,7 +42,7 @@ abstract class AbstractBalanceLogEventSubscriber(
         block: EthereumBlockchainBlock,
         log: EthereumBlockchainLog
     ): List<EthereumLogRecord> {
-        //TODO here we should send index and totalLogs
+        // TODO here we should send index and totalLogs
         val converted = convert(log.ethLog, Date(block.timestamp * 1000))
             .filterByOwnerAndToken()
         return converted.map {

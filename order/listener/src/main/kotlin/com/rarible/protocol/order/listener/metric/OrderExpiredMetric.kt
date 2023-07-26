@@ -5,4 +5,3 @@ import com.rarible.ethereum.domain.Blockchain
 
 class OrderExpiredMetric(root: String, blockchain: Blockchain) : CountingMetric(
     "$root.order.expired", tag("blockchain", blockchain.value))
-

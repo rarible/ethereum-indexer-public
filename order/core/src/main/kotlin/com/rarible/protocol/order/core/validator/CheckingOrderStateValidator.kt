@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.validator
 
+import com.rarible.core.logging.addToMdc
 import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.Order
@@ -32,6 +33,9 @@ class CheckingOrderStateValidator(
             true
         }
         if (!active) {
+            addToMdc("orderType" to order.type.name) {
+                logger.info("Unexpected order cancellation: ${order.type}:${order.hash}")
+            }
             orderCancelService.cancelOrder(id = order.hash, eventTimeMarksDto = eventTimeMarks)
             throw OrderDataException("order $platform:${order.hash} is not active")
         }

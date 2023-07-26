@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import scalether.domain.Address
 import java.math.BigInteger
 

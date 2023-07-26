@@ -52,25 +52,25 @@ class OpenseaItemPropertiesService(
         fun <T> extend(rarible: T, openSea: T, fieldName: String): T {
             if (openSea != null && rarible != openSea) {
                 if (rarible is List<*> && openSea is List<*>) {
-                    if (rarible.isNotEmpty() && openSea.isEmpty()
-                        || rarible.sortedBy { it.toString() } == openSea.sortedBy { it.toString() }
+                    if (rarible.isNotEmpty() && openSea.isEmpty() ||
+                        rarible.sortedBy { it.toString() } == openSea.sortedBy { it.toString() }
                     ) {
                         return rarible
                     }
                 }
-                if (fieldName == "name"
-                    && rarible is String
-                    && rarible.isNotEmpty()
-                    && openSea is String
-                    && openSea.endsWith("#${itemId.tokenId.value}")
+                if (fieldName == "name" &&
+                    rarible is String &&
+                    rarible.isNotEmpty() &&
+                    openSea is String &&
+                    openSea.endsWith("#${itemId.tokenId.value}")
                 ) {
                     // Apparently, the OpenSea resolver has returned a dummy name as <collection name> #tokenId
                     // We don't want to override the Rarible resolver result.
                     return rarible
                 }
-                if (fieldName == "image"
-                    && rarible is String
-                    && rarible.isNotEmpty()
+                if (fieldName == "image" &&
+                    rarible is String &&
+                    rarible.isNotEmpty()
                 ) {
                     // Sometimes OpenSea returns invalid original image URL.
                     return rarible

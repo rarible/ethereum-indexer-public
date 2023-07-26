@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.service
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
+import com.rarible.core.logging.addToMdc
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.opensea.client.Network
 import com.rarible.opensea.client.SeaportProtocolClient
@@ -103,8 +104,13 @@ class SeaportSignatureResolver(
     private suspend fun cancelOrder(hash: Word, result: OperationResult.Fail<OpenSeaError>) {
         if (featureFlags.cancelOrderOnGetSignatureError) {
             val eventTimeMarks = orderOffchainEventMarks()
-            orderCancelService.cancelOrder(hash, eventTimeMarks)
+            val order = orderCancelService.cancelOrder(hash, eventTimeMarks)
             logger.warn("Cancel order $hash because of error: ${result.error.code}: ${result.error.message}")
+            if (order != null) {
+                addToMdc("orderType" to order.type.name) {
+                    logger.info("Unexpected order cancellation: ${order.type}:${order.hash}")
+                }
+            }
         }
     }
 
@@ -114,4 +120,3 @@ class SeaportSignatureResolver(
 
     private val logger = LoggerFactory.getLogger(SeaportSignatureResolver::class.java)
 }
-

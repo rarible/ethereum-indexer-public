@@ -8,7 +8,7 @@ data class DateIdContinuation(
 ) : Continuation {
 
     override fun toString(): String {
-        return "${date.toEpochMilli()}_${id}"
+        return "${date.toEpochMilli()}_$id"
     }
 
     companion object {

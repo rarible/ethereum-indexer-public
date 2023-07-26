@@ -240,7 +240,7 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
         coEvery { tokenStandardProvider.getTokenStandard(nftAssetType.token) } returns TokenStandard.ERC721
         coEvery { orderRepository.findByMakeAndByCounters(any(), any(), any()) } returns emptyFlow()
 
-        val matches = descriptorAsk.convert<OrderSideMatch>(log,date.epochSecond, 0, 1)
+        val matches = descriptorAsk.convert<OrderSideMatch>(log, date.epochSecond, 0, 1)
 
         assertThat(matches).hasSize(2)
         val left = matches[0] as OrderSideMatch
@@ -325,7 +325,7 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
             orderRepository.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(BigInteger.ONE))
         } returns flowOf(previousOrder, currentOrder)
 
-        val events = descriptorAsk.convert<OrderExchangeHistory>(log, date.epochSecond, 0,  1)
+        val events = descriptorAsk.convert<OrderExchangeHistory>(log, date.epochSecond, 0, 1)
 
         // 2 side matches, 1 cancel (for current order cancel event should not be emitted)
         assertThat(events).hasSize(3)

@@ -21,7 +21,7 @@ class SudoSwapLinearCurve : PoolCurve {
             return SudoSwapBuyInfo.ZERO
         }
         // For a linear curve, the spot price increases by delta for each item bought
-        val newSpotPrice = spotPrice + delta * numItems;
+        val newSpotPrice = spotPrice + delta * numItems
         // Spot price is assumed to be the instant sell price. To avoid arbitraging LPs, we adjust the buy price upwards.
         // If spot price for buy and sell were the same, then someone could buy 1 NFT and then sell for immediate profit.
         // EX: Let S be spot price. Then buying 1 NFT costs S ETH, now new spot price is (S+delta).
@@ -33,7 +33,7 @@ class SudoSwapLinearCurve : PoolCurve {
         // (buy spot price) + (buy spot price + 1*delta) + (buy spot price + 2*delta) + ... + (buy spot price + (n-1)*delta)
         // This is equal to n*(buy spot price) + (delta)*(n*(n-1))/2
         // because we have n instances of buy spot price, and then we sum up from delta to (n-1)*delta
-        val inputValue = numItems * buySpotPrice + (numItems * (numItems - BigInteger.ONE) * delta) / BigInteger.valueOf(2);
+        val inputValue = numItems * buySpotPrice + (numItems * (numItems - BigInteger.ONE) * delta) / BigInteger.valueOf(2)
         // Account for the protocol fee, a flat percentage of the buy amount
         val protocolFee = (inputValue * protocolFeeMultiplier) / PoolCurve.WAD
         // Account for the trade fee, only for Trade pools
@@ -61,7 +61,7 @@ class SudoSwapLinearCurve : PoolCurve {
             return SudoSwapSellInfo.ZERO
         }
         // We first calculate the change in spot price after selling all of the items
-        val totalPriceDecrease = delta * numItems;
+        val totalPriceDecrease = delta * numItems
         // If the current spot price is less than the total amount that the spot price should change by...
         val (newSpotPrice, newNumItems) = if (spotPrice < totalPriceDecrease) {
             // We calculate how many items we can sell into the linear curve until the spot price reaches 0, rounding up
@@ -77,7 +77,7 @@ class SudoSwapLinearCurve : PoolCurve {
         // If we sell n items, then the total sale amount is:
         // (spot price) + (spot price - 1*delta) + (spot price - 2*delta) + ... + (spot price - (n-1)*delta)
         // This is equal to n*(spot price) - (delta)*(n*(n-1))/2
-        val outputValue = (newNumItems * spotPrice) - (newNumItems * (newNumItems - BigInteger.ONE) * delta) / BigInteger.valueOf(2);
+        val outputValue = (newNumItems * spotPrice) - (newNumItems * (newNumItems - BigInteger.ONE) * delta) / BigInteger.valueOf(2)
         // Account for the protocol fee, a flat percentage of the sell amount
         val protocolFee = (outputValue * protocolFeeMultiplier) / PoolCurve.WAD
         // Account for the trade fee, only for Trade pools
@@ -89,6 +89,4 @@ class SudoSwapLinearCurve : PoolCurve {
             protocolFee = protocolFee
         )
     }
-
 }
-

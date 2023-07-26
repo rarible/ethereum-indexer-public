@@ -7,4 +7,4 @@ typealias Topic = Word
 
 data class HistoryTopics(
     private val delegate: Map<Topic, HistoryCollection>
-): Map<Topic, HistoryCollection> by delegate
+) : Map<Topic, HistoryCollection> by delegate

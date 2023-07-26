@@ -160,4 +160,3 @@ class Erc20TransferHistoryRepository(
             )
     }
 }
-
