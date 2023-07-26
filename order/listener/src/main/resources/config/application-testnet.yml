@@ -22,6 +22,3 @@ rarible:
 
 listener:
   openSeaEndpoint: ${rarible.opensea.endpoint}
-  seaport-load:
-    enabled: true
-    save-enabled: true

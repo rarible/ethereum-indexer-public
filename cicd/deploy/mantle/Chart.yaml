@@ -14,18 +14,18 @@ dependencies:
   alias: mantle-erc20-migration
   repository: file://../../resources/helm/rarible
   version: 0.1.0
-#- name: rarible-helm-chart
-#  alias: mantle-order-api
-#  repository: file://../../resources/helm/rarible
-#  version: 0.1.0
-#- name: rarible-helm-chart
-#  alias: mantle-order-listener
-#  repository: file://../../resources/helm/rarible
-#  version: 0.1.0
-#- name: rarible-helm-chart
-#  alias: mantle-order-migration
-#  repository: file://../../resources/helm/rarible
-#  version: 0.1.0
+- name: rarible-helm-chart
+  alias: mantle-order-api
+  repository: file://../../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: mantle-order-listener
+  repository: file://../../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: mantle-order-migration
+  repository: file://../../resources/helm/rarible
+  version: 0.1.0
 - name: rarible-helm-chart
   alias: mantle-nft-api
   repository: file://../../resources/helm/rarible
