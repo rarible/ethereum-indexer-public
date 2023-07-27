@@ -1,43 +1,90 @@
 global:
   network: mainnet
+  ########### common environments
+  environments: &sharedEnv
+    KAFKA_HOSTS: "PLAINTEXT://kafka1.rarible.int.:9092,kafka2.rarible.int.:9092,kafka3.rarible.int.:9092"
+    MONGODB_HOSTS: "mongo-mantle3.rarible.int.,mongo-mantle2.rarible.int.,mongo-mantle1.rarible.int."
 
+  ########### nft Indexer environments
+  nftEnvironments: &nftEnv
+    <<: *sharedEnv
+    MONGODB_DATABASE: "mantle-nft"
+
+  ########### order Indexer environments
+  orderEnvironments: &orderEnv
+    <<: *sharedEnv
+    MONGODB_DATABASE: "mantle-order"
+
+  ########### Erc20 Indexer environments
+  erc20Environments: &erc20Env
+    <<: *sharedEnv
+    MONGODB_DATABASE: "mantle-erc20"
+
+
+########### erc20 Indexer
 mantle-erc20-api:
   replicas: 2
   resources:
     jvm:
       xmx_megabytes: 512
       max_direct_memory_megabytes: 256
+  environments:
+    <<: *erc20Env
 
 mantle-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 2048
+  environments:
+    <<: *erc20Env
 
+mantle-erc20-migration:
+  environments:
+    <<: *erc20Env
+
+
+########### order Indexer
 mantle-order-api:
   replicas: 2
   resources:
     jvm:
       xmx_megabytes: 512
       max_direct_memory_megabytes: 256
+  environments:
+    <<: *orderEnv
 
 mantle-order-listener:
   resources:
     jvm:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 1024
+  environments:
+    <<: *orderEnv
 
+mantle-order-migration:
+  environments:
+    <<: *orderEnv
+
+########### nft Indexer
 mantle-nft-api:
   replicas: 3
   resources:
     jvm:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 512
+  environments:
+    <<: *nftEnv
 
 mantle-nft-listener:
-  environments:
-    MANAGEMENT_HEALTH_PROBES_ENABLED: false
   resources:
     jvm:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 2048
+  environments:
+    <<: *nftEnv
+    MANAGEMENT_HEALTH_PROBES_ENABLED: false
+
+mantle-nft-migration:
+  environments:
+    <<: *nftEnv

@@ -44,6 +44,9 @@ springdoc:
 common:
   metric-root-path: "protocol.erc20.indexer"
 
+api:
+  blockchain: ${common.blockchain}
+
 blockchain:
   scanner:
     ethereum:
