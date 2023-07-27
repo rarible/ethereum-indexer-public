@@ -3,7 +3,12 @@ global:
   ########### common environments
   environments: &sharedEnv
     KAFKA_HOSTS: "PLAINTEXT://kafka1.rarible.int.:9092,kafka2.rarible.int.:9092,kafka3.rarible.int.:9092"
-    MONGODB_HOSTS: "mongo-mantle3.rarible.int.,mongo-mantle2.rarible.int.,mongo-mantle1.rarible.int."
+    MONGODB_HOSTS: "mongo-mantle1.rarible.int.,mongo-mantle2.rarible.int.,mongo-mantle3.rarible.int."
+    ### set as secrets
+    #MONGODB_USERNAME: "username"
+    #MONGODB_PASSWORD: "password"
+    #NODE_HOSTS: "https://node.example.com
+    #NODE_WEBSOCKETHOSTS: "wss://node.example.com
 
   ########### nft Indexer environments
   nftEnvironments: &nftEnv
