@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
+
+common:
+  royaltyRegistryAddress: "0x0000000000000000000000000000000000000000"
+  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
+  cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
