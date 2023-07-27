@@ -5,5 +5,3 @@ import com.rarible.ethereum.domain.Blockchain
 
 class RaribleMatchEventMetric(root: String, blockchain: Blockchain) : CountingMetric(
     "$root.rarible.event.match", tag("blockchain", blockchain.value))
-
-

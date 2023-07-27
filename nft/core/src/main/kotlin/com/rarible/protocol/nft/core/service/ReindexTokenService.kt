@@ -199,7 +199,7 @@ class ReindexTokenService(
                 )
             }
         } else {
-            logger.warn("Log with block number wasn't found for ${tokens}")
+            logger.warn("Log with block number wasn't found for $tokens")
         }
     }
 

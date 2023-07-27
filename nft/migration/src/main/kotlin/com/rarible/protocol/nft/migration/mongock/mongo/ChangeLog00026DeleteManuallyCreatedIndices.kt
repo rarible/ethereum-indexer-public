@@ -74,5 +74,4 @@ class ChangeLog00026DeleteManuallyCreatedIndices {
             }
         }
     }
-
 }

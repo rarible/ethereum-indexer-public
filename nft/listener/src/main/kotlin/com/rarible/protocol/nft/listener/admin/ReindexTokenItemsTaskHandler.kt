@@ -90,5 +90,4 @@ class ReindexTokenItemsTaskHandler(
     private fun fetchNormalBlockNumber(): Mono<Long> {
         return ethereum.ethBlockNumber().map { it.toLong() }
     }
-
 }

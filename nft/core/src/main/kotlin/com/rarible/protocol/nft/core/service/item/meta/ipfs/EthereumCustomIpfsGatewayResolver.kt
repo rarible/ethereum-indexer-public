@@ -17,5 +17,4 @@ class EthereumCustomIpfsGatewayResolver(
         }
         return null
     }
-
 }

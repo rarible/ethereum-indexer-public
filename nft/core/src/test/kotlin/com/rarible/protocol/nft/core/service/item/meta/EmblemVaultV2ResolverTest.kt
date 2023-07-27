@@ -33,7 +33,6 @@ class EmblemVaultV2ResolverTest : BasePropertiesResolverTest() {
         )!!
         assertThat(properties.name).isEqualTo("SISTNCHAPEPE 2018")
         assertTrue(properties.content.imageOriginal!!.url.startsWith("data:image/jpeg;base64,"))
-
     }
 
     @Test

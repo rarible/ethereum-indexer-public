@@ -1,10 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.test.data.randomBigInt
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemMetaContent
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OriginalUrlPropertiesResolver

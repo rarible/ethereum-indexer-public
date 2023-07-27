@@ -90,4 +90,3 @@ internal class DepositAndWithdrawalLogDescriptorIt : AbstractIntegrationTest() {
         }
     }
 }
-

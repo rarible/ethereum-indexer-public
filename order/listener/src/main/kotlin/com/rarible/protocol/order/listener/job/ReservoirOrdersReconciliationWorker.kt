@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
+import com.rarible.core.logging.addToMdc
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.ReservoirAsksEventFetchState
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -93,10 +94,14 @@ class ReservoirOrdersReconciliationWorker(
         val order = orderRepository.findById(id) ?: return
         if (order.status == com.rarible.protocol.order.core.model.OrderStatus.ACTIVE) {
             logger.warn(
-                "Found canceled order but active in the database $id. Will cancel: ${properties.cancelEnabled}"
+                "Found canceled order but active in the database ${order.type}: $id. " +
+                    "Will cancel: ${properties.cancelEnabled}"
             )
             foreignOrderMetrics.onOrderInconsistency(platform = order.platform, status = event.order.status.name)
             if (properties.cancelEnabled) {
+                addToMdc("orderType" to order.type.name) {
+                    logger.info("Unexpected order cancellation: ${order.type}:${order.hash}")
+                }
                 orderCancelService.cancelOrder(
                     id = id,
                     eventTimeMarksDto = eventTimeMarks,

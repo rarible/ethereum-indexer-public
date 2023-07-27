@@ -27,8 +27,7 @@ data class Erc20Balance(
     override val version: Long? = null,
 
     override val revertableEvents: List<Erc20Event> = emptyList(),
-
-    ) : Entity<BalanceId, Erc20Event, Erc20Balance> {
+) : Entity<BalanceId, Erc20Event, Erc20Balance> {
 
     @Transient
     private val _id: BalanceId = BalanceId(token, owner)

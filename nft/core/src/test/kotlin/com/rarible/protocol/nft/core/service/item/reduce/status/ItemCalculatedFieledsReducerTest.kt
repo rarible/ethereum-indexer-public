@@ -33,8 +33,8 @@ internal class ItemCalculatedFieledsReducerTest {
     fun `should get the latest confirmed log for updatedAt field`() = runBlocking<Unit> {
         val now = nowMillis()
         val event1 = createRandomMintItemEvent().withNewValues(status = EthereumBlockStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(10))
-        val event2 =createRandomMintItemEvent().withNewValues(status = EthereumBlockStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(1))
-        val event3 =createRandomMintItemEvent().withNewValues(status = EthereumBlockStatus.PENDING, createdAt = now)
+        val event2 = createRandomMintItemEvent().withNewValues(status = EthereumBlockStatus.CONFIRMED, createdAt = now - Duration.ofMinutes(1))
+        val event3 = createRandomMintItemEvent().withNewValues(status = EthereumBlockStatus.PENDING, createdAt = now)
         val item = createRandomItem().copy(
             revertableEvents = listOf(event1, event2, event3)
         )

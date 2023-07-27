@@ -14,7 +14,6 @@ import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.time.Instant
 
-
 suspend inline fun <reified T> EthereumLogEventSubscriber.convert(
     log: Log,
     transaction: Transaction,

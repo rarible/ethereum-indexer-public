@@ -14,11 +14,11 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
+import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
-import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -42,7 +42,7 @@ internal class SudoSwapInNftPairDescriptorTest {
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
     private val sudoSwapLoad = mockk<SudoSwapLoadProperties>()
     private val priceUpdateService = mockk<PriceUpdateService> {
-        coEvery { getAssetUsdValue(any(), any(), any()) }  returns BigDecimal.ONE
+        coEvery { getAssetUsdValue(any(), any(), any()) } returns BigDecimal.ONE
     }
 
     private val descriptor = SudoSwapInNftPairDescriptor(

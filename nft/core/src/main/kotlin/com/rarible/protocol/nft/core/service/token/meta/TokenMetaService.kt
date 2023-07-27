@@ -21,5 +21,4 @@ class TokenMetaService(
         val properties = tokenPropertiesService.resolve(id) ?: return TokenMeta.EMPTY
         return TokenMeta(properties)
     }
-
 }

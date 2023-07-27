@@ -104,8 +104,9 @@ sealed class ActivityAuctionOffchainFilter {
         }
     }
 
-    class AllSync(private val continuation: String?,
-                  override val auctionActivitySort: AuctionActivitySort
+    class AllSync(
+        private val continuation: String?,
+        override val auctionActivitySort: AuctionActivitySort
     ) : ActivityAuctionOffchainFilter() {
         override fun getCriteria(): Criteria {
             return Criteria()
@@ -210,4 +211,3 @@ sealed class AuctionOffchainByCollection(
         sort: AuctionActivitySort
     ) : AuctionOffchainByCollection(token, AuctionOffchainHistory.Type.ENDED, continuation, sort)
 }
-

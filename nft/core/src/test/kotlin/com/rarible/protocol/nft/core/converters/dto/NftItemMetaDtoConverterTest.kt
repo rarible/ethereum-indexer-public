@@ -205,7 +205,6 @@ class NftItemMetaDtoConverterTest {
                     it is ImageContentDto && it.representation == Representation.PREVIEW -> imagePreview = metaContent
                     it is ImageContentDto && it.representation == Representation.BIG -> imageBig = metaContent
                 }
-
             }
 
             return ItemProperties(

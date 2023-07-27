@@ -39,4 +39,3 @@ fun ReversedEthereumLogRecord.toLogEventKey() = LogEventKey(
     index = index,
     minorLogIndex = minorLogIndex
 )
-

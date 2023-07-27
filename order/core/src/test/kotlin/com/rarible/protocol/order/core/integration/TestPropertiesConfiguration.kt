@@ -99,7 +99,6 @@ class TestPropertiesConfiguration {
         "e2e", "localhost"
     )
 
-
     @Bean
     @Primary
     fun testCurrencyApi(): CurrencyControllerApi = object : CurrencyControllerApi() {

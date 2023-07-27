@@ -16,7 +16,11 @@ import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
-import io.mockk.*
+import io.mockk.clearMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -36,19 +40,19 @@ internal class LazyAssetValidatorTest {
     private val nftCollectionApi = mockk<NftCollectionControllerApi>()
 
     private val lazyAssetValidator = LazyAssetValidator(delegate, nftCollectionApi)
-    
+
     @BeforeEach
     fun setup() {
         clearMocks(delegate, nftCollectionApi)
     }
 
     @Test
-    fun  `should validate orderVersion with make lazy asset`() {
+    fun `should validate orderVersion with make lazy asset`() {
         `should validate orderVersion with lazy asset`(isBid = false)
     }
 
     @Test
-    fun  `should validate orderVersion with take lazy asset`() {
+    fun `should validate orderVersion with take lazy asset`() {
         `should validate orderVersion with lazy asset`(isBid = true)
     }
 

@@ -6,4 +6,3 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 @Retention(AnnotationRetention.RUNTIME)
 @ConditionalOnProperty(name = ["common.feature-flags.blur-enabled"], havingValue = "true")
 annotation class EnableBlur
-

@@ -35,7 +35,6 @@ class ItemMintedAtTaskHandler(
     override val type: String
         get() = MINTED_AT
 
-
     override fun getAutorunParams(): List<RunTask> {
         return listOf(RunTask("", null))
     }

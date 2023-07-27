@@ -141,7 +141,6 @@ class HistoryRepositoryIt : AbstractIntegrationTest() {
         assertEquals(logsWithFromForAll.size, 2)
         assertEquals(logsWithFromForAll[0].item, transfer3)
         assertEquals(logsWithFromForAll[1].item, transfer4)
-
     }
 
     @Test

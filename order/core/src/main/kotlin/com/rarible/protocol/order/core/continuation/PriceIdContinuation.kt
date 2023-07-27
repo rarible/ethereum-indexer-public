@@ -8,7 +8,7 @@ data class PriceIdContinuation(
 ) : Continuation {
 
     override fun toString(): String {
-        return "${price.orDefault()}_${id}"
+        return "${price.orDefault()}_$id"
     }
 
     private fun BigDecimal?.orDefault(): BigDecimal = this ?: BigDecimal.ZERO

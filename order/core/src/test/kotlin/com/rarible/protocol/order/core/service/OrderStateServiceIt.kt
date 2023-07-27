@@ -9,7 +9,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalUnit
 
 @IntegrationTest
 class OrderStateServiceIt : AbstractIntegrationTest() {

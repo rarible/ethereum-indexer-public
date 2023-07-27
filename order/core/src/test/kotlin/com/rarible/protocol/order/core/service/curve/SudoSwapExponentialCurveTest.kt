@@ -93,7 +93,6 @@ internal class SudoSwapExponentialCurveTest {
         ).sumOf { it.value }
 
         Assertions.assertThat(inputValue).isEqualTo(expectedOutputValue)
-
     }
 
     @Test

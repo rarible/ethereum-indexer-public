@@ -94,5 +94,4 @@ class RaribleExchangeV2OrderParser(
 
     private val AssetType.isCollection: Boolean
         get() = this is CollectionAssetType
-
 }

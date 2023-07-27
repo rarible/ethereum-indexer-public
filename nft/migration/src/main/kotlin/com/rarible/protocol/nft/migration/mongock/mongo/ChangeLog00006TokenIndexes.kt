@@ -7,7 +7,6 @@ import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.runBlocking
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 
-
 @ChangeLog(order = "00006")
 class ChangeLog00006TokenIndexes {
     @ChangeSet(

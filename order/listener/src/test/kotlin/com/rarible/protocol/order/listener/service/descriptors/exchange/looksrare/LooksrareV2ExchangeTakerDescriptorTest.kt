@@ -1,16 +1,12 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.looksrare
 
-import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
-import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.contract.model.Erc20Token
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
-import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.randomBidOrderUsdValue
 import com.rarible.protocol.order.core.data.randomSellOrderUsdValue
-import com.rarible.protocol.order.core.misc.asEthereumLogRecord
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
@@ -28,7 +24,6 @@ import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.convert
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
-import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
@@ -38,7 +33,6 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
-import scalether.domain.response.Transaction
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -124,7 +118,6 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         coEvery {
             priceUpdateService.getAssetsUsdValue(make = expectedNft, take = expectedPayment, at = data)
         } returns sellOrderUsd
-
 
         coEvery {
             priceUpdateService.getAssetsUsdValue(make = expectedPayment, take = expectedNft, at = data)

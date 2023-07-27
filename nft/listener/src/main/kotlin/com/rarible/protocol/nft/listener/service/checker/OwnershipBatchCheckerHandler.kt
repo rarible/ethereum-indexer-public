@@ -83,13 +83,13 @@ class OwnershipBatchCheckerHandler(
         blockBuffer.asIterable().take(maxOf(blockBuffer.size - props.confirms, 0)).forEach {
             val eventBlockNumber = it.key
             val events = blockBuffer.remove(eventBlockNumber)
-            logger.info("Start process ${events?.size} ownerships from ${eventBlockNumber} block [${blockBuffer.size} cached block]")
+            logger.info("Start process ${events?.size} ownerships from $eventBlockNumber block [${blockBuffer.size} cached block]")
             events?.forEach { (ownershipId, value) ->
                 val blockChainBalance = valueOfToken(ownershipId, eventBlockNumber)
                 if (blockChainBalance != null) {
                     if (value != blockChainBalance) {
                         checkerMetrics.onFail()
-                        logger.error("Ownership is invalid: [id=${ownershipId} value=${value}(actual=${blockChainBalance}) block=${eventBlockNumber}")
+                        logger.error("Ownership is invalid: [id=$ownershipId value=$value(actual=$blockChainBalance) block=$eventBlockNumber")
                     } else {
                         checkerMetrics.onSuccess()
                     }

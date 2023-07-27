@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.listener.service.blur
 
 import com.rarible.core.contract.model.Erc20Token
-import com.rarible.core.contract.model.Erc721Token
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.contract.service.ContractService
@@ -92,7 +91,7 @@ class BlurEventConverterTest {
 
     @Test
     fun `convert nonce change`() = runBlocking<Unit> {
-        //https://etherscan.io/tx/0xcc232528b5bc28774de6a082dbe2f629689fd8e1c51b790d3a6fafc6eafd3020#eventlog
+        // https://etherscan.io/tx/0xcc232528b5bc28774de6a082dbe2f629689fd8e1c51b790d3a6fafc6eafd3020#eventlog
         val log = log(
             topics = listOf(
                 Word.apply("0xa82a649bbd060c9099cd7b7326e2b0dc9e9af0836480e0f849dc9eaa79710b3b"),
@@ -239,7 +238,7 @@ class BlurEventConverterTest {
         } returns TokenStandard.ERC721
         coEvery {
             contractService.get(any())
-        } returns Erc20Token(randomAddress(),  "", "", 18)
+        } returns Erc20Token(randomAddress(), "", "", 18)
         every {
             exchangeContractAddresses.blurV1
         } returns blurContract
@@ -257,20 +256,20 @@ class BlurEventConverterTest {
             priceUpdateService.getAssetsUsdValue(make = any(), take = any(), at = any())
         } returns null
 
-        //Log1
+        // Log1
         val matches1 = converter.convertToSideMatch(log1, transient, 0, 1, date)
         assertThat(matches1).hasSize(2)
         assertThat(matches1[0].hash).isEqualTo(Word.apply("0xb7a9db7ae85711fb7e72a8216157eaa7f08da96dbfaa2d13afaa21528ba16391"))
         assertThat(matches1[1].hash).isEqualTo(Word.apply("0x8f6d2d8e15174e42ebc810da242b2c36df3ff618b58977088886d49c6475e857"))
 
-        //Log2
+        // Log2
         val matches2 = converter.convertToSideMatch(log2, transient, 0, 1, date)
         assertThat(matches2).hasSize(2)
         assertThat(matches2[0].hash).isEqualTo(Word.apply("b0e3ab71d9e83e3d028ced42d9d619d6bf853c52ae3f855f50e4ac6809b0c481"))
         assertThat(matches2[1].hash).isEqualTo(Word.apply("3d3a50a23eb68bc42df27add9d690ab1068af6df66edfed055c0b885aafbc25c"))
     }
 
-    //https://etherscan.io/tx/0xc10e943c243ff056278991efbd5221d4042a7515f2ef06cab25dfce03acc1a4b#eventlog
+    // https://etherscan.io/tx/0xc10e943c243ff056278991efbd5221d4042a7515f2ef06cab25dfce03acc1a4b#eventlog
     private val matchOrderTxData = Binary.apply(
         "0x9a1fc3a7000000000000000000000000000000000000000000000000000000" +
                 "0000000040000000000000000000000000000000000000000000000000000" +
@@ -380,7 +379,7 @@ class BlurEventConverterTest {
                 "0100000000000000000000000000000000000000000000000000000000000000"
     )
 
-    //https://etherscan.io/tx/0x3e9721a6c90445d3847a6792138f856cc14891f027af233f5b52c4c3463ceb22
+    // https://etherscan.io/tx/0x3e9721a6c90445d3847a6792138f856cc14891f027af233f5b52c4c3463ceb22
     private val cancelOrderTx = Binary.apply(
         "0xf4acd74000000000000000000000000000000000000000000000000000000000000000200000000000000000000000001ab608b7" +
                 "6de67507e1d70441ee9282fefa17a33400000000000000000000000000000000000000000000000000000000000000010000000" +
@@ -396,7 +395,7 @@ class BlurEventConverterTest {
                 "000000000000000000000000010100000000000000000000000000000000000000000000000000000000000000"
     )
 
-    //https://etherscan.io/tx/0x19c65f2c9b2fbe7bdf4cf8863afb93a9ed864a40b15014549b2d9e2538a07e2b
+    // https://etherscan.io/tx/0x19c65f2c9b2fbe7bdf4cf8863afb93a9ed864a40b15014549b2d9e2538a07e2b
     private val batchBuyWithERC20 = Binary.apply(
         "0x09ba153d000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000" +
                 "000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000b000000000" +
@@ -499,7 +498,7 @@ class BlurEventConverterTest {
                 "fda21e5c7079c43fa395b56edbdf9d7bd177383d499cbe9ee07c216e360f6fd484751b6cf2"
     )
 
-    //https://etherscan.io/tx/0xaa9ce21ae7695dc886b1891da718a357df62dc22ef2efef356795d4fb22e0d3d
+    // https://etherscan.io/tx/0xaa9ce21ae7695dc886b1891da718a357df62dc22ef2efef356795d4fb22e0d3d
     val bulkExecuteLog1 = Binary.apply(
         "0000000000000000000000000000000000000000000000000000000000000080" +
                 "b7a9db7ae85711fb7e72a8216157eaa7f08da96dbfaa2d13afaa21528ba16391" +

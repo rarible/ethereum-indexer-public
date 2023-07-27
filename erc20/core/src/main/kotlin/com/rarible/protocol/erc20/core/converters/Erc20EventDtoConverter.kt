@@ -19,7 +19,7 @@ object Erc20EventDtoConverter {
                 balanceId = source.balance.id.stringValue, // TODO do we need it?
                 balance = Erc20BalanceDtoConverter.convert(source.balance),
                 createdAt = source.balance.createdAt, // TODO do we need it?
-                lastUpdatedAt = source.balance.lastUpdatedAt, //TODO do we need it?
+                lastUpdatedAt = source.balance.lastUpdatedAt, // TODO do we need it?
                 eventTimeMarks = (source.eventTimeMarks ?: erc20OffchainEventMarks()).addIndexerOut().toDto()
             )
             is Erc20AllowanceEvent -> Erc20AllowanceEventDto(

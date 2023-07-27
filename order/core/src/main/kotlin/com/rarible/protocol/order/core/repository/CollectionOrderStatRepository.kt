@@ -56,5 +56,4 @@ class CollectionOrderStatRepository(
             BY_LAST_UPDATED
         )
     }
-
 }

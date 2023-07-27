@@ -14,7 +14,7 @@ class BlurV1ExchangeDescriptorTest : AbstractBlurDescriptorTest() {
         val matches = listOf<OrderSideMatch>(mockk(), mockk())
 
         checkConversion(subscriber, matches) { log, transaction, index, totalLogs, date ->
-            coEvery { blurEventConverter.convertToSideMatch(log, transaction, index, totalLogs, date, ) } returns matches
+            coEvery { blurEventConverter.convertToSideMatch(log, transaction, index, totalLogs, date,) } returns matches
         }
     }
 }

@@ -118,4 +118,3 @@ class TopCollectionProvider(
     // TODO replace it in case of other top collections source appears
     suspend fun getTopCollections() = topCollectionRepository.getAll()
 }
-

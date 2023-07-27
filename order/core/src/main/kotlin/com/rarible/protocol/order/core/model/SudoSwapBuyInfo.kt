@@ -38,4 +38,3 @@ data class SudoSwapSellInfo(
         val ZERO = SudoSwapSellInfo(BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO)
     }
 }
-

@@ -48,4 +48,3 @@ class ExchangeV2MatchLegacyDescriptorTest : ExchangeV2BaseMatchDescriptorTests()
         `test fully match take-fill bid order with payout - data V1`()
     }
 }
-

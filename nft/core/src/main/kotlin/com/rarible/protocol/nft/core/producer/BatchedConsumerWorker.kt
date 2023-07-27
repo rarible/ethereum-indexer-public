@@ -13,5 +13,4 @@ class BatchedConsumerWorker<T>(
     override fun close() {
         consumers.forEach { it.close() }
     }
-
 }

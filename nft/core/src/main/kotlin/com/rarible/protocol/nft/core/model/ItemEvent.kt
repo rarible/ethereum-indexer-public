@@ -20,7 +20,6 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
 
     abstract fun supply(): EthUInt256
 
-
     data class ItemMintEvent(
         val supply: EthUInt256,
         val owner: Address,

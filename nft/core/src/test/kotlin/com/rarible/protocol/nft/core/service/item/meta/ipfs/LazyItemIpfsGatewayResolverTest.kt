@@ -34,5 +34,4 @@ class LazyItemIpfsGatewayResolverTest {
 
         assertThat(result).isNull()
     }
-
 }

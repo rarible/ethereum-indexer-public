@@ -5,4 +5,3 @@ import io.daonomic.rpc.domain.Binary
 interface TokeByteCodeFilter {
     fun isValid(code: Binary): Boolean
 }
-

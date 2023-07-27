@@ -60,7 +60,7 @@ class AuctionActivityService(
             .then(compareByDescending(ActivityResult::getId))
 
         fun comparator(sort: AuctionActivitySort): Comparator<ActivityResult> =
-            when(sort) {
+            when (sort) {
                 AuctionActivitySort.LATEST_FIRST -> COMPARATOR
                 AuctionActivitySort.EARLIEST_FIRST -> COMPARATOR.reversed()
                 AuctionActivitySort.SYNC_LATEST_FIRST -> SYNC_COMPARATOR

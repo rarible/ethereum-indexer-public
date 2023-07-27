@@ -283,4 +283,3 @@ class AuctionRepository(
         const val COLLECTION = "auction"
     }
 }
-

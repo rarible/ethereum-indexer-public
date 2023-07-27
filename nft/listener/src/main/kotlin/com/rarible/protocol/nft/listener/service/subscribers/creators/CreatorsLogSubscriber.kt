@@ -7,5 +7,5 @@ import com.rarible.protocol.nft.listener.service.subscribers.AbstractItemLogEven
 import org.springframework.stereotype.Component
 
 @Component
-class CreatorsLogSubscriber(descriptor: CreatorsLogDescriptor)
-    : AbstractItemLogEventSubscriber<ItemCreators>(SubscriberGroups.ITEM_HISTORY, descriptor)
+class CreatorsLogSubscriber(descriptor: CreatorsLogDescriptor) :
+    AbstractItemLogEventSubscriber<ItemCreators>(SubscriberGroups.ITEM_HISTORY, descriptor)

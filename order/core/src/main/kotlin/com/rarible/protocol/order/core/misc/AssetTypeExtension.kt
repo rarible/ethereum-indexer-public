@@ -1,7 +1,12 @@
 package com.rarible.protocol.order.core.misc
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.Erc721LazyAssetType
 import scalether.domain.Address
 
 fun AssetType.nftId(): String {

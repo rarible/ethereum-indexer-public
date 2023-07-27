@@ -7,7 +7,8 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.protocol.order.core.data.createOrderSideMatch
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst

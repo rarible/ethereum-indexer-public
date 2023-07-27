@@ -132,5 +132,4 @@ internal class CompositePoolCurveTest {
             sudoSwapExponentialCurve.getBuyInfo(any(), any(), any(), any(), any(), any())
         }
     }
-
 }

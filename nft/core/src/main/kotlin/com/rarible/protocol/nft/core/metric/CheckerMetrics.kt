@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.core.metric
 import com.rarible.ethereum.domain.Blockchain
 import io.micrometer.core.instrument.MeterRegistry
 
-
 class CheckerMetrics(
     private val blockchain: Blockchain,
     meterRegistry: MeterRegistry,

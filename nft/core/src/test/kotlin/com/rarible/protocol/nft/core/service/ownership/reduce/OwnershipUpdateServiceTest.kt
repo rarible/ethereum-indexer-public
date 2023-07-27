@@ -81,7 +81,6 @@ class OwnershipUpdateServiceTest {
             )
             ownershipService.save(deleted3)
             eventListenerListener.onOwnershipChanged(deleted3, any())
-
         }
         confirmVerified(ownershipService, eventListenerListener)
     }

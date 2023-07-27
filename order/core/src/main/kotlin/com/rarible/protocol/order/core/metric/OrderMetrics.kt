@@ -25,4 +25,3 @@ class OrderMetrics(
         const val ORDER_EXECUTION = "order_execution"
     }
 }
-

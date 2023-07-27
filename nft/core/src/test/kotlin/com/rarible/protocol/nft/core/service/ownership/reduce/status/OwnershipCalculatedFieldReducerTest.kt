@@ -2,7 +2,9 @@ package com.rarible.protocol.nft.core.service.ownership.reduce.status
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.common.nowMillis
-import com.rarible.protocol.nft.core.data.*
+import com.rarible.protocol.nft.core.data.createRandomOwnership
+import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferToEvent
+import com.rarible.protocol.nft.core.data.withNewValues
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test

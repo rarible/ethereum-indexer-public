@@ -69,7 +69,6 @@ class OrderX2Y2StatusTaskHandlerTest : AbstractIntegrationTest() {
         assertThat(updated.status).isNotEqualTo(OrderStatus.CANCELLED)
     }
 
-
     private suspend fun prepareX2Y2OrderAndRunTask(apiResult: OrderSignResult): Order {
         properties.fixX2Y2 = true
         val taskParam = AbstractOrderUpdateStatusTaskHandler.TaskParam(

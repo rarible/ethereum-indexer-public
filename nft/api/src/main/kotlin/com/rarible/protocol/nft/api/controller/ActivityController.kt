@@ -89,5 +89,4 @@ class ActivityController(
 
         return ResponseEntity.ok(NftActivitiesDto(nextContinuation, result))
     }
-
 }

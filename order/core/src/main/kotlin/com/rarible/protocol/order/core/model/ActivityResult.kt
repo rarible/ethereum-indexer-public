@@ -16,7 +16,7 @@ sealed class ActivityResult {
             .then(compareByDescending(ActivityResult::getId))
 
         fun comparator(sort: ActivitySort): Comparator<ActivityResult> =
-            when(sort) {
+            when (sort) {
                 ActivitySort.LATEST_FIRST -> COMPARATOR
                 ActivitySort.EARLIEST_FIRST -> COMPARATOR.reversed()
                 ActivitySort.SYNC_LATEST_FIRST -> SYNC_COMPARATOR
@@ -26,9 +26,9 @@ sealed class ActivityResult {
     }
 }
 
-sealed class OrderActivityResult: ActivityResult() {
+sealed class OrderActivityResult : ActivityResult() {
 
-    data class History(val value: ReversedEthereumLogRecord): OrderActivityResult() {
+    data class History(val value: ReversedEthereumLogRecord) : OrderActivityResult() {
 
         override fun getId(): String = this.value.id
         override fun getDate(): Instant = when (this.value.data) {
@@ -39,15 +39,15 @@ sealed class OrderActivityResult: ActivityResult() {
         override fun getUpdatedAt(): Instant = this.value.updatedAt
     }
 
-    data class Version(val value: OrderVersion): OrderActivityResult() {
+    data class Version(val value: OrderVersion) : OrderActivityResult() {
         override fun getId(): String = this.value.id.toHexString()
         override fun getDate(): Instant = value.createdAt
         override fun getUpdatedAt(): Instant = this.value.createdAt
     }
 }
 
-sealed class PoolActivityResult: OrderActivityResult() {
-    data class History(val value: ReversedEthereumLogRecord): PoolActivityResult() {
+sealed class PoolActivityResult : OrderActivityResult() {
+    data class History(val value: ReversedEthereumLogRecord) : PoolActivityResult() {
         override fun getId(): String = this.value.id
         override fun getDate(): Instant = when (this.value.data) {
             is PoolTargetNftIn -> (this.value.data as PoolTargetNftIn).date
@@ -58,9 +58,9 @@ sealed class PoolActivityResult: OrderActivityResult() {
     }
 }
 
-sealed class AuctionActivityResult: ActivityResult() {
+sealed class AuctionActivityResult : ActivityResult() {
 
-    data class History(val value: ReversedEthereumLogRecord): AuctionActivityResult() {
+    data class History(val value: ReversedEthereumLogRecord) : AuctionActivityResult() {
         override fun getId(): String = this.value.id
         override fun getDate(): Instant = when (this.value.data) {
             is OrderExchangeHistory -> (this.value.data as OrderExchangeHistory).date
@@ -70,7 +70,7 @@ sealed class AuctionActivityResult: ActivityResult() {
         override fun getUpdatedAt(): Instant = this.value.updatedAt
     }
 
-    data class OffchainHistory(val value: AuctionOffchainHistory): AuctionActivityResult() {
+    data class OffchainHistory(val value: AuctionOffchainHistory) : AuctionActivityResult() {
         override fun getId(): String = this.value.id
         override fun getDate(): Instant = value.date
         override fun getUpdatedAt(): Instant = this.value.createdAt

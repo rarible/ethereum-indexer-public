@@ -18,7 +18,7 @@ import java.time.Instant
 internal class AuctionFinishedDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test
     fun `should finish auction`() = runBlocking<Unit> {
-        //0x0000000000000000000000000000000000000000
+        // 0x0000000000000000000000000000000000000000
         withStartedAuction(seller = userSender1, startTime = Instant.EPOCH) { (_, chainAuction) ->
             auctionHouse.cancel(chainAuction.auctionId.value).withSender(userSender1).execute().verifySuccess()
 

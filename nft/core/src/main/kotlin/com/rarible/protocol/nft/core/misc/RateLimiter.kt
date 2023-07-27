@@ -6,7 +6,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.time.Instant
-import kotlin.system.measureTimeMillis
 
 class RateLimiter(
     private val maxEntities: Int,

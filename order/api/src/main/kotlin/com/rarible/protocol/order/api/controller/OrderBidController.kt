@@ -75,5 +75,4 @@ class OrderBidController(
     private fun toContinuation(orderVersion: OrderVersion): String {
         return Continuation.Price(orderVersion.takePriceUsd ?: BigDecimal.ZERO, orderVersion.hash).toString()
     }
-
 }

@@ -21,5 +21,4 @@ class TransferLogSubscriber(descriptor: ERC721TransferLogDescriptor) :
         block: FullBlock<EthereumBlockchainBlock, EthereumBlockchainLog>,
         logs: List<EthereumLogRecord>
     ) = postProcessor.process(block, logs)
-
 }

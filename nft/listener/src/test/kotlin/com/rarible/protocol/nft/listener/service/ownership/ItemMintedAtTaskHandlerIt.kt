@@ -79,4 +79,3 @@ class ItemMintedAtTaskHandlerIt : AbstractIntegrationTest() {
         ).awaitFirst().data as T
     }
 }
-

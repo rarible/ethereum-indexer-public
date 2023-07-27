@@ -40,4 +40,3 @@ class NftOwnershipApiService(
         ).awaitFirst()
     }
 }
-

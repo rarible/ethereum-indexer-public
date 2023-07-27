@@ -25,8 +25,7 @@ class BlurOrderTest {
         ).isEqualTo(Word.apply(event.buyHash()))
     }
 
-
-    //https://etherscan.io/tx/0x8dcd41cc28a34d22b9e03bc668566c255c5b01327018c381f496a1055ed90685
+    // https://etherscan.io/tx/0x8dcd41cc28a34d22b9e03bc668566c255c5b01327018c381f496a1055ed90685
     private val log = log(
         topics = listOf(
             Word.apply("0x61cbb2a3dee0b6064c2e681aadd61677fb4ef319f0b547508d495626f5a62f64"),

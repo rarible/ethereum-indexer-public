@@ -21,7 +21,7 @@ fun randomLooksrareOrder(
         hash = hash,
         collection = randomAddress(),
         itemIds = listOf(randomBigInt()),
-        quoteType  = QuoteType.ASK,
+        quoteType = QuoteType.ASK,
         signer = randomAddress(),
         strategyId = randomLong(),
         currency = randomAddress(),

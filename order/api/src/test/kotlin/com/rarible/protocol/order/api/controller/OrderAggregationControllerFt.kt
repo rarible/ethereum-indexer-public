@@ -2,7 +2,15 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
-import com.rarible.protocol.order.api.data.*
+import com.rarible.protocol.order.api.data.createLogEvent
+import com.rarible.protocol.order.api.data.orderErc1155SellCancel
+import com.rarible.protocol.order.api.data.orderErc1155SellSideMatch
+import com.rarible.protocol.order.api.data.orderErc721SellSideMatch
+import com.rarible.protocol.order.api.data.withDate
+import com.rarible.protocol.order.api.data.withMakeToken
+import com.rarible.protocol.order.api.data.withMaker
+import com.rarible.protocol.order.api.data.withTakeUsd
+import com.rarible.protocol.order.api.data.withTaker
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
@@ -50,7 +58,7 @@ class OrderAggregationControllerFt : AbstractIntegrationTest() {
                     .withMaker(maker1)
                     .withDate(startDate + Duration.ofMinutes(3))
             ),
-            //-------
+            // -------
             createLogEvent(
                 orderErc1155SellSideMatch()
                     .withMaker(maker1)
@@ -77,7 +85,7 @@ class OrderAggregationControllerFt : AbstractIntegrationTest() {
                     .withMaker(maker2)
                     .withDate(startDate + Duration.ofMinutes(2))
             ),
-            //-------
+            // -------
             createLogEvent(
                 orderErc1155SellSideMatch()
                     .withMaker(maker2)
@@ -183,7 +191,6 @@ class OrderAggregationControllerFt : AbstractIntegrationTest() {
         assertThat(maker1Aggregation.count).isEqualTo(1)
     }
 
-
     @Test
     fun `should aggregate nft purchases by taker`() = runBlocking<Unit> {
         val now = nowMillis()
@@ -219,7 +226,7 @@ class OrderAggregationControllerFt : AbstractIntegrationTest() {
                     .withTakeUsd(BigDecimal.valueOf(2))
                     .withDate(startDate + Duration.ofMinutes(3))
             ),
-            //-------
+            // -------
             createLogEvent(
                 orderErc721SellSideMatch()
                     .withTaker(taker1)
@@ -246,7 +253,7 @@ class OrderAggregationControllerFt : AbstractIntegrationTest() {
                     .withTakeUsd(BigDecimal.valueOf(3))
                     .withDate(startDate + Duration.ofMinutes(2))
             ),
-            //-------
+            // -------
             createLogEvent(
                 orderErc721SellSideMatch()
                     .withTaker(taker2)
@@ -312,7 +319,7 @@ class OrderAggregationControllerFt : AbstractIntegrationTest() {
                     .withTakeUsd(BigDecimal.valueOf(2))
                     .withDate(startDate + Duration.ofMinutes(3))
             ),
-            //-------
+            // -------
             createLogEvent(
                 orderErc721SellSideMatch()
                     .withMakeToken(collection1)
@@ -339,7 +346,7 @@ class OrderAggregationControllerFt : AbstractIntegrationTest() {
                     .withTakeUsd(BigDecimal.valueOf(3))
                     .withDate(startDate + Duration.ofMinutes(2))
             ),
-            //-------
+            // -------
             createLogEvent(
                 orderErc721SellSideMatch()
                     .withMakeToken(collection2)

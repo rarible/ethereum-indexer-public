@@ -20,20 +20,19 @@ data class ItemProperties(
 ) {
 
     fun isEmpty(): Boolean {
-        return name.isBlank()
-            && description.isNullOrBlank()
-            && attributes.isEmpty()
+        return name.isBlank() &&
+            description.isNullOrBlank() &&
+            attributes.isEmpty() &&
             // && rawJsonContent.isNullOrBlank() // not an 'empty' marker
-            && createdAt == null
-            && tags.isEmpty()
-            && genres.isEmpty()
-            && language.isNullOrBlank()
-            && rights.isNullOrBlank()
-            && rightsUri.isNullOrBlank()
-            && externalUri.isNullOrBlank()
+            createdAt == null &&
+            tags.isEmpty() &&
+            genres.isEmpty() &&
+            language.isNullOrBlank() &&
+            rights.isNullOrBlank() &&
+            rightsUri.isNullOrBlank() &&
+            externalUri.isNullOrBlank() &&
             // && tokenUri.isNullOrBlank() // not an 'empty' marker
-            && content.isEmpty()
-
+            content.isEmpty()
     }
 }
 
@@ -57,10 +56,10 @@ data class ItemMetaContent(
     }
 
     fun isEmpty(): Boolean {
-        return imageBig == null
-            && imageOriginal == null
-            && imagePreview == null
-            && videoOriginal == null
+        return imageBig == null &&
+            imageOriginal == null &&
+            imagePreview == null &&
+            videoOriginal == null
     }
 }
 

@@ -42,7 +42,7 @@ class ArtBlocksPropertiesResolverTest : BasePropertiesResolverTest() {
                 description = "A synthesis of over 777 days of generative artmaking, motion as survival, and coding as transformative ritual. Sky gardens of trustless techno-leviathans crystallize, entangle, and play between dimensions online and AFK, generating new forms altogether. I channel these speculative phenomena to highlight the fluid, transformative possibilities of structures perceived as rigid and immutable. Their intricate geometries move freely beyond limited social media compression that severely reduces the experience of digital art. These formations also embody choreographic elements from collaborative live coding dance performance.",
                 attributes = listOf(
                     ItemAttribute("Sky", "Indigo"),
-                    ItemAttribute("Monster","Streamlined"),
+                    ItemAttribute("Monster", "Streamlined"),
                     ItemAttribute("Crystals", "medium"),
                     ItemAttribute("BlackandWhite", "off"),
                     ItemAttribute("project_id", "114"),

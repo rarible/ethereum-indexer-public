@@ -56,8 +56,8 @@ data class OrderIndexerProperties(
     val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong()) * BigDecimal.valueOf(1, 18)
 
     data class BidValidationProperties(
-        val minPriceUsd: BigDecimal = BigDecimal.ONE, //1 USD
-        val minPercentFromFloorPrice: BigDecimal = 0.75.toBigDecimal(), //Bid price should be not less the 75% from floor price
+        val minPriceUsd: BigDecimal = BigDecimal.ONE, // 1 USD
+        val minPercentFromFloorPrice: BigDecimal = 0.75.toBigDecimal(), // Bid price should be not less the 75% from floor price
     )
 
     data class CurrencyContractAddresses(

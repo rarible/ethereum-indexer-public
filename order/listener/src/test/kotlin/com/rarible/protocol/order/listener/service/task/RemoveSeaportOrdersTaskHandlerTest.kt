@@ -197,7 +197,6 @@ class RemoveSeaportOrdersTaskHandlerTest : AbstractIntegrationTest() {
             orderListener.onOrder(any(), any())
         } returns Unit
 
-
         val result = handler.runLongTask(null, param = (now - Duration.ofMinutes(11)).epochSecond.toString()).toList()
         assertThat(result).isNotEmpty
 

@@ -62,7 +62,7 @@ internal class NonceServiceTest : AbstractIntegrationTest() {
         blockNumber: Long,
         logIndex: Int,
         minorLogIndex: Int
-    ) : ReversedEthereumLogRecord {
+    ): ReversedEthereumLogRecord {
         return nonceHistoryRepository.save(
             ReversedEthereumLogRecord(
                 id = ObjectId().toHexString(),

@@ -9,12 +9,11 @@ import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscribe
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderParser
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.time.Instant
 
-//@Service //TODO: Activate after move to a new scanner
+// @Service //TODO: Activate after move to a new scanner
 @CaptureSpan(type = SpanType.EVENT)
 class WyvernExchangeOrderCancelDescriptor(
     private val contractsProvider: ContractsProvider,
@@ -28,7 +27,7 @@ class WyvernExchangeOrderCancelDescriptor(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderCancel> {
-        val transactionHash =  log.transactionHash()
+        val transactionHash = log.transactionHash()
         val event = OrderCancelledEvent.apply(log)
         logger.info("Got OrderCancel event, tx=$transactionHash")
 

@@ -3,7 +3,10 @@ package com.rarible.protocol.nft.core.service
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.external.royalties.IRoyaltiesProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.Royalty
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import io.daonomic.rpc.RpcCodeException

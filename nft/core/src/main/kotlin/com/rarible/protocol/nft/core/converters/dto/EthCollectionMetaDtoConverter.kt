@@ -22,5 +22,4 @@ object EthCollectionMetaDtoConverter {
             content = source.properties.content.asList().map { EthMetaContentConverter.convert(it) },
         )
     }
-
 }

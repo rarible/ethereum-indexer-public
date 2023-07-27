@@ -45,10 +45,10 @@ class OwnershipEventConverter(
                         entityId = OwnershipId(data.token, data.tokenId, from).stringValue,
                     )
                 }
-                //Revertable event for lazy ownership to change value and lazyValue
-                //Normally it is minting event
+                // Revertable event for lazy ownership to change value and lazyValue
+                // Normally it is minting event
                 val changeLazyOwnership = data.from.takeIf { data.isMintTransfer() }?.let {
-                    //Get lazy owner from item, but we should skip it if minter is lazy item owner
+                    // Get lazy owner from item, but we should skip it if minter is lazy item owner
                     getItem(data.token, data.tokenId)?.getLazyOwner().takeUnless { it == data.owner }
                 }?.let { lazyOwner ->
                     OwnershipEvent.ChangeLazyValueEvent(

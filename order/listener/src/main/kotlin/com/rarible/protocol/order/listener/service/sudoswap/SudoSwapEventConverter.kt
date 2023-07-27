@@ -180,4 +180,3 @@ class SudoSwapEventConverter(
         val EMPTY_PREFIX_BINARY: Binary = Binary.apply(ByteArray(12))
     }
 }
-

@@ -8,8 +8,8 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
-import com.rarible.protocol.order.core.service.asset.AssetTypeService
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.core.service.asset.AssetTypeService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log

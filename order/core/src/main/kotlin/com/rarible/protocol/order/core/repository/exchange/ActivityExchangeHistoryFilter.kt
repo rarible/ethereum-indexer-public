@@ -35,7 +35,7 @@ sealed class ActivityExchangeHistoryFilter {
         val takeOrderExchange = ReversedEthereumLogRecord::data / OrderExchangeHistory::take
         val makeOrderExchange = ReversedEthereumLogRecord::data / OrderExchangeHistory::make
         val makerOrderExchange = ReversedEthereumLogRecord::data / OrderExchangeHistory::maker
-        val orderSideMatchSide = ReversedEthereumLogRecord::data /  OrderSideMatch::side
+        val orderSideMatchSide = ReversedEthereumLogRecord::data / OrderSideMatch::side
     }
 
     internal abstract fun getCriteria(): Criteria
@@ -146,7 +146,6 @@ sealed class ActivityExchangeHistoryFilter {
                 )
             ActivitySort.BY_ID ->
                 this.and("_id").gt(continuation.afterId.safeQueryParam())
-
         }
 
     protected fun Criteria.dateBoundary(
@@ -192,7 +191,7 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
         override val from: Instant?,
         override val to: Instant?,
         private val continuation: Continuation?
-   ) : UserActivityExchangeHistoryFilter(users) {
+    ) : UserActivityExchangeHistoryFilter(users) {
 
         override fun getCriteria(): Criteria {
             return AllSell(sort, null).getCriteria().andOperator(makerCriteria)
@@ -207,7 +206,7 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
         override val from: Instant?,
         override val to: Instant?,
         private val continuation: Continuation?
-   ) : UserActivityExchangeHistoryFilter(users) {
+    ) : UserActivityExchangeHistoryFilter(users) {
 
         override fun getCriteria(): Criteria {
             return AllCanceledBid(sort, null).getCriteria().andOperator(makerCriteria)
@@ -237,7 +236,7 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
         override val from: Instant?,
         override val to: Instant?,
         private val continuation: Continuation?
-   ) : UserActivityExchangeHistoryFilter(users) {
+    ) : UserActivityExchangeHistoryFilter(users) {
 
         override fun getCriteria(): Criteria {
             return AllSell(sort, null).getCriteria().andOperator(takerCriteria)

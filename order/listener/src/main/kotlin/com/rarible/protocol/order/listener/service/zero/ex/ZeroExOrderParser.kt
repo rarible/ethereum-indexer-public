@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component
 import scala.Tuple14
 import scala.Tuple2
 import scalether.domain.Address
-import java.lang.IllegalStateException
 import java.math.BigInteger
 
 @Component

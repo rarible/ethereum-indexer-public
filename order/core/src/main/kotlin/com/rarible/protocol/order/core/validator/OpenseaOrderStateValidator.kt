@@ -14,8 +14,8 @@ class OpenseaOrderStateValidator(
     override val type = "aggregation"
 
     override fun supportsValidation(order: Order): Boolean {
-        return order.platform == Platform.OPEN_SEA
-            && order.data.version == OrderDataVersion.BASIC_SEAPORT_DATA_V1
+        return order.platform == Platform.OPEN_SEA &&
+            order.data.version == OrderDataVersion.BASIC_SEAPORT_DATA_V1
     }
 
     override suspend fun validate(order: Order) {

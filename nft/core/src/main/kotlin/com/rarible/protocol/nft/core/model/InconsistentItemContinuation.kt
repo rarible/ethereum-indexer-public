@@ -7,7 +7,7 @@ data class InconsistentItemContinuation(
     val afterId: ItemId,
 ) {
     override fun toString(): String {
-        return "${afterDate.toEpochMilli()}_${afterId}"
+        return "${afterDate.toEpochMilli()}_$afterId"
     }
 
     companion object {

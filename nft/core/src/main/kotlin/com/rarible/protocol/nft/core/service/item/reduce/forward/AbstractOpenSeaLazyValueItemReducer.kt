@@ -9,7 +9,7 @@ import scalether.domain.Address
 
 abstract class AbstractOpenSeaLazyValueItemReducer : Reducer<ItemEvent, Item> {
 
-    protected abstract suspend  fun reduceItemTransferEvent(entity: Item, event: ItemEvent.OpenSeaLazyItemMintEvent): Item
+    protected abstract suspend fun reduceItemTransferEvent(entity: Item, event: ItemEvent.OpenSeaLazyItemMintEvent): Item
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
         return when (event) {

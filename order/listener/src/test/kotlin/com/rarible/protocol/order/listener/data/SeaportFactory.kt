@@ -99,4 +99,3 @@ fun randomSeaportOrder(): SeaportOrder {
         clientSignature = randomBinary(32)
     )
 }
-

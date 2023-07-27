@@ -124,7 +124,7 @@ class CollectionControllerTest : AbstractIntegrationTest() {
 
         val expectedIds = tokens.take(random).map { it.id }
 
-        val actual = nftCollectionApiClient.getNftCollectionsByIds(CollectionsByIdRequestDto(expectedIds.map{ "$it" }))
+        val actual = nftCollectionApiClient.getNftCollectionsByIds(CollectionsByIdRequestDto(expectedIds.map { "$it" }))
             .awaitSingle()
 
         assertThat(actual.collections.map { it.id }).containsAll(expectedIds)

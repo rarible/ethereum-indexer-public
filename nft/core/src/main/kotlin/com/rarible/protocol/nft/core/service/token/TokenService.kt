@@ -115,6 +115,4 @@ class TokenService(
         logger.info("Token {} standard updated from {} to {}", address, token.standard, standard)
         result
     }
-
 }
-

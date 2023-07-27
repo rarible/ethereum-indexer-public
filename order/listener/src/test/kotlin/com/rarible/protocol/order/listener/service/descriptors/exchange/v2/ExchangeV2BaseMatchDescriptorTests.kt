@@ -371,7 +371,6 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
 
         assertThat(fills(bidOrder.hash.bytes()).awaitFirst()).isEqualTo(BigInteger.ONE)
 
-
         Wait.waitAssert {
             val items = exchangeHistoryRepository.findByItemType(ItemType.ORDER_SIDE_MATCH).collectList().awaitFirst()
             assertThat(items).hasSize(2)

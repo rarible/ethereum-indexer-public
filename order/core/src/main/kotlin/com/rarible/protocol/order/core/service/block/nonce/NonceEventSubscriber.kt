@@ -34,7 +34,6 @@ class NonceEventSubscriber(
                 }
             }.distinctBy { it.first }
 
-
         nonceHistories.forEach { pair ->
             val history = pair.first
             val event = pair.second
@@ -49,4 +48,3 @@ class NonceEventSubscriber(
         }
     }
 }
-

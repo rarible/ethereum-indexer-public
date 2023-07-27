@@ -68,13 +68,14 @@ class OrderUpdateService(
     suspend fun update(
         hash: Word,
         eventTimeMarks: EventTimeMarks
-    ) {
+    ): Order? {
         val updatedOrder = optimisticLock {
             orderReduceService.updateOrder(hash)
         }
         if (updatedOrder != null && updatedOrder.isNotEmptyOrder) {
             orderListener.onOrder(updatedOrder, eventTimeMarks)
         }
+        return updatedOrder
     }
 
     suspend fun updateApproval(
@@ -169,8 +170,8 @@ class OrderUpdateService(
     }
 
     private fun isFinished(order: Order): Boolean {
-        return order.status == OrderStatus.CANCELLED
-            || order.status == OrderStatus.FILLED
+        return order.status == OrderStatus.CANCELLED ||
+            order.status == OrderStatus.FILLED
     }
 
     private fun getLatestDate(date1: Instant?, date2: Instant?): Instant? {

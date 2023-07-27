@@ -6,9 +6,9 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
-import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.core.data.createRandomOwnershipId
 import com.rarible.protocol.nft.core.metric.BaseMetrics
+import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -29,7 +29,7 @@ import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 internal class OwnershipCheckerTest {
 

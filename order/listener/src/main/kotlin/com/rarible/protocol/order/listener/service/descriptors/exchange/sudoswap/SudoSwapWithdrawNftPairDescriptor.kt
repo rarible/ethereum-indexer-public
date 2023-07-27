@@ -10,10 +10,10 @@ import com.rarible.protocol.order.core.model.PoolNftWithdraw
 import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import java.time.Instant
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -22,7 +22,7 @@ class SudoSwapWithdrawNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapWithdrawNftEventCounter: RegisteredCounter,
     private val sudoSwapLoad: SudoSwapLoadProperties,
-): PoolSubscriber<PoolNftWithdraw>(
+) : PoolSubscriber<PoolNftWithdraw>(
     name = "sudo_nft_withdrawal",
     topic = NFTWithdrawalEvent.id(),
     contracts = emptyList()
@@ -43,6 +43,6 @@ class SudoSwapWithdrawNftPairDescriptor(
                 date = timestamp,
                 source = HistorySource.SUDOSWAP
             )
-        ) .also { sudoSwapWithdrawNftEventCounter.increment() }
+        ).also { sudoSwapWithdrawNftEventCounter.increment() }
     }
 }

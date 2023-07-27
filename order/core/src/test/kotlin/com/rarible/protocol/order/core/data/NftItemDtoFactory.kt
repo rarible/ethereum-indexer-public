@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.data
 
-
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftCollectionDto
@@ -28,7 +27,7 @@ fun createNftOwnershipDto(): NftOwnershipDto {
 
 fun createNftItemDto(token: Address = AddressFactory.create(), tokenId: BigInteger = BigInteger.ONE): NftItemDto {
     return NftItemDto(
-        id = "${token}:${tokenId}",
+        id = "$token:$tokenId",
         contract = token,
         tokenId = tokenId,
         creators = emptyList(),

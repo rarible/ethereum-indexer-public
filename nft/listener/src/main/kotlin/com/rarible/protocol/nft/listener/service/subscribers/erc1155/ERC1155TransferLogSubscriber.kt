@@ -12,8 +12,8 @@ import com.rarible.protocol.nft.listener.service.subscribers.AbstractItemLogEven
 import org.springframework.stereotype.Component
 
 @Component
-class ERC1155TransferLogSubscriber(descriptor: ERC1155TransferLogDescriptor)
-    : AbstractItemLogEventSubscriber<ItemTransfer>(SubscriberGroups.ITEM_HISTORY, descriptor) {
+class ERC1155TransferLogSubscriber(descriptor: ERC1155TransferLogDescriptor) :
+    AbstractItemLogEventSubscriber<ItemTransfer>(SubscriberGroups.ITEM_HISTORY, descriptor) {
 
     private val postProcessor = TransferLogsPostProcessor()
 
@@ -21,5 +21,4 @@ class ERC1155TransferLogSubscriber(descriptor: ERC1155TransferLogDescriptor)
         block: FullBlock<EthereumBlockchainBlock, EthereumBlockchainLog>,
         logs: List<EthereumLogRecord>
     ) = postProcessor.process(block, logs)
-
 }

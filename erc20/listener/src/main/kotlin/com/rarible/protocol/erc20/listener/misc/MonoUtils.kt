@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono
 suspend fun <T> Mono<T>.tryAwait(): T? {
     return try {
         awaitFirstOrNull()
-    } catch (ex:Exception) {
+    } catch (ex: Exception) {
         null
     }
 }

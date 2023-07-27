@@ -59,7 +59,7 @@ class SeaportEventConverter(
             "Event ${event.log().logIndex()}" +
                 " in tx=${event.log().transactionHash()}" +
                 " for order ${Word.apply(event.orderHash())}" +
-                " contains spentItems: ${spentItems} and receivedItems: ${receivedItems}"
+                " contains spentItems: $spentItems and receivedItems: $receivedItems"
         )
         val make = convertSpentItems(spentItems) ?: return emptyList()
         val take = convertReceivedItems(receivedItems) ?: return emptyList()
@@ -144,7 +144,7 @@ class SeaportEventConverter(
             if (canFindAdvancedOrderCounter(advancedOrder.parameters, hash, protocol)) {
                 advancedOrder.signature == Binary.empty()
             } else {
-                logger.warn("Can't find counter to match hash, tx=$txHash, logIndex=${logIndex}, protocol=${protocol}, parameters=${advancedOrder.parameters}")
+                logger.warn("Can't find counter to match hash, tx=$txHash, logIndex=$logIndex, protocol=$protocol, parameters=${advancedOrder.parameters}")
                 false
             }
         } else {
@@ -154,7 +154,7 @@ class SeaportEventConverter(
                 found = isTargetOrder && advancedOrder.signature == Binary.empty()
                 if (found) break
             }
-            logger.info("Search order hash result $found, tx=$txHash, logIndex=${logIndex}, totalLogs=$totalLogs, index=$index")
+            logger.info("Search order hash result $found, tx=$txHash, logIndex=$logIndex, totalLogs=$totalLogs, index=$index")
             found
         }
     }
@@ -190,12 +190,12 @@ class SeaportEventConverter(
     ): List<OrderCancel> {
         val inputs = getMethodInput(event.log(), transaction, getTrace = true, CANCEL_SIGNATURE_ID)
         val orderHash = Word.apply(event.orderHash())
-        logger.info("Event to cancel order ${orderHash}, tx=${transaction.hash()}, found inputs=${inputs}")
+        logger.info("Event to cancel order $orderHash, tx=${transaction.hash()}, found inputs=$inputs")
         val assets = if (inputs.isNotEmpty()) {
             try {
                 val components = inputs.map { CANCEL_SIGNATURE.`in`().decode(it, 4).value().toList() }.flatten()
                 require(components.size == totalLogs) {
-                    "Order components size (${components.size}) is net equals totalLogs=${totalLogs} (tx=${transaction.hash()})"
+                    "Order components size (${components.size}) is net equals totalLogs=$totalLogs (tx=${transaction.hash()})"
                 }
                 val targetComponent = SeaportOrderParser.convert(components[index])
                 require(Order.seaportV1Hash(targetComponent) == orderHash) {
@@ -301,5 +301,4 @@ class SeaportEventConverter(
         @Suppress("HasPlatformType")
         val MATCH_ADVANCED_ORDERS_SIGNATURE_ID_V1_4 = MATCH_ADVANCED_ORDERS_SIGNATURE_V1_4.id()
     }
-
 }

@@ -136,7 +136,6 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 )
             }
         )
-
     }
 
     @ParameterizedTest

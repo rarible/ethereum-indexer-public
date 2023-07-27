@@ -15,7 +15,7 @@ class TraceCallServiceImpl(
     private val traceProvider: TransactionTraceProvider,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
 ) : TraceCallService {
-    //todo get only success traces
+    // todo get only success traces
     override suspend fun findAllRequiredCalls(
         headTransaction: HeadTransaction,
         to: Address,

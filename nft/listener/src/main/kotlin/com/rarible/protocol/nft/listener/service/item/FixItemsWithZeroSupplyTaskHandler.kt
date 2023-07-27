@@ -28,14 +28,14 @@ class FixItemsWithZeroSupplyTaskHandler(
                 Item::supply isEqualTo EthUInt256.ZERO,
                 Item::deleted isEqualTo false
         )
-        val query  = Query().addCriteria(criteria)
+        val query = Query().addCriteria(criteria)
 
         return itemRepository.search(query).map {
             updateOrder(it)
         }
     }
 
-    private suspend fun updateOrder(item: Item): String  {
+    private suspend fun updateOrder(item: Item): String {
 
         itemReduceService.update(item.token, item.tokenId).awaitFirstOrNull()
         val updatedItem = itemRepository.findById(item.id).awaitFirstOrNull()

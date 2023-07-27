@@ -110,7 +110,7 @@ object SeaportOrderParser {
             zone = component._2(),
             offer = convertOrderOffer(component._3()),
             consideration = convertOrderConsideration(component._4()),
-            orderType = SeaportOrderType.fromValue(component._5().intValueExact()) ,
+            orderType = SeaportOrderType.fromValue(component._5().intValueExact()),
             startTime = component._6(),
             endTime = component._7(),
             zoneHash = Word.apply(component._8()),

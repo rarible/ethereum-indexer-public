@@ -116,4 +116,3 @@ fun OnChainOrder.toOrderVersion() =
         signature = signature,
         hash = hash
     )
-

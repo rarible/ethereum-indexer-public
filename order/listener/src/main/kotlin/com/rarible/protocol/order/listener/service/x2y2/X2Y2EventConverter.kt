@@ -89,7 +89,7 @@ class X2Y2EventConverter(
                 REFUND_AUCTION_STUCK_ITEM
              }
              */
-            1 -> nft to currency //Sell
+            1 -> nft to currency // Sell
             2 -> currency to nft // Bid
             else -> throw UnsupportedOperationException("Unsupported operation")
         }

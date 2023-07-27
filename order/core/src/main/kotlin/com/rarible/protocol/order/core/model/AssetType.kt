@@ -6,11 +6,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.Tuples.keccak256
+import com.rarible.protocol.order.core.model.AssetType.Companion.Type
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Transient
-import com.rarible.protocol.order.core.model.AssetType.Companion.Type
 import scala.Tuple2
 import scala.Tuple3
 import scala.Tuple5

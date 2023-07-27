@@ -27,7 +27,7 @@ data class SudoSwapPoolDataV1(
     val spotPrice: BigInteger,
     val delta: BigInteger,
     val fee: BigInteger
-): PoolData() {
+) : PoolData() {
     @get:Transient
     override val version = PoolDataVersion.SUDOSWAP_POOL_DATA_V1
 

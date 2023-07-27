@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.listener.misc
+package com.rarible.protocol.order.core.misc
 
 class LambdaList<T>(private val delegate: () -> List<T>) : List<T> {
     override val size: Int

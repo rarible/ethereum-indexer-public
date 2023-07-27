@@ -1,6 +1,17 @@
 package com.rarible.protocol.order.core.misc
 
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.AmmOrderDto
+import com.rarible.protocol.dto.CryptoPunkOrderDto
+import com.rarible.protocol.dto.LegacyOrderDto
+import com.rarible.protocol.dto.LooksRareOrderDto
+import com.rarible.protocol.dto.LooksRareV2OrderDto
+import com.rarible.protocol.dto.OpenSeaV1OrderDto
+import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.dto.OrderSudoSwapAmmDataV1Dto
+import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.dto.RaribleV2OrderDto
+import com.rarible.protocol.dto.SeaportV1OrderDto
+import com.rarible.protocol.dto.X2Y2OrderDto
 
 val OrderDto.platform: PlatformDto
     get() {

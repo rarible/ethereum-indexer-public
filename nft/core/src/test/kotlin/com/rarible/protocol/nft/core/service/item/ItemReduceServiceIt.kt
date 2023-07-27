@@ -1,10 +1,7 @@
 package com.rarible.protocol.nft.core.service.item
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.common.nowMillis
-import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
@@ -33,9 +30,6 @@ import com.rarible.protocol.nft.core.repository.action.NftItemActionEventReposit
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
-import io.daonomic.rpc.domain.Word
-import io.daonomic.rpc.domain.`Word$`
-import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -604,7 +598,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         )
         checkItem(token, tokenId, expSupply = value, expLazySupply = EthUInt256.Companion.of(8), expCreator = creator)
 
-        //transfer to owner1, to creator
+        // transfer to owner1, to creator
         val owner2 = AddressFactory.create()
         saveItemHistory(
             ItemTransfer(

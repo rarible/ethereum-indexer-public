@@ -26,10 +26,8 @@ class TransferLogsPostProcessor {
             .filter { it.transactionHash in valueByHash.keys }
             .filter { it.data is ItemTransfer } // Actually data is always ItemTransfer
             .filter { (it.data as ItemTransfer).isMintTransfer() }
-
             // tx hash -> mint counts
             .groupBy({ it.transactionHash }, { (it.data as ItemTransfer).value.value })
-
             // tx hash -> mintPrice
             .entries.associate { (hash, counts) ->
                 val value = valueByHash[hash]

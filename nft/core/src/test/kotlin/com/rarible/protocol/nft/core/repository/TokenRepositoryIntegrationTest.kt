@@ -15,7 +15,6 @@ import scalether.domain.Address
 @IntegrationTest
 class TokenRepositoryIntegrationTest : AbstractIntegrationTest() {
 
-
     @Test
     fun `should search with continuation in id asc order`() = runBlocking<Unit> {
         // given

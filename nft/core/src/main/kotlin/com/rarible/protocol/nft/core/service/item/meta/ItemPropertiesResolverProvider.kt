@@ -25,7 +25,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.polygon.Sandb
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-//TODO separate ethereum and polygon resolvers
+// TODO separate ethereum and polygon resolvers
 @Component
 
 class ItemPropertiesResolverProvider(

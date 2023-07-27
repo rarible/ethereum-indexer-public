@@ -70,5 +70,4 @@ class Erc20ReduceTaskParamTest {
         assertThat(full.isOverlapped(token1)).isTrue
         assertThat(token1.isOverlapped(full)).isTrue
     }
-
 }

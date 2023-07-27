@@ -5,4 +5,3 @@ import com.rarible.ethereum.domain.Blockchain
 
 class RaribleOrderSaveMetric(root: String, blockchain: Blockchain) : CountingMetric(
     "$root.rarible.order.save", tag("blockchain", blockchain.value))
-

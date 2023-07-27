@@ -89,5 +89,4 @@ class AuctionRepositoryIt : AbstractIntegrationTest() {
         assertThat(ongoingNotUpdated).contains(ended.hash)
         assertThat(ongoingNotUpdated).hasSize(1)
     }
-
 }

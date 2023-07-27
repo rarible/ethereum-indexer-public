@@ -272,7 +272,7 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         val token = randomAddress()
         val currencies = listOf(randomAddress(), randomAddress(), randomAddress())
 
-        //Active orders
+        // Active orders
         repeat(10) {
             currencies.forEach { currency ->
                 val order = randomOrder().copy(make = randomErc721(token), take = randomErc20(currency))
@@ -280,7 +280,7 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
                 assertThat(savedOrder.status).isEqualTo(OrderStatus.ACTIVE)
             }
         }
-        //Not active orders
+        // Not active orders
         repeat(10) {
             currencies.forEach { currency ->
                 val order = randomOrder().copy(
@@ -329,4 +329,3 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         assertThat(result).isEqualTo(listOf(order1.hash))
     }
 }
-

@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.opensea.client.agent.UserAgentProvider
-import java.util.*
+import java.util.UUID
 
 class ExternalUserAgentProvider(
     openSeaClientUserAgents: String

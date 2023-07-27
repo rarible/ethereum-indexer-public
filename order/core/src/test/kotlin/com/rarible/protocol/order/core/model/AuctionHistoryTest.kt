@@ -6,7 +6,6 @@ import com.rarible.protocol.order.core.data.randomCanceled
 import com.rarible.protocol.order.core.data.randomFinished
 import com.rarible.protocol.order.core.misc.MAPPER
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource

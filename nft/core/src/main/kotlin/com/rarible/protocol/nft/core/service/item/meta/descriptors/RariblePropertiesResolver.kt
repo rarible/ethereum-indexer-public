@@ -112,4 +112,3 @@ class RariblePropertiesResolver(
     rawPropertiesProvider: RawPropertiesProvider,
     tokenUriResolver: BlockchainTokenUriResolver
 ) : AbstractRariblePropertiesResolver(urlService, rawPropertiesProvider, tokenUriResolver)
-

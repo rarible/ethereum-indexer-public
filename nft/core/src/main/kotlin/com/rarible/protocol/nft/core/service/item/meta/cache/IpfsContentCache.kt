@@ -39,5 +39,4 @@ class IpfsContentCache(
         }
         return (urlResource as IpfsUrl).toSchemaUrl()
     }
-
 }

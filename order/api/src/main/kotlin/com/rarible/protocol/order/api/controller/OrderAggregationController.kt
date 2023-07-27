@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 import java.time.Instant
-import java.util.*
+import java.util.Date
 
 @RestController
 class OrderAggregationController(
@@ -106,4 +106,3 @@ class OrderAggregationController(
 
     private fun limit(size: Long?): Long = PageSize.ORDER_AGGREGATION.limit(size)
 }
-

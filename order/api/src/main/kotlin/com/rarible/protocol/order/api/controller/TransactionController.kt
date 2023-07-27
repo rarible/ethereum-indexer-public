@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class TransactionController : OrderTransactionControllerApi {
     override fun createOrderPendingTransaction(request: CreateTransactionRequestDto): ResponseEntity<Flow<LogEventDto>> {
-        val empty = flow<LogEventDto> {  }
+        val empty = flow<LogEventDto> { }
         return ResponseEntity.ok(empty)
     }
 }

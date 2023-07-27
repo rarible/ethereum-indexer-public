@@ -8,7 +8,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
-import java.util.*
+import java.util.Locale
 
 class InstantFormatter : Formatter<Instant?> {
 
@@ -47,5 +47,4 @@ class InstantFormatter : Formatter<Instant?> {
             dateTimeFormatter.format(dateTime)
         }
     }
-
 }

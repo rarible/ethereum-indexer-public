@@ -50,7 +50,7 @@ internal class OpenSeaOrderServiceImplTest {
         assertThat(result).isEqualTo(expectedResult)
         coVerify(exactly = 1) { seaportProtocolClient.getListOrders(withArg {
             assertThat(it.cursor).isEqualTo(next)
-        })}
+        }) }
     }
 
     @Test
@@ -67,7 +67,7 @@ internal class OpenSeaOrderServiceImplTest {
         assertThat(result).isEqualTo(expectedResult)
         coVerify(exactly = 2) { seaportProtocolClient.getListOrders(withArg {
             assertThat(it.cursor).isEqualTo(next)
-        })}
+        }) }
     }
 
     @Test

@@ -1,7 +1,9 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.data.*
+import com.rarible.protocol.nft.core.data.createRandomBurnItemEvent
+import com.rarible.protocol.nft.core.data.createRandomItem
+import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.reversed.ReversedValueItemReducer
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat

@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.erc20.core.model.FeatureFlags
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
-import org.springframework.boot.context.properties.NestedConfigurationProperty
 import scalether.domain.Address
 
 @ConstructorBinding

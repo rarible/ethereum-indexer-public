@@ -190,5 +190,4 @@ sealed class InternalContinuation {
         val afterDate: Instant,
         val afterId: ObjectId
     ) : InternalContinuation()
-
 }

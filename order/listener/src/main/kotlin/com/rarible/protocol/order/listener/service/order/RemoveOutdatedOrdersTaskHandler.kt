@@ -55,7 +55,7 @@ class RemoveOutdatedOrdersTaskHandler(
     }
 }
 
-//{"platform":"LOOKSRARE","status":"ACTIVE","type":"LOOKSRARE","version":"LOOKSRARE_V1","contractAddress":null}
+// {"platform":"LOOKSRARE","status":"ACTIVE","type":"LOOKSRARE","version":"LOOKSRARE_V1","contractAddress":null}
 data class RemoveOutdatedOrdersTaskParams(
     val platform: Platform,
     val status: OrderStatus,

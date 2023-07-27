@@ -186,7 +186,6 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
                 forTx._5(),
                 forTx._6()
             ).withSender(userSender1).execute().verifySuccess()
-
         }
 
         var events: List<ReversedEthereumLogRecord> = emptyList()

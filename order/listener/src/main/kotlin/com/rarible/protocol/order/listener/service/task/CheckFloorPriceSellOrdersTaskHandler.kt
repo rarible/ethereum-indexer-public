@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import java.time.Duration
 import java.time.Instant
-import java.util.*
+import java.util.Date
 
 @Component
 class CheckFloorPriceSellOrdersTaskHandler(
@@ -40,7 +40,7 @@ class CheckFloorPriceSellOrdersTaskHandler(
     override fun runLongTask(from: String?, param: String): Flow<String> {
         val now = Instant.now()
         return exchangeHistoryRepository.getTokenPurchaseAggregation(
-            startDate = Date.from (now - Duration.ofDays(30)),
+            startDate = Date.from(now - Duration.ofDays(30)),
             endDate = Date.from(now),
             source = null
         ).asFlow().take(properties.floorPriceTopCollectionsCount).map {

@@ -26,7 +26,6 @@ class ChangeLog00025DeleteManuallyCreatedIndices {
             template, NonceHistoryRepository.COLLECTION,
             listOf("status_1_data.maker_1 ")
         )
-
     }
 
     private suspend fun dropIndices(

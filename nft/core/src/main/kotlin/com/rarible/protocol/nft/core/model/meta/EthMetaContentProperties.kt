@@ -28,7 +28,6 @@ data class EthImageProperties(
 ) : EthMetaContentProperties() {
 
     override fun isEmpty(): Boolean = mimeType == null || width == null || height == null
-
 }
 
 data class EthVideoProperties(
@@ -39,7 +38,6 @@ data class EthVideoProperties(
 ) : EthMetaContentProperties() {
 
     override fun isEmpty(): Boolean = mimeType == null || width == null || height == null
-
 }
 
 data class EthAudioProperties(
@@ -48,7 +46,6 @@ data class EthAudioProperties(
 ) : EthMetaContentProperties() {
 
     override fun isEmpty(): Boolean = mimeType == null
-
 }
 
 data class EthModel3dProperties(
@@ -57,7 +54,6 @@ data class EthModel3dProperties(
 ) : EthMetaContentProperties() {
 
     override fun isEmpty(): Boolean = mimeType == null
-
 }
 
 data class EthHtmlProperties(
@@ -66,7 +62,6 @@ data class EthHtmlProperties(
 ) : EthMetaContentProperties() {
 
     override fun isEmpty(): Boolean = mimeType == null
-
 }
 
 data class EthUnknownProperties(
@@ -74,6 +69,5 @@ data class EthUnknownProperties(
     override val size: Long? = null
 ) : EthMetaContentProperties() {
 
-    override fun isEmpty(): Boolean = true  // TODO Is it used somewhere?
-
+    override fun isEmpty(): Boolean = true // TODO Is it used somewhere?
 }

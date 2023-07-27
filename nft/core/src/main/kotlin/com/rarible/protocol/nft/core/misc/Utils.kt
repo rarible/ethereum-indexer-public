@@ -4,7 +4,6 @@ import com.rarible.core.entity.reducer.chain.ReducersChain
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
-import org.slf4j.Logger
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.util.Bytes

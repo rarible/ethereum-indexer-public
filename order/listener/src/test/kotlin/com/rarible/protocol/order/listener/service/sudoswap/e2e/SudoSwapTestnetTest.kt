@@ -38,7 +38,7 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             spotPrice = spotPrice.multiply(decimal).toBigInteger(),
             tokenIds = tokenIds
         )
-        val expectedPrice = getSingleBuyNFTQuote(userSender, poolAddress) //spotPrice + delta + protocolFee (0.5%)
+        val expectedPrice = getSingleBuyNFTQuote(userSender, poolAddress) // spotPrice + delta + protocolFee (0.5%)
 
         checkOrder(orderHash) {
             assertThat(it.make.value).isEqualTo(BigInteger.ONE)
@@ -339,4 +339,3 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         }
     }
 }
-

@@ -17,19 +17,19 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @IntegrationTest
-class AuctionActivityControllerIt : AbstractIntegrationTest()  {
+class AuctionActivityControllerIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var controller: AuctionActivityController
 
     @Test
     fun `should get all order activities using pagination desc`() = runBlocking<Unit> {
-        val activityQuantities = 30 //must be even
+        val activityQuantities = 30 // must be even
         val ordersChunk = 5
 
         fillRepositories(activityQuantities)
 
-        var continuation : String? = null
+        var continuation: String? = null
         var pageCounter = 0
         val receivedOrders = mutableListOf<AuctionActivityDto>()
 
@@ -40,7 +40,7 @@ class AuctionActivityControllerIt : AbstractIntegrationTest()  {
             pageCounter += 1
         } while (continuation != null)
 
-        Assertions.assertThat(pageCounter).isEqualTo(activityQuantities/ordersChunk + 1)
+        Assertions.assertThat(pageCounter).isEqualTo(activityQuantities / ordersChunk + 1)
         Assertions.assertThat(receivedOrders).hasSize(activityQuantities)
         Assertions.assertThat(receivedOrders)
             .isSortedAccordingTo { o1, o2 -> compareValues(o2.lastUpdatedAt, o1.lastUpdatedAt) }
@@ -48,12 +48,12 @@ class AuctionActivityControllerIt : AbstractIntegrationTest()  {
 
     @Test
     fun `should get all order activities using pagination asc`() = runBlocking<Unit> {
-        val activityQuantities = 40 //must be even
+        val activityQuantities = 40 // must be even
         val activitiesChunk = 6
 
         fillRepositories(activityQuantities)
 
-        var continuation : String? = null
+        var continuation: String? = null
         var pageCounter = 0
         val receivedOrders = mutableListOf<AuctionActivityDto>()
 
@@ -64,7 +64,7 @@ class AuctionActivityControllerIt : AbstractIntegrationTest()  {
             pageCounter += 1
         } while (continuation != null)
 
-        Assertions.assertThat(pageCounter).isEqualTo(activityQuantities/activitiesChunk + 1)
+        Assertions.assertThat(pageCounter).isEqualTo(activityQuantities / activitiesChunk + 1)
         Assertions.assertThat(receivedOrders).hasSize(activityQuantities)
         Assertions.assertThat(receivedOrders)
             .isSortedAccordingTo { o1, o2 -> compareValues(o1.lastUpdatedAt, o2.lastUpdatedAt) }
@@ -83,5 +83,4 @@ class AuctionActivityControllerIt : AbstractIntegrationTest()  {
             historySave.awaitFirst()
         }
     }
-
 }

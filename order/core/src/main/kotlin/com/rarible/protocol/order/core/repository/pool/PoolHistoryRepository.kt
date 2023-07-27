@@ -55,7 +55,7 @@ class PoolHistoryRepository(
     }
 
     fun find(query: Query): Flow<ReversedEthereumLogRecord> {
-        return template.find(query,ReversedEthereumLogRecord::class.java, COLLECTION).asFlow()
+        return template.find(query, ReversedEthereumLogRecord::class.java, COLLECTION).asFlow()
     }
 
     fun findById(id: ObjectId): Mono<ReversedEthereumLogRecord> {
@@ -114,7 +114,7 @@ class PoolHistoryRepository(
         val query = Query(criteria)
             .with(POOL_CHANGE_SORT_DESC)
             // TODO ideally we should get rid of direct hint usages
-            //.withHint(Indexes.NFT_CHANGES_POOL_ITEM_IDS_DEFINITION.indexKeys)
+            // .withHint(Indexes.NFT_CHANGES_POOL_ITEM_IDS_DEFINITION.indexKeys)
             .limit(1)
 
         return template.find<ReversedEthereumLogRecord>(query, COLLECTION).collectList().awaitFirst()

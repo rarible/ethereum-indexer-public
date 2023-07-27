@@ -5,6 +5,7 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createLogRecordEvent
 import com.rarible.protocol.order.core.data.createOrderCancel
 import com.rarible.protocol.order.core.data.createOrderSideMatch
+import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomApproveHistory
 import com.rarible.protocol.order.core.data.randomAuctionCreated
 import com.rarible.protocol.order.core.misc.asEthereumLogRecord
@@ -37,8 +38,8 @@ internal class OrderEthereumEventHandlerTest {
         val event4 = createLogRecordEvent(createOrderCancel().copy(hash = hash2))
         val others = listOf(createLogRecordEvent(randomAuctionCreated()), createLogRecordEvent(randomApproveHistory()))
 
-        coEvery { orderUpdateService.update(eq(hash1), any()) } returns Unit
-        coEvery { orderUpdateService.update(eq(hash2), any()) } returns Unit
+        coEvery { orderUpdateService.update(eq(hash1), any()) } returns createSellOrder()
+        coEvery { orderUpdateService.update(eq(hash2), any()) } returns createSellOrder()
         every { eventFilter.filter(any()) } returns true
         every { properties.parallel } returns false
 
@@ -58,7 +59,7 @@ internal class OrderEthereumEventHandlerTest {
         val event1 = createLogRecordEvent(createOrderSideMatch().copy(hash = hash1))
         val event2 = createLogRecordEvent(createOrderSideMatch().copy(hash = hash2))
 
-        coEvery { orderUpdateService.update(any(), any()) } returns Unit
+        coEvery { orderUpdateService.update(any(), any()) } returns createSellOrder()
         every { eventFilter.filter(event1.record.asEthereumLogRecord()) } returns true
         every { eventFilter.filter(event2.record.asEthereumLogRecord()) } returns false
         every { properties.parallel } returns true

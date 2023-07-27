@@ -88,7 +88,7 @@ internal object NftItemHistoryRepositoryIndexes {
         .on("_id", Sort.Direction.DESC)
         .background()
 
-    //TODO: Maybe this index should be removed
+    // TODO: Maybe this index should be removed
     val BY_UPDATED_AT_FIELD: Index = Index()
         .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)

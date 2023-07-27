@@ -47,5 +47,4 @@ class JsonItemPropertiesMapperTest {
 
         assertThat(properties.name).isEqualTo("NAME")
     }
-
 }

@@ -71,5 +71,4 @@ class OnNftItemLogEventListenerTest {
 
         coVerify(exactly = 0) { publisher.publish(any<NftActivityDto>(), any()) }
     }
-
 }

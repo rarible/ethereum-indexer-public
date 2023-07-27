@@ -6,7 +6,13 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.reduce.repository.ReduceEventRepository
 import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Auction
+import com.rarible.protocol.order.core.model.AuctionHistory
+import com.rarible.protocol.order.core.model.AuctionHistoryType
+import com.rarible.protocol.order.core.model.AuctionReduceEvent
+import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.OnChainAuction
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -20,7 +26,11 @@ import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.index.Index
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -38,7 +48,7 @@ class AuctionHistoryRepository(
     }
 
     fun find(query: Query): Flow<ReversedEthereumLogRecord> {
-        return template.find(query,ReversedEthereumLogRecord::class.java, COLLECTION).asFlow()
+        return template.find(query, ReversedEthereumLogRecord::class.java, COLLECTION).asFlow()
     }
 
     fun findById(id: ObjectId): Mono<ReversedEthereumLogRecord> {
@@ -116,7 +126,6 @@ class AuctionHistoryRepository(
             .on(ReversedEthereumLogRecord::updatedAt.name, Sort.Direction.ASC)
             .on("_id", Sort.Direction.ASC)
             .background()
-
 
         val ALL_INDEXES = listOf(
             BY_TYPE_TOKEN_ID_DEFINITION,

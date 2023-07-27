@@ -9,7 +9,7 @@ import com.rarible.x2y2.client.model.ApiListResponse
 import kotlinx.coroutines.time.delay
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.Base64
 
 abstract class AbstractX2Y2LoadHandler<T>(
     private val aggregatorStateRepository: AggregatorStateRepository,
@@ -39,6 +39,6 @@ abstract class AbstractX2Y2LoadHandler<T>(
     }
 
     protected fun codeCursor(cursor: Long): String {
-        return Base64.getEncoder().encodeToString("[${cursor}]".toByteArray())
+        return Base64.getEncoder().encodeToString("[$cursor]".toByteArray())
     }
 }

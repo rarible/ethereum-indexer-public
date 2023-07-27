@@ -10,7 +10,7 @@ class X2Y2CancelEventsFetchWorker(
     private val handler: X2Y2CancelEventsLoadHandler,
     properties: X2Y2EventLoadProperties,
     meterRegistry: MeterRegistry
-): SequentialDaemonWorker(
+) : SequentialDaemonWorker(
     meterRegistry,
     DaemonWorkerProperties(
         pollingPeriod = properties.pollingPeriod,

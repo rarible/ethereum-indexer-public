@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.time.Instant
-import java.lang.IllegalArgumentException
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -48,7 +47,7 @@ class ApprovalForAllDescriptor(
 
     private fun toApprovalForAllEvent(log: Log): ApprovalForAllEvent {
         return try {
-            when(log.topics().size()) {
+            when (log.topics().size()) {
                 1 -> ApprovalForAllEventWithFullData.apply(log)
                 4 -> ApprovalForAllByTopicsEvent.apply(log)
                 else -> ApprovalForAllEvent.apply(log)

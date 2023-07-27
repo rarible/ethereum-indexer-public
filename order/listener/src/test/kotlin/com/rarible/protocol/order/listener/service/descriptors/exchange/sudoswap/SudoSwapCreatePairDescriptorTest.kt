@@ -16,10 +16,10 @@ import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
+import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
-import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -184,6 +184,4 @@ internal class SudoSwapCreatePairDescriptorTest {
             EthUInt256.of(4956),
         )
     }
-
-
 }

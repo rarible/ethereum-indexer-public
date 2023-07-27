@@ -40,4 +40,3 @@ class BlurV2kpExecution721TakerFeePackedDescriptor(
         }
     }
 }
-

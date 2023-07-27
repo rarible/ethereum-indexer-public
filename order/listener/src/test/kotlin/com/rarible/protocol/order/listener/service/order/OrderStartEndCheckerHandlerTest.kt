@@ -43,7 +43,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
     @BeforeEach
     fun setup() {
         clearMocks(assetBalanceProvider)
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } coAnswers r@ {
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } coAnswers r@{
             val asset = secondArg<Asset>()
             if (asset.type is EthAssetType) {
                 return@r MakeBalanceState(asset.value)

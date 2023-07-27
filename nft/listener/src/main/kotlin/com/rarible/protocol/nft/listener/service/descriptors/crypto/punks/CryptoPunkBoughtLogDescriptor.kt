@@ -49,9 +49,9 @@ class CryptoPunkBoughtLogDescriptor(
                 .doOnError { logger.warn("Unable to get logs for block ${log.blockHash()}", it) }
                 .map { logs ->
                     logs.find {
-                        it.topics().head() == TransferEvent.id()
-                                && it.transactionHash() == log.transactionHash()
-                                && (it.logIndex() == log.logIndex() - BigInteger.ONE || it.logIndex() == log.logIndex() - BigInteger("2"))
+                        it.topics().head() == TransferEvent.id() &&
+                                it.transactionHash() == log.transactionHash() &&
+                                (it.logIndex() == log.logIndex() - BigInteger.ONE || it.logIndex() == log.logIndex() - BigInteger("2"))
                     }
                         ?.let { TransferEvent.apply(it) }
                         ?.let { it.from() to it.to() }

@@ -8,5 +8,3 @@ data class BlurTradeDetails(
     val value: BigInteger,
     val tradeData: Binary
 )
-
-

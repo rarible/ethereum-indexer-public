@@ -20,7 +20,7 @@ import java.time.Instant
 internal class AssetBalanceProviderImplTest {
     private val erc20BalanceApi = mockk<BalanceControllerApiService>()
     private val nftOwnershipApi = mockk<NftOwnershipApiService>()
-    private val ethBalanceService =  mockk<EthBalanceService>()
+    private val ethBalanceService = mockk<EthBalanceService>()
 
     private val assetBalanceProviderImpl = AssetBalanceProviderImpl(
         erc20BalanceApi,

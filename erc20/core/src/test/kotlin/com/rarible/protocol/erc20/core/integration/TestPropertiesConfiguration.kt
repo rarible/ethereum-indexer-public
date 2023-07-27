@@ -11,7 +11,7 @@ import scalether.transaction.MonoTransactionPoller
 
 @TestConfiguration
 @EnableConfigurationProperties(Erc20IndexerProperties::class)
-class TestPropertiesConfiguration{
+class TestPropertiesConfiguration {
     @Bean
     fun testEthereum(@Value("\${parityUrls}") url: String): MonoEthereum {
         return MonoEthereum(WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000))

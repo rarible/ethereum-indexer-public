@@ -81,7 +81,7 @@ class OrderControllerFt : AbstractIntegrationTest() {
         val salt = Numeric.toBigInt(RandomUtils.nextBytes(32))
         listOf<Any>(
             salt, /* as big int */
-            //"\"" + salt.toWord() + "\"", /* as hex string of length 64 */
+            // "\"" + salt.toWord() + "\"", /* as hex string of length 64 */
             "\"" + salt + "\"" /* as a decimal string */
         ).forEach { saltFormat ->
             testCreateOrderUsingPutRequest(EthUInt256(salt)) { orderForm ->
@@ -93,7 +93,7 @@ class OrderControllerFt : AbstractIntegrationTest() {
                     }
                 val httpRequest = HttpEntity(modifiedJson, headers)
                 val orderDto = restTemplate.postForObject(
-                    "http://localhost:${port}/v0.1/orders",
+                    "http://localhost:$port/v0.1/orders",
                     httpRequest,
                     OrderDto::class.java
                 )!!
@@ -226,7 +226,7 @@ class OrderControllerFt : AbstractIntegrationTest() {
         request.remove("end")
         assertThatExceptionOfType(HttpClientErrorException.BadRequest::class.java).isThrownBy {
             restTemplate.postForObject(
-                "http://localhost:${port}/v0.1/orders",
+                "http://localhost:$port/v0.1/orders",
                 request,
                 OrderDto::class.java
             )

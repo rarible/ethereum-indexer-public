@@ -36,7 +36,6 @@ class ReindexTokenServiceTest {
     private val taskRepository = mockk<TempTaskRepository>() {
         coEvery { save(any()) } coAnswers { firstArg() }
         coEvery { delete(any()) } returns Unit
-
     }
     private val taskSchedulingService = TaskSchedulingService(taskRepository)
 

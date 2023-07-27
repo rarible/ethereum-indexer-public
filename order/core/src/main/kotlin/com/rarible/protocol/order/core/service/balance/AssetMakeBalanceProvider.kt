@@ -30,8 +30,8 @@ class AssetMakeBalanceProvider(
      */
     private suspend fun handleCryptoPunkMarketOrder(order: Order): MakeBalanceState? {
         if (
-            order.make.type is EthAssetType
-            && order.take.type is CryptoPunksAssetType
+            order.make.type is EthAssetType &&
+            order.take.type is CryptoPunksAssetType
         ) {
             return MakeBalanceState(order.make.value)
         }

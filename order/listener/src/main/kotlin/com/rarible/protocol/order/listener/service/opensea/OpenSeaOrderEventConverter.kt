@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigInteger
 import java.time.Instant
-import java.util.*
+import java.util.Arrays
 import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.experimental.xor
@@ -164,12 +164,12 @@ class OpenSeaOrderEventConverter(
 
     private fun getBuyOrderSide(orders: OpenSeaMatchedOrders): OrderSide {
         return when (orders.buyOrder.taker) {
-            //This is a case of bid order (usually buying using WETH)
+            // This is a case of bid order (usually buying using WETH)
             Address.ZERO() -> {
                 require(orders.sellOrder.maker != Address.ZERO())
                 OrderSide.LEFT
             }
-            //This is a case of sell order (usually buying using ETH)
+            // This is a case of sell order (usually buying using ETH)
             else -> {
                 require(orders.buyOrder.maker != Address.ZERO())
                 OrderSide.RIGHT
@@ -197,7 +197,7 @@ class OpenSeaOrderEventConverter(
                     value = EthUInt256.of(transfer.value)
                 )
             }
-            is Transfer.MerkleValidatorErc721Transfer-> {
+            is Transfer.MerkleValidatorErc721Transfer -> {
                 Asset(
                     type = Erc721AssetType(
                         token = transfer.token,
@@ -222,7 +222,7 @@ class OpenSeaOrderEventConverter(
         price: BigInteger,
         paymentToken: Address
     ): Asset {
-        return  if (paymentToken != Address.ZERO()) {
+        return if (paymentToken != Address.ZERO()) {
             Asset(
                 type = Erc20AssetType(paymentToken),
                 value = EthUInt256.of(price)

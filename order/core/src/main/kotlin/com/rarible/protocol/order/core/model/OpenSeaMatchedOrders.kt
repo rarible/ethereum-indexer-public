@@ -7,4 +7,3 @@ data class OpenSeaMatchedOrders(
     val sellOrder: OpenSeaTransactionOrder,
     val origin: Binary?
 )
-

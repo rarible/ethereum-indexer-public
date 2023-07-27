@@ -43,9 +43,9 @@ class OrderActivitySubscriber(
 
     private suspend fun convert(logRecord: ReversedEthereumLogRecord, reverted: Boolean): OrderActivityDto? {
         return if (
-            (logRecord.data as? OrderSideMatch)?.side == OrderSide.LEFT
-            || logRecord.data is OnChainOrder
-            || logRecord.data is OrderCancel
+            (logRecord.data as? OrderSideMatch)?.side == OrderSide.LEFT ||
+            logRecord.data is OnChainOrder ||
+            logRecord.data is OrderCancel
         ) {
             orderActivityConverter.convert(
                 OrderActivityResult.History(logRecord),

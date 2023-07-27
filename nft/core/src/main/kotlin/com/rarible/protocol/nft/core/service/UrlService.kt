@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 @Component
 @CaptureSpan(type = IPFS_CAPTURE_SPAN_TYPE)
 class UrlService(
-    private val urlParser : UrlParser,
+    private val urlParser: UrlParser,
     private val urlResolver: UrlResolver
 ) {
 
@@ -38,5 +38,4 @@ class UrlService(
 
     // Used to build url exposed to the DB cache or API responses
     fun resolvePublicHttpUrl(resource: UrlResource): String = urlResolver.resolvePublicUrl(resource)
-
 }

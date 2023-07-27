@@ -40,7 +40,6 @@ import java.util.function.Consumer
 import java.util.stream.Stream
 import com.rarible.protocol.order.api.client.AuctionControllerApi as AuctionClient
 
-
 @IntegrationTest
 class AuctionSearchFt : AbstractIntegrationTest() {
     companion object {

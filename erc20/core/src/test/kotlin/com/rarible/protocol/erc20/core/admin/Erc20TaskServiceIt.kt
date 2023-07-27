@@ -76,7 +76,6 @@ class Erc20TaskServiceIt : AbstractIntegrationTest() {
                 erc20TaskService.createReduceTask(token, null, false)
             }
         }
-
     }
 
     @Test

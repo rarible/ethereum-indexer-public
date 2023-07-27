@@ -7,7 +7,7 @@ import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderKind
 import org.springframework.stereotype.Component
-import java.util.*
+import java.util.UUID
 
 @Component
 class NftOrdersPriceUpdateEventConverter(

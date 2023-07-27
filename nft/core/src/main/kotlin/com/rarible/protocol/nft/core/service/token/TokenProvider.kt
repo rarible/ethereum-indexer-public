@@ -34,7 +34,7 @@ import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
-import java.util.*
+import java.util.Optional
 
 @Service
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")

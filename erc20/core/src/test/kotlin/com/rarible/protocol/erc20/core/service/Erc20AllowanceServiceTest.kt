@@ -84,7 +84,7 @@ internal class Erc20AllowanceServiceTest {
                     null,
                     null,
                     null,
-                    //Call ERC20 balance method
+                    // Call ERC20 balance method
                     Binary.apply(
                         "0xdd62ed3e000000000000000000000000${balanceId.owner.hex()}" +
                             "000000000000000000000000${Address.ONE().hex()}"
@@ -129,7 +129,7 @@ internal class Erc20AllowanceServiceTest {
                     null,
                     null,
                     null,
-                    //Call ERC20 balance method
+                    // Call ERC20 balance method
                     Binary.apply(
                         "0xdd62ed3e000000000000000000000000${balanceId.owner.hex()}" +
                             "000000000000000000000000${Address.ONE().hex()}"
@@ -167,7 +167,7 @@ internal class Erc20AllowanceServiceTest {
                     null,
                     null,
                     null,
-                    //Call ERC20 balance method
+                    // Call ERC20 balance method
                     Binary.apply(
                         "0xdd62ed3e000000000000000000000000${balanceId.owner.hex()}" +
                             "000000000000000000000000${Address.ONE().hex()}"
@@ -176,7 +176,6 @@ internal class Erc20AllowanceServiceTest {
                 )
             )
         } returns Mono.empty()
-
 
         assertThatExceptionOfType(IllegalStateException::class.java).isThrownBy {
             runBlocking {

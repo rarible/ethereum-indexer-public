@@ -20,4 +20,3 @@ class OpenSeaService(
         return openSeaClient.getAssets(request).ensureSuccess()
     }
 }
-

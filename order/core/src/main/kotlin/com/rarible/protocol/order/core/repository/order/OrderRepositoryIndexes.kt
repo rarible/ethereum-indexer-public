@@ -42,7 +42,7 @@ object OrderRepositoryIndexes {
         .background()
 
     // --------------------- getSellOrdersByItem ---------------------//
-    //TODO for some reason this index heavily used in prod
+    // TODO for some reason this index heavily used in prod
     // TODO ideally we should get rid of sorting by USD and make 'currency' param mandatory
     val SELL_ORDERS_BY_ITEM_SORT_BY_USD_PRICE_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)

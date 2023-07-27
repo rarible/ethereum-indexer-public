@@ -11,5 +11,4 @@ class RawPropertiesCacheService(
     fun getCache(urlResource: UrlResource): ContentCache? {
         return caches.find { it.isSupported(urlResource) }
     }
-
 }

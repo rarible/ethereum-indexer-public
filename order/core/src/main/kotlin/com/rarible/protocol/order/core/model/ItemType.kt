@@ -9,20 +9,18 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.PunkTransferEvent
 import com.rarible.protocol.contracts.exchange.looksrare.v1.CancelMultipleOrdersEvent
 import com.rarible.protocol.contracts.exchange.looksrare.v1.TakerAskEvent
 import com.rarible.protocol.contracts.exchange.looksrare.v1.TakerBidEvent
-import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent as MatchEventLegacy
-import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
 import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
-import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
-import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent as SeaportOrderCancelledEvent
-import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
-import com.rarible.protocol.contracts.blur.v1.evemts.OrdersMatchedEvent as BlurOrdersMatchedEvent
-import com.rarible.protocol.contracts.exchange.blur.v1.OrderCancelledEvent as BlurOrderCancelledEvent
+import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent
 import com.rarible.protocol.contracts.exchange.x2y2.v1.EvCancelEvent
 import com.rarible.protocol.contracts.exchange.zero.ex.FillEvent
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
 import com.rarible.protocol.contracts.x2y2.v1.events.EvInventoryEvent
 import io.daonomic.rpc.domain.Word
+import com.rarible.protocol.contracts.blur.v1.evemts.OrdersMatchedEvent as BlurOrdersMatchedEvent
+import com.rarible.protocol.contracts.exchange.blur.v1.OrderCancelledEvent as BlurOrderCancelledEvent
+import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent as SeaportOrderCancelledEvent
+import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent as MatchEventLegacy
 
 enum class ItemType(
     val topic: Set<Word>
@@ -55,11 +53,11 @@ enum class ItemType(
         )
     ),
     CANCEL(
-        topic= setOf(
+        topic = setOf(
             com.rarible.protocol.contracts.exchange.v1.CancelEvent.id(),
             com.rarible.protocol.contracts.exchange.v2.events.CancelEvent.id(),
             com.rarible.protocol.contracts.exchange.v2.events.CancelEventDeprecated.id(),
-            //OrderCancelledEvent.id(), //TODO: Activate after move to a new scanner
+            // OrderCancelledEvent.id(), //TODO: Activate after move to a new scanner
             PunkNoLongerForSaleEvent.id(),
             PunkBidWithdrawnEvent.id(),
             PunkTransferEvent.id(),

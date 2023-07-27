@@ -16,5 +16,3 @@ fun createItemHistory(): ItemTransfer {
         value = EthUInt256.of(BigInteger.valueOf(ThreadLocalRandom.current().nextLong(1, 10000)))
     )
 }
-
-

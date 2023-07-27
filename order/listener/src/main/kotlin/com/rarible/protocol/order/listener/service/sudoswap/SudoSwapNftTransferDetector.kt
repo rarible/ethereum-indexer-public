@@ -113,7 +113,7 @@ class SudoSwapNftTransferDetector(
 
     private sealed class CollectionTransfers {
         abstract val logs: List<Log>
-        abstract  val topic: Word
+        abstract val topic: Word
         abstract fun parseTransfer(log: Log): Transfer
 
         fun isEmpty(): Boolean {

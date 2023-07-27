@@ -55,6 +55,5 @@ class CustomMintDetector {
         private fun isMethodCalled(transaction: Transaction, method: Binary): Boolean {
             return transaction.input().methodSignatureId() == method
         }
-
     }
 }

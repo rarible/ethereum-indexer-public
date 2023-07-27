@@ -66,5 +66,4 @@ class AuctionStateService(
             type = type
         )
     }
-
 }

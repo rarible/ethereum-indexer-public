@@ -7,5 +7,5 @@ import com.rarible.protocol.nft.listener.service.subscribers.AbstractItemLogEven
 import org.springframework.stereotype.Component
 
 @Component
-class CreateERC1155RaribleUserLogSubscriber(descriptor: CreateERC1155RaribleUserLogDescriptor)
-    : AbstractItemLogEventSubscriber<CreateCollection>(SubscriberGroups.TOKEN_HISTORY, descriptor)
+class CreateERC1155RaribleUserLogSubscriber(descriptor: CreateERC1155RaribleUserLogDescriptor) :
+    AbstractItemLogEventSubscriber<CreateCollection>(SubscriberGroups.TOKEN_HISTORY, descriptor)

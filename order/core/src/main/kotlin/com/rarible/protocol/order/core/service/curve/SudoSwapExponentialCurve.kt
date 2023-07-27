@@ -20,10 +20,10 @@ class SudoSwapExponentialCurve : PoolCurve {
         // NOTE: we assume delta is > 1, as checked by validateDelta()
         // We only calculate changes for buying 1 or more NFTs
         if (numItems == BigInteger.ZERO) {
-            return SudoSwapBuyInfo.ZERO;
+            return SudoSwapBuyInfo.ZERO
         }
         if (numItems > Int.MAX_VALUE.toBigInteger()) {
-            return SudoSwapBuyInfo.ZERO;
+            return SudoSwapBuyInfo.ZERO
         }
         val deltaPowN = delta.pow(numItems.intValueExact()) / PoolCurve.WAD.pow(numItems.intValueExact() - 1)
         // For an exponential curve, the spot price is multiplied by delta for each item bought
@@ -69,7 +69,7 @@ class SudoSwapExponentialCurve : PoolCurve {
             return SudoSwapSellInfo.ZERO
         }
         if (numItems > Int.MAX_VALUE.toBigInteger()) {
-            return SudoSwapSellInfo.ZERO;
+            return SudoSwapSellInfo.ZERO
         }
         val invDelta = PoolCurve.WAD.pow(2).div(delta)
         val invDeltaPowN = invDelta.pow(numItems.intValueExact()) / PoolCurve.WAD.pow(numItems.intValueExact() - 1)

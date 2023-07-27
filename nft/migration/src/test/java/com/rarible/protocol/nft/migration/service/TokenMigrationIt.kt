@@ -18,7 +18,7 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 
 @IntegrationTest
-class TokenMigrationIt  : AbstractIntegrationTest() {
+class TokenMigrationIt : AbstractIntegrationTest() {
 
     @Autowired
     lateinit var template: ReactiveMongoTemplate
@@ -29,7 +29,6 @@ class TokenMigrationIt  : AbstractIntegrationTest() {
 
         repeat(tokensQuantities) {
             tokenRepository.save(Token.empty().copy(id = randomAddress())).awaitFirst()
-
         }
 
         val queryMulti = Query(Criteria.where(Token::dbUpdatedAt.name).exists(true))

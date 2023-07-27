@@ -4,7 +4,6 @@ import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.github.cloudyrock.mongock.driver.mongodb.springdata.v3.decorator.impl.MongockTemplate
 import com.rarible.protocol.nft.core.model.Ownership
-import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
@@ -44,7 +43,7 @@ class ChangeLog00004OwnershipIndexes {
 
         indexes
             .find { it.name == "creator_1_date_1__id_1" }
-            ?.let { template.indexOps(OwnershipRepository.COLLECTION).dropIndex(it.name)  }
+            ?.let { template.indexOps(OwnershipRepository.COLLECTION).dropIndex(it.name) }
     }
 
     @ChangeSet(id = "ChangeLog00004OwnershipIdexes.createIndexByCreators", order = "1", author = "protocol")

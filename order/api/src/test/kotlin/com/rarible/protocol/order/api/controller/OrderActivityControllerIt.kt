@@ -60,12 +60,12 @@ class OrderActivityControllerIt : AbstractIntegrationTest() {
 
         Assertions.assertThat(idsList).hasSize(2)
 
-        Assertions.assertThat(idsList).containsExactlyInAnyOrder(activity2.id ,activity3.id)
+        Assertions.assertThat(idsList).containsExactlyInAnyOrder(activity2.id, activity3.id)
     }
 
     @Test
     fun `should get history activities - asc`() = runBlocking<Unit> {
-        val ordersQuantity = 20 //must be even
+        val ordersQuantity = 20 // must be even
         val size = 20
 
         repeat(ordersQuantity) {
@@ -85,7 +85,7 @@ class OrderActivityControllerIt : AbstractIntegrationTest() {
 
     @Test
     fun `should get all order activities using pagination desc`() = runBlocking<Unit> {
-        val ordersQuantity = 30 //must be even
+        val ordersQuantity = 30 // must be even
         val ordersChunk = 5
 
         repeat(ordersQuantity / 2) {
@@ -114,7 +114,7 @@ class OrderActivityControllerIt : AbstractIntegrationTest() {
 
     @Test
     fun `should get all order activities using pagination asc`() = runBlocking<Unit> {
-        val ordersQuantity = 30 //must be even
+        val ordersQuantity = 30 // must be even
         val ordersChunk = 5
 
         repeat(ordersQuantity / 2) {

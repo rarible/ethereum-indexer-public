@@ -15,4 +15,3 @@ object Erc20AllowanceDtoConverter {
         )
     }
 }
-

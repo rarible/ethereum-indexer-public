@@ -73,4 +73,3 @@ class AuctionDtoConverter(
         return priceNormalizer.normalize(assetType, value)
     }
 }
-

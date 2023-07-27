@@ -25,8 +25,8 @@ class ForwardCreatorsItemReducer(
             }
             is ItemEvent.ItemMintEvent -> {
                 val creators = if (!entity.creatorsFinal) {
-                    if (!nftIndexerProperties.featureFlags.validateCreatorByTransactionSender
-                        || event.log.from == event.owner
+                    if (!nftIndexerProperties.featureFlags.validateCreatorByTransactionSender ||
+                        event.log.from == event.owner
                     ) {
                         listOf(Part.fullPart(event.owner))
                     } else {

@@ -6,8 +6,8 @@ data class CompositeEvent(
     val itemEvent: ItemEvent?,
     val ownershipEvents: List<OwnershipEvent>
 ) : Comparable<CompositeEvent> {
-    constructor(itemEvent: ItemEvent): this(itemEvent, emptyList())
-    constructor(ownershipEvents: List<OwnershipEvent>): this(null, ownershipEvents)
+    constructor(itemEvent: ItemEvent) : this(itemEvent, emptyList())
+    constructor(ownershipEvents: List<OwnershipEvent>) : this(null, ownershipEvents)
 
     fun isConfirmed(): Boolean {
         return getEventLog(this).isConfirmed()

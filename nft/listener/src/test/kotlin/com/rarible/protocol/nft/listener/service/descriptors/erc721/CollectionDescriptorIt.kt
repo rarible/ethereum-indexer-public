@@ -37,7 +37,7 @@ class CollectionDescriptorIt : AbstractIntegrationTest() {
             BigInteger.valueOf(8000000)
         ) { Mono.just(BigInteger.ZERO) }
 
-        //todo move to test contracts
+        // todo move to test contracts
         val token = poller.waitForTransaction(
             MintableOwnableToken.deploy(
                 userSender,

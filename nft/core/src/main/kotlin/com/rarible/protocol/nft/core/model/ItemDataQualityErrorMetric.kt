@@ -6,4 +6,3 @@ import com.rarible.ethereum.domain.Blockchain
 class ItemDataQualityErrorMetric(root: String, blockchain: Blockchain) : CountingMetric(
     "$root.item.data.quality.error", tag("blockchain", blockchain.value)
 )
-

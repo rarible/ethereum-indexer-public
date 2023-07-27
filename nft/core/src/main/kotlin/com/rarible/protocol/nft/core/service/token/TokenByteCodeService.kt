@@ -57,6 +57,5 @@ class TokenByteCodeService(
     private companion object {
         const val CACHE_SIZE = 1000L
         val CACHE_EXPIRE_AFTER: Duration = Duration.ofDays(1)
-
     }
 }

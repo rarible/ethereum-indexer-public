@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import org.springframework.stereotype.Component
-import java.util.*
+import java.util.Base64
 import java.util.regex.Pattern
 
 @Component
@@ -24,5 +24,5 @@ object SeaportRequestCursorProducer {
     private const val CURSOR_ASC_PREFIX = "r=1&-pk="
     private const val ID_GROUP = "id"
 
-    private val asc = Pattern.compile("^${CURSOR_ASC_PREFIX}(?<$ID_GROUP>\\d+)$")
+    private val asc = Pattern.compile("^$CURSOR_ASC_PREFIX(?<$ID_GROUP>\\d+)$")
 }

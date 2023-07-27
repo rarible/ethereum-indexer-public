@@ -10,10 +10,10 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.toAssetType
+import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
-import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.descriptors.getOriginMaker
 import io.daonomic.rpc.domain.Word
@@ -114,4 +114,3 @@ class ExchangeOrderMatchLegacyDescriptor(
         )
     }
 }
-

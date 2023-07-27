@@ -13,5 +13,4 @@ class ItemMetaResolver(
         val itemProperties = itemPropertiesService.resolve(itemId) ?: return null
         return ItemMeta(itemProperties)
     }
-
 }

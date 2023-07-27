@@ -22,4 +22,3 @@ object AuctionActivitySyncSortConverter : Converter<SyncSortDto, AuctionActivity
         }
     }
 }
-

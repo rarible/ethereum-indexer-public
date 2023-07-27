@@ -28,4 +28,3 @@ class ForwardOwnershipValueReducer : Reducer<OwnershipEvent, Ownership> {
         return entity.copy(value = value, blockNumber = event.log.blockNumber)
     }
 }
-

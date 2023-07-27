@@ -26,5 +26,4 @@ class BalanceController(
         )
         return ResponseEntity.ok(balanceDto)
     }
-
 }

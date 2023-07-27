@@ -63,7 +63,7 @@ sealed class ActivityItemHistoryFilter {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(fromKey).isEqualTo(Address.ZERO())
                 .scrollTo(sort, continuation)
@@ -74,7 +74,7 @@ sealed class ActivityItemHistoryFilter {
         override val hint: Document = NftItemHistoryRepositoryIndexes.BY_TYPE_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(fromKey).ne(Address.ZERO())
                 .and(ownerKey).ne(Address.ZERO())
@@ -89,12 +89,12 @@ sealed class ActivityItemHistoryFilter {
             ActivitySort.LATEST_FIRST ->
                 this.orOperator(
                     LogEvent::data / ItemHistory::date lt continuation.afterDate,
-                    (LogEvent::data / ItemHistory::date isEqualTo  continuation.afterDate).and("_id").lt(continuation.afterId.safeQueryParam())
+                    (LogEvent::data / ItemHistory::date isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId.safeQueryParam())
                 )
             ActivitySort.EARLIEST_FIRST ->
                 this.orOperator(
                     LogEvent::data / ItemHistory::date gt continuation.afterDate,
-                    (LogEvent::data / ItemHistory::date isEqualTo  continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
+                    (LogEvent::data / ItemHistory::date isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
                 )
             ActivitySort.SYNC_EARLIEST_FIRST ->
                 this.orOperator(
@@ -142,7 +142,7 @@ sealed class UserActivityItemHistoryFilter : ActivityItemHistoryFilter() {
         override val from: Instant?,
         override val to: Instant?,
         private val continuation: Continuation?
-   ) : UserActivityItemHistoryFilter() {
+    ) : UserActivityItemHistoryFilter() {
 
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION.indexKeys
 
@@ -160,12 +160,12 @@ sealed class UserActivityItemHistoryFilter : ActivityItemHistoryFilter() {
         override val from: Instant?,
         override val to: Instant?,
         private val continuation: Continuation?
-   ) : UserActivityItemHistoryFilter() {
+    ) : UserActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val userBurnCriteria = if (users.isSingleton) fromKey isEqualTo users.single() else fromKey inValues users
-            return AllBurn(sort,null).getCriteria().andOperator(userBurnCriteria)
+            return AllBurn(sort, null).getCriteria().andOperator(userBurnCriteria)
                 .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
@@ -181,7 +181,7 @@ sealed class UserActivityItemHistoryFilter : ActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .run { if (users.isSingleton) and(fromKey).isEqualTo(users.single()) else and(fromKey).inValues(users) }
                 .and(ownerKey).ne(Address.ZERO())
@@ -196,11 +196,11 @@ sealed class UserActivityItemHistoryFilter : ActivityItemHistoryFilter() {
         override val from: Instant?,
         override val to: Instant?,
         private val continuation: Continuation?
-   ) : UserActivityItemHistoryFilter() {
+    ) : UserActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .run { if (users.isSingleton) and(ownerKey).isEqualTo(users.single()) else and(ownerKey).inValues(users) }
                 .and(fromKey).ne(Address.ZERO())
@@ -218,7 +218,7 @@ sealed class CollectionActivityItemHistoryFilter(protected val contract: Address
         override val hint: Document = NftItemHistoryRepositoryIndexes.BY_COLLECTION_OWNER_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
                 .and(ownerKey).isEqualTo(Address.ZERO())
@@ -231,7 +231,7 @@ sealed class CollectionActivityItemHistoryFilter(protected val contract: Address
         override val hint: Document = NftItemHistoryRepositoryIndexes.BY_COLLECTION_TRANSFERS_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
                 .and(fromKey).isEqualTo(Address.ZERO())
@@ -244,7 +244,7 @@ sealed class CollectionActivityItemHistoryFilter(protected val contract: Address
         override val hint: Document = NftItemHistoryRepositoryIndexes.BY_COLLECTION_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
                 .and(fromKey).ne(Address.ZERO())
@@ -261,7 +261,7 @@ sealed class ItemActivityItemHistoryFilter(contract: Address, protected val toke
 
     class ByItemBurn(override val sort: ActivitySort, contract: Address, tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityItemHistoryFilter(contract, tokenId) {
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
                 .and(tokenIdKey).isEqualTo(tokenId)
@@ -272,7 +272,7 @@ sealed class ItemActivityItemHistoryFilter(contract: Address, protected val toke
 
     class ByItemMint(override val sort: ActivitySort, contract: Address, tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityItemHistoryFilter(contract, tokenId) {
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
                 .and(tokenIdKey).isEqualTo(tokenId)
@@ -283,7 +283,7 @@ sealed class ItemActivityItemHistoryFilter(contract: Address, protected val toke
 
     class ByItemTransfer(override val sort: ActivitySort, contract: Address, tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityItemHistoryFilter(contract, tokenId) {
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
                 .and(tokenIdKey).isEqualTo(tokenId)

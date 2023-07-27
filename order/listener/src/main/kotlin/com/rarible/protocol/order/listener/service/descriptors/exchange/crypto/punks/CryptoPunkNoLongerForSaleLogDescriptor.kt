@@ -80,8 +80,8 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
             throw e
         }
         return blockLogs.any { blockLog ->
-            blockLog.transactionHash() == log.transactionHash()
-                    && blockLog.logIndex() == log.logIndex().plus(BigInteger.ONE)
+            blockLog.transactionHash() == log.transactionHash() &&
+                    blockLog.logIndex() == log.logIndex().plus(BigInteger.ONE)
         }
     }
 }

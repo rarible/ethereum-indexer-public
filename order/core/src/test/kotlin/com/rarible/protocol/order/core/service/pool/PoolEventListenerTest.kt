@@ -116,7 +116,7 @@ internal class PoolEventListenerTest {
 
         listener.onPoolEvent(logEvent, orderStubEventMarks())
 
-        coVerify( exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
+        coVerify(exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
     }
 
     @Test
@@ -129,7 +129,7 @@ internal class PoolEventListenerTest {
 
         listener.onPoolEvent(logEvent, orderStubEventMarks())
 
-        coVerify( exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
+        coVerify(exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
     }
 
     @Test
@@ -142,7 +142,7 @@ internal class PoolEventListenerTest {
 
         listener.onPoolEvent(logEvent, orderStubEventMarks())
 
-        coVerify( exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
+        coVerify(exactly = 0) { orderPublisher.publish(any<OrderEventDto>()) }
     }
 
     private fun logEvent(data: PoolHistory): ReversedEthereumLogRecord {

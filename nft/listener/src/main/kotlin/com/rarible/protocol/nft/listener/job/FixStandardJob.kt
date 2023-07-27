@@ -6,7 +6,6 @@ import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.service.token.TokenService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.metrics.NftListenerMetricsFactory
-import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled

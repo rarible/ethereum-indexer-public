@@ -7,4 +7,3 @@ data class Item(
     val contract: Address,
     val tokenId: EthUInt256
 )
-

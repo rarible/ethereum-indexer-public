@@ -57,7 +57,8 @@ import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
-import java.util.*
+import java.util.Date
+import java.util.UUID
 import java.util.concurrent.ThreadLocalRandom
 import java.util.stream.Stream
 
@@ -81,7 +82,6 @@ class ItemControllerFt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
-
 
     companion object {
 

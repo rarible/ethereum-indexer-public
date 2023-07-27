@@ -60,8 +60,7 @@ data class OpenSeaTransactionOrder(
             null,
         )
     )
-) {
-}
+)
 
 enum class OpenSeaOrderFeeMethod(val value: BigInteger) {
     PROTOCOL_FEE(BigInteger.valueOf(0)),

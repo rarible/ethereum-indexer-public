@@ -15,7 +15,7 @@ class ReduceSkipTokens(tokens: Collection<ItemId>) {
         val allow = skipCounter / ALLOWING_PERIOD == 0L
 
         if (allow.not()) {
-            logger.info("Token ${itemId.decimalStringValue} not allowed to be reduced" )
+            logger.info("Token ${itemId.decimalStringValue} not allowed to be reduced")
         }
         return allow
     }

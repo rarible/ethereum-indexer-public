@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createNftItemDto
+import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.misc.orderStubEventMarks
 import com.rarible.protocol.order.core.model.Platform
@@ -14,7 +15,6 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -43,7 +43,7 @@ class OrderItemServiceTest {
             )
         } returns flowOf(order)
 
-        coEvery { orderCancelService.cancelOrder(order.hash, any()) } returns Unit
+        coEvery { orderCancelService.cancelOrder(order.hash, any()) } returns createSellOrder()
 
         orderItemService.onItemChanged(item, orderStubEventMarks())
 
@@ -58,5 +58,4 @@ class OrderItemServiceTest {
 
         coVerify(exactly = 0) { orderCancelService.cancelOrder(any(), any()) }
     }
-
 }

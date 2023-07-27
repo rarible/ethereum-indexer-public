@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.event
 
-import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.core.kafka.RaribleKafkaEventHandler
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto

@@ -57,5 +57,4 @@ class ChangeLog00003RemoveUnusedData {
         val query = Query(Criteria("type").inValues(tasksTypesToRemove))
         template.remove(query, "task").awaitFirstOrNull()
     }
-
 }

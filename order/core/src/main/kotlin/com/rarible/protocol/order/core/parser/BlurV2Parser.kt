@@ -201,7 +201,6 @@ object BlurV2Parser {
         )
     }
 
-
     private fun unpackFee(packed: Binary): UnpackedFee {
         return UnpackedFee(
             rate = packed.slice(0, 12).toBigInteger(),
@@ -266,7 +265,7 @@ object BlurV2Parser {
         val rate: BigInteger
     )
 
-    private fun <T> getDecodedValue(signature: scalether.abi.Signature<T,*>, input: Binary): T {
+    private fun <T> getDecodedValue(signature: scalether.abi.Signature<T, *>, input: Binary): T {
         return signature.`in`().decode(input, 4).value()
     }
 }

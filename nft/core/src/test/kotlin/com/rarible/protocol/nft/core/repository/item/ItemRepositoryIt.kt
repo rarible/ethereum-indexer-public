@@ -5,7 +5,11 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.misc.isEqualToItem
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemContinuation
+import com.rarible.protocol.nft.core.model.ItemFilter
+import com.rarible.protocol.nft.core.model.ItemFilterAll
+import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.repository.data.createItem
 import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
 import kotlinx.coroutines.flow.toList

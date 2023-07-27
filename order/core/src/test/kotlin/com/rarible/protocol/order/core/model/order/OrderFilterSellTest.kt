@@ -27,11 +27,11 @@ internal class OrderFilterSellTest {
             status = listOf(OrderStatusDto.ACTIVE),
             sort = OrderFilterSort.LAST_UPDATE_ASC
         )
-        //with continuation
+        // with continuation
         assertThat(orderFilterSell.toQuery("test", 100).hint)
             .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys.toJson())
 
-        //without continuation
+        // without continuation
         assertThat(orderFilterSell.toQuery(null, 100).hint)
             .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys.toJson())
     }
@@ -51,7 +51,7 @@ internal class OrderFilterSellTest {
             sort = OrderFilterSort.LAST_UPDATE_ASC
         )
 
-        //with continuation
+        // with continuation
         assertThat(orderFilterSellNoStatus.toQuery("test", 100).hint)
             .isEqualTo(OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys.toJson())
         assertThat(orderFilterSellManyStatuses.toQuery("test", 100).hint)
@@ -87,11 +87,11 @@ internal class OrderFilterSellTest {
             status = listOf(OrderStatusDto.ACTIVE, OrderStatusDto.FILLED),
             sort = OrderFilterSort.LAST_UPDATE_ASC
         )
-        //with continuation
+        // with continuation
         assertThat(orderFilterSell.toQuery("test", 100).hint)
             .isNull()
 
-        //without continuation
+        // without continuation
         assertThat(orderFilterSell.toQuery(null, 100).hint)
             .isEqualTo(null)
     }

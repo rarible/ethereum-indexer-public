@@ -148,7 +148,7 @@ object BlurOrderParser {
         )
     }
 
-    private fun <T> getDecodedValue(signature: scalether.abi.Signature<T,*>, input: Binary): T {
+    private fun <T> getDecodedValue(signature: scalether.abi.Signature<T, *>, input: Binary): T {
         return signature.`in`().decode(input, 4).value()
     }
 }

@@ -164,6 +164,5 @@ internal class ItemEventConverterTest {
         assertThat(eventTimeMarks.marks[0].date).isEqualTo(Instant.ofEpochSecond(ownershipEvent.log.blockTimestamp!!))
         assertThat(eventTimeMarks.marks[1].name).isEqualTo("indexer-in_nft")
         assertThat(eventTimeMarks.marks[1].date).isCloseTo(nowMillis(), timeDelta)
-
     }
 }

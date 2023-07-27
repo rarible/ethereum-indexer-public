@@ -132,7 +132,7 @@ class ExchangeCancelDescriptorIt : AbstractIntegrationTest() {
 
             val failMessage = "result: $cancel"
 
-//todo            assertThat(cancel.owner).isEqualTo(sender.from()).withFailMessage(failMessage)
+// todo            assertThat(cancel.owner).isEqualTo(sender.from()).withFailMessage(failMessage)
 //            assertThat(cancel.makeToken).isEqualTo(token.address()).withFailMessage(failMessage)
 //            assertThat(cancel.makeTokenId).isEqualTo(tokenId.toString()).withFailMessage(failMessage)
 //

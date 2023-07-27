@@ -23,7 +23,6 @@ class ItemPropertiesParserTest {
     fun `failed - empty properties`() {
         val result = ItemPropertiesParser.parse(itemId, url, "{\"message\":\"error\"}")
         assertThat(result).isNull()
-
     }
 
     @Test

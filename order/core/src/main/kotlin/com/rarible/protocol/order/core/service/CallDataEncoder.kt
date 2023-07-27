@@ -13,7 +13,10 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.bouncycastle.util.Arrays
 import org.springframework.stereotype.Component
-import scala.*
+import scala.Tuple3
+import scala.Tuple5
+import scala.Tuple6
+import scala.Tuple7
 import scala.runtime.BoxedUnit
 import scalether.abi.Signature
 import scalether.domain.Address
@@ -212,5 +215,3 @@ class CallDataEncoder {
         val BIG_INTEGER_DEFAULT_VALUE: BigInteger = BigInteger.valueOf(0)
     }
 }
-
-

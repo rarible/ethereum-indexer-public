@@ -10,7 +10,6 @@ import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
-
 @Component
 class FloorSellOrderProvider(
     private val orderRepository: OrderRepository
@@ -18,7 +17,7 @@ class FloorSellOrderProvider(
     suspend fun getCurrencyFloorSells(token: Address) = coroutineScope {
         orderRepository
             .findActiveSellCurrenciesByCollection(token)
-            .let { currencies -> currencies + Address.ZERO() } //Eth assert has no toke, so add it as Zero address
+            .let { currencies -> currencies + Address.ZERO() } // Eth assert has no toke, so add it as Zero address
             .map { currency -> async { getFloorSellByCurrency(token, currency) } }
             .awaitAll()
             .filterNotNull()

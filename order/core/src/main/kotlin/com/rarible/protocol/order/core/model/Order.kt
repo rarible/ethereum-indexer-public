@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.Tuples.keccak256
 import com.rarible.protocol.order.core.misc.plus
-import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.zeroWord
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.daonomic.rpc.domain.Binary
@@ -19,7 +18,6 @@ import scala.Tuple4
 import scala.Tuple5
 import scala.Tuple9
 import scalether.abi.AddressType
-import scalether.abi.BytesType
 import scalether.abi.Uint256Type
 import scalether.abi.Uint8Type
 import scalether.domain.Address
@@ -54,7 +52,7 @@ data class Order(
 
     val createdAt: Instant,
     val lastUpdateAt: Instant,
-    //TODO after migration ALPHA-405 can't be null
+    // TODO after migration ALPHA-405 can't be null
     val dbUpdatedAt: Instant? = null,
 
     @Deprecated("Should be removed in the latest releases")
@@ -341,7 +339,6 @@ data class Order(
         private fun isEnded(end: Long?): Boolean {
             return isEnded(end, Instant.now().epochSecond)
         }
-
 
         private fun isEnded(end: Long?, now: Long): Boolean {
             return end?.let { it in 1 until now } ?: false
@@ -1040,13 +1037,13 @@ val Order.currency: AssetType
 val CRYPTO_PUNKS_SALT: EthUInt256 = EthUInt256.ZERO
 
 internal const val OFFER_ITEM_TYPE_STRING =
-    "OfferItem(uint8 itemType,address token,uint256 identifierOrCriteria,uint256 startAmount,uint256 endAmount)";
+    "OfferItem(uint8 itemType,address token,uint256 identifierOrCriteria,uint256 startAmount,uint256 endAmount)"
 internal const val CONSIDERATION_ITEM_TYPE_STRING =
-    "ConsiderationItem(uint8 itemType,address token,uint256 identifierOrCriteria,uint256 startAmount,uint256 endAmount,address recipient)";
+    "ConsiderationItem(uint8 itemType,address token,uint256 identifierOrCriteria,uint256 startAmount,uint256 endAmount,address recipient)"
 internal const val ORDER_COMPONENTS_PARTIAL_TYPE_STRING =
-    "OrderComponents(address offerer,address zone,OfferItem[] offer,ConsiderationItem[] consideration,uint8 orderType,uint256 startTime,uint256 endTime,bytes32 zoneHash,uint256 salt,bytes32 conduitKey,uint256 counter)";
+    "OrderComponents(address offerer,address zone,OfferItem[] offer,ConsiderationItem[] consideration,uint8 orderType,uint256 startTime,uint256 endTime,bytes32 zoneHash,uint256 salt,bytes32 conduitKey,uint256 counter)"
 internal const val ORDER_TYPE_STRING =
-    "${ORDER_COMPONENTS_PARTIAL_TYPE_STRING}${CONSIDERATION_ITEM_TYPE_STRING}${OFFER_ITEM_TYPE_STRING}"
+    "${ORDER_COMPONENTS_PARTIAL_TYPE_STRING}${CONSIDERATION_ITEM_TYPE_STRING}$OFFER_ITEM_TYPE_STRING"
 internal const val BLUR_ORDER_TYPE_HASH_STRING =
     "Order(address trader,uint8 side,address matchingPolicy,address collection,uint256 tokenId,uint256 amount,address paymentToken,uint256 price,uint256 listingTime,uint256 expirationTime,Fee[] fees,uint256 salt,bytes extraParams,uint256 nonce)Fee(uint16 rate,address recipient)"
 internal const val BLUR_FEE_TYPE_HASH_STRING =

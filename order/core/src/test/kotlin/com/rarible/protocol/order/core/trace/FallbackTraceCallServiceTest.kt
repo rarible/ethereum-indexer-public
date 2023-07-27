@@ -17,15 +17,14 @@ internal class FallbackTraceCallServiceTest {
     private val defaultProvider = mockk<TransactionTraceProvider>()
     private val otherProvider = mockk<TransactionTraceProvider>()
     private val traceProviderFactory = mockk<TransactionTraceProviderFactory> {
-        every {  traceProvider(TraceMethod.TRACE_TRANSACTION) } returns defaultProvider
-        every {  traceProvider(TraceMethod.DEBUG_TRACE_TRANSACTION) } returns otherProvider
+        every { traceProvider(TraceMethod.TRACE_TRANSACTION) } returns defaultProvider
+        every { traceProvider(TraceMethod.DEBUG_TRACE_TRANSACTION) } returns otherProvider
     }
     private val properties = mockk<OrderIndexerProperties> {
         every { traceMethod } returns TraceMethod.TRACE_TRANSACTION
         every { featureFlags } returns OrderIndexerProperties.FeatureFlags()
     }
     private val fallbackTraceCallService = FallbackTraceCallService(traceProviderFactory, properties)
-
 
     @Test
     fun `should use default TraceCallService from config`() = runBlocking<Unit> {

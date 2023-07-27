@@ -173,7 +173,6 @@ internal class PoolInfoProviderTest {
             )
         } returns Mono.just(Uint256Type.encode(fee))
 
-
         val result = sudoSwapPoolCollectionProvider.getPollInfo(orderHash, poolAddress)!!
         Assertions.assertThat(result.collection).isEqualTo(collection)
         Assertions.assertThat(result.curve).isEqualTo(curve)

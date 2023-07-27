@@ -12,11 +12,9 @@ class Erc20CalculatedFieldsReducer : Reducer<Erc20Event, Erc20Balance> {
         val lastEvent = entity.revertableEvents.lastOrNull { it.log.status == EthereumBlockStatus.CONFIRMED }
         val updatedAt =
             // We get date of the block here
-            lastEvent?.date?.toInstant() ?:
-            entity.lastUpdatedAt
+            lastEvent?.date?.toInstant() ?: entity.lastUpdatedAt
         val blockNumber =
-            lastEvent?.log?.blockNumber ?:
-            entity.blockNumber
+            lastEvent?.log?.blockNumber ?: entity.blockNumber
         return entity.copy(lastUpdatedAt = updatedAt, blockNumber = blockNumber)
     }
 }

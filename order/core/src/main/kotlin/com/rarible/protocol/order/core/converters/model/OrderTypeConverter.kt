@@ -16,4 +16,3 @@ object OrderTypeConverter : Converter<OrderFormDto, OrderType> {
         }
     }
 }
-

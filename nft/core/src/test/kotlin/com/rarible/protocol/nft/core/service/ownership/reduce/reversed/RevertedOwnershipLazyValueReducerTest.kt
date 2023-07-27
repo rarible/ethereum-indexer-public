@@ -4,7 +4,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomOwnershipChangeLazyValueEvent
 import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferToEvent
 import com.rarible.protocol.nft.core.repository.data.createOwnership
-import com.rarible.protocol.nft.core.service.ownership.reduce.reversed.RevertedOwnershipLazyValueReducer
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test

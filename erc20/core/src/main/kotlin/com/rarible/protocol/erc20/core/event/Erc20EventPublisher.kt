@@ -21,4 +21,3 @@ class Erc20EventPublisher(
         erc20EventProducer.send(message).ensureSuccess()
     }
 }
-

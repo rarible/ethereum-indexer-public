@@ -135,7 +135,7 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
                   "00000000000000000000000000000000000000000000000000000002540be3ec" +
                   "000000000000000000000000000000000000000000000000000000003b9ac9fe"
         )
-        val result =raribleExchangeV2OrderParser.parseMatchedOrders(
+        val result = raribleExchangeV2OrderParser.parseMatchedOrders(
             txHash = Word.apply(randomWord()),
             txInput = Binary.apply(polygonDirectAcceptBid),
             event = MatchEventRev3.apply(log)
@@ -150,7 +150,7 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
         )
     }
 
-    //https://polygonscan.com/tx/0xfb499642a31dee0b40d55676a079607b2c9d14ec9cf05b1528aa9f57703b61c2
+    // https://polygonscan.com/tx/0xfb499642a31dee0b40d55676a079607b2c9d14ec9cf05b1528aa9f57703b61c2
     private val polygonDirectAcceptBid = "0x67d49a3b0000000000000000000000000000000000000000000000000000000000" +
             "0000200000000000000000000000003c5593af538b2278ebdcee385fdc5db94473daf00000000000000000000000000000000000000" +
             "00000000000000000003b9aca00973bb640000000000000000000000000000000000000000000000000000000000000000000000000" +

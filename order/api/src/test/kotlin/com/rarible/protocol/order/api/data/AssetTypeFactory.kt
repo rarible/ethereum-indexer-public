@@ -1,11 +1,16 @@
 package com.rarible.protocol.order.api.data
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.CollectionAssetType
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.Part
 import io.daonomic.rpc.domain.Binary
 import scalether.domain.Address
 import scalether.domain.AddressFactory
-import java.util.*
+import java.util.UUID
 
 fun createErc721AssetType() = Erc721AssetType(
     token = AddressFactory.create(),

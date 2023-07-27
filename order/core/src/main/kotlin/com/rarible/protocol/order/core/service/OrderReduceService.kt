@@ -10,7 +10,31 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PlatformToHistorySourceConverter
 import com.rarible.protocol.order.core.misc.toWord
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.EXPIRED_BID_STATUSES
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.OnChainOrder
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderAmmData
+import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderCountableData
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderPriceHistoryRecord
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderSeaportDataV1
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.PoolCreate
+import com.rarible.protocol.order.core.model.PoolHistory
+import com.rarible.protocol.order.core.model.isBid
+import com.rarible.protocol.order.core.model.toLogEventKey
+import com.rarible.protocol.order.core.model.toOrderVersion
+import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -425,7 +449,7 @@ class OrderReduceService(
         val expiredDate = now - raribleOrderExpiration.bidExpirePeriod
 
         return if (
-        //Bids witch were expired by 'end' time must be canceled also
+        // Bids witch were expired by 'end' time must be canceled also
             this.isEnded() ||
             this.lastUpdateAt <= expiredDate
         ) {
@@ -479,7 +503,7 @@ class OrderReduceService(
         } else this
     }
 
-    private suspend fun Order.withBidApproval(): Order = this //todo support ERC20 Approve
+    private suspend fun Order.withBidApproval(): Order = this // todo support ERC20 Approve
 
     private suspend fun updateOrderWithState(orderStub: Order): Order {
         val order = orderStub

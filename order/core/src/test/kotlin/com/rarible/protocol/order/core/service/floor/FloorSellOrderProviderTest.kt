@@ -23,7 +23,7 @@ internal class FloorSellOrderProviderTest {
         coEvery { orderRepository.search(any()) } returnsMany listOf(
             listOf(floorOrder1, randomOrder()),
             listOf(floorOrder2, randomOrder()),
-            emptyList() //this is for eth case
+            emptyList() // this is for eth case
         )
         val orders = floorSellOrderProvider.getCurrencyFloorSells(token)
         assertThat(orders).containsExactlyInAnyOrderElementsOf(listOf(floorOrder1, floorOrder2))

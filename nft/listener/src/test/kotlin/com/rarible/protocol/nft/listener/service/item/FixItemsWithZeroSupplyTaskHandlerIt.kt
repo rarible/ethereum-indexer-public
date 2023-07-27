@@ -18,13 +18,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
-import java.util.*
+import java.util.UUID
 
 private const val ZERO_SUPPLY_ITEM_AMOUNT = 10
 private const val NON_ZERO_SUPPLY_ITEM_AMOUNT = 15
 
 @IntegrationTest
-class FixItemsWithZeroSupplyTaskHandlerTest  : AbstractIntegrationTest(){
+class FixItemsWithZeroSupplyTaskHandlerTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var fixItemsWithZeroSupplyTaskHandler: FixItemsWithZeroSupplyTaskHandler
@@ -53,7 +53,6 @@ class FixItemsWithZeroSupplyTaskHandlerTest  : AbstractIntegrationTest(){
             val updatedItem = itemRepository.findById(ItemId(it.token, it.tokenId)).awaitFirstOrNull()
             assertThat(updatedItem?.deleted).isFalse()
         }
-
     }
 
     fun createToken(): Token {

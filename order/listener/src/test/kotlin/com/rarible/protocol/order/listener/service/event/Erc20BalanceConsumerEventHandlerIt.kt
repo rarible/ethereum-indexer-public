@@ -53,7 +53,7 @@ internal class Erc20BalanceConsumerEventHandlerIt : AbstractIntegrationTest() {
         val event = Erc20BalanceUpdateEventDto(
             eventId = UUID.randomUUID().toString(),
             balanceId = UUID.randomUUID().toString(),
-            balance =  Erc20BalanceDto(
+            balance = Erc20BalanceDto(
                 contract = erc20,
                 owner = orderVersion.maker,
                 balance = EthUInt256.TEN.value

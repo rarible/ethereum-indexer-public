@@ -1,11 +1,17 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
-import com.rarible.protocol.nft.core.data.*
+import com.rarible.protocol.nft.core.data.createRandomBurnItemEvent
+import com.rarible.protocol.nft.core.data.createRandomItem
+import com.rarible.protocol.nft.core.data.createRandomLazyBurnItemEvent
+import com.rarible.protocol.nft.core.data.createRandomLazyMintItemEvent
+import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.CompactItemEventsReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource

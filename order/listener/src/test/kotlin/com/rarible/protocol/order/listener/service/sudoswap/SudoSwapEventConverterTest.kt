@@ -14,5 +14,4 @@ internal class SudoSwapEventConverterTest {
         val hash = converter.getPoolHash(poolAddress)
         assertThat(hash.prefixed()).isEqualTo("0x0000000000000000000000006c8ba1dafb22eae61e9cd3da724cbc3d164c27b9")
     }
-
 }

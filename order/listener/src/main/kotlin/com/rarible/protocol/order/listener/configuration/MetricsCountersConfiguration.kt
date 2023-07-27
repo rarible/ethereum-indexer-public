@@ -100,5 +100,4 @@ class MetricsCountersConfiguration(
     @Bean
     fun wrapperSudoSwapMatchEventCounter(): RegisteredCounter =
         WrapperSudoSwapMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
-
 }

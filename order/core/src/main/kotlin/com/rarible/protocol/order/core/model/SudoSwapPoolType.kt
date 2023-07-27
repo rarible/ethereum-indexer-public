@@ -6,4 +6,3 @@ enum class SudoSwapPoolType(val value: Int) {
     TRADE(2),
     ;
 }
-

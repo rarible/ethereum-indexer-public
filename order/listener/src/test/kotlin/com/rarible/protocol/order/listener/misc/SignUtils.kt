@@ -10,4 +10,3 @@ fun Word.sign(privateKey: BigInteger): Binary {
     val publicKey = Sign.publicKeyFromPrivate(privateKey)
     return Sign.signMessageHash(bytes(), publicKey, privateKey).toBinary()
 }
-

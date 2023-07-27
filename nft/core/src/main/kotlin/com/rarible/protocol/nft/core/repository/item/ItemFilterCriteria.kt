@@ -1,8 +1,20 @@
 package com.rarible.protocol.nft.core.repository.item
 
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemContinuation
+import com.rarible.protocol.nft.core.model.ItemFilter
+import com.rarible.protocol.nft.core.model.ItemFilterAll
+import com.rarible.protocol.nft.core.model.ItemFilterByCollection
+import com.rarible.protocol.nft.core.model.ItemFilterByCreator
+import com.rarible.protocol.nft.core.model.ItemFilterByOwner
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 import java.time.Instant
 

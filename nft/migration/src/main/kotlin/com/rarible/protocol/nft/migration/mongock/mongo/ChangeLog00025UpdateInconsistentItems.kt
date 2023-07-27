@@ -2,14 +2,10 @@ package com.rarible.protocol.nft.migration.mongock.mongo
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
-import com.rarible.protocol.nft.core.model.InconsistentItem
-import com.rarible.protocol.nft.core.model.InconsistentItemStatus
-import com.rarible.protocol.nft.core.model.ItemProblemType
 import com.rarible.protocol.nft.core.repository.InconsistentItemRepository
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import java.time.Instant

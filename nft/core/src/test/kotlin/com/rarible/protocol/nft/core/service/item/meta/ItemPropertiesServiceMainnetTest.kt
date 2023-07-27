@@ -6,22 +6,13 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.ImageContentDto
-import com.rarible.protocol.dto.MetaContentDto
-import com.rarible.protocol.dto.MetaContentDto.Representation
 import com.rarible.protocol.dto.NftItemMetaDto
-import com.rarible.protocol.dto.VideoContentDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverterTest.Companion.itemProperties
-import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemMetaContent
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.model.meta.EthImageProperties
-import com.rarible.protocol.nft.core.model.meta.EthMetaContent
-import com.rarible.protocol.nft.core.model.meta.EthVideoProperties
 import com.rarible.protocol.nft.core.service.EnsDomainService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesProvider
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver
@@ -124,8 +115,8 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
         for (itemId in items) {
             mockTokenStandard(itemId.token, TokenStandard.ERC721)
             println("Comparing ${itemId.decimalStringValue}")
-            println("  Rarible Web ${raribleWebUrlPrefix}/${itemId.token}:${itemId.tokenId.value}")
-            println("  OpenSea Web ${openSeaWebUrlPrefix}/${itemId.token}/${itemId.tokenId.value}")
+            println("  Rarible Web $raribleWebUrlPrefix/${itemId.token}:${itemId.tokenId.value}")
+            println("  OpenSea Web $openSeaWebUrlPrefix/${itemId.token}/${itemId.tokenId.value}")
             val raribleProperties = rariblePropertiesResolver.resolve(itemId)
             val openSeaProperties = openSeaPropertiesResolver.resolve(itemId)
             println("  Rarible: $raribleProperties")

@@ -7,5 +7,5 @@ import com.rarible.protocol.nft.listener.service.subscribers.AbstractItemLogEven
 import org.springframework.stereotype.Component
 
 @Component
-class CollectionOwnershipTransferLogSubscriber(descriptor: CollectionOwnershipTransferLogDescriptor)
-    : AbstractItemLogEventSubscriber<CollectionOwnershipTransferred>(SubscriberGroups.TOKEN_HISTORY, descriptor)
+class CollectionOwnershipTransferLogSubscriber(descriptor: CollectionOwnershipTransferLogDescriptor) :
+    AbstractItemLogEventSubscriber<CollectionOwnershipTransferred>(SubscriberGroups.TOKEN_HISTORY, descriptor)

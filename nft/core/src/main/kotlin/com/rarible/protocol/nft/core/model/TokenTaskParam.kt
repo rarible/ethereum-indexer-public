@@ -147,7 +147,6 @@ data class ReduceTokenRangeTaskParams(
         fun parse(param: String): ReduceTokenRangeTaskParams {
             return mapper.readValue(param, ReduceTokenRangeTaskParams::class.java)
         }
-
     }
 }
 
@@ -170,6 +169,5 @@ data class ReduceTokenItemsDependentTaskParams(
         fun parse(param: String): ReduceTokenItemsDependentTaskParams {
             return mapper.readValue(param, ReduceTokenItemsDependentTaskParams::class.java)
         }
-
     }
 }

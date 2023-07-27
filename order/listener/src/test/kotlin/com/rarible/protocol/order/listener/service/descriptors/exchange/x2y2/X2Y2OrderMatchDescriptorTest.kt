@@ -106,7 +106,6 @@ class X2Y2OrderMatchDescriptorTest {
             assertThat(left.date).isEqualTo(expectedDate)
             assertThat((right.take.type as Erc721AssetType).token).isEqualTo(expectedToken)
             assertThat((right.take.type as Erc721AssetType).tokenId.value).isEqualTo(expectedTokenId)
-
         }
     }
 
@@ -187,16 +186,16 @@ class X2Y2OrderMatchDescriptorTest {
             return Stream.of(
                 Arguments.of(
                     bidLog(),
-                    Address.apply("0x709d30f1f60f03d85a0ef33142ef3259392dc9e1"), //Token
-                    EthUInt256.of("705"), //TokenId
-                    Address.apply("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), //Currency
-                    Address.apply("0xbfa30bbe5a9e5d252a92a8cc126691bba0e7a433"), //Seller
-                    Address.apply("0xb2f4fd60e80b5eccbcb8c80e923c31b0aaab8e24"), //Buer
+                    Address.apply("0x709d30f1f60f03d85a0ef33142ef3259392dc9e1"), // Token
+                    EthUInt256.of("705"), // TokenId
+                    Address.apply("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"), // Currency
+                    Address.apply("0xbfa30bbe5a9e5d252a92a8cc126691bba0e7a433"), // Seller
+                    Address.apply("0xb2f4fd60e80b5eccbcb8c80e923c31b0aaab8e24"), // Buer
                 ),
             )
         }
 
-        //https://etherscan.io/tx/0xe85c6a8cbfba715d219495702f038dc6cedcd57313cc51126ee65bdc7603078b
+        // https://etherscan.io/tx/0xe85c6a8cbfba715d219495702f038dc6cedcd57313cc51126ee65bdc7603078b
         private fun bidLog() = log(
             topics = listOf(
                 Word.apply("0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33"),

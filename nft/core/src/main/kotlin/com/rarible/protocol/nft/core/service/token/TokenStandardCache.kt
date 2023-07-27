@@ -25,5 +25,4 @@ class TokenStandardCache(
     fun get(address: Address): TokenStandard? {
         return cache.getIfPresent(address)
     }
-
 }

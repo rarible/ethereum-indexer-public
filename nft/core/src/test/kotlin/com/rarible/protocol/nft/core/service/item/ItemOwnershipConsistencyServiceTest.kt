@@ -6,7 +6,6 @@ import com.rarible.protocol.nft.core.data.createRandomItemId
 import com.rarible.protocol.nft.core.data.createRandomOwnership
 import com.rarible.protocol.nft.core.model.ItemProblemType
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
-import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import com.rarible.protocol.nft.core.service.ownership.reduce.OwnershipUpdateService
 import io.mockk.coEvery
@@ -130,7 +129,7 @@ class ItemOwnershipConsistencyServiceTest {
     fun `should fix item`() = runBlocking<Unit> {
         // given
         val item = createRandomItem()
-        coEvery { itemReduceService.update(item.token, item.tokenId) } returns flux {  }
+        coEvery { itemReduceService.update(item.token, item.tokenId) } returns flux { }
         coEvery { itemRepository.findById(item.id) } returns item.toMono()
 
         // when
@@ -152,7 +151,7 @@ class ItemOwnershipConsistencyServiceTest {
         // given
         val itemId = createRandomItemId()
         val item = createRandomItem()
-        coEvery { itemReduceService.update(itemId.token, itemId.tokenId) } returns flux {  }
+        coEvery { itemReduceService.update(itemId.token, itemId.tokenId) } returns flux { }
         coEvery { itemRepository.findById(itemId) } returns item.toMono()
 
         // when
@@ -173,7 +172,7 @@ class ItemOwnershipConsistencyServiceTest {
     fun `should fix item with ownership deletion`() = runBlocking<Unit> {
         // given
         val item = createRandomItem()
-        coEvery { itemReduceService.update(item.token, item.tokenId) } returns flux {  }
+        coEvery { itemReduceService.update(item.token, item.tokenId) } returns flux { }
         coEvery { itemRepository.findById(item.id) } returns item.toMono()
 
         // when

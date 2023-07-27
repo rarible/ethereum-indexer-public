@@ -36,4 +36,3 @@ class CreateERC721RaribleLogDescriptor : LogEventDescriptor<CreateCollection> {
         return emptyList<Address>().toMono()
     }
 }
-

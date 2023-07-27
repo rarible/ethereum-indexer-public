@@ -8,10 +8,10 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolDeltaUpdate
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
-import java.time.Instant
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -19,7 +19,7 @@ import scalether.domain.response.Transaction
 class SudoSwapDeltaUpdatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapUpdateDeltaEventCounter: RegisteredCounter
-): PoolSubscriber<PoolDeltaUpdate>(
+) : PoolSubscriber<PoolDeltaUpdate>(
     name = "sudo_delta_update",
     topic = DeltaUpdateEvent.id(),
     contracts = emptyList()

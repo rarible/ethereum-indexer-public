@@ -1,13 +1,18 @@
 package com.rarible.protocol.order.api.converter
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.ActivityContinuationDto
+import com.rarible.protocol.dto.OrderActivityFilterAllDto
+import com.rarible.protocol.dto.OrderActivityFilterByCollectionDto
+import com.rarible.protocol.dto.OrderActivityFilterByItemDto
+import com.rarible.protocol.dto.OrderActivityFilterByUserDto
+import com.rarible.protocol.dto.OrderActivityFilterDto
 import com.rarible.protocol.order.api.service.nft.NftAssetService
+import com.rarible.protocol.order.core.model.ActivitySort
 import com.rarible.protocol.order.core.repository.order.ActivityOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.CollectionActivityOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.ItemActivityOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.UserActivityOrderVersionFilter
-import com.rarible.protocol.order.core.model.ActivitySort
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -65,7 +70,7 @@ class ActivityVersionFilterConverter(
                             logger.info("Get bids for ${source.users.size}} users")
 
                             source.users
-                                .map { user -> async { nftAssetService.getOwnerNftAssets(user)} }
+                                .map { user -> async { nftAssetService.getOwnerNftAssets(user) } }
                                 .awaitAll()
                                 .flatten()
                                 .distinct()

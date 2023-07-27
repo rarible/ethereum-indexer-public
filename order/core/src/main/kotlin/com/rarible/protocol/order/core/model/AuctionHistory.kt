@@ -48,7 +48,7 @@ data class OnChainAuction(
     override val contract: Address,
     override val date: Instant,
     override val source: HistorySource
-): BaseAuction, AuctionHistory(AuctionHistoryType.ON_CHAIN_AUCTION)
+) : BaseAuction, AuctionHistory(AuctionHistoryType.ON_CHAIN_AUCTION)
 
 data class BidPlaced(
     val bid: Bid,

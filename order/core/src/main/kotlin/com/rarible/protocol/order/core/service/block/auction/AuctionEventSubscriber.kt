@@ -55,4 +55,3 @@ class AuctionEventSubscriber(
         auctionActivityConverter.convert(logEvent)?.let { eventPublisher.publish(it, eventTimeMarks) }
     }
 }
-

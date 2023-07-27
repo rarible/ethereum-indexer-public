@@ -43,5 +43,4 @@ class AlchemistCruciblePropertiesResolver(
     companion object {
         val ALCHEMIST_CRUCIBLE_V1_ADDRESS = Address.apply("0x54e0395cfb4f39bef66dbcd5bd93cca4e9273d56")
     }
-
 }

@@ -1,6 +1,8 @@
 package com.rarible.protocol.nft.core.integration
 
-import com.rarible.core.test.containers.*
+import com.rarible.core.test.containers.KafkaTestContainer
+import com.rarible.core.test.containers.MongodbTestContainer
+import com.rarible.core.test.containers.OpenEthereumTestContainer
 
 abstract class BaseCoreTest {
     init {

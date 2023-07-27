@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.core.service.item.reduce
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.data.createRandomBurnItemEvent
 import com.rarible.protocol.nft.core.data.createRandomCreatorsItemEvent
 import com.rarible.protocol.nft.core.data.createRandomItem
@@ -71,7 +70,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             supply = EthUInt256.ONE,
             revertableEvents = emptyList()
         )
-        val burn = createRandomBurnItemEvent() .copy(supply = EthUInt256.ONE)
+        val burn = createRandomBurnItemEvent().copy(supply = EthUInt256.ONE)
             .withNewValues(EthereumBlockStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
         val revertedBurn = burn
             .withNewValues(EthereumBlockStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
@@ -492,7 +491,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.of(9))
         assertThat(reducedItem.deleted).isFalse()
 
-        //Revert burn event
+        // Revert burn event
         val revertedBurnItem = reduce(reducedItem, revertedBurn)
         assertThat(revertedBurnItem.revertableEvents).containsExactlyElementsOf(
             listOf(
@@ -502,7 +501,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedBurnItem.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedBurnItem.deleted).isFalse()
 
-        //Revert transfer8 event
+        // Revert transfer8 event
         val revertedTransfer8Item = reduce(revertedBurnItem, revertedTransfer8)
         assertThat(revertedTransfer8Item.revertableEvents).containsExactlyElementsOf(
             listOf(
@@ -512,7 +511,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedTransfer8Item.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedTransfer8Item.deleted).isFalse()
 
-        //Revert transfer7 event
+        // Revert transfer7 event
         val revertedTransfer7Item = reduce(revertedTransfer8Item, revertedTransfer7)
         assertThat(revertedTransfer7Item.revertableEvents).containsExactlyElementsOf(
             listOf(
@@ -522,7 +521,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedTransfer7Item.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedTransfer7Item.deleted).isFalse()
 
-        //Revert transfer6 event
+        // Revert transfer6 event
         val revertedTransfer6Item = reduce(revertedTransfer7Item, revertedTransfer6)
         assertThat(revertedTransfer6Item.revertableEvents).containsExactlyElementsOf(
             listOf(
@@ -532,7 +531,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedTransfer6Item.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedTransfer6Item.deleted).isFalse()
 
-        //Revert transfer5 event
+        // Revert transfer5 event
         val revertedTransfer5Item = reduce(revertedTransfer6Item, revertedTransfer5)
         assertThat(revertedTransfer5Item.revertableEvents).containsExactlyElementsOf(
             listOf(
@@ -542,7 +541,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedTransfer5Item.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedTransfer5Item.deleted).isFalse()
 
-        //Revert transfer4 event
+        // Revert transfer4 event
         val revertedTransfer4Item = reduce(revertedTransfer5Item, revertedTransfer4)
         assertThat(revertedTransfer4Item.revertableEvents).containsExactlyElementsOf(
             listOf(
@@ -552,7 +551,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedTransfer4Item.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedTransfer4Item.deleted).isFalse()
 
-        //Revert transfer3 event
+        // Revert transfer3 event
         val revertedTransfer3Item = reduce(revertedTransfer4Item, revertedTransfer3)
         assertThat(revertedTransfer3Item.revertableEvents).containsExactlyElementsOf(
             listOf(
@@ -562,7 +561,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedTransfer3Item.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedTransfer3Item.deleted).isFalse()
 
-        //Revert transfer2 event
+        // Revert transfer2 event
         val revertedTransfer2Item = reduce(revertedTransfer3Item, revertedTransfer2)
         assertThat(revertedTransfer2Item.revertableEvents).containsExactlyElementsOf(
             listOf(
@@ -572,7 +571,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedTransfer2Item.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedTransfer2Item.deleted).isFalse()
 
-        //Revert transfer1 event
+        // Revert transfer1 event
         val revertedTransfer1Item = reduce(revertedTransfer2Item, revertedTransfer1)
         assertThat(revertedTransfer1Item.revertableEvents).containsExactlyElementsOf(
             listOf(
@@ -582,7 +581,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedTransfer1Item.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedTransfer1Item.deleted).isFalse()
 
-        //Revert mint event
+        // Revert mint event
         val revertedMintItem = reduce(revertedTransfer1Item, revertedMint)
         assertThat(revertedMintItem.revertableEvents).hasSize(0)
         assertThat(revertedMintItem.supply).isEqualTo(EthUInt256.ZERO)

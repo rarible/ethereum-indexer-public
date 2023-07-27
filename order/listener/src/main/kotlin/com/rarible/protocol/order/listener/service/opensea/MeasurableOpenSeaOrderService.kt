@@ -1,10 +1,8 @@
 package com.rarible.protocol.order.listener.service.opensea
 
-import com.rarible.ethereum.domain.Blockchain
 import com.rarible.opensea.client.model.v2.SeaportOrders
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
-import io.micrometer.core.instrument.MeterRegistry
 
 class MeasurableOpenSeaOrderService(
     private val delegate: OpenSeaOrderService,

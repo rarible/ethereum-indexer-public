@@ -144,4 +144,3 @@ class CollectionControllerFt : AbstractIntegrationTest() {
         assertThat(result.meta).isNull()
     }
 }
-

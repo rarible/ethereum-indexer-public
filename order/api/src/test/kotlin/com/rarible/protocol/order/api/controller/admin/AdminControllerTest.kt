@@ -38,7 +38,7 @@ internal class AdminControllerTest : AbstractIntegrationTest() {
         assertThat(savedOrder.status).isNotEqualTo(OrderStatus.CANCELLED)
 
         restTemplate.postForEntity(
-            "http://localhost:${port}/admin/order/orders/${savedOrder.hash.prefixed()}/state",
+            "http://localhost:$port/admin/order/orders/${savedOrder.hash.prefixed()}/state",
             OrderStateDto(canceled = true),
             OrderDto::class.java
         )
@@ -56,7 +56,7 @@ internal class AdminControllerTest : AbstractIntegrationTest() {
         assertThat(savedOrder.status).isEqualTo(OrderStatus.CANCELLED)
 
         restTemplate.postForEntity(
-            "http://localhost:${port}/admin/order/orders/${savedOrder.hash.prefixed()}/state",
+            "http://localhost:$port/admin/order/orders/${savedOrder.hash.prefixed()}/state",
             OrderStateDto(canceled = false),
             OrderDto::class.java
         )

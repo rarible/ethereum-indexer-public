@@ -21,5 +21,4 @@ object PayoutValidator {
         val sum = payouts.sumOf { it.value.value }
         return sum == BigInteger.valueOf(10000)
     }
-
 }
