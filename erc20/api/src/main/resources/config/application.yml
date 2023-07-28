@@ -22,6 +22,8 @@ rarible:
     converter:
       enabled: true
   core:
+    task:
+      enabled: false
     apm:
       agent:
         enabled: true
@@ -43,6 +45,9 @@ springdoc:
 
 common:
   metric-root-path: "protocol.erc20.indexer"
+
+api:
+  blockchain: ${common.blockchain}
 
 blockchain:
   scanner:

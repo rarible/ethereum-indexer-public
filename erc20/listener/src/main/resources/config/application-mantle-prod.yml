@@ -1,0 +1,11 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}/?w=1&readConcernLevel=local
+
+listener:
+  tokens:
+    # WETH
+    - "0xdeaddeaddeaddeaddeaddeaddeaddeaddead1111"
+    # WMNT
+    - "0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000"

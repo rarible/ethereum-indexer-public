@@ -7,6 +7,11 @@ spring:
 parityUrls: ${node.hosts}
 parityWebSocketUrls: ${node.webSocketHosts}
 
+rarible:
+  ethereum:
+    httpUrl: ${node.hosts}
+    websocketUrl: ${node.webSocketHosts}
+
 blockchain:
   scanner:
     kafka:

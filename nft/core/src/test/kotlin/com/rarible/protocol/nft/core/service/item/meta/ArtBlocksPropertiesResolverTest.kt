@@ -17,25 +17,9 @@ import java.math.BigInteger
 @ItemMetaTest
 class ArtBlocksPropertiesResolverTest : BasePropertiesResolverTest() {
 
-    private val token = Address.apply("0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270")
-
-    private val resolver = ArtBlocksPropertiesResolver(
-        urlService,
-        rawPropertiesProvider,
-        tokenUriResolver
-    )
-
-    @BeforeEach
-    fun mock() = mockTokenStandard(token, TokenStandard.ERC721)
-
     @Test
     fun `get properties`() = runBlocking<Unit> {
-        val properties = resolver.resolve(
-            ItemId(
-                token,
-                EthUInt256.of(BigInteger("114000001"))
-            )
-        )
+        val properties = resolve("0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270", "114000001")
         assertThat(properties?.copy(rawJsonContent = null)).isEqualTo(
             ItemProperties(
                 name = "glitch crystal monsters #1",
@@ -56,6 +40,44 @@ class ArtBlocksPropertiesResolverTest : BasePropertiesResolverTest() {
                     imageOriginal = "https://media-proxy.artblocks.io/0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270/114000001.png",
                     videoOriginal = "https://generator.artblocks.io/0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270/114000001"
                 )
+            )
+        )
+    }
+
+    @Test
+    fun `get properties with boolean attributes`() = runBlocking<Unit> {
+        val properties = resolve("0xea698596b6009a622c3ed00dd5a8b5d1cae4fc36", "5000001")
+        assertThat(properties?.attributes).isEqualTo(
+            listOf(
+                ItemAttribute("Key", "F"),
+                ItemAttribute("Bass", "true"),
+                ItemAttribute("Bells", "true"),
+                ItemAttribute("Organ", "false"),
+                ItemAttribute("Scale", "Major"),
+                ItemAttribute("Style", "Droney"),
+                ItemAttribute("Marimba", "true"),
+                ItemAttribute("Oscillator", "false"),
+                ItemAttribute("Instruments", "3"),
+                ItemAttribute("LinearNotations", "1"),
+                ItemAttribute("CircularNotations", "2"),
+                ItemAttribute("project_id", "5"),
+                ItemAttribute("collection_name", "PRELUDES by Trevor Paglen")
+            )
+        )
+    }
+
+    private suspend fun resolve(tokenAddress: String, tokenId: String): ItemProperties? {
+        val token = Address.apply(tokenAddress)
+        val resolver = ArtBlocksPropertiesResolver(
+            urlService,
+            rawPropertiesProvider,
+            tokenUriResolver
+        )
+        mockTokenStandard(token, TokenStandard.ERC721)
+        return resolver.resolve(
+            ItemId(
+                token,
+                EthUInt256.of(BigInteger(tokenId))
             )
         )
     }

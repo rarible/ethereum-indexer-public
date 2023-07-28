@@ -18,7 +18,7 @@ fun JsonNode.getText(vararg paths: List<String>): String? {
 fun JsonNode.getText(vararg paths: String): String? {
     for (path in paths) {
         val current = this.path(path)
-        if (current.isTextual || current.isNumber) {
+        if (current.isTextual || current.isNumber || current.isBoolean) {
             return current.asText()
         }
     }
