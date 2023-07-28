@@ -1,2 +1,8 @@
 common:
   blockchain: mantle
+
+api:
+  opensea:
+    apiKey: 00000000000000000000000000000000
+    cacheTimeout: 315360000000
+    url: https://api.opensea.io/api/v2
