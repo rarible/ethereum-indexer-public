@@ -1,2 +1,4 @@
 common:
   blockchain: mantle
+  operatorPrivateKey: "0x0000000000000000000000000000000000000000000000000000000000000000"
+  protocolCommission: 0
