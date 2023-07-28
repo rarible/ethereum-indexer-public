@@ -22,6 +22,8 @@ rarible:
     converter:
       enabled: true
   core:
+    task:
+      enabled: false
     apm:
       agent:
         enabled: true

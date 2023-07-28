@@ -24,6 +24,8 @@ rarible:
     read-only-transaction-sender:
       enabled: true
   core:
+    task:
+      enabled: true
     apm:
       agent:
         enabled: true
