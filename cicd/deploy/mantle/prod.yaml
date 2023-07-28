@@ -4,6 +4,7 @@ global:
   environments: &sharedEnv
     KAFKA_HOSTS: "PLAINTEXT://kafka1.rarible.int.:9092,kafka2.rarible.int.:9092,kafka3.rarible.int.:9092"
     MONGODB_HOSTS: "mongo-mantle1.rarible.int.,mongo-mantle2.rarible.int.,mongo-mantle3.rarible.int."
+    BLOCKCHAIN_SCANNER_ETHEREUM_BLOCKPOLLER_ENABLED: "true"
     ### set as secrets
     #MONGODB_USERNAME: "username"
     #MONGODB_PASSWORD: "password"
