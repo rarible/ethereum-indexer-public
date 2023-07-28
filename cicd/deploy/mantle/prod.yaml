@@ -17,7 +17,8 @@ global:
     MONGODB_DATABASE: "mantle-nft"
     REDIS_URI: "redis://redis"
     COMMON_BASEPUBLICAPIURL: "https://mantle-api.rarible.org/v0.1/nft"
-
+    COMMON_OPENSEALAZYMINTADDRESS: "0x0000000000000000000000000000000000000000"
+    COMMON_ROYALTYREGISTRYADDRESS: "0x0000000000000000000000000000000000000000"
 
   ########### order Indexer environments
   orderEnvironments: &orderEnv
