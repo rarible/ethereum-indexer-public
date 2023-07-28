@@ -14,6 +14,8 @@ global:
   nftEnvironments: &nftEnv
     <<: *sharedEnv
     MONGODB_DATABASE: "mantle-nft"
+    COMMON_BASEPUBLICAPIURL: "https://mantle-api.rarible.org/v0.1/nft"
+
 
   ########### order Indexer environments
   orderEnvironments: &orderEnv
