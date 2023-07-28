@@ -3,8 +3,8 @@ spring:
     mongodb:
       uri: mongodb://${mongodb.hosts}
       database: ${mongodb.database}
+
 rarible:
-  core:
-    ethereum:
-      url: ${node.hosts}
-      web-socke-turl: ${node.webSocketHosts}
+  ethereum:
+    httpUrl: ${node.hosts}
+    websocketUrl: ${node.webSocketHosts}

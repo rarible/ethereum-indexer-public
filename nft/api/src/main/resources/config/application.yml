@@ -19,6 +19,8 @@ spring:
 
 rarible:
   core:
+    task:
+      enabled: false
     apm:
       agent:
         enabled: true
