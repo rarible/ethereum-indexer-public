@@ -313,15 +313,22 @@ data class Order(
             advanceExpired: Boolean?,
         ): OrderStatus {
             return when {
+                // Specific calculation branch for AMM orders
                 data.isAmmOrder() -> ammOrderStatus(makeStock, start, end)
+
+                // Filled/Cancelled - terminal statuses, can be applied without considering other conditions
                 data.isMakeFillOrder(make.type.nft) && fill >= make.value -> OrderStatus.FILLED
                 fill >= take.value -> OrderStatus.FILLED
                 cancelled -> OrderStatus.CANCELLED
-                approved.not() -> OrderStatus.INACTIVE
+
+                // If order not filled or cancelled, it's state should be determined by expiration date
                 advanceExpired == true -> OrderStatus.ENDED
-                isActiveByMakeStock(makeStock, start, end) -> OrderStatus.ACTIVE
-                !isStarted(start) -> OrderStatus.NOT_STARTED
                 isEnded(end) -> OrderStatus.ENDED
+                !isStarted(start) -> OrderStatus.NOT_STARTED
+
+                // Order not filled or cancelled and within execution time window - can be active/inactive
+                approved.not() -> OrderStatus.INACTIVE
+                isActiveByMakeStock(makeStock, start, end) -> OrderStatus.ACTIVE
                 else -> OrderStatus.INACTIVE
             }
         }
