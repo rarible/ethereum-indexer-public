@@ -1,3 +1,7 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
 common:
   scanner-properties:
     sender-created-tokens:

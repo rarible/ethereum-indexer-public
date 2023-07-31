@@ -39,7 +39,11 @@ class ArtBlocksPropertiesResolver(
         node ?: return emptyList()
 
         val result = ArrayList<ItemAttribute>(node.size() + 2)
-        node.fieldNames().forEach { result.add(node.getAttribute(it)!!) }
+        node.fieldNames().forEach {
+            if (node.getAttribute(it) != null) {
+                result.add(node.getAttribute(it)!!)
+            }
+        }
 
         root.getAttribute("project_id")?.let { result.add(it) }
         root.getAttribute("collection_name")?.let { result.add(it) }
