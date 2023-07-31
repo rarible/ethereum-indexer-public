@@ -1,3 +1,7 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
 common:
   exchange-contract-addresses:
     looksrare-v1: "0x59728544b08ab483533076417fbbb2fd0b17ce3a"
