@@ -66,6 +66,21 @@ class ArtBlocksPropertiesResolverTest : BasePropertiesResolverTest() {
         )
     }
 
+    @Test
+    fun `get properties with null attributes`() = runBlocking<Unit> {
+        val properties = resolve("0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270", "38000007")
+        assertThat(properties?.attributes).isEqualTo(
+            listOf(
+                ItemAttribute("Tint", "Electric"),
+                ItemAttribute("Family", "Powerclimb"),
+                ItemAttribute("Visual", "Waveform"),
+                ItemAttribute("Sample Rate", "4978"),
+                ItemAttribute("project_id", "38"),
+                ItemAttribute("collection_name", "♫ ByteBeats by DADABOTS x KAI"),
+            )
+        )
+    }
+
     private suspend fun resolve(tokenAddress: String, tokenId: String): ItemProperties? {
         val token = Address.apply(tokenAddress)
         val resolver = ArtBlocksPropertiesResolver(
