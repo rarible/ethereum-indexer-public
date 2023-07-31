@@ -9,7 +9,6 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.ArtBlocksProp
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
 import java.math.BigInteger

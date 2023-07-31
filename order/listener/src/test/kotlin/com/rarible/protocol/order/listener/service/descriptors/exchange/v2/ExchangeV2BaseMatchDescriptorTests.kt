@@ -36,7 +36,6 @@ import io.mockk.verify
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.bson.types.ObjectId
 import reactor.core.publisher.Mono
 import scala.Tuple15
 import scalether.domain.Address
@@ -325,7 +324,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = null,
+            end = end(),
             data = data,
             signature = null,
             createdAt = nowMillis(),
@@ -646,7 +645,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = Instant.now().plusSeconds(1000).epochSecond,
+            end = end(),
             data = data,
             signature = null,
             createdAt = nowMillis(),
@@ -772,7 +771,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = null,
+            end = end(),
             data = data,
             signature = null,
             createdAt = nowMillis(),
@@ -896,9 +895,12 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = null,
+            end = end(),
             data = OrderRaribleV2DataV2(
-                originFees = listOf(Part(randomAddress(), EthUInt256.of(250)), Part(randomAddress(), EthUInt256.of(250))),
+                originFees = listOf(
+                    Part(randomAddress(), EthUInt256.of(250)),
+                    Part(randomAddress(), EthUInt256.of(250))
+                ),
                 payouts = emptyList(),
                 isMakeFill = true
             ),
@@ -1021,7 +1023,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = null,
+            end = end(),
             data = OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = true),
             signature = null,
             createdAt = nowMillis(),
@@ -1139,7 +1141,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = Instant.now().plusSeconds(1000).epochSecond,
+            end = end(),
             data = OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = false),
             signature = null,
             createdAt = nowMillis(),
@@ -1254,7 +1256,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = null,
+            end = end(),
             data = OrderRaribleV2DataV1(emptyList(), emptyList()),
             signature = null,
             createdAt = nowMillis(),
@@ -1363,7 +1365,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = null,
+            end = end(),
             data = OrderRaribleV2DataV1(
                 originFees = listOf(Part(leftOriginFees, EthUInt256.of(250))),
                 payouts = listOf(Part(leftPayout, EthUInt256.of(10000)))
@@ -1448,11 +1450,8 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
         }
     }
 
-    fun OrderVersion.invert(maker: Address) = this.copy(
-        id = ObjectId(), // recreate ID.
-        maker = maker,
-        make = take,
-        take = make,
-        hash = Order.hashKey(maker, take.type, make.type, salt.value, data)
-    )
+    // Mocks end of order - we need it since all bids will be cancelled without it
+    private fun end(): Long {
+        return Instant.now().plusSeconds(1000).epochSecond
+    }
 }

@@ -53,7 +53,7 @@ class OrderStartEndCheckerHandler(
                         .withUpdatedStatus(now)
                 )
                 if (isExpired) orderExpiredMetric.increment() else orderStartedMetric.increment()
-                logger.info("Change order ${saved.id} status to ${saved.status}")
+                logger.info("Change order ${saved.id} status from ${order.status} to ${saved.status}")
                 orderListener.onOrder(order, eventTimeMarks, false)
             }
     }

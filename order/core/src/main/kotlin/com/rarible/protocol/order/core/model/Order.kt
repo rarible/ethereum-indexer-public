@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.Tuples.keccak256
 import com.rarible.protocol.order.core.misc.plus
-import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.zeroWord
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.daonomic.rpc.domain.Binary
@@ -19,7 +18,6 @@ import scala.Tuple4
 import scala.Tuple5
 import scala.Tuple9
 import scalether.abi.AddressType
-import scalether.abi.BytesType
 import scalether.abi.Uint256Type
 import scalether.abi.Uint8Type
 import scalether.domain.Address
@@ -315,15 +313,22 @@ data class Order(
             advanceExpired: Boolean?,
         ): OrderStatus {
             return when {
+                // Specific calculation branch for AMM orders
                 data.isAmmOrder() -> ammOrderStatus(makeStock, start, end)
+
+                // Filled/Cancelled - terminal statuses, can be applied without considering other conditions
                 data.isMakeFillOrder(make.type.nft) && fill >= make.value -> OrderStatus.FILLED
                 fill >= take.value -> OrderStatus.FILLED
                 cancelled -> OrderStatus.CANCELLED
-                approved.not() -> OrderStatus.INACTIVE
+
+                // If order not filled or cancelled, it's state should be determined by expiration date
                 advanceExpired == true -> OrderStatus.ENDED
-                isActiveByMakeStock(makeStock, start, end) -> OrderStatus.ACTIVE
-                !isStarted(start) -> OrderStatus.NOT_STARTED
                 isEnded(end) -> OrderStatus.ENDED
+                !isStarted(start) -> OrderStatus.NOT_STARTED
+
+                // Order not filled or cancelled and within execution time window - can be active/inactive
+                approved.not() -> OrderStatus.INACTIVE
+                isActiveByMakeStock(makeStock, start, end) -> OrderStatus.ACTIVE
                 else -> OrderStatus.INACTIVE
             }
         }
