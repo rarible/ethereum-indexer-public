@@ -21,7 +21,13 @@ data class Erc20ListenerProperties(
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val skipTransferContracts: List<String> = emptyList(),
     val balanceCheckerProperties: BalanceCheckerProperties = BalanceCheckerProperties(),
+    val orderActivityProperties: OrderActivityProperties = OrderActivityProperties(),
     val job: Erc20JobProperties = Erc20JobProperties()
+)
+
+data class OrderActivityProperties(
+    val eventsHandleBatchSize: Int = 200,
+    val eventsHandleConcurrency: Int = 9,
 )
 
 data class BalanceCheckerProperties(

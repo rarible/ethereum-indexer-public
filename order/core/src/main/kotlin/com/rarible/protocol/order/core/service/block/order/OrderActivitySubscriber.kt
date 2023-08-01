@@ -36,7 +36,7 @@ class OrderActivitySubscriber(
             logger.info("Order log event: id=${logRecord.id}, dataType=$dataType, reverted=${event.reverted}")
 
             convert(logRecord, event.reverted)?.let {
-                eventPublisher.publish(it, event.eventTimeMarks.addIndexerIn(indexerInMark))
+                eventPublisher.publish(it, eventTimeMarks)
             }
         }
     }

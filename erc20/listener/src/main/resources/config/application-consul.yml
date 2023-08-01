@@ -21,5 +21,9 @@ protocol:
   erc20:
     subscriber:
       broker-replica-set: ${kafka.hosts}
+  order:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+
 common:
   kafka-replica-set: ${kafka.hosts}

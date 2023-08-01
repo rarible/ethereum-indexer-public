@@ -31,7 +31,11 @@ class Erc20EventChainUpdateService(
             }
             val approvalEvent = erc20Events.lastOrNull { it?.event is Erc20Event.Erc20TokenApprovalEvent }
             if (approvalEvent != null) {
-                erc20AllowanceService.onChainUpdate(balanceId = balanceId, event = approvalEvent)
+                erc20AllowanceService.onChainUpdate(
+                    balanceId = balanceId,
+                    event = approvalEvent.event,
+                    eventTimeMarks = approvalEvent.eventTimeMarks
+                )
             }
             val balance = erc20BalanceService.onChainUpdate(balanceId, erc20Events.last())
             if (balance == null) {
