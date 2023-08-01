@@ -96,7 +96,7 @@ internal class Erc20AllowanceServiceTest {
 
         coEvery { erc20BalanceEventListener.onUpdate(any()) } returns Unit
 
-        erc20AllowanceService.onChainUpdate(balanceId, null)
+        erc20AllowanceService.onChainUpdate(balanceId = balanceId, event = null, eventTimeMarks = null)
 
         coVerify {
             erc20BalanceEventListener.onUpdate(withArg {
@@ -141,7 +141,7 @@ internal class Erc20AllowanceServiceTest {
 
         coEvery { erc20BalanceEventListener.onUpdate(any()) } returns Unit
 
-        erc20AllowanceService.onChainUpdate(balanceId, null)
+        erc20AllowanceService.onChainUpdate(balanceId = balanceId, event = null, eventTimeMarks = null)
 
         coVerify {
             erc20BalanceEventListener.onUpdate(withArg {
@@ -179,7 +179,7 @@ internal class Erc20AllowanceServiceTest {
 
         assertThatExceptionOfType(IllegalStateException::class.java).isThrownBy {
             runBlocking {
-                erc20AllowanceService.onChainUpdate(balanceId, null)
+                erc20AllowanceService.onChainUpdate(balanceId = balanceId, event = null, eventTimeMarks = null)
             }
         }
     }

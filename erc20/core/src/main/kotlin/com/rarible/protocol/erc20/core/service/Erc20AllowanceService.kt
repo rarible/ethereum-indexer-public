@@ -1,6 +1,7 @@
 package com.rarible.protocol.erc20.core.service
 
 import com.rarible.contracts.erc20.IERC20
+import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.core.entity.reducer.service.EntityService
@@ -10,6 +11,7 @@ import com.rarible.protocol.erc20.core.event.Erc20BalanceEventListener
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Allowance
 import com.rarible.protocol.erc20.core.model.Erc20AllowanceEvent
+import com.rarible.protocol.erc20.core.model.Erc20Event
 import com.rarible.protocol.erc20.core.model.Erc20MarkedEvent
 import com.rarible.protocol.erc20.core.repository.Erc20AllowanceRepository
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -41,14 +43,21 @@ class Erc20AllowanceService(
             )
         }
 
-    override suspend fun update(entity: Erc20Allowance, event: Erc20MarkedEvent?): Erc20Allowance {
+    override suspend fun update(entity: Erc20Allowance, event: Erc20MarkedEvent?): Erc20Allowance =
+        update(entity = entity, event = event?.event, eventTimeMarks = event?.eventTimeMarks)
+
+    private suspend fun update(
+        entity: Erc20Allowance,
+        eventTimeMarks: EventTimeMarks?,
+        event: Erc20Event?
+    ): Erc20Allowance {
         val result = if (saveToDb) {
             erc20AllowanceRepository.save(entity)
         } else {
             entity
         }
         erc20BalanceEventListeners.forEach {
-            it.onUpdate(Erc20AllowanceEvent(event?.event, event?.eventTimeMarks, entity))
+            it.onUpdate(Erc20AllowanceEvent(event, eventTimeMarks, entity))
         }
         return result
     }
@@ -58,7 +67,11 @@ class Erc20AllowanceService(
             ?.let { EthUInt256(it) }
     }
 
-    suspend fun onChainUpdate(balanceId: BalanceId, event: Erc20MarkedEvent?) {
+    suspend fun onChainUpdate(
+        balanceId: BalanceId,
+        eventTimeMarks: EventTimeMarks?,
+        event: Erc20Event?
+    ) {
         optimisticLock {
             val erc20Allowance = get(balanceId) ?: Erc20Allowance(
                 token = balanceId.token,
@@ -71,7 +84,7 @@ class Erc20AllowanceService(
                 logger.error("Can't get allowance $balanceId from blockchain")
                 throw IllegalStateException("Can't get allowance $balanceId from blockchain")
             }
-            update(entity = erc20Allowance.withAllowance(allowance), event = event)
+            update(entity = erc20Allowance.withAllowance(allowance), event = event, eventTimeMarks = eventTimeMarks)
         }
     }
 

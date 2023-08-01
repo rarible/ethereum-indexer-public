@@ -68,12 +68,12 @@ class Erc20EventChainUpdateServiceTest {
         ).map { LogRecordEvent(it, false, EventTimeMarks("test", emptyList())) }
 
         coEvery { balanceService.onChainUpdate(balanceId, any()) } returns mockk()
-        coEvery { allowanceService.onChainUpdate(balanceId, any()) } returns Unit
+        coEvery { allowanceService.onChainUpdate(balanceId, any(), any()) } returns Unit
 
         service.onEntityEvents(events)
 
         coVerify { balanceService.onChainUpdate(balanceId, any()) }
-        coVerify { allowanceService.onChainUpdate(balanceId, any()) }
+        coVerify { allowanceService.onChainUpdate(balanceId, any(), any()) }
         coVerify(exactly = 0) { delegate.onEntityEvents(any()) }
     }
 }

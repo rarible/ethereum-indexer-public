@@ -27,6 +27,10 @@
         </dependency>
         <dependency>
             <groupId>com.rarible.protocol.ethereum</groupId>
+            <artifactId>protocol-subscriber-order-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-subscriber-erc20-starter</artifactId>
         </dependency>
         <dependency>
