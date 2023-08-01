@@ -19,11 +19,12 @@ class OrderActivityEventHandler(
 
     override suspend fun handle(event: EthActivityEventDto) {
         val activity = event.activity
-        if (activity is OrderActivityMatchDto) {
-            logger.info("Handle event: $event")
-            if (activity.type == OrderActivityMatchDto.Type.ACCEPT_BID) {
-                handleActivity(activity, event)
-            }
+        if (activity !is OrderActivityMatchDto) {
+            return
+        }
+        logger.info("Handle event: $event")
+        if (activity.type == OrderActivityMatchDto.Type.ACCEPT_BID) {
+            handleActivity(activity, event)
         }
     }
 
