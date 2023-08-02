@@ -4,7 +4,6 @@ import com.rarible.core.kafka.RaribleKafkaEventHandler
 import com.rarible.protocol.dto.Erc20AssetTypeDto
 import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.OrderActivityMatchDto
-import com.rarible.protocol.dto.OrderActivityMatchSideDto
 import com.rarible.protocol.dto.toModel
 import com.rarible.protocol.erc20.core.misc.addIndexerIn
 import com.rarible.protocol.erc20.core.model.BalanceId
