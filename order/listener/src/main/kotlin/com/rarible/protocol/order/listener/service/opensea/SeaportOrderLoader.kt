@@ -81,7 +81,6 @@ class SeaportOrderLoader(
         }
 
         val eventTimeMarks = orderIntegrationEventMarks(order.createdAt)
-        // TODO 2 events will be emitted here - is it fine?
         val saved = orderUpdateService.save(order, eventTimeMarks).run {
             orderUpdateService.updateMakeStock(this, null, eventTimeMarks).first
         }

@@ -62,6 +62,7 @@ class OpenSeaOrderServiceImpl(
             }
         }
         result.orders.forEach { metrics.onOrderReceived(Platform.OPEN_SEA, it.createdAt) }
+        result.orders.maxOfOrNull { it.createdAt }?.let { metrics.onLatestOrderReceived(Platform.OPEN_SEA, it) }
         return result
     }
 

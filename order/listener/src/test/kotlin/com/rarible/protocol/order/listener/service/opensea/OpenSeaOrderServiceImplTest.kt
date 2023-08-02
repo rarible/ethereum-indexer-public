@@ -29,6 +29,7 @@ internal class OpenSeaOrderServiceImplTest {
     }
     private val metrics: ForeignOrderMetrics = mockk {
         every { onOrderReceived(eq(Platform.OPEN_SEA), any()) } returns Unit
+        every { onLatestOrderReceived(eq(Platform.OPEN_SEA), any()) } returns Unit
     }
     private val seaportProtocolClient = mockk<SeaportProtocolClient>()
     private val seaportLoad = SeaportLoadProperties(retry = 2, retryDelay = Duration.ZERO)
