@@ -23,7 +23,6 @@ class OrderActivityEventHandler(
         }
         logger.info("Handle event: $event")
         if (activity.type == OrderActivityMatchDto.Type.ACCEPT_BID) {
-            logger.info("type matched")
             handleActivity(activity, event)
         }
     }
@@ -33,13 +32,10 @@ class OrderActivityEventHandler(
         event: EthActivityEventDto
     ) {
         val sideDto = if (activity.left.asset.assetType is Erc20AssetTypeDto) {
-            logger.info("use left")
             activity.left
         } else if (activity.right.asset.assetType is Erc20AssetTypeDto) {
-            logger.info("use right")
             activity.right
         } else {
-            logger.info("type didn't match")
             return
         }
         val assetType = sideDto.asset.assetType as Erc20AssetTypeDto
