@@ -32,25 +32,24 @@ class OrderActivityEventHandler(
         activity: OrderActivityMatchDto,
         event: EthActivityEventDto
     ) {
-        val sideDto = if (activity.left.type == OrderActivityMatchSideDto.Type.BID) {
+        val sideDto = if (activity.left.asset.assetType is Erc20AssetTypeDto) {
             activity.left
-        } else {
+        } else if (activity.right.asset.assetType is Erc20AssetTypeDto) {
             activity.right
+        } else {
+            return
         }
-        val assetType = sideDto.asset.assetType
-        if (assetType is Erc20AssetTypeDto) {
-            val owner = sideDto.maker
-            val token = assetType.contract
-            logger.info(
-                "Will recalculate erc20 balance owner=$owner, token=$token. " +
-                    "After bid execution id=${sideDto.hash}"
-            )
-            erc20AllowanceService.onChainUpdate(
-                balanceId = BalanceId(token = token, owner = owner),
-                eventTimeMarks = event.eventTimeMarks.toModel().addIndexerIn(),
-                event = null,
-            )
-        }
+        val assetType = sideDto.asset.assetType as Erc20AssetTypeDto
+        val owner = sideDto.maker
+        val token = assetType.contract
+        logger.info(
+            "Will recalculate erc20 balance owner=$owner, token=$token. After bid execution id=${sideDto.hash}"
+        )
+        erc20AllowanceService.onChainUpdate(
+            balanceId = BalanceId(token = token, owner = owner),
+            eventTimeMarks = event.eventTimeMarks.toModel().addIndexerIn(),
+            event = null,
+        )
     }
 
     companion object {
