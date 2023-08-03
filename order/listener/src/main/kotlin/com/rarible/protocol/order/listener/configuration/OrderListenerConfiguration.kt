@@ -8,6 +8,8 @@ import com.rarible.core.task.EnableRaribleTask
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.opensea.subscriber.OpenseaConsumerFactory
+import com.rarible.opensea.subscriber.model.OpenseaEvent
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
@@ -37,6 +39,7 @@ import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProv
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
+import com.rarible.protocol.order.listener.service.opensea.OpenseaEventHandler
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoadHandler
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoader
 import com.rarible.protocol.order.listener.service.order.OrderStartEndCheckerHandler
@@ -74,6 +77,8 @@ class OrderListenerConfiguration(
         "protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
     private val itemConsumerGroup =
         "protocol.${commonProperties.blockchain.value}.order.indexer.item"
+    private val openseaEventConsumerGroup =
+        "protocol.${commonProperties.blockchain.value}.order.indexer.opensea.event"
 
     @Bean
     fun blockchain(): Blockchain {
@@ -129,6 +134,11 @@ class OrderListenerConfiguration(
     }
 
     @Bean
+    fun openseaEventProperties(): OpenseaEventProperties {
+        return listenerProperties.openseaEventProperties
+    }
+
+    @Bean
     fun erc20BalanceChangeWorker(
         factory: RaribleKafkaConsumerFactory,
         handler: Erc20BalanceConsumerEventHandler
@@ -138,6 +148,28 @@ class OrderListenerConfiguration(
             blockchain = blockchain(),
             concurrency = listenerProperties.balanceConsumerWorkersCount,
             batchSize = listenerProperties.balanceConsumerBatchSize,
+        )
+        return factory.createWorker(
+            settings = settings,
+            handler = handler
+        )
+    }
+
+    @Bean
+    fun openseaEventWorker(
+        factory: RaribleKafkaConsumerFactory,
+        handler: OpenseaEventHandler
+    ): RaribleKafkaConsumerWorker<OpenseaEvent> {
+        val openseaConsumerFactory = OpenseaConsumerFactory(
+            brokerReplicaSet =  commonProperties.kafkaReplicaSet,
+            host = environmentInfo.host,
+            environment = environmentInfo.name
+        )
+        val settings = openseaConsumerFactory.createEventConsumerSettings(
+            group = openseaEventConsumerGroup,
+            concurrency = listenerProperties.openseaEventProperties.workerCount,
+            blockchain = commonProperties.blockchain.value,
+            batchSize = listenerProperties.openseaEventProperties.saveBatchSize
         )
         return factory.createWorker(
             settings = settings,
