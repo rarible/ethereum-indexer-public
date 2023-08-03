@@ -1,6 +1,6 @@
 package com.rarible.protocol.erc20.listener.test
 
-import com.rarible.ethereum.cache.CacheableMonoEthereum
+import com.rarible.ethereum.client.cache.CacheableMonoEthereum
 import com.rarible.protocol.erc20.listener.consumer.KafkaEntityEventConsumer
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.mockk

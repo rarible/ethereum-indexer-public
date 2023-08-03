@@ -2,7 +2,7 @@ package com.rarible.protocol.order.listener.integration
 
 import com.rarible.blockchain.scanner.consumer.kafka.KafkaLogRecordEventConsumer
 import com.rarible.core.common.nowMillis
-import com.rarible.ethereum.cache.CacheableMonoEthereum
+import com.rarible.ethereum.client.cache.CacheableMonoEthereum
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto

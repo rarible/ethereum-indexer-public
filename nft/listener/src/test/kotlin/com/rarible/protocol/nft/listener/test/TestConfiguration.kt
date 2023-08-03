@@ -5,7 +5,7 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
-import com.rarible.ethereum.cache.CacheableMonoEthereum
+import com.rarible.ethereum.client.cache.CacheableMonoEthereum
 import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.NftCollectionEventDto
