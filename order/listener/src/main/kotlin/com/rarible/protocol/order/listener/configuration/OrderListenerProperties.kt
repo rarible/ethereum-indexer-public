@@ -45,7 +45,8 @@ data class OrderListenerProperties(
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val logConsumeWorkerCount: Int = 9,
     val logConsumeWorkerBatchSize: Int = 500,
-    val floorPriceTopCollectionsCount: Int = 10
+    val floorPriceTopCollectionsCount: Int = 10,
+    val openseaEventProperties: OpenseaEventProperties = OpenseaEventProperties()
 ) {
     enum class OrderSide {
         ALL,
@@ -162,4 +163,9 @@ data class ReservoirProperties(
     val size: Long = 50,
     val pollingPeriod: Duration = Duration.ofSeconds(60),
     val errorDelay: Duration = Duration.ofSeconds(1)
+)
+
+data class OpenseaEventProperties(
+    val saveBatchSize: Int = 50,
+    val workerCount: Int = 1
 )

@@ -127,6 +127,10 @@
         </dependency>
         <dependency>
             <groupId>com.rarible</groupId>
+            <artifactId>rarible-opensea-subscriber</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible</groupId>
             <artifactId>rarible-reservoir-client-starter</artifactId>
         </dependency>
 

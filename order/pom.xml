@@ -49,6 +49,11 @@
                 <version>${opensea-client-starter.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.rarible</groupId>
+                <artifactId>rarible-opensea-subscriber</artifactId>
+                <version>${opensea-client-starter.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.rarible.x2y2</groupId>
                 <artifactId>rarible-x2y2-client-starter</artifactId>
                 <version>${x2y2-client.version}</version>
