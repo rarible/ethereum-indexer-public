@@ -166,7 +166,6 @@ data class ReservoirProperties(
 )
 
 data class OpenseaEventProperties(
-    val cancelEnabled: Boolean = true,
     val saveBatchSize: Int = 50,
     val workerCount: Int = 1
 )

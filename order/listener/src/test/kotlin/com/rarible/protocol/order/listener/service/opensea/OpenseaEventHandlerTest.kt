@@ -5,6 +5,7 @@ import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.opensea.subscriber.OpenseaTopicProvider
+import com.rarible.opensea.subscriber.model.EventTimeMarks
 import com.rarible.opensea.subscriber.model.OpenseaEvent
 import com.rarible.opensea.subscriber.model.OpenseaEventType
 import com.rarible.opensea.subscriber.model.OpenseaItemCancelled
@@ -46,7 +47,8 @@ class OpenseaEventHandlerTest : AbstractIntegrationTest() {
                         orderHash = order.id.hash.prefixed(),
                         eventTimestamp = Instant.now(),
                         maker = null
-                    )
+                    ),
+                    eventTimeMarks = EventTimeMarks("opensea", listOf())
                 ),
                 headers = mapOf(),
                 id = ""
