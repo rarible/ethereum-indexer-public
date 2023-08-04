@@ -161,7 +161,7 @@ class OrderListenerConfiguration(
         handler: OpenseaEventHandler
     ): RaribleKafkaConsumerWorker<OpenseaEvent> {
         val openseaConsumerFactory = OpenseaConsumerFactory(
-            brokerReplicaSet =  commonProperties.kafkaReplicaSet,
+            brokerReplicaSet = commonProperties.kafkaReplicaSet,
             host = environmentInfo.host,
             environment = environmentInfo.name
         )
