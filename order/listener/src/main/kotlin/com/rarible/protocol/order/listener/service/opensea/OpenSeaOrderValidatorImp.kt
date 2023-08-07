@@ -11,7 +11,7 @@ import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OpenSeaSigner
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.seaportError
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory

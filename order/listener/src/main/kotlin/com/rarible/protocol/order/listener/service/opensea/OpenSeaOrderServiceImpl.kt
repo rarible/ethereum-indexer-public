@@ -9,7 +9,8 @@ import com.rarible.opensea.client.model.v2.SeaportOrders
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics.ApiCallStatus
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -73,8 +74,14 @@ class OpenSeaOrderServiceImpl(
         while (retries < seaportLoad.retry) {
             logger.info("Seaport api request: cursor={}", request.cursor)
             when (val result = seaportProtocolClient.getListOrders(request)) {
-                is OperationResult.Success -> return result.result
-                is OperationResult.Fail -> lastError = result.error
+                is OperationResult.Success -> {
+                    onCallForeignApi(ApiCallStatus.OK)
+                    return result.result
+                }
+                is OperationResult.Fail -> {
+                    onCallForeignApi(ApiCallStatus.FAIL)
+                    lastError = result.error
+                }
             }
             retries += 1
             delay(seaportLoad.retryDelay)
@@ -91,5 +98,9 @@ class OpenSeaOrderServiceImpl(
                 return lastSeenWithPrevias
         }
         return lastSeenWithPrevias
+    }
+
+    private fun onCallForeignApi(status: ApiCallStatus) {
+        metrics.onCallForeignOrderApi(Platform.OPEN_SEA, status)
     }
 }

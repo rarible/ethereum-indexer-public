@@ -7,7 +7,7 @@ import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow

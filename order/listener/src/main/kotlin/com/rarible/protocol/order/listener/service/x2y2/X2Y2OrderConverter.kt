@@ -11,7 +11,7 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.x2y2.client.model.ErcType
 import com.rarible.x2y2.client.model.Order
 import com.rarible.x2y2.client.model.OrderStatus

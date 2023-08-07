@@ -9,7 +9,7 @@ import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.data.randomSeaportOrder
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder

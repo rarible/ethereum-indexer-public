@@ -8,7 +8,7 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.log
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.convert
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery

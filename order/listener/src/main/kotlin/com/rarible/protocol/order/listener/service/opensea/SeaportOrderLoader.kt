@@ -8,7 +8,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.seaportError
 import com.rarible.protocol.order.listener.misc.seaportInfo
 import kotlinx.coroutines.CoroutineScope

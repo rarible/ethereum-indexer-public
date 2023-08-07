@@ -7,7 +7,7 @@ import com.rarible.protocol.order.core.repository.order.OrderStateRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import com.rarible.protocol.order.listener.data.randomX2Y2Event
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.x2y2.client.model.ApiListResponse
 import com.rarible.x2y2.client.model.EventType
 import io.mockk.coEvery

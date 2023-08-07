@@ -6,7 +6,7 @@ import com.rarible.protocol.contracts.exchange.x2y2.v1.EvCancelEvent
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
 import org.springframework.stereotype.Service

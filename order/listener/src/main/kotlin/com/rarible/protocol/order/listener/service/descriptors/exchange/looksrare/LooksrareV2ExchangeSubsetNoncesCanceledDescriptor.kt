@@ -6,7 +6,7 @@ import com.rarible.protocol.contracts.exchange.looksrare.v2.SubsetNoncesCancelle
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction

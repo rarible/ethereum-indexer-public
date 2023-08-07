@@ -12,7 +12,7 @@ import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.data.log
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.convert
 import com.rarible.protocol.order.listener.service.opensea.SeaportEventConverter
 import io.daonomic.rpc.domain.Binary

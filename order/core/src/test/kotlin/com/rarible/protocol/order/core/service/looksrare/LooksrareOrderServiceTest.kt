@@ -12,10 +12,12 @@ import com.rarible.looksrare.client.model.v2.Sort
 import com.rarible.looksrare.client.model.v2.Status
 import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.core.data.randomOrder
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.impl.annotations.SpyK
@@ -34,6 +36,9 @@ internal class LooksrareOrderServiceTest {
     @MockK
     private lateinit var looksrareClient: LooksrareClientV2
 
+    @MockK
+    private lateinit var metrics: ForeignOrderMetrics
+
     @SpyK
     private var properties = LooksrareLoadProperties()
 
@@ -51,6 +56,7 @@ internal class LooksrareOrderServiceTest {
         )
 
         val result = LooksrareOrders(success = true, message = "", data = listOf(order1, order2))
+        every { metrics.onCallForeignOrderApi(any(), any()) } returns Unit
         coEvery { looksrareClient.getOrders(any()) } returns LooksrareResult.success(result)
 
         val orders = service.getNextSellOrders(createdAfter)
@@ -80,6 +86,7 @@ internal class LooksrareOrderServiceTest {
 
         val result1 = LooksrareOrders(success = true, message = "", data = listOf(order1, order2))
         val result2 = LooksrareOrders(success = true, message = "", data = listOf(order3, order4))
+        every { metrics.onCallForeignOrderApi(any(), any()) } returns Unit
         coEvery { looksrareClient.getOrders(any()) } returnsMany listOf(
             LooksrareResult.success(result1),
             LooksrareResult.success(result2)
@@ -104,6 +111,7 @@ internal class LooksrareOrderServiceTest {
     fun `isActiveOrder order found`() = runBlocking<Unit> {
         val order = randomOrder(token = Address.ONE(), tokenId = EthUInt256(BigInteger.ONE))
         val lastId = randomWord()
+        every { metrics.onCallForeignOrderApi(any(), any()) } returns Unit
         coEvery {
             looksrareClient.getOrders(match {
                 it == OrdersRequest(
@@ -156,6 +164,7 @@ internal class LooksrareOrderServiceTest {
     fun `isActiveOrder order not found`() = runBlocking<Unit> {
         val order = randomOrder(token = Address.ONE(), tokenId = EthUInt256(BigInteger.ONE))
         val lastId = randomWord()
+        every { metrics.onCallForeignOrderApi(any(), any()) } returns Unit
         coEvery {
             looksrareClient.getOrders(match {
                 it == OrdersRequest(
@@ -205,6 +214,7 @@ internal class LooksrareOrderServiceTest {
     @Test
     fun `isActiveOrder order depth exhausted`() = runBlocking<Unit> {
         val order = randomOrder(token = Address.ONE(), tokenId = EthUInt256(BigInteger.ONE))
+        every { metrics.onCallForeignOrderApi(any(), any()) } returns Unit
         coEvery {
             looksrareClient.getOrders(any())
         } returns LooksrareResult.success(

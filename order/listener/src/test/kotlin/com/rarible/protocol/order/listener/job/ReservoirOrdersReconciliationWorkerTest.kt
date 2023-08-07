@@ -12,7 +12,7 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.core.service.OrderCancelService
 import com.rarible.protocol.order.listener.configuration.ReservoirProperties
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.reservoir.client.ReservoirClient
 import com.rarible.reservoir.client.model.ReservoirResult
 import com.rarible.reservoir.client.model.common.Amount

@@ -8,7 +8,7 @@ import com.rarible.protocol.order.listener.configuration.X2Y2OrderLoadProperties
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.data.randomX2Y2Order
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.x2y2.client.model.ApiListResponse
 import io.mockk.coEvery
 import io.mockk.coVerify

@@ -15,7 +15,7 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

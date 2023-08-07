@@ -8,7 +8,7 @@ import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.descriptors.NonceSubscriber
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log

@@ -6,7 +6,7 @@ import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.opensea.SeaportEventConverter
 import org.springframework.stereotype.Service

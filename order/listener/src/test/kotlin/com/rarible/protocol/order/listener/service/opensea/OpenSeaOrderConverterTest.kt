@@ -25,7 +25,7 @@ import com.rarible.protocol.order.listener.data.randomOffer
 import com.rarible.protocol.order.listener.data.randomOrderParameters
 import com.rarible.protocol.order.listener.data.randomProtocolData
 import com.rarible.protocol.order.listener.data.randomSeaportOrder
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

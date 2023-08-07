@@ -1,7 +1,10 @@
 package com.rarible.protocol.order.core.service.x2y2
 
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics.ApiCallStatus
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.currency
 import com.rarible.protocol.order.core.model.nft
 import com.rarible.protocol.order.core.model.payment
@@ -21,17 +24,27 @@ import com.rarible.x2y2.client.model.Order as X2Y2Order
 
 @Component
 class X2Y2Service(
-    private val x2y2ApiClient: X2Y2ApiClient
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
+    private val x2y2ApiClient: X2Y2ApiClient,
+    private val metrics: ForeignOrderMetrics,
 ) : OrderStateCheckService {
     suspend fun getNextSellOrders(nextCursor: String?): ApiListResponse<X2Y2Order> {
         val result = x2y2ApiClient.orders(cursor = nextCursor)
-        if (!result.success) throw IllegalStateException("Can't fetch X2Y2 'orders', api return fail")
+        if (!result.success) {
+            onCallForeignApi(ApiCallStatus.FAIL)
+            throw IllegalStateException("Can't fetch X2Y2 'orders', api return fail")
+        }
+        onCallForeignApi(ApiCallStatus.OK)
         return result
     }
 
     suspend fun getNextEvents(type: EventType, nextCursor: String?): ApiListResponse<Event> {
         val result = x2y2ApiClient.events(type = type, cursor = nextCursor)
-        if (!result.success) throw IllegalStateException("Can't fetch X2Y2 '${type.name} events', api return fail")
+        if (!result.success) {
+            onCallForeignApi(ApiCallStatus.FAIL)
+            throw IllegalStateException("Can't fetch X2Y2 '${type.name} events', api return fail")
+        }
+        onCallForeignApi(ApiCallStatus.OK)
         return result
     }
 
@@ -75,6 +88,10 @@ class X2Y2Service(
                 if (code == 2020L) false else throw IllegalArgumentException("Can't determine invalid code, response: $result")
             }
         }
+    }
+
+    private fun onCallForeignApi(status: ApiCallStatus) {
+        metrics.onCallForeignOrderApi(Platform.X2Y2, status)
     }
 
     companion object {

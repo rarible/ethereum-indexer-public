@@ -1,7 +1,6 @@
-package com.rarible.protocol.order.listener.misc
+package com.rarible.protocol.order.core.metric
 
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.metric.BaseOrderMetrics
 import com.rarible.protocol.order.core.model.Platform
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
@@ -21,6 +20,17 @@ class ForeignOrderMetrics(
 
     init {
         registerLatestOrderGauge()
+    }
+
+    fun onCallForeignOrderApi(platform: Platform, status: ApiCallStatus) {
+        meterRegistry.counter(
+            FOREIGN_ORDER_API_CALL,
+            listOf(
+                tag(blockchain),
+                tag(platform),
+                status(status.value.lowercase()),
+            )
+        ).increment()
     }
 
     // Downloaded via API, successfully handled/saved
@@ -150,7 +160,13 @@ class ForeignOrderMetrics(
             }
     }
 
+    enum class ApiCallStatus(val value: String) {
+        OK("ok"),
+        FAIL("fail"),
+    }
+
     private companion object {
+        const val FOREIGN_ORDER_API_CALL = "foreign_order_api_call"
         const val FOREIGN_ORDER_DOWNLOAD = "foreign_order_download"
         const val FOREIGN_ORDER_DOWNLOAD_DELAY = "foreign_order_download_delay"
         const val FOREIGN_ORDER_DOWNLOAD_DELAY_LATEST = "foreign_order_download_delay_latest"

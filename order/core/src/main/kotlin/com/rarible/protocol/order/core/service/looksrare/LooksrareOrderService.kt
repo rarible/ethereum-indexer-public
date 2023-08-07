@@ -11,9 +11,12 @@ import com.rarible.looksrare.client.model.v2.QuoteType
 import com.rarible.looksrare.client.model.v2.Sort
 import com.rarible.looksrare.client.model.v2.Status
 import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics.ApiCallStatus
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.core.misc.looksrareInfo
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.isSell
 import com.rarible.protocol.order.core.model.nft
 import com.rarible.protocol.order.core.model.token
@@ -29,7 +32,8 @@ import java.util.concurrent.atomic.AtomicReference
 @Component
 class LooksrareOrderService(
     private val looksrareClient: LooksrareClientV2,
-    private val properties: LooksrareLoadProperties
+    private val properties: LooksrareLoadProperties,
+    private val metrics: ForeignOrderMetrics,
 ) : OrderStateCheckService {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -68,8 +72,14 @@ class LooksrareOrderService(
 
         while (retries.get() < properties.retry) {
             when (val result = looksrareClient.getOrders(request)) {
-                is OperationResult.Success -> return result.result
-                is OperationResult.Fail -> lastError.set(result.error)
+                is OperationResult.Success -> {
+                    onCallForeignApi(ApiCallStatus.OK)
+                    return result.result
+                }
+                is OperationResult.Fail -> {
+                    onCallForeignApi(ApiCallStatus.FAIL)
+                    lastError.set(result.error)
+                }
             }
             retries.incrementAndGet()
             delay(properties.retryDelay)
@@ -102,5 +112,9 @@ class LooksrareOrderService(
             nextId.set(orders.last().id)
         }
         return true
+    }
+
+    private fun onCallForeignApi(status: ApiCallStatus) {
+        metrics.onCallForeignOrderApi(Platform.LOOKSRARE, status)
     }
 }

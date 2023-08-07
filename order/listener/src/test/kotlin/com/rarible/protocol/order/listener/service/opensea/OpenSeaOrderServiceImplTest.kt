@@ -11,7 +11,7 @@ import com.rarible.opensea.client.model.v2.SeaportOrders
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.data.randomSeaportOrder
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -30,6 +30,7 @@ internal class OpenSeaOrderServiceImplTest {
     private val metrics: ForeignOrderMetrics = mockk {
         every { onOrderReceived(eq(Platform.OPEN_SEA), any()) } returns Unit
         every { onLatestOrderReceived(eq(Platform.OPEN_SEA), any()) } returns Unit
+        every { onCallForeignOrderApi(eq(Platform.OPEN_SEA), any()) } returns Unit
     }
     private val seaportProtocolClient = mockk<SeaportProtocolClient>()
     private val seaportLoad = SeaportLoadProperties(retry = 2, retryDelay = Duration.ZERO)

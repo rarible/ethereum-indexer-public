@@ -6,7 +6,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.log
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.convert
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
 import io.daonomic.rpc.domain.Word

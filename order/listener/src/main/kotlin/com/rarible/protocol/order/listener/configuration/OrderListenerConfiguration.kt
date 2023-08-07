@@ -28,7 +28,7 @@ import com.rarible.protocol.order.listener.job.ReservoirOrdersReconciliationWork
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2CancelEventsFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2OrdersFetchWorker
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.ItemConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.OwnershipConsumerEventHandler

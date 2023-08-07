@@ -38,7 +38,7 @@ import com.rarible.protocol.order.core.model.SeaportOrderType
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.seaportInfo
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word

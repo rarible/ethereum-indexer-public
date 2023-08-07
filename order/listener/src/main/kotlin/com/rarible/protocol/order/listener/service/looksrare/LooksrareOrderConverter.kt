@@ -18,7 +18,7 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 

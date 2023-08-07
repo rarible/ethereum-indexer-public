@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.service.x2y2
 
+import com.rarible.protocol.order.core.metric.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.data.randomX2Y2Event
 import com.rarible.protocol.order.listener.data.randomX2Y2Order
 import com.rarible.x2y2.client.X2Y2ApiClient
@@ -15,8 +16,12 @@ import org.junit.jupiter.api.assertThrows
 internal class X2Y2ServiceTest {
 
     private val x2y2ApiClient = mockk<X2Y2ApiClient>()
+    private val metrics = mockk<ForeignOrderMetrics> {
+        coEvery { onCallForeignOrderApi(any(), any()) } returns Unit
+    }
     private val service = X2Y2Service(
-        x2y2ApiClient
+        x2y2ApiClient,
+        metrics
     )
 
     @Test
