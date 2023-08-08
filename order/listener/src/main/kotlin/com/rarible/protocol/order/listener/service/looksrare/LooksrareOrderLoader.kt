@@ -103,7 +103,11 @@ class LooksrareOrderLoader(
         val min = orders.minByOrNull { it.createdAt } ?: return this
 
         // Need to save max seen created order to continue from it after we fetch all old orders
-        val savingMaxSeenCreated = maxSeenCreated?.let { maxOf(max.createdAt, it) } ?: max.createdAt
+        val savingMaxSeenCreated = maxSeenCreated
+            ?.let { maxOf(max.createdAt, it) }
+            // "createdAfter" is current checkpoint, sometimes LR api returns orders from the past somehow,
+            // we don't need to save checkpoint from the past
+            ?: maxOf(max.createdAt, createdAfter)
 
         return if (min.createdAt > createdAfter) {
             logger.looksrareInfo("Still go deep, min createdAfter=${min.createdAt}")

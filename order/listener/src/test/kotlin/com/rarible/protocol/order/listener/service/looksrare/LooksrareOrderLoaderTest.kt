@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomString
 import com.rarible.looksrare.client.model.v2.Status
 import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
@@ -48,15 +49,16 @@ internal class LooksrareOrderLoaderTest {
     @Test
     fun `should convert and save a new looksrare order`() = runBlocking<Unit> {
         properties.saveEnabled = true
+        val now = nowMillis()
         val looksrareOrder1 =
-            randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(10), status = Status.VALID)
+            randomLooksrareOrder().copy(createdAt = now.minusSeconds(10), status = Status.VALID)
         val looksrareOrder2 =
-            randomLooksrareOrder().copy(createdAt = Instant.now().minusSeconds(5), status = Status.VALID)
+            randomLooksrareOrder().copy(createdAt = now.minusSeconds(5), status = Status.VALID)
         val orderVersion1 = createOrderVersion().copy(hash = looksrareOrder1.hash)
         val orderVersion2 = createOrderVersion().copy(hash = looksrareOrder2.hash)
         val order1 = createOrder().copy(id = Order.Id(looksrareOrder1.hash), hash = looksrareOrder1.hash)
         val order2 = createOrder().copy(id = Order.Id(looksrareOrder2.hash), hash = looksrareOrder2.hash)
-        val listedAfter = LooksrareV2Cursor(Instant.now())
+        val listedAfter = LooksrareV2Cursor(now.minusSeconds(10))
 
         coEvery { looksrareOrderService.getNextSellOrders(listedAfter) } returns listOf(
             looksrareOrder1,
@@ -78,6 +80,37 @@ internal class LooksrareOrderLoaderTest {
         coVerify(exactly = 1) { orderUpdateService.save(eq(orderVersion2), any()) }
         coVerify(exactly = 1) { looksrareOrderConverter.convert(looksrareOrder1) }
         coVerify(exactly = 1) { looksrareOrderConverter.convert(looksrareOrder2) }
+    }
+
+    @Test
+    fun `convert - don't get cursor from past`() = runBlocking<Unit> {
+        properties.saveEnabled = true
+        val now = nowMillis()
+        val looksrareOrder1 =
+            randomLooksrareOrder().copy(createdAt = now.minusSeconds(10), status = Status.VALID)
+        val looksrareOrder2 =
+            randomLooksrareOrder().copy(createdAt = now.minusSeconds(5), status = Status.VALID)
+        val orderVersion1 = createOrderVersion().copy(hash = looksrareOrder1.hash)
+        val orderVersion2 = createOrderVersion().copy(hash = looksrareOrder2.hash)
+        val order1 = createOrder().copy(id = Order.Id(looksrareOrder1.hash), hash = looksrareOrder1.hash)
+        val order2 = createOrder().copy(id = Order.Id(looksrareOrder2.hash), hash = looksrareOrder2.hash)
+        val listedAfter = LooksrareV2Cursor(now)
+
+        coEvery { looksrareOrderService.getNextSellOrders(listedAfter) } returns listOf(
+            looksrareOrder1,
+            looksrareOrder2
+        )
+        coEvery { orderRepository.findById(looksrareOrder1.hash) } returns null
+        coEvery { orderRepository.findById(looksrareOrder2.hash) } returns null
+        coEvery { looksrareOrderConverter.convert(looksrareOrder1) } returns orderVersion1
+        coEvery { looksrareOrderConverter.convert(looksrareOrder2) } returns orderVersion2
+        coEvery { orderUpdateService.save(eq(orderVersion1), any()) } returns order1
+        coEvery { orderUpdateService.updateMakeStock(eq(order1), any(), any()) } returns (order1 to true)
+        coEvery { orderUpdateService.save(eq(orderVersion2), any()) } returns order2
+        coEvery { orderUpdateService.updateMakeStock(order2, any(), any()) } returns (order2 to true)
+
+        val result = loader.load(listedAfter)
+        assertThat(result.cursor?.createdAfter).isEqualTo(listedAfter.createdAfter)
     }
 
     @Test
