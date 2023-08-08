@@ -1,2 +1,6 @@
+rarible:
+  ethereum:
+    maxFrameSize: 40485760
+
 listener:
   blockchain: mantle
