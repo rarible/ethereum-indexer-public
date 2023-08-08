@@ -18,6 +18,8 @@ data class OwnershipId(
         return stringValue
     }
 
+    fun toItemId() = ItemId(token, tokenId)
+
     companion object {
         fun parseId(ownershipId: String): OwnershipId {
             return Ownership.parseId(ownershipId)

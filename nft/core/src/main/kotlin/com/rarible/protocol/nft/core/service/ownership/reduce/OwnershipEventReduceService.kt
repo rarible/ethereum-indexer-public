@@ -2,15 +2,16 @@ package com.rarible.protocol.nft.core.service.ownership.reduce
 
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.core.common.nowMillis
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.misc.addIndexerIn
 import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
-import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -23,6 +24,8 @@ class OwnershipEventReduceService(
     properties: NftIndexerProperties,
 ) : EntityEventsSubscriber {
 
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     private val skipTransferContractTokens =
         properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
@@ -32,12 +35,16 @@ class OwnershipEventReduceService(
     }
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+        val start = nowMillis()
         events
-            .flatMap { eventConverter.convert(it.record.asEthereumLogRecord(), it.eventTimeMarks.addIndexerIn()) }
-            .filter { event ->
-                OwnershipId.parseId(event.entityId)
-                    .let { ItemId(it.token, it.tokenId) } !in skipTransferContractTokens
-            }
+            .flatMap { eventConverter.convert(it.record.asEthereumLogRecord(), it.eventTimeMarks.addIndexerIn(start)) }
+            .filter { OwnershipId.parseId(it.entityId).toItemId() !in skipTransferContractTokens }
             .let { delegate.reduceAll(it) }
+
+        logger.info(
+            "Handled {} Ownership blockchain events ({}ms)",
+            events.size,
+            System.currentTimeMillis() - start.toEpochMilli()
+        )
     }
 }

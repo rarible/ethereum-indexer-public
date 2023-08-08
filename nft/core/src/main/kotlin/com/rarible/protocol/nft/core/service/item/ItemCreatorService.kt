@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.service.item
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.external.KnownOrigin.KnownOrigin
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -20,7 +18,6 @@ import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 
 @Service
-@CaptureSpan(type = SpanType.EXT)
 class ItemCreatorService(
     sender: MonoTransactionSender,
     private val itemCreatorRepository: ItemCreatorRepository,
@@ -48,7 +45,7 @@ class ItemCreatorService(
     }
 
     private fun fetchKnownOriginArtist(tokenId: EthUInt256, itemId: ItemId): Mono<Address> {
-        logger.info("fetchKnownOriginArtist")
+        logger.info("Fetching creator address for {} (known origin artist)", itemId)
         return knownOrigin.editionOfTokenId(tokenId.value)
             .flatMap { edition ->
                 if (edition == BigInteger.ZERO) {
@@ -68,7 +65,7 @@ class ItemCreatorService(
     }
 
     private fun fetchOpenseaCreator(tokenId: EthUInt256, itemId: ItemId): Mono<Address> {
-        logger.info("fetchOpenseaCreator")
+        logger.info("Fetching creator address for {} (OpenSea creator)", itemId)
         val creator = Address.apply(Uint256Type.encode(tokenId.value).bytes().copyOfRange(0, 20))
         return itemCreatorRepository.save(ItemCreator(itemId, creator)).then(Mono.just(creator))
     }
