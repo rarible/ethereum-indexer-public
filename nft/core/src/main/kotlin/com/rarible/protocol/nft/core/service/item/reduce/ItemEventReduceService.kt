@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.item.reduce
 
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.core.common.nowMillis
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
@@ -33,14 +34,13 @@ class ItemEventReduceService(
     }
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+        val start = nowMillis()
         try {
             events
-                .onEach { onNftItemLogEventListener.onLogEvent(it) }
                 .mapNotNull {
-                    itemEventConverter.convert(
-                        it.record.asEthereumLogRecord(),
-                        it.eventTimeMarks.addIndexerIn()
-                    )
+                    val markedEvent = it.copy(eventTimeMarks = it.eventTimeMarks.addIndexerIn(start))
+                    onNftItemLogEventListener.onLogEvent(markedEvent)
+                    itemEventConverter.convert(markedEvent.record.asEthereumLogRecord(), markedEvent.eventTimeMarks)
                 }
                 .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
                 .let { delegate.reduceAll(it) }
@@ -48,5 +48,10 @@ class ItemEventReduceService(
             logger.error("Error on entity events $events", ex)
             throw ex
         }
+        logger.info(
+            "Handled {} Item blockchain events ({}ms)",
+            events.size,
+            System.currentTimeMillis() - start.toEpochMilli()
+        )
     }
 }
