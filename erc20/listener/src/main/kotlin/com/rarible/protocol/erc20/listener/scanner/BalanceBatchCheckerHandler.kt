@@ -36,12 +36,14 @@ class BalanceBatchCheckerHandler(
     private val blockBuffer = emptyMap<Long, BufferMap>().toSortedMap()
 
     override suspend fun handle(event: Erc20BalanceEventDto) {
-        try {
-            fillBuffer(event)
-            checkBuffer()
-            consumeBuffer()
-        } catch (ex: Exception) {
-            logger.error("Error during checking erc20 balances", ex)
+        if (props.enabled) {
+            try {
+                fillBuffer(event)
+                checkBuffer()
+                consumeBuffer()
+            } catch (ex: Exception) {
+                logger.error("Error during checking erc20 balances", ex)
+            }
         }
     }
 
