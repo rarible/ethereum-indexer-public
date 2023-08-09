@@ -34,7 +34,7 @@ rarible:
 
 mongock:
   change-logs-scan-package:
-    - com.rarible.blockchain.scanner.ethereum.migration
+    - com.rarible.protocol.order.migration.mongock.mongo
 common:
   eip712-domain-name: Exchange
   eip712-domain-version: 2
