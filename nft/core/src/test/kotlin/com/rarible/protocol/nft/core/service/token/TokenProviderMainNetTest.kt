@@ -49,6 +49,12 @@ class TokenProviderMainNetTest {
         // CryptoKitties
         "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d" to TokenStandard.DEPRECATED,
 
+        // EtherTulips
+        "0x995020804986274763df9deb0296b754f2659ca1" to TokenStandard.ERC721,
+
+        // OWEFFPUNKS (LEP)
+        "0x0b09176b669a3642b8090e207e8e7557f868479e" to TokenStandard.ERC721,
+
         // Divine Anarchy https://etherscan.io/address/0xc631164b6cb1340b5123c9162f8558c866de1926
         // Its 'supportsInterface' is calculated for a subset of the common ERC721,
         // although the contract defines all the necessary methods.
