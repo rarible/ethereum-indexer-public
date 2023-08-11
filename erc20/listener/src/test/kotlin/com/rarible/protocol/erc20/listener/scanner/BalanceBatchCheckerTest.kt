@@ -6,6 +6,7 @@ import com.rarible.protocol.dto.Erc20BalanceDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
 import com.rarible.protocol.erc20.core.metric.CheckerMetrics
 import com.rarible.protocol.erc20.core.model.BalanceId
+import com.rarible.protocol.erc20.listener.configuration.BalanceCheckerProperties
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import io.daonomic.rpc.domain.Response
 import io.micrometer.core.instrument.ImmutableTag
@@ -32,7 +33,10 @@ internal class BalanceBatchCheckerTest {
     private val checkerMetrics: CheckerMetrics = CheckerMetrics(Blockchain.ETHEREUM, registry)
     private val props = Erc20ListenerProperties(
         tokens = listOf(AddressFactory.create().prefixed()),
-        blockchain = Blockchain.ETHEREUM
+        blockchain = Blockchain.ETHEREUM,
+        balanceCheckerProperties = BalanceCheckerProperties(
+            enabled = true
+        )
     )
 
     private lateinit var balanceBatchCheckerHandler: BalanceBatchCheckerHandler
