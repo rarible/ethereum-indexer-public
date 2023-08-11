@@ -31,6 +31,7 @@ data class OrderActivityProperties(
 )
 
 data class BalanceCheckerProperties(
+    val enabled: Boolean = false,
     val skipNumberOfBlocks: Long = 20,
     val confirms: Int = 2,
     val updateLastBlock: Duration = Duration.ofSeconds(5),
