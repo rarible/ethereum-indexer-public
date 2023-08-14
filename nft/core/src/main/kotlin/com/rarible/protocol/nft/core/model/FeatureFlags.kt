@@ -8,6 +8,7 @@ data class FeatureFlags(
     val internalMetaTopicBatchSize: Int = 100,
     val enableMetaRawPropertiesCache: Boolean = true,
     val enableProxyForMetaDownload: Boolean = false,
+    val enableNonStandardCollections: Boolean = false,
     @Deprecated("Need remove this flag in release 1.31")
     val pendingDisabled: Boolean = true,
     val enableTokenMetaSelfRepair: Boolean = false,

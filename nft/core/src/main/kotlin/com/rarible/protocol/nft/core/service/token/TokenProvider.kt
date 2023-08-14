@@ -12,6 +12,7 @@ import com.rarible.core.common.component4
 import com.rarible.core.common.component5
 import com.rarible.core.common.orNull
 import com.rarible.protocol.contracts.Signatures
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.model.TokenFeature
@@ -20,6 +21,7 @@ import com.rarible.protocol.nft.core.model.calculateFunctionId
 import com.rarible.protocol.nft.core.service.token.filter.TokeByteCodeFilter
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Bytes
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -41,7 +43,8 @@ import java.util.Optional
 class TokenProvider(
     private val sender: MonoTransactionSender,
     private val tokenByteCodeService: TokenByteCodeService,
-    private val tokeByteCodeFilters: List<TokeByteCodeFilter>
+    private val tokeByteCodeFilters: List<TokeByteCodeFilter>,
+    private val featureFlags: FeatureFlags
 ) {
     fun fetchToken(address: Address): Mono<Token> {
         val nft = IERC721(address, sender)
@@ -85,15 +88,15 @@ class TokenProvider(
      */
     suspend fun fetchTokenStandard(address: Address): TokenStandard {
         logStandard(address, "started fetching")
-        if (address in WELL_KNOWN_TOKENS_WITHOUT_ERC165) {
-            val standard = WELL_KNOWN_TOKENS_WITHOUT_ERC165.getValue(address)
+        if (featureFlags.enableNonStandardCollections && address in WELL_KNOWN_TOKENS_LEGACY) {
+            val standard = WELL_KNOWN_TOKENS_LEGACY.getValue(address)
             logStandard(address, "it is well known token with standard $standard")
             return standard
         }
         val contract = IERC165(address, sender)
-        suspend fun checkStandard(standard: TokenStandard): TokenStandard? {
+        suspend fun checkStandard(standard: TokenStandard, interfaceId: Bytes): TokenStandard? {
             return try {
-                val isSupported = contract.supportsInterface(standard.interfaceId!!.bytes()).awaitFirst()
+                val isSupported = contract.supportsInterface(interfaceId.bytes()).awaitFirst()
                 if (isSupported) standard else null
             } catch (e: Exception) {
                 if (e is RpcCodeException || e is IllegalArgumentException) {
@@ -106,15 +109,24 @@ class TokenProvider(
                 }
             }
         }
+        suspend fun checkLegacy(): TokenStandard? = coroutineScope {
+            if (featureFlags.enableNonStandardCollections) {
+                WELL_KNOWN_TOKENS_WITHOUT_ERC165.entries.map { (interfaceId, standard) ->
+                    async { checkStandard(standard, interfaceId) }
+                }.awaitAll()
+                    .filterNotNull()
+                    .firstOrNull()
+            } else null
+        }
         return coroutineScope {
             TokenStandard
                 .values()
                 .filter { it.interfaceId != null }
-                .map { async { checkStandard(it) } }
+                .map { async { checkStandard(it, it.interfaceId!!) } }
                 .awaitAll()
                 .filterNotNull()
                 .firstOrNull()
-        } ?: fetchTokenStandardBySignature(address)
+        } ?: checkLegacy() ?: fetchTokenStandardBySignature(address)
     }
 
     /**
@@ -204,9 +216,19 @@ class TokenProvider(
             IERC721.burnSignature().id() to TokenFeature.BURN,
             IERC1155.burnSignature().id() to TokenFeature.BURN
         )
-        val WELL_KNOWN_TOKENS_WITHOUT_ERC165 = mapOf<Address, TokenStandard>(
-            Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721 // CryptoBots (CBT)
-        )
+
+        // Very old contracts which not implement ERC165 xor `supportsInterface` method
+        val WELL_KNOWN_TOKENS_LEGACY = listOf(
+            "0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643" to TokenStandard.ERC721, // CryptoBots (CBT)
+            "0x995020804986274763df9deb0296b754f2659ca1" to TokenStandard.ERC721, // EtherTulips
+            "0xdf5d68d54433661b1e5e90a547237ffb0adf6ec2" to TokenStandard.ERC721 // Arcona Digital Land
+        ).associate { (key, value) -> Address.apply(key) to value }
+
+        // Old contracts which not implement ERC165 but support `supportsInterface` method
+        val WELL_KNOWN_TOKENS_WITHOUT_ERC165 = listOf(
+            "0x7aa5391d" to TokenStandard.ERC721, // OWEFFPUNKS (LEP)
+        ).associate { (key, value) -> Binary.apply("0x7aa5391d") to value }
+
         private val logger: Logger = LoggerFactory.getLogger(TokenProvider::class.java)
 
         private fun logStandard(address: Address, message: String) {
