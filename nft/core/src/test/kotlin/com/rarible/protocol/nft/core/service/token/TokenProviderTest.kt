@@ -91,7 +91,7 @@ internal class TokenProviderTest {
     fun `should return standard on well known token`() = runBlocking<Unit> {
         every { sender.call(any()) } returns Mono.error(IllegalArgumentException())
 
-        val (token, standard) = TokenProvider.WELL_KNOWN_TOKENS_WITHOUT_ERC165.entries.first()
+        val (token, standard) = TokenProvider.WELL_KNOWN_TOKENS_LEGACY.entries.first()
         val fetchedStandard = tokenProvider.fetchTokenStandard(token)
         assertThat(fetchedStandard).isEqualTo(standard)
     }

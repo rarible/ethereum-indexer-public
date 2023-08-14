@@ -20,9 +20,9 @@ class TokenProviderMainNetTest {
     private val sender = createSender()
     private val tokenByteCodeProvider = TokenByteCodeProvider(sender, 3, 5, 1, Duration.ofMinutes(1))
     private val tokenByteCodeRepository = mockk<TokenByteCodeRepository>()
-    private val featureFlags = FeatureFlags(saveTokenByteCode = false)
+    private val featureFlags = FeatureFlags(saveTokenByteCode = false, enableNonStandardCollections = true)
     private val tokenByteCodeService = TokenByteCodeService(tokenByteCodeProvider, tokenByteCodeRepository, featureFlags)
-    private val service = TokenProvider(sender, tokenByteCodeService, emptyList())
+    private val service = TokenProvider(sender, tokenByteCodeService, emptyList(), featureFlags)
 
     private fun createSender() = ReadOnlyMonoTransactionSender(
         MonoEthereum(
@@ -49,6 +49,12 @@ class TokenProviderMainNetTest {
         // CryptoKitties
         "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d" to TokenStandard.DEPRECATED,
 
+        // EtherTulips
+        "0x995020804986274763df9deb0296b754f2659ca1" to TokenStandard.ERC721,
+
+        // OWEFFPUNKS (LEP)
+        "0x0b09176b669a3642b8090e207e8e7557f868479e" to TokenStandard.ERC721,
+
         // Divine Anarchy https://etherscan.io/address/0xc631164b6cb1340b5123c9162f8558c866de1926
         // Its 'supportsInterface' is calculated for a subset of the common ERC721,
         // although the contract defines all the necessary methods.
@@ -71,5 +77,21 @@ class TokenProviderMainNetTest {
             }
         }
         assertThat(errors).isEmpty()
+    }
+
+
+    @Test
+    fun `request token standards multi`() = runBlocking<Unit> {
+        val tokens = listOf("0x0b09176b669a3642b8090e207e8e7557f868479e",
+                "0x0f7d6ac57d1451c6a8e8a1f7c1919c1c37334e4b",
+                "0x1386f70a946cf9f06e32190cfb2f4f4f18365b87", // 1155
+                "0x745ceb516031fa7cb7fdddeb5022976f4214429c", // 1155
+                "0x995020804986274763df9deb0296b754f2659ca1",
+                "0xdf5d68d54433661b1e5e90a547237ffb0adf6ec2")
+        tokens.forEach {
+            val token = Address.apply(it)
+            val standard = service.fetchTokenStandard(token)
+            println("!!! Standard of $token is correct: $standard")
+        }
     }
 }
