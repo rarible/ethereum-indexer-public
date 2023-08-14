@@ -79,7 +79,6 @@ class TokenProviderMainNetTest {
         assertThat(errors).isEmpty()
     }
 
-
     @Test
     fun `request token standards multi`() = runBlocking<Unit> {
         val tokens = listOf("0x0b09176b669a3642b8090e207e8e7557f868479e",

@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.token
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBinary
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -36,7 +37,8 @@ internal class TokenProviderTest {
     private val tokenProvider = TokenProvider(
         sender = sender,
         tokenByteCodeService = tokenByteCodeService,
-        tokeByteCodeFilters = listOf(tokeByteCodeFilter)
+        tokeByteCodeFilters = listOf(tokeByteCodeFilter),
+        featureFlags = FeatureFlags(enableNonStandardCollections = true)
     )
 
     @Test
