@@ -1,9 +1,10 @@
 package com.rarible.protocol.order.listener.service.event
 
+import com.rarible.core.common.asyncWithTraceId
 import com.rarible.core.kafka.RaribleKafkaBatchEventHandler
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
-import kotlinx.coroutines.async
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
@@ -20,7 +21,7 @@ class OwnershipConsumerEventHandler(
         val start = System.currentTimeMillis()
         coroutineScope {
             event.groupBy { it.ownershipId }.map { group ->
-                async {
+                asyncWithTraceId(context = NonCancellable) {
                     val ownershipEvents = group.value
                     ownershipEvents.forEach { ownershipEvent ->
                         logger.info("Got Ownership event: $ownershipEvent")
