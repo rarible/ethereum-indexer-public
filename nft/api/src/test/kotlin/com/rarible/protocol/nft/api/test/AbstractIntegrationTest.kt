@@ -14,7 +14,6 @@ import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nft.api.client.NftTransactionControllerApi
-import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.HistoryTopics
@@ -22,6 +21,7 @@ import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
+import com.rarible.protocol.nft.core.test.TestKafkaHandler
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks

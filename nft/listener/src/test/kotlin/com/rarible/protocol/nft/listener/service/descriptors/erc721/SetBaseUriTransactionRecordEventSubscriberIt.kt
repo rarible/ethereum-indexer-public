@@ -3,9 +3,9 @@ package com.rarible.protocol.nft.listener.service.descriptors.erc721
 import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionSetBaseUriEventDto
-import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.test.TestKafkaHandler
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.test.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst

@@ -2,17 +2,17 @@ package com.rarible.protocol.nft.listener.test
 
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainClient
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.daemon.sequential.ConsumerWorker
-import com.rarible.core.kafka.RaribleKafkaConsumer
-import com.rarible.core.kafka.json.JsonDeserializer
+import com.rarible.core.kafka.RaribleKafkaConsumerFactory
+import com.rarible.core.kafka.RaribleKafkaConsumerSettings
+import com.rarible.core.kafka.RaribleKafkaConsumerWorker
 import com.rarible.ethereum.client.cache.CacheableMonoEthereum
 import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
-import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.test.TestKafkaHandler
 import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.mockk
@@ -66,40 +66,46 @@ class TestConfiguration {
     fun testCollectionHandler(): TestKafkaHandler<NftCollectionEventDto> = TestKafkaHandler()
 
     @Bean
-    fun testCollectionWorker(handler: TestKafkaHandler<NftCollectionEventDto>): ConsumerWorker<NftCollectionEventDto> {
-        val consumer = RaribleKafkaConsumer(
-            clientId = "test-consumer-collection-event",
-            consumerGroup = "test-group-collection-event",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = NftCollectionEventDto::class.java,
-            defaultTopic = NftCollectionEventTopicProvider.getTopic(
+    fun testCollectionWorker(
+        factory: RaribleKafkaConsumerFactory,
+        handler: TestKafkaHandler<NftCollectionEventDto>
+    ): RaribleKafkaConsumerWorker<NftCollectionEventDto> {
+        val settings = RaribleKafkaConsumerSettings(
+            hosts = nftIndexerProperties.kafkaReplicaSet,
+            group = "test-group-collection-event",
+            topic = NftCollectionEventTopicProvider.getTopic(
                 application.name,
                 nftIndexerProperties.blockchain.value
             ),
-            bootstrapServers = nftIndexerProperties.kafkaReplicaSet,
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST
+            valueClass = NftCollectionEventDto::class.java,
+            concurrency = 1,
+            batchSize = 500,
+            offsetResetStrategy = OffsetResetStrategy.EARLIEST,
         )
-        return ConsumerWorker(consumer, handler, "test-kafka-collection-worker")
+        return factory.createWorker(settings, handler)
     }
 
     @Bean
     fun testActivityHandler(): TestKafkaHandler<EthActivityEventDto> = TestKafkaHandler()
 
     @Bean
-    fun testActivityWorker(handler: TestKafkaHandler<EthActivityEventDto>): ConsumerWorker<EthActivityEventDto> {
-        val consumer = RaribleKafkaConsumer(
-            clientId = "test-consumer-order-activity",
-            consumerGroup = "test-group-order-activity",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = EthActivityEventDto::class.java,
-            defaultTopic = ActivityTopicProvider.getActivityTopic(
+    fun testActivityWorker(
+        factory: RaribleKafkaConsumerFactory,
+        handler: TestKafkaHandler<EthActivityEventDto>
+    ): RaribleKafkaConsumerWorker<EthActivityEventDto> {
+        val settings = RaribleKafkaConsumerSettings(
+            hosts = nftIndexerProperties.kafkaReplicaSet,
+            topic = ActivityTopicProvider.getActivityTopic(
                 application.name,
                 nftIndexerProperties.blockchain.value
             ),
-            bootstrapServers = nftIndexerProperties.kafkaReplicaSet,
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST
+            group = "test-group-order-activity",
+            valueClass = EthActivityEventDto::class.java,
+            concurrency = 1,
+            batchSize = 500,
+            offsetResetStrategy = OffsetResetStrategy.EARLIEST,
         )
-        return ConsumerWorker(consumer, handler, "test-kafka-activity-worker")
+        return factory.createWorker(settings, handler)
     }
 
     @Bean

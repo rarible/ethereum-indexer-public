@@ -3,14 +3,14 @@ package com.rarible.protocol.nft.core.repository.ownership
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomOwnership
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.misc.isEqualToOwnership
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterAll
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull

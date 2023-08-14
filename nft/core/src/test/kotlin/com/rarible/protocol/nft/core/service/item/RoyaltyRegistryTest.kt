@@ -4,8 +4,6 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.ItemTransfer
@@ -15,6 +13,8 @@ import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking

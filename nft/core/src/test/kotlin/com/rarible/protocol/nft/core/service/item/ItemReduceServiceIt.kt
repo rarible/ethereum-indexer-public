@@ -9,8 +9,6 @@ import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.data.createRandomBurnAction
 import com.rarible.protocol.nft.core.data.createRandomItem
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemCreators
 import com.rarible.protocol.nft.core.model.ItemExState
@@ -30,6 +28,8 @@ import com.rarible.protocol.nft.core.repository.action.NftItemActionEventReposit
 import com.rarible.protocol.nft.core.repository.item.ItemExStateRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking

@@ -1,9 +1,7 @@
-package com.rarible.protocol.nft.core.integration
+package com.rarible.protocol.nft.core.test
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
-import com.rarible.core.kafka.RaribleKafkaConsumer
-import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
@@ -15,15 +13,12 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionEventDto
-import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
-import com.rarible.protocol.dto.NftItemEventTopicProvider
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
-import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ContractStatus
@@ -42,18 +37,11 @@ import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardToke
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -74,11 +62,10 @@ import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 import java.time.Instant
 import java.util.UUID
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
 
 @Suppress("UNCHECKED_CAST")
-abstract class AbstractIntegrationTest : BaseCoreTest() {
+abstract class AbstractIntegrationTest {
 
     @Autowired
     protected lateinit var mongo: ReactiveMongoOperations
@@ -131,22 +118,23 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     @Autowired
     protected lateinit var featureFlags: FeatureFlags
 
-    private lateinit var ownershipEventConsumer: RaribleKafkaConsumer<NftOwnershipEventDto>
+    @Autowired
+    protected lateinit var itemEventHandler: TestKafkaHandler<NftItemEventDto>
 
-    private lateinit var itemEventConsumer: RaribleKafkaConsumer<NftItemEventDto>
+    @Autowired
+    protected lateinit var ownershipEventHandler: TestKafkaHandler<NftOwnershipEventDto>
 
-    private lateinit var collectionEventConsumer: RaribleKafkaConsumer<NftCollectionEventDto>
+    @Autowired
+    protected lateinit var collectionEventHandler: TestKafkaHandler<NftCollectionEventDto>
 
-    protected val itemEvents = CopyOnWriteArrayList<NftItemEventDto>()
-    private val ownershipEvents = CopyOnWriteArrayList<NftOwnershipEventDto>()
-    private val collectionEvents = CopyOnWriteArrayList<NftCollectionEventDto>()
-
-    private lateinit var consumingJobs: List<Job>
+    @Autowired
+    protected lateinit var eventHandlers: List<TestKafkaHandler<*>>
 
     @BeforeEach
     fun clearMock() {
         clearMocks(mockItemMetaResolver)
         clearMocks(mockExternalHttpClient)
+        eventHandlers.forEach { it.clear() }
     }
 
     @BeforeEach
@@ -155,36 +143,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
             .filter { !it.startsWith("system") }
             .flatMap { mongo.remove(Query(), it) }
             .then().block()
-    }
-
-    @BeforeEach
-    fun setUpEventConsumers() {
-        itemEventConsumer = createItemEventConsumer()
-        collectionEventConsumer = createCollectionEventConsumer()
-        ownershipEventConsumer = createOwnershipEventConsumer()
-        @Suppress("EXPERIMENTAL_API_USAGE")
-        consumingJobs = listOf(
-            GlobalScope.launch {
-                itemEventConsumer.receiveAutoAck().collect {
-                    itemEvents += it.value
-                }
-            },
-            GlobalScope.launch {
-                createOwnershipEventConsumer().receiveAutoAck().collect {
-                    ownershipEvents += it.value
-                }
-            },
-            GlobalScope.launch {
-                collectionEventConsumer.receiveAutoAck().collect {
-                    collectionEvents += it.value
-                }
-            }
-        )
-    }
-
-    @AfterEach
-    fun stopConsumers() = runBlocking {
-        consumingJobs.forEach { it.cancelAndJoin() }
     }
 
     suspend fun <T> saveItemHistory(
@@ -213,42 +171,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         ).awaitFirst().data as T
     }
 
-    private fun createOwnershipEventConsumer(): RaribleKafkaConsumer<NftOwnershipEventDto> {
-        return RaribleKafkaConsumer(
-            clientId = "test-consumer-ownership-event",
-            consumerGroup = "test-group-ownership-event",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = NftOwnershipEventDto::class.java,
-            defaultTopic = NftOwnershipEventTopicProvider.getTopic(application.name, properties.blockchain.value),
-            bootstrapServers = properties.kafkaReplicaSet,
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST
-        )
-    }
-
-    private fun createItemEventConsumer(): RaribleKafkaConsumer<NftItemEventDto> {
-        return RaribleKafkaConsumer(
-            clientId = "test-consumer-item-event",
-            consumerGroup = "test-group-item-event",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = NftItemEventDto::class.java,
-            defaultTopic = NftItemEventTopicProvider.getTopic(application.name, properties.blockchain.value),
-            bootstrapServers = properties.kafkaReplicaSet,
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST
-        )
-    }
-
-    private fun createCollectionEventConsumer(): RaribleKafkaConsumer<NftCollectionEventDto> {
-        return RaribleKafkaConsumer(
-            clientId = "test-consumer-collection-event",
-            consumerGroup = "test-group-collection-event",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = NftCollectionEventDto::class.java,
-            defaultTopic = NftCollectionEventTopicProvider.getTopic(application.name, properties.blockchain.value),
-            bootstrapServers = properties.kafkaReplicaSet,
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST
-        )
-    }
-
     protected suspend fun checkItemEventWasPublished(
         token: Address,
         tokenId: EthUInt256,
@@ -256,6 +178,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         eventType: Class<out NftItemEventDto>
     ) = coroutineScope {
         Wait.waitAssert {
+            val itemEvents = itemEventHandler.events
             assertThat(itemEvents).hasSizeGreaterThanOrEqualTo(1)
 
             val filteredEvents = itemEvents.filter { event ->
@@ -265,6 +188,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                             event.item.tokenId == tokenId.value &&
                             (event.item.pending?.size ?: 0) == pendingSize
                     }
+
                     is NftItemDeleteEventDto -> {
                         event.item.token == token && event.item.tokenId == tokenId.value
                     }
@@ -282,6 +206,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         owner: Address,
         eventType: Class<out NftOwnershipEventDto>
     ) = coroutineScope {
+        val ownershipEvents = ownershipEventHandler.events
         Wait.waitAssert {
             assertThat(ownershipEvents)
                 .hasSizeGreaterThanOrEqualTo(1)
@@ -292,11 +217,14 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                                 event.ownership.tokenId == tokenId.value &&
                                 event.ownership.owner == owner
                         }
+
                         is NftOwnershipDeleteEventDto -> {
                             event.ownership!!.token == token &&
                                 event.ownership!!.tokenId == tokenId.value &&
                                 event.ownership!!.owner == owner
                         }
+
+                        else -> false
                     }
                 }
         }
@@ -305,6 +233,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected suspend fun checkCollectionWasPublished(
         expected: NftCollectionDto
     ) = coroutineScope {
+        val collectionEvents = collectionEventHandler.events
         Wait.waitAssert {
             assertThat(collectionEvents).anySatisfy(Consumer { event ->
                 assertThat(event).isInstanceOfSatisfying(NftCollectionUpdateEventDto::class.java) {

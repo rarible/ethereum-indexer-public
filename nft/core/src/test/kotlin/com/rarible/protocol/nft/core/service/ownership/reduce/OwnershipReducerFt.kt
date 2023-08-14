@@ -7,10 +7,10 @@ import com.rarible.protocol.nft.core.data.createRandomOwnershipId
 import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferFromEvent
 import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferToEvent
 import com.rarible.protocol.nft.core.data.withNewValues
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat

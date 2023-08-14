@@ -83,15 +83,11 @@ data class Ownership(
 
         fun parseId(id: String): OwnershipId {
             val parts = id.split(":")
-            try {
-                return OwnershipId(
-                    token = Address.apply(parts[0].trim()),
-                    tokenId = EthUInt256.of(parts[1].trim()),
-                    owner = Address.apply(parts[2].trim())
-                )
-            } catch (e: Exception) {
-                throw IllegalArgumentException("Incorrect format of ownershipId: $id", e)
+            if (parts.size < 3) {
+                throw IllegalArgumentException("Incorrect format of ownershipId: $id")
             }
+            val tokenId = EthUInt256.of(parts[1].trim())
+            return OwnershipId(Address.apply(parts[0].trim()), tokenId, Address.apply(parts[2].trim()))
         }
 
         fun empty(token: Address, tokenId: EthUInt256, owner: Address, version: Long?): Ownership {

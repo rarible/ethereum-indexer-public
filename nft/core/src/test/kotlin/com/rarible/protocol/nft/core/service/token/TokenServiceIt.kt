@@ -10,8 +10,6 @@ import com.rarible.protocol.contracts.erc20.test.SimpleERC20
 import com.rarible.protocol.contracts.erc721.OwnershipTransferredEvent
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.dto.NftCollectionDto
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.CollectionEvent
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.ContractStatus
@@ -20,6 +18,8 @@ import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenEvent
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull

@@ -1,14 +1,14 @@
 package com.rarible.protocol.nft.core.repository
 
 import com.rarible.protocol.nft.core.data.createRandomInconsistentItem
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItemContinuation
 import com.rarible.protocol.nft.core.model.InconsistentItemContinuation.Companion.fromInconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItemFilterAll
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
 import com.rarible.protocol.nft.core.repository.inconsistentitem.InconsistentItemFilterCriteria.toCriteria
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

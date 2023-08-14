@@ -1,6 +1,8 @@
 package com.rarible.protocol.nft.core.configuration
 
+import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.safeSplit
+import com.rarible.core.kafka.RaribleKafkaConsumerFactory
 import com.rarible.core.meta.resource.http.DefaultHttpClient
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.core.meta.resource.http.OpenseaHttpClient
@@ -46,7 +48,8 @@ import org.springframework.http.HttpHeaders
     ]
 )
 class CoreConfiguration(
-    private val properties: NftIndexerProperties
+    private val properties: NftIndexerProperties,
+    private val application: ApplicationEnvironmentInfo
 ) {
 
     @Bean
@@ -181,4 +184,10 @@ class CoreConfiguration(
             customClients = listOf(openseaHttpClient)
         )
     }
+
+    @Bean
+    fun raribleKafkaConsumerFactory() = RaribleKafkaConsumerFactory(
+        env = application.name,
+        host = application.host
+    )
 }

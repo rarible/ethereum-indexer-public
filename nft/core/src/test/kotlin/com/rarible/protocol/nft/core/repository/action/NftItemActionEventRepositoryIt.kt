@@ -2,9 +2,9 @@ package com.rarible.protocol.nft.core.repository.action
 
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.data.createRandomBurnAction
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.ActionState
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
