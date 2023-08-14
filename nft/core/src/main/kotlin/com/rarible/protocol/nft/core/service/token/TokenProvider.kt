@@ -12,6 +12,7 @@ import com.rarible.core.common.component4
 import com.rarible.core.common.component5
 import com.rarible.core.common.orNull
 import com.rarible.protocol.contracts.Signatures
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.model.TokenFeature
@@ -42,7 +43,8 @@ import java.util.Optional
 class TokenProvider(
     private val sender: MonoTransactionSender,
     private val tokenByteCodeService: TokenByteCodeService,
-    private val tokeByteCodeFilters: List<TokeByteCodeFilter>
+    private val tokeByteCodeFilters: List<TokeByteCodeFilter>,
+    private val featureFlags: FeatureFlags
 ) {
     fun fetchToken(address: Address): Mono<Token> {
         val nft = IERC721(address, sender)
@@ -86,7 +88,7 @@ class TokenProvider(
      */
     suspend fun fetchTokenStandard(address: Address): TokenStandard {
         logStandard(address, "started fetching")
-        if (address in WELL_KNOWN_TOKENS_LEGACY) {
+        if (featureFlags.enableNonStandardCollections && address in WELL_KNOWN_TOKENS_LEGACY) {
             val standard = WELL_KNOWN_TOKENS_LEGACY.getValue(address)
             logStandard(address, "it is well known token with standard $standard")
             return standard
@@ -108,11 +110,13 @@ class TokenProvider(
             }
         }
         suspend fun checkLegacy(): TokenStandard? = coroutineScope {
-            WELL_KNOWN_TOKENS_WITHOUT_ERC165.entries.map { (interfaceId, standard) ->
-                async { checkStandard(standard, interfaceId) }
-            }.awaitAll()
-                .filterNotNull()
-                .firstOrNull()
+            if (featureFlags.enableNonStandardCollections) {
+                WELL_KNOWN_TOKENS_WITHOUT_ERC165.entries.map { (interfaceId, standard) ->
+                    async { checkStandard(standard, interfaceId) }
+                }.awaitAll()
+                    .filterNotNull()
+                    .firstOrNull()
+            } else null
         }
         return coroutineScope {
             TokenStandard
