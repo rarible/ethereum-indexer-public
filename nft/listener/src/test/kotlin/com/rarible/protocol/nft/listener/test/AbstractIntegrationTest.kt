@@ -8,7 +8,6 @@ import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.MintDto
 import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.dto.TransferDto
-import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -20,6 +19,7 @@ import com.rarible.protocol.nft.core.service.ReindexTokenService
 import com.rarible.protocol.nft.core.service.token.TokenProvider
 import com.rarible.protocol.nft.core.service.token.TokenReduceService
 import com.rarible.protocol.nft.core.service.token.TokenService
+import com.rarible.protocol.nft.core.test.TestKafkaHandler
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst

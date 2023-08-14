@@ -12,11 +12,11 @@ import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.data.createRandomOpenSeaLazyItemMintEvent
 import com.rarible.protocol.nft.core.data.createRandomTransferItemEvent
 import com.rarible.protocol.nft.core.data.withNewValues
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled

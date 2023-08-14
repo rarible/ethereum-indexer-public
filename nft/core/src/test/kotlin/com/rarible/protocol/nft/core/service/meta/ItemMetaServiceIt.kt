@@ -3,8 +3,8 @@ package com.rarible.protocol.nft.core.service.meta
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.nft.core.data.createRandomItemId
 import com.rarible.protocol.nft.core.data.randomItemMeta
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.core.integration.IntegrationTest
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import kotlinx.coroutines.FlowPreview

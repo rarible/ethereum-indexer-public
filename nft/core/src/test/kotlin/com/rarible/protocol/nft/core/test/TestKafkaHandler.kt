@@ -1,22 +1,21 @@
-package com.rarible.protocol.nft.core
+package com.rarible.protocol.nft.core.test
 
-import com.rarible.core.daemon.sequential.ConsumerEventHandler
+import com.rarible.core.kafka.RaribleKafkaEventHandler
 import org.slf4j.LoggerFactory
 import java.util.concurrent.LinkedBlockingQueue
 
-class TestKafkaHandler<T> : ConsumerEventHandler<T> {
+class TestKafkaHandler<T> : RaribleKafkaEventHandler<T> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
     val events = LinkedBlockingQueue<T>()
 
     override suspend fun handle(event: T) {
-        logger.info("Test Item event received: {}", event)
+        logger.info("Test event received: {}", event)
         events.add(event)
     }
 
     fun clear() {
-        logger.info("Test Item events cleaned up")
         events.clear()
     }
 }

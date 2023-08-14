@@ -7,10 +7,7 @@ import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
-import com.rarible.core.kafka.RaribleKafkaConsumer
-import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.data.randomWord
-import com.rarible.core.test.ext.KafkaTestExtension.Companion.kafkaContainer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
@@ -20,7 +17,7 @@ import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.dto.ActivityDto
-import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.AuctionEventDto
 import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.orderStubEventMarks
@@ -49,20 +46,14 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
 import org.bson.types.ObjectId
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.slf4j.LoggerFactory
@@ -88,7 +79,6 @@ import scalether.transaction.MonoTransactionPoller
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.time.Instant
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
 import javax.annotation.PostConstruct
 import com.rarible.ethereum.listener.log.persist.BlockRepository as LegacyBlockRepository
@@ -160,30 +150,19 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     protected lateinit var parity: MonoParity
 
-    protected lateinit var consumer: RaribleKafkaConsumer<EthActivityEventDto>
+    @Autowired
+    lateinit var activityEventHandler: TestKafkaHandler<EthActivityEventDto>
 
-    private lateinit var consumingJob: Job
+    @Autowired
+    lateinit var auctionEventHandler: TestKafkaHandler<AuctionEventDto>
 
-    private val activities = CopyOnWriteArrayList<ActivityDto>()
+    @Autowired
+    lateinit var testEvenHandlers: List<TestKafkaHandler<*>>
 
     private fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.block()
         require(value != null) { "txHash is null" }
         return ethereum.ethGetTransactionReceipt(value).block()!!.get()
-    }
-
-    @BeforeEach
-    fun startConsumers() {
-        consumingJob = GlobalScope.launch {
-            consumer
-                .receiveAutoAck()
-                .collect { activities.add(it.value.activity) }
-        }
-    }
-
-    @AfterEach
-    fun stopConsumers() = runBlocking {
-        consumingJob.cancelAndJoin()
     }
 
     @BeforeEach
@@ -206,6 +185,8 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         exchangeHistoryRepository.dropIndexes()
 
         ignorePreviousNodeBlocks()
+
+        testEvenHandlers.forEach { it.clear() }
     }
 
     /**
@@ -240,7 +221,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         every { currencyApi.getCurrencyRate(any(), any(), any()) } returns CurrencyRateDto(
             "test",
             "usd",
-            TestPropertiesConfiguration.ETH_CURRENCY_RATE,
+            TestConfiguration.ETH_CURRENCY_RATE,
             nowMillis()
         ).toMono()
 
@@ -266,8 +247,6 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
             BigInteger.valueOf(8000000),
             MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
         )
-
-        consumer = createConsumer()
     }
 
     protected fun Mono<Word>.verifyError(): TransactionReceipt {
@@ -279,10 +258,14 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     protected fun Mono<Word>.verifySuccess(): TransactionReceipt {
         val receipt = waitReceipt()
         Assertions.assertTrue(receipt.success()) {
-            val result = ethereum.executeRaw(Request(1, "trace_replayTransaction", Lists.toScala(
-                receipt.transactionHash().toString(),
-                Lists.toScala("trace", "stateDiff")
-            ), "2.0")).block()!!
+            val result = ethereum.executeRaw(
+                Request(
+                    1, "trace_replayTransaction", Lists.toScala(
+                        receipt.transactionHash().toString(),
+                        Lists.toScala("trace", "stateDiff")
+                    ), "2.0"
+                )
+            ).block()!!
             "traces: ${result.result().get()}"
         }
         return receipt
@@ -362,21 +345,6 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         throw IllegalArgumentException("Unsupported history type")
     }
 
-    private fun createConsumer(): RaribleKafkaConsumer<EthActivityEventDto> {
-        return RaribleKafkaConsumer(
-            clientId = "test-consumer-order-activity",
-            consumerGroup = "test-group-order-activity",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = EthActivityEventDto::class.java,
-            defaultTopic = ActivityTopicProvider.getActivityTopic(
-                application.name,
-                orderIndexerProperties.blockchain.value
-            ),
-            bootstrapServers = kafkaContainer.kafkaBoostrapServers(),
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST
-        )
-    }
-
     protected suspend fun cancelOrder(
         orderHash: Word,
         contractAddress: Address = Address.ZERO(),
@@ -412,6 +380,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     }
 
     protected suspend fun checkActivityWasPublished(asserter: ActivityDto.() -> Unit) = coroutineScope {
+        val activities = activityEventHandler.events.map { it.activity }
         Wait.waitAssert {
             assertThat(activities)
                 .hasSizeGreaterThanOrEqualTo(1)

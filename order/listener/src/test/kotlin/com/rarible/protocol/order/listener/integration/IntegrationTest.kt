@@ -31,7 +31,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 )
 @EthereumTest
 @ActiveProfiles("integration")
-@Import(TestPropertiesConfiguration::class)
+@Import(TestConfiguration::class)
 @Testcontainers
 @EnableAutoConfiguration
 annotation class IntegrationTest

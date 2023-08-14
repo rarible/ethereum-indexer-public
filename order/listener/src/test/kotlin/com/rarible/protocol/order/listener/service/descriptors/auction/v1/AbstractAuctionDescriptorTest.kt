@@ -3,10 +3,7 @@ package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.contracts.test.erc20.TestERC20
 import com.rarible.core.common.nowMillis
-import com.rarible.core.kafka.RaribleKafkaConsumer
-import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.data.randomAddress
-import com.rarible.core.test.ext.KafkaTestExtension
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.auction.v1.AuctionHouse
@@ -15,7 +12,6 @@ import com.rarible.protocol.contracts.common.erc721.TestERC721
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
 import com.rarible.protocol.dto.AuctionEventDto
-import com.rarible.protocol.dto.OrderIndexerTopicProvider
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
@@ -35,16 +31,9 @@ import com.rarible.protocol.order.core.repository.auction.AuctionHistoryReposito
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.runBlocking
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import scala.Tuple6
@@ -54,9 +43,7 @@ import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoField
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Consumer
-import javax.annotation.PostConstruct
 
 @FlowPreview
 abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
@@ -79,31 +66,6 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
 
     @Autowired
     protected lateinit var auctionRepository: AuctionRepository
-
-    private val auctionEvents = CopyOnWriteArrayList<AuctionEventDto>()
-
-    private lateinit var auctionEventConsumer: RaribleKafkaConsumer<AuctionEventDto>
-
-    private lateinit var auctionEventConsumingJob: Job
-
-    @PostConstruct
-    fun init() {
-        auctionEventConsumer = createAuctionConsumer()
-    }
-
-    @BeforeEach
-    fun startAuctionConsumers() {
-        auctionEventConsumingJob = GlobalScope.launch {
-            auctionEventConsumer
-                .receiveAutoAck()
-                .collect { auctionEvents.add(it.value) }
-        }
-    }
-
-    @AfterEach
-    fun stopAuctionConsumers() = runBlocking {
-        auctionEventConsumingJob.cancelAndJoin()
-    }
 
     @BeforeEach
     fun before() {
@@ -198,23 +160,12 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
     }
 
     protected suspend fun checkAuctionEventWasPublished(asserter: AuctionEventDto.() -> Unit) = coroutineScope {
+        val auctionEvents = auctionEventHandler.events.toList()
         Wait.waitAssert {
             Assertions.assertThat(auctionEvents)
                 .hasSizeGreaterThanOrEqualTo(1)
                 .anySatisfy(Consumer { it.asserter() })
         }
-    }
-
-    private fun createAuctionConsumer(): RaribleKafkaConsumer<AuctionEventDto> {
-        return RaribleKafkaConsumer(
-            clientId = "test-consumer-auction-activity",
-            consumerGroup = "test-group-auction-activity",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = AuctionEventDto::class.java,
-            defaultTopic = OrderIndexerTopicProvider.getAuctionUpdateTopic(application.name, orderIndexerProperties.blockchain.name.toLowerCase()),
-            bootstrapServers = KafkaTestExtension.kafkaContainer.kafkaBoostrapServers(),
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST
-        )
     }
 
     protected data class StartedAuction(
