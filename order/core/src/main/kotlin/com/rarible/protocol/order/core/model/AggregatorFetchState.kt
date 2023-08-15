@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.model
 
-import com.rarible.core.common.ifNotBlank
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import java.time.Instant
@@ -54,18 +53,24 @@ data class LooksrareFetchState(
     }
 }
 
+interface LooksrareV2State : AggregatorFetchState {
+    val cursorObj: LooksrareV2Cursor?
+    val looksrareV2Cursor: LooksrareV2Cursor
+    fun withCursor(cursor: LooksrareV2Cursor): LooksrareV2State
+}
+
 data class LooksrareV2FetchState(
     override val cursor: String = "",
     @Id
     override val id: String = ID,
-    val cursorObj: LooksrareV2Cursor? = null,
-) : AggregatorFetchState {
+    override val cursorObj: LooksrareV2Cursor? = null,
+) : LooksrareV2State {
 
     @get:Transient
-    val looksrareV2Cursor: LooksrareV2Cursor
-        get() = cursorObj ?: cursor.ifNotBlank()?.let { LooksrareV2Cursor.parser(it) } ?: LooksrareV2Cursor.default()
+    override val looksrareV2Cursor: LooksrareV2Cursor
+        get() = cursorObj ?: LooksrareV2Cursor.default()
 
-    fun withCursor(cursor: LooksrareV2Cursor): LooksrareV2FetchState {
+    override fun withCursor(cursor: LooksrareV2Cursor): LooksrareV2FetchState {
         return copy(cursorObj = cursor, cursor = "")
     }
 
@@ -75,6 +80,30 @@ data class LooksrareV2FetchState(
 
     companion object {
         const val ID = "looksrare-v2-order-fetch"
+    }
+}
+
+data class LooksrareV2CancelListEventFetchState(
+    override val cursor: String = "",
+    @Id
+    override val id: String = ID,
+    override val cursorObj: LooksrareV2Cursor? = null,
+) : LooksrareV2State {
+
+    @get:Transient
+    override val looksrareV2Cursor: LooksrareV2Cursor
+        get() = cursorObj ?: LooksrareV2Cursor.default()
+
+    override fun withCursor(cursor: LooksrareV2Cursor): LooksrareV2CancelListEventFetchState {
+        return copy(cursorObj = cursor, cursor = "")
+    }
+
+    override fun withCursor(cursor: String): LooksrareV2FetchState {
+        throw UnsupportedOperationException("Use withCursor(LooksrareV2Cursor)")
+    }
+
+    companion object {
+        const val ID = "looksrare-v2-cancel-list-event-fetch"
     }
 }
 

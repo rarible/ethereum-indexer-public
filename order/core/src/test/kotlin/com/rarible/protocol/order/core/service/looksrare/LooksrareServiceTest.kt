@@ -4,7 +4,7 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.looksrare.client.LooksrareClientV2
 import com.rarible.looksrare.client.model.LooksrareResult
-import com.rarible.looksrare.client.model.v2.LooksrareOrders
+import com.rarible.looksrare.client.model.v2.LooksrareResponse
 import com.rarible.looksrare.client.model.v2.OrdersRequest
 import com.rarible.looksrare.client.model.v2.Pagination
 import com.rarible.looksrare.client.model.v2.QuoteType
@@ -13,6 +13,7 @@ import com.rarible.looksrare.client.model.v2.Status
 import com.rarible.protocol.order.core.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.model.LooksrareV2Cursor
+import com.rarible.protocol.order.listener.data.randomLooksrareCancelListEvent
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -30,7 +31,7 @@ import java.time.Duration
 import java.time.Instant
 
 @ExtendWith(MockKExtension::class)
-internal class LooksrareOrderServiceTest {
+internal class LooksrareServiceTest {
     @MockK
     private lateinit var looksrareClient: LooksrareClientV2
 
@@ -38,7 +39,7 @@ internal class LooksrareOrderServiceTest {
     private var properties = LooksrareLoadProperties()
 
     @InjectMockKs
-    private lateinit var service: LooksrareOrderService
+    private lateinit var service: LooksrareService
 
     @Test
     fun `should get all order in one iteration`() = runBlocking<Unit> {
@@ -50,7 +51,7 @@ internal class LooksrareOrderServiceTest {
             status = Status.VALID
         )
 
-        val result = LooksrareOrders(success = true, message = "", data = listOf(order1, order2))
+        val result = LooksrareResponse(success = true, message = "", data = listOf(order1, order2))
         coEvery { looksrareClient.getOrders(any()) } returns LooksrareResult.success(result)
 
         val orders = service.getNextSellOrders(createdAfter)
@@ -78,8 +79,8 @@ internal class LooksrareOrderServiceTest {
         val order3 = randomLooksrareOrder().copy(status = Status.VALID, createdAt = now - Duration.ofSeconds(2))
         val order4 = randomLooksrareOrder().copy(status = Status.VALID, createdAt = now - Duration.ofSeconds(11))
 
-        val result1 = LooksrareOrders(success = true, message = "", data = listOf(order1, order2))
-        val result2 = LooksrareOrders(success = true, message = "", data = listOf(order3, order4))
+        val result1 = LooksrareResponse(success = true, message = "", data = listOf(order1, order2))
+        val result2 = LooksrareResponse(success = true, message = "", data = listOf(order3, order4))
         coEvery { looksrareClient.getOrders(any()) } returnsMany listOf(
             LooksrareResult.success(result1),
             LooksrareResult.success(result2)
@@ -101,6 +102,38 @@ internal class LooksrareOrderServiceTest {
     }
 
     @Test
+    fun `should get all events`() = runBlocking<Unit> {
+        val now = Instant.now()
+        val createdAfter = LooksrareV2Cursor(now - Duration.ofSeconds(10))
+
+        val event1 = randomLooksrareCancelListEvent().copy(createdAt = now)
+        val event2 = randomLooksrareCancelListEvent().copy(createdAt = now - Duration.ofSeconds(1))
+        val event3 = randomLooksrareCancelListEvent().copy(createdAt = now - Duration.ofSeconds(2))
+        val event4 = randomLooksrareCancelListEvent().copy(createdAt = now - Duration.ofSeconds(11))
+
+        val result1 = LooksrareResponse(success = true, message = "", data = listOf(event1, event2))
+        val result2 = LooksrareResponse(success = true, message = "", data = listOf(event3, event4))
+        coEvery { looksrareClient.getEvents(any()) } returnsMany listOf(
+            LooksrareResult.success(result1),
+            LooksrareResult.success(result2)
+        )
+
+        val orders = service.getNextCancelListEvents(createdAfter)
+        assertThat(orders).containsExactly(event1, event2, event3, event4)
+
+        coVerify(exactly = 1) {
+            looksrareClient.getEvents(
+                match { it.pagination?.cursor == null }
+            )
+        }
+        coVerify(exactly = 1) {
+            looksrareClient.getEvents(
+                match { it.pagination?.cursor == event2.id }
+            )
+        }
+    }
+
+    @Test
     fun `isActiveOrder order found`() = runBlocking<Unit> {
         val order = randomOrder(token = Address.ONE(), tokenId = EthUInt256(BigInteger.ONE))
         val lastId = randomWord()
@@ -116,7 +149,7 @@ internal class LooksrareOrderServiceTest {
                 )
             })
         } returns LooksrareResult.success(
-            LooksrareOrders(
+            LooksrareResponse(
                 success = true,
                 message = null,
                 data = listOf(
@@ -138,7 +171,7 @@ internal class LooksrareOrderServiceTest {
                 )
             })
         } returns LooksrareResult.success(
-            LooksrareOrders(
+            LooksrareResponse(
                 success = true,
                 message = null,
                 data = listOf(
@@ -168,7 +201,7 @@ internal class LooksrareOrderServiceTest {
                 )
             })
         } returns LooksrareResult.success(
-            LooksrareOrders(
+            LooksrareResponse(
                 success = true,
                 message = null,
                 data = listOf(
@@ -190,7 +223,7 @@ internal class LooksrareOrderServiceTest {
                 )
             })
         } returns LooksrareResult.success(
-            LooksrareOrders(
+            LooksrareResponse(
                 success = true,
                 message = null,
                 data = emptyList()
@@ -208,7 +241,7 @@ internal class LooksrareOrderServiceTest {
         coEvery {
             looksrareClient.getOrders(any())
         } returns LooksrareResult.success(
-            LooksrareOrders(
+            LooksrareResponse(
                 success = true,
                 message = null,
                 data = listOf(
