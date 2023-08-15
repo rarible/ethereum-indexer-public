@@ -2,14 +2,14 @@ package com.rarible.protocol.nft.listener.service.checker
 
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc721.IERC721
-import com.rarible.core.daemon.sequential.ConsumerBatchEventHandler
+import com.rarible.core.kafka.RaribleKafkaBatchEventHandler
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
+import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import io.daonomic.rpc.domain.Binary
@@ -17,6 +17,7 @@ import io.daonomic.rpc.domain.Request
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 import scala.Some
 import scala.Tuple2
 import scala.jdk.javaapi.CollectionConverters
@@ -27,12 +28,13 @@ import java.time.Duration
 import java.time.Instant
 import kotlin.random.Random
 
+@Component
 class OwnershipBatchCheckerHandler(
     private val nftListenerProperties: NftListenerProperties,
     private val ethereum: MonoEthereum,
     private val tokenRepository: TokenRepository,
     private val checkerMetrics: CheckerMetrics
-) : ConsumerBatchEventHandler<NftOwnershipEventDto> {
+) : RaribleKafkaBatchEventHandler<NftOwnershipEventDto> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
     private var lastUpdated = Instant.MIN

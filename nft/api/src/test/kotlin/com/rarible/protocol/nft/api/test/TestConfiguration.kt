@@ -1,18 +1,18 @@
 package com.rarible.protocol.nft.api.test
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.daemon.sequential.ConsumerWorker
-import com.rarible.core.kafka.RaribleKafkaConsumer
-import com.rarible.core.kafka.json.JsonDeserializer
+import com.rarible.core.kafka.RaribleKafkaConsumerFactory
+import com.rarible.core.kafka.RaribleKafkaConsumerSettings
+import com.rarible.core.kafka.RaribleKafkaConsumerWorker
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemEventTopicProvider
-import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
+import com.rarible.protocol.nft.core.test.TestKafkaHandler
 import io.mockk.every
 import io.mockk.mockk
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
@@ -36,6 +36,9 @@ class TestConfiguration {
 
     @Autowired
     private lateinit var properties: NftIndexerProperties
+
+    @Autowired
+    private lateinit var raribleKafkaConsumerFactory: RaribleKafkaConsumerFactory
 
     @Bean
     @Primary
@@ -87,17 +90,19 @@ class TestConfiguration {
     fun testItemHandler(): TestKafkaHandler<NftItemEventDto> = TestKafkaHandler()
 
     @Bean
-    fun testActivityWorker(handler: TestKafkaHandler<NftItemEventDto>): ConsumerWorker<NftItemEventDto> {
-        val consumer = RaribleKafkaConsumer(
-            clientId = "test-consumer-item-event",
-            consumerGroup = "test-group-item-event",
-            valueDeserializerClass = JsonDeserializer::class.java,
+    fun testItemEventWorker(
+        handler: TestKafkaHandler<NftItemEventDto>
+    ): RaribleKafkaConsumerWorker<NftItemEventDto> {
+        val settings = RaribleKafkaConsumerSettings(
+            hosts = properties.kafkaReplicaSet,
+            topic = NftItemEventTopicProvider.getTopic(application.name, properties.blockchain.value),
+            group = "test-group-item-event",
             valueClass = NftItemEventDto::class.java,
-            defaultTopic = NftItemEventTopicProvider.getTopic(application.name, properties.blockchain.value),
-            bootstrapServers = properties.kafkaReplicaSet,
+            concurrency = 1,
+            batchSize = 500,
             offsetResetStrategy = OffsetResetStrategy.EARLIEST
         )
-        return ConsumerWorker(consumer, handler, "test-kafka-activity-worker")
+        return raribleKafkaConsumerFactory.createWorker(settings, handler)
     }
 
     @Bean

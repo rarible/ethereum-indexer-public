@@ -27,7 +27,7 @@ import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import com.rarible.protocol.order.listener.integration.TestPropertiesConfiguration
+import com.rarible.protocol.order.listener.integration.TestConfiguration
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
@@ -62,7 +62,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
 
-        val punkPriceUsd = punkPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val punkPriceUsd = punkPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
 
         val listOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
         val expectedListOrder = Order(
@@ -254,7 +254,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val firstSellTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, firstPrice)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
 
-        val firstPriceUsd = firstPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val firstPriceUsd = firstPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
         val firstMakePrice = firstPrice.toBigDecimal(18)
 
         val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
@@ -298,7 +298,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val secondOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
-            val secondPriceUsd = secondPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+            val secondPriceUsd = secondPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
             val secondMakePrice = secondPrice.toBigDecimal(18)
             val secondTake = take.copy(value = EthUInt256(secondPrice))
             assertThat(secondOrder).isEqualToOrder(
@@ -334,7 +334,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val bidMake = Asset(EthAssetType, EthUInt256(bidPrice))
         val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
 
-        val punkPriceUsd = bidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val punkPriceUsd = bidPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
 
         val expectedBidOrder = Order(
             maker = bidderAddress,
@@ -530,7 +530,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val firstBidMake = Asset(EthAssetType, EthUInt256(firstBidPrice))
         val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
 
-        val firstBidTakePriceUsd = firstBidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val firstBidTakePriceUsd = firstBidPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
 
         val expectedFirstBidOrder = Order(
             maker = firstBidderAddress,
@@ -571,7 +571,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 .execute().verifySuccess().getTimestamp()
 
         val secondMake = firstBidMake.copy(value = EthUInt256(secondBidPrice))
-        val secondBidTakePriceUsd = secondBidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val secondBidTakePriceUsd = secondBidPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
         val secondTakePrice = secondBidPrice.toBigDecimal(18)
         val secondBidHash = Order.hashKey(secondBidderAddress, secondMake.type, bidTake.type, CRYPTO_PUNKS_SALT.value)
 
@@ -642,7 +642,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val bidMake = Asset(EthAssetType, EthUInt256(bidPrice))
         val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
 
-        val bidTakePriceUsd = bidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val bidTakePriceUsd = bidPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
 
         val expectedBidOrder = Order(
             maker = bidderAddress,
@@ -703,7 +703,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val sellTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, sellPrice)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
 
-        val priceUsd = sellPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val priceUsd = sellPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
         val makePrice = sellPrice.toBigDecimal(18)
 
         val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
@@ -779,7 +779,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val sellTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, sellPrice)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
 
-        val priceUsd = sellPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val priceUsd = sellPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
         val makePrice = sellPrice.toBigDecimal(18)
 
         val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
@@ -829,7 +829,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val bidMake = Asset(EthAssetType, EthUInt256(bidPrice))
         val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
 
-        val bidTakePriceUsd = bidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val bidTakePriceUsd = bidPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
         val bidTakePrice = BigDecimal("1.00000E-13")
 
         val expectedBidOrder = Order(
@@ -928,7 +928,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(secondPrice))
 
-        val punkPriceUsd = secondPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val punkPriceUsd = secondPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
 
         Wait.waitAssert {
             val activeOrders = orderRepository.findActive().toList()
@@ -989,7 +989,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(firstPrice))
 
-        val punkPriceUsd = firstPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val punkPriceUsd = firstPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
 
         Wait.waitAssert {
             val allOrders = orderRepository.findAll().toList()
@@ -1043,7 +1043,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
 
-        val punkPriceUsd = punkPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val punkPriceUsd = punkPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
 
         val listOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
         val expectedListOrder = Order(

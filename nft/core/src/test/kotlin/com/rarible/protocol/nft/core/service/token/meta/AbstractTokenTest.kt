@@ -1,9 +1,9 @@
 package com.rarible.protocol.nft.core.service.token.meta
 
 import com.rarible.core.meta.resource.resolver.GatewayProvider
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
 import io.mockk.InternalPlatformDsl.toStr
 import io.netty.resolver.DefaultAddressResolverGroup
 import org.assertj.core.api.Assertions

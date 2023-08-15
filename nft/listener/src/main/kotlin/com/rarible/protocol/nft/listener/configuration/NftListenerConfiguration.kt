@@ -5,13 +5,13 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.cache.EnableRaribleCache
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.job.JobDaemonWorker
-import com.rarible.core.daemon.sequential.ConsumerBatchWorker
-import com.rarible.core.daemon.sequential.ConsumerWorker
-import com.rarible.core.daemon.sequential.ConsumerWorkerHolder
+import com.rarible.core.kafka.RaribleKafkaConsumerFactory
+import com.rarible.core.kafka.RaribleKafkaConsumerSettings
+import com.rarible.core.kafka.RaribleKafkaConsumerWorker
 import com.rarible.core.lockredis.EnableRaribleRedisLock
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.dto.NftOwnershipEventDto
-import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
+import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.configuration.ProducerConfiguration
 import com.rarible.protocol.nft.core.metric.CheckerMetrics
@@ -20,7 +20,6 @@ import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.producer.InternalTopicProvider
-import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.action.ActionEventHandler
 import com.rarible.protocol.nft.core.service.action.ActionJobHandler
 import com.rarible.protocol.nft.listener.service.checker.OwnershipBatchCheckerHandler
@@ -29,13 +28,12 @@ import com.rarible.protocol.nft.listener.service.item.ItemOwnershipConsistencyJo
 import com.rarible.protocol.nft.listener.service.ownership.OwnershipItemConsistencyJobHandler
 import com.rarible.protocol.nft.listener.service.suspicios.UpdateSuspiciousItemsHandler
 import io.micrometer.core.instrument.MeterRegistry
+import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.slf4j.LoggerFactory
-import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import scalether.core.MonoEthereum
 import java.time.Duration
 
 @EnableMongock
@@ -48,13 +46,13 @@ class NftListenerConfiguration(
     private val nftIndexerProperties: NftIndexerProperties,
     private val nftListenerProperties: NftListenerProperties,
     private val meterRegistry: MeterRegistry,
-    private val applicationEnvironmentInfo: ApplicationEnvironmentInfo,
-    private val nftIndexerEventsConsumerFactory: NftIndexerEventsConsumerFactory
+    private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
     private val logger = LoggerFactory.getLogger(ProducerConfiguration::class.java)
 
-    private val ownershipCheckerConsumerGroup =
-        "${applicationEnvironmentInfo.name}.protocol.${nftIndexerProperties.blockchain.value}.nft.indexer.ownership"
+    private val blockchain = nftIndexerProperties.blockchain
+    private val env = applicationEnvironmentInfo.name
+    private val host = applicationEnvironmentInfo.host
 
     @Bean
     fun reduceSkipTokens(): ReduceSkipTokens {
@@ -72,30 +70,6 @@ class NftListenerConfiguration(
         name = ["action-execute.enabled"],
         havingValue = "true"
     )
-    fun actionConsumerWorker(internalActionHandler: ActionEventHandler): ConsumerWorkerHolder<ActionEvent> {
-        logger.info("Creating batch of ${nftIndexerProperties.actionWorkersCount} action workers")
-        val workers = (1..nftIndexerProperties.actionWorkersCount).map {
-            ConsumerWorker(
-                consumer = InternalTopicProvider.createInternalActionEventConsumer(
-                    applicationEnvironmentInfo,
-                    nftIndexerProperties.blockchain,
-                    nftIndexerProperties.kafkaReplicaSet
-                ),
-                properties = nftIndexerProperties.daemonWorkerProperties,
-                eventHandler = internalActionHandler,
-                meterRegistry = meterRegistry,
-                workerName = "ActionHandler.$it"
-            )
-        }
-        return ConsumerWorkerHolder(workers)
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
-        name = ["action-execute.enabled"],
-        havingValue = "true"
-    )
     fun actionExecutorWorker(handler: ActionJobHandler): JobDaemonWorker {
         return JobDaemonWorker(
             jobHandler = handler,
@@ -103,18 +77,6 @@ class NftListenerConfiguration(
             properties = nftListenerProperties.actionExecute.daemon,
             workerName = "action-executor-worker"
         ).apply { start() }
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
-        name = ["action-execute.enabled"],
-        havingValue = "true"
-    )
-    fun actionConsumerWorkerStarter(actionConsumerWorker: ConsumerWorkerHolder<ActionEvent>): CommandLineRunner {
-        return CommandLineRunner {
-            actionConsumerWorker.start()
-        }
     }
 
     @Bean
@@ -176,30 +138,47 @@ class NftListenerConfiguration(
 
     @Bean
     fun checkerMetrics(meterRegistry: MeterRegistry): CheckerMetrics {
-        return CheckerMetrics(nftIndexerProperties.blockchain, meterRegistry)
+        return CheckerMetrics(blockchain, meterRegistry)
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
+        name = ["action-execute.enabled"],
+        havingValue = "true"
+    )
+    fun actionConsumerWorker(
+        factory: RaribleKafkaConsumerFactory,
+        handler: ActionEventHandler
+    ): RaribleKafkaConsumerWorker<ActionEvent> {
+        val settings = RaribleKafkaConsumerSettings(
+            hosts = nftIndexerProperties.kafkaReplicaSet,
+            group = "protocol.${blockchain.value}.nft.indexer.internal.action",
+            topic = InternalTopicProvider.getItemActionTopic(env, blockchain.value),
+            valueClass = ActionEvent::class.java,
+            async = true,
+            concurrency = nftIndexerProperties.actionWorkersCount,
+            batchSize = 500,
+            offsetResetStrategy = OffsetResetStrategy.LATEST
+        )
+        return factory.createWorker(settings, handler)
     }
 
     @Bean
     fun ownershipCheckerWorker(
-        ethereum: MonoEthereum,
-        tokenRepository: TokenRepository,
-        checkerMetrics: CheckerMetrics
-    ): ConsumerBatchWorker<NftOwnershipEventDto> {
-        val consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
-            consumerGroup = ownershipCheckerConsumerGroup,
-            blockchain = nftIndexerProperties.blockchain
+        factory: RaribleKafkaConsumerFactory,
+        handler: OwnershipBatchCheckerHandler
+    ): RaribleKafkaConsumerWorker<NftOwnershipEventDto> {
+        val settings = RaribleKafkaConsumerSettings(
+            hosts = nftIndexerProperties.kafkaReplicaSet,
+            group = "protocol.${blockchain.value}.nft.indexer.ownership",
+            topic = NftOwnershipEventTopicProvider.getTopic(env, blockchain.value),
+            valueClass = NftOwnershipEventDto::class.java,
+            async = false,
+            concurrency = 9,
+            batchSize = 500,
+            offsetResetStrategy = OffsetResetStrategy.LATEST
         )
-        return ConsumerBatchWorker(
-            consumer = consumer,
-            properties = nftListenerProperties.eventConsumerWorker,
-            eventHandler = OwnershipBatchCheckerHandler(
-                nftListenerProperties,
-                ethereum,
-                tokenRepository,
-                checkerMetrics
-            ),
-            meterRegistry = meterRegistry,
-            workerName = "ownership-checker"
-        ).apply { start() }
+        return factory.createWorker(settings, handler)
     }
 }

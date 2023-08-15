@@ -5,14 +5,14 @@ import com.rarible.core.meta.resource.parser.UrlParser
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
-import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.cache.ContentCacheStorage
 import com.rarible.protocol.nft.core.service.item.meta.cache.MetaRawPropertiesEntry
 import com.rarible.protocol.nft.core.service.item.meta.cache.RawPropertiesCacheService
+import com.rarible.protocol.nft.core.test.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import kotlinx.coroutines.runBlocking

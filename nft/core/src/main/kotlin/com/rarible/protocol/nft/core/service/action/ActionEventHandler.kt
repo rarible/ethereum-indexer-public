@@ -3,7 +3,7 @@ package com.rarible.protocol.nft.core.service.action
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
-import com.rarible.core.daemon.sequential.ConsumerEventHandler
+import com.rarible.core.kafka.RaribleKafkaEventHandler
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ActionState
@@ -23,7 +23,7 @@ class ActionEventHandler(
     private val nftItemActionEventRepository: NftItemActionEventRepository,
     private val incomeBurnActionMetric: RegisteredCounter,
     private val itemReduceService: ItemReduceService
-) : ConsumerEventHandler<ActionEvent> {
+) : RaribleKafkaEventHandler<ActionEvent> {
 
     override suspend fun handle(event: ActionEvent) = when (event) {
         is BurnItemActionEvent -> {

@@ -20,13 +20,13 @@ import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
 import com.rarible.protocol.nft.api.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.api.test.End2EndTest
-import com.rarible.protocol.nft.core.TestKafkaHandler
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
+import com.rarible.protocol.nft.core.test.TestKafkaHandler
 import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst

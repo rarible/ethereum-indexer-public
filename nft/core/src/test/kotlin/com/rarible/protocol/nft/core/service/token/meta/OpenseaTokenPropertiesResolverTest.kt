@@ -6,13 +6,13 @@ import com.rarible.core.meta.resource.http.OpenseaHttpClient
 import com.rarible.core.meta.resource.http.ProxyHttpClient
 import com.rarible.core.meta.resource.http.builder.DefaultWebClientBuilder
 import com.rarible.core.meta.resource.http.builder.ProxyWebClientBuilder
-import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.meta.BasePropertiesResolverTest.Companion.REQUEST_TIMEOUT
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
+import com.rarible.protocol.nft.core.test.IntegrationTest
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitSingle

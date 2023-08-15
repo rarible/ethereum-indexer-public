@@ -37,7 +37,7 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import com.rarible.protocol.order.listener.integration.TestPropertiesConfiguration
+import com.rarible.protocol.order.listener.integration.TestConfiguration
 import com.rarible.protocol.order.listener.misc.sign
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
@@ -291,7 +291,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
         val onChainPunkPrice = BigInteger.valueOf(200000)
         val onChainSellOrderTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, onChainPunkPrice)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
-        val onChainPunkPriceUsd = onChainPunkPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val onChainPunkPriceUsd = onChainPunkPrice.toBigDecimal(18) * TestConfiguration.ETH_CURRENCY_RATE
         val onChainTake = Asset(EthAssetType, EthUInt256(onChainPunkPrice))
         val makePrice = onChainPunkPrice.toBigDecimal(18)
 

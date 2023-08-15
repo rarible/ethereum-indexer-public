@@ -1,12 +1,21 @@
 package com.rarible.protocol.order.listener.integration
 
 import com.rarible.blockchain.scanner.consumer.kafka.KafkaLogRecordEventConsumer
+import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
+import com.rarible.core.kafka.RaribleKafkaConsumerFactory
+import com.rarible.core.kafka.RaribleKafkaConsumerSettings
+import com.rarible.core.kafka.RaribleKafkaConsumerWorker
 import com.rarible.ethereum.client.cache.CacheableMonoEthereum
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
+import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.AuctionEventDto
+import com.rarible.protocol.dto.EthActivityEventDto
+import com.rarible.protocol.dto.OrderIndexerTopicProvider
 import com.rarible.protocol.erc20.api.client.BalanceControllerApi
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.service.approve.Erc20Service
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import com.rarible.protocol.order.listener.data.createErc20BalanceDto
@@ -14,6 +23,7 @@ import com.rarible.x2y2.client.X2Y2ApiClient
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.every
 import io.mockk.mockk
+import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -27,7 +37,8 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
 import java.time.Duration
 
 @TestConfiguration
-class TestPropertiesConfiguration {
+class TestConfiguration {
+
     @Bean
     fun testEthereum(@Value("\${parityUrls}") url: String): MonoEthereum {
         val transport = WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000)
@@ -92,6 +103,56 @@ class TestPropertiesConfiguration {
     @Bean
     @Primary
     fun testErc20Service(): Erc20Service = mockk()
+
+    @Bean
+    fun testActivityEventHandler() = TestKafkaHandler<EthActivityEventDto>()
+
+    @Bean
+    fun testActivityConsumer(
+        factory: RaribleKafkaConsumerFactory,
+        application: ApplicationEnvironmentInfo,
+        properties: OrderIndexerProperties,
+        handler: TestKafkaHandler<EthActivityEventDto>
+    ): RaribleKafkaConsumerWorker<EthActivityEventDto> {
+        val settings = RaribleKafkaConsumerSettings(
+            hosts = properties.kafkaReplicaSet,
+            group = "test-group-order-activity",
+            topic = ActivityTopicProvider.getActivityTopic(
+                application.name,
+                properties.blockchain.value
+            ),
+            valueClass = EthActivityEventDto::class.java,
+            concurrency = 1,
+            batchSize = 500,
+            offsetResetStrategy = OffsetResetStrategy.EARLIEST
+        )
+        return factory.createWorker(settings, handler)
+    }
+
+    @Bean
+    fun testAuctionEventHandler() = TestKafkaHandler<AuctionEventDto>()
+
+    @Bean
+    fun testAuctionConsumer(
+        factory: RaribleKafkaConsumerFactory,
+        application: ApplicationEnvironmentInfo,
+        properties: OrderIndexerProperties,
+        handler: TestKafkaHandler<AuctionEventDto>
+    ): RaribleKafkaConsumerWorker<AuctionEventDto> {
+        val settings = RaribleKafkaConsumerSettings(
+            hosts = properties.kafkaReplicaSet,
+            group = "test-consumer-auction-activity",
+            topic = OrderIndexerTopicProvider.getAuctionUpdateTopic(
+                application.name,
+                properties.blockchain.value
+            ),
+            valueClass = AuctionEventDto::class.java,
+            concurrency = 1,
+            batchSize = 500,
+            offsetResetStrategy = OffsetResetStrategy.EARLIEST
+        )
+        return factory.createWorker(settings, handler)
+    }
 
     companion object {
 
