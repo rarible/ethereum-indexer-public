@@ -36,7 +36,11 @@ class LooksrareCancelListEventLoader(
         val saved = AtomicInteger(0)
         result
             .filter {
-                it.hash == null
+                val offchain = it.hash == null
+                if (!offchain) {
+                    logger.info("Skipping cancel event for order ${it.order?.hash} tx: ${it.hash}")
+                }
+                offchain
             }
             .filter {
                 if (it.order == null) return@filter false
