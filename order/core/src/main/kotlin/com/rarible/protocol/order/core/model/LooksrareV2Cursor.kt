@@ -37,15 +37,6 @@ data class LooksrareV2Cursor(
     companion object {
         private val logger = LoggerFactory.getLogger(LooksrareV2Cursor::class.java)
 
-        @Deprecated("Remove after migration")
-        fun parser(cursor: String): LooksrareV2Cursor {
-            val parts = cursor.split(":")
-            return LooksrareV2Cursor(
-                createdAfter = Instant.ofEpochSecond(parts[0].toLong()),
-                nextId = parts.getOrNull(1),
-            )
-        }
-
         fun default() = LooksrareV2Cursor(Instant.now())
     }
 }

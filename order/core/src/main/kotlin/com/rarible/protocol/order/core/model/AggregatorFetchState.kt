@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.model
 
-import com.rarible.core.common.ifNotBlank
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import java.time.Instant
@@ -69,7 +68,7 @@ data class LooksrareV2FetchState(
 
     @get:Transient
     override val looksrareV2Cursor: LooksrareV2Cursor
-        get() = cursorObj ?: cursor.ifNotBlank()?.let { LooksrareV2Cursor.parser(it) } ?: LooksrareV2Cursor.default()
+        get() = cursorObj ?: LooksrareV2Cursor.default()
 
     override fun withCursor(cursor: LooksrareV2Cursor): LooksrareV2FetchState {
         return copy(cursorObj = cursor, cursor = "")
@@ -93,7 +92,7 @@ data class LooksrareV2CancelListEventFetchState(
 
     @get:Transient
     override val looksrareV2Cursor: LooksrareV2Cursor
-        get() = cursorObj ?: cursor.ifNotBlank()?.let { LooksrareV2Cursor.parser(it) } ?: LooksrareV2Cursor.default()
+        get() = cursorObj ?: LooksrareV2Cursor.default()
 
     override fun withCursor(cursor: LooksrareV2Cursor): LooksrareV2CancelListEventFetchState {
         return copy(cursorObj = cursor, cursor = "")
