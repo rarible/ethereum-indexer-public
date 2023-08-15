@@ -1,6 +1,8 @@
 rarible:
   ethereum:
     maxFrameSize: 40485760
+    cache:
+      enabled: true
 
 listener:
   blockchain: mantle

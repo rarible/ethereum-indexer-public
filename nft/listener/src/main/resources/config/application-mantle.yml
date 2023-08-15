@@ -1,2 +1,7 @@
 common:
   blockchain: mantle
+
+rarible:
+  ethereum:
+    cache:
+      enabled: true

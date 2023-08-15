@@ -4,3 +4,8 @@ common:
   protocolCommission: 0
   featureFlags:
     sudoswapEnabled: false
+
+rarible:
+  ethereum:
+    cache:
+      enabled: true
