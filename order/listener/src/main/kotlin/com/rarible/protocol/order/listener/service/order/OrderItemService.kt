@@ -16,6 +16,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -51,13 +52,18 @@ class OrderItemService(
             Platform.OPEN_SEA,
             itemId.contract,
             EthUInt256.of(itemId.tokenId)
-        ).map { it.hash }.toList()
+        ).take(ORDER_TO_CANCEL_MAX_COUNT).map { it.hash }.toList()
+
+        // Should never happen since there are not a lot of such items/orders, but let's monitor it
+        if (toCancel.size == ORDER_TO_CANCEL_MAX_COUNT) {
+            logger.warn("WARNING! Too many active Orders found for Item {} marked as suspicious", itemId)
+        }
 
         if (toCancel.isEmpty()) {
             return
         }
         coroutineScope {
-            toCancel.chunked(100).forEach { chunk ->
+            toCancel.chunked(ORDER_TO_CANCEL_CHUNK_SIZE).forEach { chunk ->
                 chunk.map { hash ->
                     asyncWithTraceId(context = NonCancellable) {
                         logger.info("Cancelled Order {} for Item {} marked as suspicious", hash.prefixed(), itemId)
@@ -72,5 +78,10 @@ class OrderItemService(
             itemId,
             System.currentTimeMillis() - start
         )
+    }
+
+    companion object {
+        const val ORDER_TO_CANCEL_MAX_COUNT = 1000
+        const val ORDER_TO_CANCEL_CHUNK_SIZE = 100
     }
 }
