@@ -4,3 +4,8 @@ rarible:
 
 listener:
   blockchain: mantle
+
+rarible:
+  ethereum:
+    cache:
+      enabled: true
