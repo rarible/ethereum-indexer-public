@@ -18,7 +18,7 @@ import com.rarible.protocol.order.core.service.Package
 import com.rarible.protocol.order.core.service.auction.AuctionReduceService
 import com.rarible.protocol.order.core.service.auction.AuctionReducer
 import com.rarible.protocol.order.core.service.auction.AuctionUpdateService
-import com.rarible.protocol.order.core.service.looksrare.LooksrareOrderService
+import com.rarible.protocol.order.core.service.looksrare.LooksrareService
 import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import com.rarible.protocol.order.core.trace.TracePackage
 import com.rarible.protocol.order.core.validator.CheckingOrderStateValidator
@@ -96,10 +96,10 @@ class CoreConfiguration {
 
     @Bean
     fun looksrareOrderStateValidator(
-        looksrareOrderService: LooksrareOrderService,
+        looksrareService: LooksrareService,
         orderCancelService: OrderCancelService,
     ): OrderStateValidator = CheckingOrderStateValidator(
-        orderStateCheckService = looksrareOrderService,
+        orderStateCheckService = looksrareService,
         orderCancelService = orderCancelService,
         platform = Platform.LOOKSRARE,
     )

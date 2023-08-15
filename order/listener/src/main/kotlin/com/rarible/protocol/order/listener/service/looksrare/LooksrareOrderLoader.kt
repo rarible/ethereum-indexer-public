@@ -10,7 +10,7 @@ import com.rarible.protocol.order.core.model.LooksrareV2Cursor
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.core.service.looksrare.LooksrareOrderService
+import com.rarible.protocol.order.core.service.looksrare.LooksrareService
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -22,7 +22,7 @@ import java.time.Instant
 
 @Component
 class LooksrareOrderLoader(
-    private val looksrareOrderService: LooksrareOrderService,
+    private val looksrareService: LooksrareService,
     private val looksrareOrderConverter: LooksrareOrderConverter,
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
@@ -71,7 +71,7 @@ class LooksrareOrderLoader(
 
     private suspend fun safeGetNextSellOrders(cursor: LooksrareV2Cursor): List<LooksrareOrder> {
         return try {
-            val orders = looksrareOrderService.getNextSellOrders(cursor)
+            val orders = looksrareService.getNextSellOrders(cursor)
             orders.forEach { metrics.onOrderReceived(Platform.LOOKSRARE, it.startTime) }
             orders.maxOfOrNull { it.createdAt }?.let {
                 metrics.onLatestOrderReceived(Platform.LOOKSRARE, it)
@@ -97,35 +97,6 @@ class LooksrareOrderLoader(
         }
         logger.looksrareInfo(logMessage)
     }
-
-    private fun LooksrareV2Cursor.next(orders: List<LooksrareOrder>): LooksrareV2Cursor {
-        val max = orders.maxByOrNull { it.createdAt } ?: return this
-        val min = orders.minByOrNull { it.createdAt } ?: return this
-
-        // Need to save max seen created order to continue from it after we fetch all old orders
-        val savingMaxSeenCreated = maxSeenCreated
-            ?.let { maxOf(max.createdAt, it) }
-            // "createdAfter" is current checkpoint, sometimes LR api returns orders from the past somehow,
-            // we don't need to save checkpoint from the past
-            ?: maxOf(max.createdAt, createdAfter)
-
-        return if (min.createdAt > createdAfter) {
-            logger.looksrareInfo("Still go deep, min createdAfter=${min.createdAt}")
-            LooksrareV2Cursor(
-                createdAfter = createdAfter,
-                nextId = min.id,
-                maxSeenCreated = savingMaxSeenCreated
-            )
-        } else {
-            logger.looksrareInfo("Load all, max createdAfter=$savingMaxSeenCreated")
-            LooksrareV2Cursor(createdAfter = savingMaxSeenCreated)
-        }
-    }
-
-    data class Result(
-        val cursor: LooksrareV2Cursor?,
-        val saved: Long
-    )
 
     private companion object {
 

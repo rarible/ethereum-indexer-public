@@ -4,6 +4,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.model.AggregatorFetchState
 import com.rarible.protocol.order.core.model.LooksrareFetchState
+import com.rarible.protocol.order.core.model.LooksrareV2CancelListEventFetchState
 import com.rarible.protocol.order.core.model.LooksrareV2FetchState
 import com.rarible.protocol.order.core.model.ReservoirAsksEventFetchState
 import com.rarible.protocol.order.core.model.SeaportFetchState
@@ -34,6 +35,10 @@ class AggregatorStateRepository(
 
     suspend fun getLooksrareV2State(): LooksrareV2FetchState? {
         return get(LooksrareV2FetchState.ID, LooksrareV2FetchState::class.java)
+    }
+
+    suspend fun getLooksrareV2CancelListEventState(): LooksrareV2CancelListEventFetchState? {
+        return get(LooksrareV2FetchState.ID, LooksrareV2CancelListEventFetchState::class.java)
     }
 
     suspend fun getX2Y2State(): X2Y2FetchState? {

@@ -31,7 +31,7 @@ internal class LooksrareOrderLoadHandlerTest {
         val next = LooksrareV2Cursor(Instant.now())
         coEvery { aggregatorStateRepository.getLooksrareV2State() } returns null
         coEvery { aggregatorStateRepository.save(any()) } returns Unit
-        coEvery { looksrareOrderLoader.load(any()) } returns LooksrareOrderLoader.Result(next, 1)
+        coEvery { looksrareOrderLoader.load(any()) } returns Result(next, 1)
 
         handler.handle()
 
@@ -54,7 +54,7 @@ internal class LooksrareOrderLoadHandlerTest {
 
         coEvery { aggregatorStateRepository.getLooksrareV2State() } returns LooksrareV2FetchState(cursorObj = expectedCreatedAfter)
         coEvery { aggregatorStateRepository.save(any()) } returns Unit
-        coEvery { looksrareOrderLoader.load(any()) } returns LooksrareOrderLoader.Result(next, 0)
+        coEvery { looksrareOrderLoader.load(any()) } returns Result(next, 0)
 
         handler.handle()
 

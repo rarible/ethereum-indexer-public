@@ -23,6 +23,7 @@ import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.core.service.OrderCancelService
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.listener.job.LooksrareCancelListEventFetchWorker
 import com.rarible.protocol.order.listener.job.LooksrareOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.OrderStartEndCheckerWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
@@ -34,6 +35,7 @@ import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.ItemConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.OwnershipConsumerEventHandler
+import com.rarible.protocol.order.listener.service.looksrare.LooksrareCancelListEventLoadHandler
 import com.rarible.protocol.order.listener.service.looksrare.LooksrareOrderLoadHandler
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
@@ -51,6 +53,7 @@ import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoader
 import com.rarible.reservoir.client.ReservoirClient
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -373,6 +376,30 @@ class OrderListenerConfiguration(
     }
 
     @Bean
+    fun looksrareCancelListEventLoadWorker(
+        meterRegistry: MeterRegistry,
+        properties: LooksrareLoadProperties,
+        looksrareCancelListEventLoadHandler: LooksrareCancelListEventLoadHandler
+    ): LooksrareCancelListEventFetchWorker {
+        return LooksrareCancelListEventFetchWorker(
+            properties = properties,
+            meterRegistry = meterRegistry,
+            handler = looksrareCancelListEventLoadHandler
+        ).apply {
+            if (properties.enabled && properties.cancelListEventEnabled) {
+                logger.info("Starting looksrareCancelListEventLoadWorker")
+                start()
+            } else {
+                logger.info(
+                    "Will not start looksrareCancelListEventLoadWorker, " +
+                        "enabled=${properties.enabled}, " +
+                        "cancelListEventEnabled=${properties.cancelListEventEnabled}"
+                )
+            }
+        }
+    }
+
+    @Bean
     @ConditionalOnProperty(
         prefix = RARIBLE_PROTOCOL_LISTENER,
         name = ["reservoir.enabled"],
@@ -396,5 +423,9 @@ class OrderListenerConfiguration(
             foreignOrderMetrics = foreignOrderMetrics,
             meterRegistry = meterRegistry,
         ).apply { start() }
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(OrderListenerConfiguration::class.java)
     }
 }

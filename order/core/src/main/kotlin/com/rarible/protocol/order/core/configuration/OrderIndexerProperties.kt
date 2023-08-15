@@ -172,6 +172,7 @@ data class SudoSwapAddresses(
 
 data class LooksrareLoadProperties(
     val enabled: Boolean = false,
+    val cancelListEventEnabled: Boolean = true,
     var saveEnabled: Boolean = false,
     val delay: Duration = Duration.ofMinutes(1),
     val loadPeriod: Duration = Duration.ofSeconds(30),

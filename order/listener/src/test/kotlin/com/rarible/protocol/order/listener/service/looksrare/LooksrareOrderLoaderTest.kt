@@ -9,7 +9,7 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.core.service.looksrare.LooksrareOrderService
+import com.rarible.protocol.order.core.service.looksrare.LooksrareService
 import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
@@ -26,7 +26,7 @@ import java.time.Instant
 
 internal class LooksrareOrderLoaderTest {
 
-    private val looksrareOrderService = mockk<LooksrareOrderService>()
+    private val looksrareService = mockk<LooksrareService>()
     private val looksrareOrderConverter = mockk<LooksrareOrderConverter>()
     private val orderRepository = mockk<OrderRepository>()
     private val orderUpdateService = mockk<OrderUpdateService>()
@@ -38,7 +38,7 @@ internal class LooksrareOrderLoaderTest {
     }
 
     private val loader = LooksrareOrderLoader(
-        looksrareOrderService,
+        looksrareService,
         looksrareOrderConverter,
         orderRepository,
         orderUpdateService,
@@ -60,7 +60,7 @@ internal class LooksrareOrderLoaderTest {
         val order2 = createOrder().copy(id = Order.Id(looksrareOrder2.hash), hash = looksrareOrder2.hash)
         val listedAfter = LooksrareV2Cursor(now.minusSeconds(10))
 
-        coEvery { looksrareOrderService.getNextSellOrders(listedAfter) } returns listOf(
+        coEvery { looksrareService.getNextSellOrders(listedAfter) } returns listOf(
             looksrareOrder1,
             looksrareOrder2
         )
@@ -96,7 +96,7 @@ internal class LooksrareOrderLoaderTest {
         val order2 = createOrder().copy(id = Order.Id(looksrareOrder2.hash), hash = looksrareOrder2.hash)
         val listedAfter = LooksrareV2Cursor(now)
 
-        coEvery { looksrareOrderService.getNextSellOrders(listedAfter) } returns listOf(
+        coEvery { looksrareService.getNextSellOrders(listedAfter) } returns listOf(
             looksrareOrder1,
             looksrareOrder2
         )
@@ -122,7 +122,7 @@ internal class LooksrareOrderLoaderTest {
         val createdAfter = looksrareOrder3.createdAt - Duration.ofMinutes(1)
         val cursor = LooksrareV2Cursor(createdAfter)
 
-        coEvery { looksrareOrderService.getNextSellOrders(cursor) } returns listOf(looksrareOrder1, looksrareOrder2, looksrareOrder3)
+        coEvery { looksrareService.getNextSellOrders(cursor) } returns listOf(looksrareOrder1, looksrareOrder2, looksrareOrder3)
 
         coEvery { orderRepository.findById(any()) } returns null
         coEvery { looksrareOrderConverter.convert(any()) } returns createOrderVersion()
@@ -146,7 +146,7 @@ internal class LooksrareOrderLoaderTest {
         val createdAfter = looksrareOrder2.createdAt
         val cursor = LooksrareV2Cursor(createdAfter, nextId = randomString(), maxSeenCreated = maxSeenCreated)
 
-        coEvery { looksrareOrderService.getNextSellOrders(cursor) } returns listOf(looksrareOrder1, looksrareOrder2, looksrareOrder3)
+        coEvery { looksrareService.getNextSellOrders(cursor) } returns listOf(looksrareOrder1, looksrareOrder2, looksrareOrder3)
 
         coEvery { orderRepository.findById(any()) } returns null
         coEvery { looksrareOrderConverter.convert(any()) } returns createOrderVersion()
@@ -166,7 +166,7 @@ internal class LooksrareOrderLoaderTest {
         val orderVersion1 = createOrderVersion().copy(hash = looksrareOrder1.hash)
         val listedAfter = LooksrareV2Cursor(Instant.now())
 
-        coEvery { looksrareOrderService.getNextSellOrders(listedAfter) } returns listOf(looksrareOrder1)
+        coEvery { looksrareService.getNextSellOrders(listedAfter) } returns listOf(looksrareOrder1)
         coEvery { looksrareOrderConverter.convert(looksrareOrder1) } returns orderVersion1
         coVerify(exactly = 0) { orderUpdateService.save(orderVersion1, any()) }
     }
