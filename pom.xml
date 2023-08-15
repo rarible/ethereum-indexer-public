@@ -34,7 +34,7 @@
         <rarible.core.version>2.5.35</rarible.core.version>
         <rarible.blockchain.scanner.version>2.7.20</rarible.blockchain.scanner.version>
 
-        <rarible.protocol.ethereum.version>1.57.101</rarible.protocol.ethereum.version>
+        <rarible.protocol.ethereum.version>1.58.0</rarible.protocol.ethereum.version>
         <rarible.protocol.currency.version>1.38.4</rarible.protocol.currency.version>
         <opensea-client-starter.version>2.1.19</opensea-client-starter.version>
         <looksrare-client-starter.version>1.2.7</looksrare-client-starter.version>
