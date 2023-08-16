@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.filter.TokeByteCodeFilter
 import io.daonomic.rpc.RpcCodeException
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Error
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
@@ -77,6 +78,24 @@ internal class TokenProviderTest {
 
         assertThat(updatedToken.standard).isEqualTo(TokenStandard.NONE)
         assertThat(updatedToken?.scam).isTrue
+    }
+
+    @Test
+    fun `detect - no code fetched`() = runBlocking<Unit> {
+        val token = Token(
+            id = randomAddress(),
+            name = "Name",
+            standard = TokenStandard.ERC721,
+            scam = false
+        )
+        val code = randomBinary(100)
+
+        every { sender.call(any()) } returns Mono.just(Binary("test".toByteArray()))
+        every { tokeByteCodeFilter.isValid(code) } returns true
+        coEvery { tokenByteCodeService.getByteCode(token.id) } returns null
+        val updatedToken = tokenProvider.fetchToken(token.id).awaitFirst()
+
+        assertThat(updatedToken.standard).isEqualTo(TokenStandard.NONE)
     }
 
     @Test

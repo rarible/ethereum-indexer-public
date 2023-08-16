@@ -201,7 +201,9 @@ class TokenProvider(
         return tokenByteCodeService.getByteCode(address)
     }
 
-    private fun getBytecodeWithMono(address: Address): Mono<Binary> = mono { getBytecode(address)?.code }
+    private fun getBytecodeWithMono(address: Address): Mono<Binary> = mono {
+        getBytecode(address)?.code ?: Binary.empty()
+    }
 
     private fun <T : Any> Mono<T>.emptyIfError(): Mono<Optional<T>> {
         return this

@@ -4,6 +4,8 @@ import com.google.common.cache.CacheBuilder
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -36,6 +38,7 @@ class TokenByteCodeProvider(
                     .ethGetCode(address, "latest")
                     .awaitFirstOrNull()
             } catch (e: Exception) {
+                logger.info("Can't get code for $address code", e)
                 null
             }
             if (bytecode == null || bytecode.hex().isNullOrEmpty()) {
@@ -47,5 +50,9 @@ class TokenByteCodeProvider(
             }
         }
         return null
+    }
+
+    private companion object {
+        val logger: Logger = LoggerFactory.getLogger(TokenByteCodeProvider::class.java)
     }
 }
