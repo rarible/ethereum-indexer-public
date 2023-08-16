@@ -81,7 +81,8 @@ internal class TokenProviderTest {
     }
 
     @Test
-    fun `detect - no code fetched`() = runBlocking<Unit> {
+    fun `detect - no code contract`() = runBlocking<Unit> {
+        // contract example: https://goerli.etherscan.io/address/0x5bf1ce35399bdee25b309fdb006453b3b6e6d569
         val token = Token(
             id = randomAddress(),
             name = "Name",
