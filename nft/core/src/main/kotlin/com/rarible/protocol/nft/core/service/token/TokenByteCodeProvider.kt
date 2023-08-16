@@ -38,7 +38,7 @@ class TokenByteCodeProvider(
                     .ethGetCode(address, "latest")
                     .awaitFirstOrNull()
             } catch (e: Exception) {
-                logger.info("Can't get code for $address code", e)
+                logger.warn("Can't get code for $address code", e)
                 null
             }
             if (bytecode == null || bytecode.hex().isNullOrEmpty()) {
