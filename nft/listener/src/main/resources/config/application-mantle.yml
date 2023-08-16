@@ -5,3 +5,5 @@ rarible:
   ethereum:
     cache:
       enabled: true
+      expireAfter: 5m
+      maxSize: 500
