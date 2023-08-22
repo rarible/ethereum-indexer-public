@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.api.service.order.validation.validators
 
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
-import com.rarible.protocol.order.core.validator.OrderValidator
+import com.rarible.protocol.order.api.form.OrderForm
+import com.rarible.protocol.order.api.service.order.validation.OrderFormValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.CollectionAssetType
@@ -9,9 +11,8 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import com.rarible.protocol.order.core.model.NftCollectionAssetType
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.isBid
 import com.rarible.protocol.order.core.model.token
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.floor.FloorSellService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,32 +23,32 @@ import java.math.BigDecimal
 @Component
 class MinimalPriceItemBidValidator(
     private val floorSellService: FloorSellService,
+    private val priceUpdateService: PriceUpdateService,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
-    private val bidValidation: OrderIndexerProperties.BidValidationProperties
-) : OrderValidator {
+    private val bidValidation: OrderIndexerProperties.BidValidationProperties,
+) : OrderFormValidator {
 
-    override val type = "bid_price"
-
-    override suspend fun validate(order: Order) {
+    override suspend fun validate(form: OrderForm) {
+        if (form.make.type.nft) return
         if (featureFlags.checkMinimalBidPrice.not()) return
 
-        val nftAsset = order.take.type
+        val nftAsset = form.take.type
         if (featureFlags.checkMinimalCollectionBidPriceOnly) {
             if (nftAsset !is CollectionAssetType) return
         }
-        val takePriceUsd = order.takePriceUsd ?: throw OrderUpdateException(
-            "Can't determine 'takePriceUsd', maybe not supported currency: ${order.make.type.token}",
-            EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
-        )
+        val takePriceUsd = priceUpdateService.getAssetUsdValue(form.take.type, form.take.value.value, nowMillis())
+            ?: throw OrderUpdateException(
+                "Can't determine 'takePriceUsd', maybe not supported currency: ${form.make.type.token}",
+                EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
+            )
         return when (nftAsset) {
             is NftCollectionAssetType -> validateWithCollectionFloorPrice(nftAsset.token, takePriceUsd)
             is Erc20AssetType,
             is EthAssetType,
-            is GenerativeArtAssetType -> {}
+            is GenerativeArtAssetType -> {
+            }
         }
     }
-
-    override fun supportsValidation(order: Order): Boolean = order.isBid()
 
     private suspend fun validateWithCollectionFloorPrice(token: Address, takePriceUsd: BigDecimal) {
         val floorPriceUsd = floorSellService.getFloorSellPriceUsd(token)
@@ -62,7 +63,8 @@ class MinimalPriceItemBidValidator(
     private fun validateWithFloorPrice(token: Address, price: BigDecimal, floorPriceUsd: BigDecimal) {
         val minimumFromFloorPrice = floorPriceUsd * bidValidation.minPercentFromFloorPrice
         if (price < minimumFromFloorPrice) {
-            logger.error("Can't set bid for {}, price={}, minimum={}",
+            logger.error(
+                "Can't set bid for {}, price={}, minimum={}",
                 token, price, minimumFromFloorPrice
             )
             throw OrderUpdateException(

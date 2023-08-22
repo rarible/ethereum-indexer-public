@@ -214,7 +214,10 @@ fun createOrderBasicSeaportDataV1(
 fun createOrderRaribleV2DataV1(): OrderRaribleV2DataV1 {
     return OrderRaribleV2DataV1(
         originFees = listOf(Part(randomAddress(), EthUInt256.TEN), Part(randomAddress(), EthUInt256.ONE)),
-        payouts = listOf(Part(randomAddress(), EthUInt256.ONE), Part(randomAddress(), EthUInt256.TEN))
+        payouts = listOf(
+            Part(randomAddress(), EthUInt256.of(BigInteger("9000"))),
+            Part(randomAddress(), EthUInt256.of(BigInteger("1000")))
+        )
     )
 }
 

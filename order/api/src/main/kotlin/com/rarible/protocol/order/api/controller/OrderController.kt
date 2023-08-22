@@ -19,10 +19,12 @@ import com.rarible.protocol.dto.PrepareOrderTxResponseDto
 import com.rarible.protocol.dto.PreparedOrderTxDto
 import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.parser.AddressParser
+import com.rarible.protocol.order.api.converter.OrderFormConverter
 import com.rarible.protocol.order.api.converter.toAddress
 import com.rarible.protocol.order.api.converter.toEthUInt256
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
+import com.rarible.protocol.order.api.service.order.validation.OrderFormValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.dto.AmmTradeInfoDtoConverter
@@ -89,6 +91,8 @@ class OrderController(
     private val orderReduceService: OrderReduceService,
     private val approveService: ApproveService,
     private val orderUpdateService: OrderUpdateService,
+    private val orderFormConverter: OrderFormConverter,
+    private val orderFormValidator: OrderFormValidator,
     orderIndexerProperties: OrderIndexerProperties
 ) : OrderControllerApi {
 
@@ -164,7 +168,13 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
-    override suspend fun upsertOrder(form: OrderFormDto): ResponseEntity<OrderDto> {
+    override suspend fun upsertOrder(formDto: OrderFormDto): ResponseEntity<OrderDto> {
+        val form = orderFormConverter.convert(formDto)
+        try {
+            orderFormValidator.validate(form)
+        } catch (e: Exception) {
+            throw e
+        }
         val order = orderService.put(form)
         val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)

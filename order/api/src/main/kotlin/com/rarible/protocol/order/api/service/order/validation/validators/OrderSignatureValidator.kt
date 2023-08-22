@@ -3,7 +3,8 @@ package com.rarible.protocol.order.api.service.order.validation.validators
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
-import com.rarible.protocol.order.core.validator.OrderValidator
+import com.rarible.protocol.order.api.form.OrderForm
+import com.rarible.protocol.order.api.service.order.validation.OrderFormValidator
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
@@ -19,42 +20,37 @@ class OrderSignatureValidator(
     @Qualifier("raribleExchangeV2") var eip712Domain: EIP712Domain,
     private val legacySigner: CommonSigner,
     private val erc1271SignService: ERC1271SignService
-) : OrderValidator {
+) : OrderFormValidator {
 
-    override val type: String = "signature"
+    override suspend fun validate(form: OrderForm) {
+        val signature = form.signature
 
-    override fun supportsValidation(order: Order): Boolean =
-        order.type == OrderType.RARIBLE_V2 || order.type == OrderType.RARIBLE_V1
-
-    override suspend fun validate(order: Order) {
-        val signature = order.signature ?: throw OrderUpdateException(
-            "Signature is not specified", EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE
-        )
-
-        return when (order.type) {
+        return when (form.type) {
             OrderType.RARIBLE_V1 -> {
-                logger.info("validating legacy order message: ${order.hash}, signature: $signature")
-                val legacyMessage = order.legacyMessage()
-                val signer = legacySigner.recover(legacyMessage, signature)
-                if (order.maker != signer) {
-                    throw OrderUpdateException(
-                        "Maker's signature is not valid for V1 order",
-                        EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE
-                    )
+                with(form) {
+                    logger.info("validating legacy order message: $hash, signature: $signature")
+                    val legacyMessage = legacyMessage(maker, make, take, salt, data)
+                    val signer = legacySigner.recover(legacyMessage, signature)
+                    if (form.maker != signer) {
+                        throw OrderUpdateException(
+                            "Maker's signature is not valid for V1 order",
+                            EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE
+                        )
+                    }
                 }
-                Unit
             }
             OrderType.RARIBLE_V2 -> {
-                logger.info("validating v2 order message: ${order.hash}, signature: $signature, eip712Domain: $eip712Domain")
-                val structHash = Order.hash(order)
-                val hash = eip712Domain.hashToSign(structHash)
-                if (erc1271SignService.isSigner(order.maker, hash, signature).not()) {
-                    throw OrderUpdateException(
-                        "Maker's signature is not valid for V2 order",
-                        EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE
-                    )
+                with(form) {
+                    logger.info("validating v2 order message: $hash, signature: $signature, eip712Domain: $eip712Domain")
+                    val structHash = Order.hash(maker, make, taker, take, salt, start, end, data, type)
+                    val hash = eip712Domain.hashToSign(structHash)
+                    if (erc1271SignService.isSigner(maker, hash, signature).not()) {
+                        throw OrderUpdateException(
+                            "Maker's signature is not valid for V2 order",
+                            EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE
+                        )
+                    }
                 }
-                Unit
             }
             OrderType.OPEN_SEA_V1 -> Unit
             OrderType.SEAPORT_V1 -> Unit

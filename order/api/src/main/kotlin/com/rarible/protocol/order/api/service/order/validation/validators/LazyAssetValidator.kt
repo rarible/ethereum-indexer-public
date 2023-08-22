@@ -6,12 +6,12 @@ import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
-import com.rarible.protocol.order.core.validator.OrderValidator
+import com.rarible.protocol.order.api.form.OrderForm
+import com.rarible.protocol.order.api.service.order.validation.OrderFormValidator
 import com.rarible.protocol.order.core.converters.model.LazyAssetTypeToLazyNftConverter
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.AssetType.Companion.isLazy
-import com.rarible.protocol.order.core.model.Order
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Service
 import scalether.abi.Uint256Type
@@ -21,19 +21,15 @@ import java.util.Arrays
 class LazyAssetValidator(
     private val delegate: LazyNftValidator,
     private val nftCollectionClient: NftCollectionControllerApi
-) : OrderValidator {
+) : OrderFormValidator {
 
-    override val type = "lazy"
-
-    override suspend fun validate(order: Order) {
-        order.make.type.takeIf { it.isLazy }
+    override suspend fun validate(form: OrderForm) {
+        form.make.type.takeIf { it.isLazy }
             ?.let { validate(it, "make") }
 
-        order.take.type.takeIf { it.isLazy }
+        form.take.type.takeIf { it.isLazy }
             ?.let { validate(it, "take") }
     }
-
-    override fun supportsValidation(order: Order): Boolean = order.make.type.isLazy || order.take.type.isLazy
 
     private suspend fun validate(lazyAssetType: AssetType, side: String) {
         val lazyNft = LazyAssetTypeToLazyNftConverter.convert(lazyAssetType)

@@ -41,7 +41,6 @@ internal class OrderStateValidationServiceTest {
         orderStateValidationService = CompositeOrderValidator(
             validators = listOf(validator1, validator2),
             orderValidationMetrics = metrics,
-            type = "test"
         )
     }
 

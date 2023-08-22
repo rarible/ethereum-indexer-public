@@ -2,6 +2,7 @@ package com.rarible.protocol.order.api.service.order.validation
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomBinary
 import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.nft.model.LazyERC721
@@ -11,12 +12,12 @@ import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.order.api.data.createErc20Asset
+import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.service.order.validation.validators.LazyAssetValidator
 import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
-import com.rarible.protocol.order.core.model.toOrderExactFields
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -74,7 +75,7 @@ internal class LazyAssetValidatorTest {
         val currency = createErc20Asset()
 
         val (make, take) = if (isBid) currency to nftAsset else nftAsset to currency
-        val orderVersion = createOrderVersion().copy(make = make, take = take)
+        val orderVersion = createOrderVersion().copy(make = make, take = take, signature = randomBinary())
 
         val collection = mockk<NftCollectionDto> {
             every { features } returns listOf(NftCollectionDto.Features.MINT_AND_TRANSFER)
@@ -83,7 +84,7 @@ internal class LazyAssetValidatorTest {
         every { nftCollectionApi.getNftCollectionById(token.hex()) } returns Mono.just(collection)
         coEvery { delegate.validate(lazyNft) } returns ValidationResult.Valid
 
-        lazyAssetValidator.validate(orderVersion.toOrderExactFields())
+        lazyAssetValidator.validate(orderVersion.toForm())
 
         coVerify(exactly = 1) { delegate.validate(lazyNft) }
     }
@@ -113,7 +114,8 @@ internal class LazyAssetValidatorTest {
             royalties = listOf()
         )
         val nftAsset = Asset(lazyNft.toErc721LazyAssetType(), EthUInt256.ONE)
-        val orderVersion = createOrderVersion().copy(make = nftAsset, take = createErc20Asset())
+        val orderVersion =
+            createOrderVersion().copy(make = nftAsset, take = createErc20Asset(), signature = randomBinary())
 
         val collection = mockk<NftCollectionDto> {
             every { features } returns emptyList()
@@ -124,7 +126,7 @@ internal class LazyAssetValidatorTest {
 
         assertThrows<OrderUpdateException> {
             runBlocking {
-                lazyAssetValidator.validate(orderVersion.toOrderExactFields())
+                lazyAssetValidator.validate(orderVersion.toForm())
             }
         }
         coVerify(exactly = 1) { delegate.validate(lazyNft) }
@@ -144,7 +146,8 @@ internal class LazyAssetValidatorTest {
             royalties = listOf()
         )
         val nftAsset = Asset(lazyNft.toErc721LazyAssetType(), EthUInt256.ONE)
-        val orderVersion = createOrderVersion().copy(make = nftAsset, take = createErc20Asset())
+        val orderVersion =
+            createOrderVersion().copy(make = nftAsset, take = createErc20Asset(), signature = randomBinary())
 
         val collection = mockk<NftCollectionDto> {
             every { features } returns listOf(NftCollectionDto.Features.MINT_AND_TRANSFER)
@@ -154,7 +157,7 @@ internal class LazyAssetValidatorTest {
 
         assertThrows<OrderUpdateException> {
             runBlocking {
-                lazyAssetValidator.validate(orderVersion.toOrderExactFields())
+                lazyAssetValidator.validate(orderVersion.toForm())
             }
         }
 

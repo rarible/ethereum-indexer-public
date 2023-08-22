@@ -445,7 +445,7 @@ data class Order(
             return legacyMessage(maker, make, take, salt.value, data)
         }
 
-        private fun legacyMessage(maker: Address, make: Asset, take: Asset, salt: BigInteger, data: OrderData): String {
+        fun legacyMessage(maker: Address, make: Asset, take: Asset, salt: BigInteger, data: OrderData): String {
             val legacyMakeAsset = make.type.toLegacy()
                 ?: error("Unsupported make asset ${make.type} by legacy contract")
             val legacyTakeAsset = take.type.toLegacy()

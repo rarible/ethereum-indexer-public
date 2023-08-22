@@ -31,7 +31,6 @@ internal class CompositeOrderValidatorTest {
     @BeforeEach
     fun before() {
         compositeOrderValidator = CompositeOrderValidator(
-            type = "test",
             validators = listOf(validator1, validator2),
             orderValidationMetrics = orderValidationMetrics,
         )

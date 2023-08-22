@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.api.service.order.validation
 
+import com.rarible.core.test.data.randomBinary
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.api.data.createOrderVersion
+import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.service.order.validation.validators.ParametersPatchValidator
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.Asset
@@ -32,61 +34,61 @@ class ParametersDeprecatedOrderValidatorTest {
 
     @Test
     fun `make change validation`() = runBlocking<Unit> {
-        val order = createOrderVersion(make, take)
+        val order = createOrderVersion(make, take).copy(signature = randomBinary())
         coEvery { orderRepository.findById(order.hash) } returns order.toOrderExactFields()
         assertThrows<OrderUpdateException> {
             validator.validate(
-                order.copy(make = order.make.copy(value = EthUInt256.of(9))).toOrderExactFields()
+                order.copy(make = order.make.copy(value = EthUInt256.of(9))).toForm()
             )
         }
         validator.validate(
-            order.copy(make = order.make.copy(value = EthUInt256.of(11))).toOrderExactFields()
+            order.copy(make = order.make.copy(value = EthUInt256.of(11))).toForm()
         )
     }
 
     @Test
     fun `price validation`() = runBlocking<Unit> {
-        val order = createOrderVersion(make, take)
+        val order = createOrderVersion(make, take).copy(signature = randomBinary())
         coEvery { orderRepository.findById(order.hash) } returns order.toOrderExactFields()
         assertThrows<OrderUpdateException> {
             validator.validate(
                 order.copy(
                     make = order.make.copy(value = EthUInt256.of(20)),
                     take = order.make.copy(value = EthUInt256.of(11))
-                ).toOrderExactFields()
+                ).toForm()
             )
         }
         validator.validate(
             order.copy(
                 make = order.make.copy(value = EthUInt256.of(20)),
                 take = order.make.copy(value = EthUInt256.of(10))
-            ).toOrderExactFields()
+            ).toForm()
         )
         validator.validate(
             order.copy(
                 make = order.make.copy(value = EthUInt256.of(20)),
                 take = order.make.copy(value = EthUInt256.of(9))
-            ).toOrderExactFields()
+            ).toForm()
         )
     }
 
     @Test
     fun `bid price validation`() = runBlocking<Unit> {
-        val order = createOrderVersion(make, take)
+        val order = createOrderVersion(make, take).copy(signature = randomBinary())
         coEvery { orderRepository.findById(order.hash) } returns order.toOrderExactFields()
         assertThrows<OrderUpdateException> {
             validator.validate(
                 order.copy(
                     make = order.make.copy(value = EthUInt256.of(9)),
                     take = order.make.copy(value = EthUInt256.of(5))
-                ).toOrderExactFields()
+                ).toForm()
             )
         }
         validator.validate(
             order.copy(
                 make = order.make.copy(value = EthUInt256.of(11)),
                 take = order.make.copy(value = EthUInt256.of(5))
-            ).toOrderExactFields()
+            ).toForm()
         )
     }
 }
