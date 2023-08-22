@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 class ApprovalsOrderStateValidator(
     private val approveService: ApproveService,
     private val orderUpdateService: OrderUpdateService
-) : OrderStateValidator {
+) : OrderValidator {
 
     override val type = "approval"
 

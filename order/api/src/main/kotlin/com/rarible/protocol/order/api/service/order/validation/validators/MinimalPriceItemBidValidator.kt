@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.api.service.order.validation.validators
 
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
-import com.rarible.protocol.order.api.service.order.validation.OrderVersionValidator
+import com.rarible.protocol.order.core.validator.OrderValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.CollectionAssetType
@@ -9,7 +9,8 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import com.rarible.protocol.order.core.model.NftCollectionAssetType
-import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.isBid
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.service.floor.FloorSellService
 import org.slf4j.Logger
@@ -19,22 +20,23 @@ import scalether.domain.Address
 import java.math.BigDecimal
 
 @Component
-class MinimalPriceItemBidValidation(
+class MinimalPriceItemBidValidator(
     private val floorSellService: FloorSellService,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
     private val bidValidation: OrderIndexerProperties.BidValidationProperties
-) : OrderVersionValidator {
+) : OrderValidator {
 
-    override suspend fun validate(orderVersion: OrderVersion) {
-        if (orderVersion.isSell()) return
+    override val type = "bid_price"
+
+    override suspend fun validate(order: Order) {
         if (featureFlags.checkMinimalBidPrice.not()) return
 
-        val nftAsset = orderVersion.take.type
+        val nftAsset = order.take.type
         if (featureFlags.checkMinimalCollectionBidPriceOnly) {
             if (nftAsset !is CollectionAssetType) return
         }
-        val takePriceUsd = orderVersion.takePriceUsd ?: throw OrderUpdateException(
-            "Can't determine 'takePriceUsd', maybe not supported currency: ${orderVersion.make.type.token}",
+        val takePriceUsd = order.takePriceUsd ?: throw OrderUpdateException(
+            "Can't determine 'takePriceUsd', maybe not supported currency: ${order.make.type.token}",
             EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
         )
         return when (nftAsset) {
@@ -44,6 +46,8 @@ class MinimalPriceItemBidValidation(
             is GenerativeArtAssetType -> {}
         }
     }
+
+    override fun supportsValidation(order: Order): Boolean = order.isBid()
 
     private suspend fun validateWithCollectionFloorPrice(token: Address, takePriceUsd: BigDecimal) {
         val floorPriceUsd = floorSellService.getFloorSellPriceUsd(token)
@@ -78,6 +82,6 @@ class MinimalPriceItemBidValidation(
     }
 
     private companion object {
-        val logger: Logger = LoggerFactory.getLogger(MinimalPriceItemBidValidation::class.java)
+        val logger: Logger = LoggerFactory.getLogger(MinimalPriceItemBidValidator::class.java)
     }
 }

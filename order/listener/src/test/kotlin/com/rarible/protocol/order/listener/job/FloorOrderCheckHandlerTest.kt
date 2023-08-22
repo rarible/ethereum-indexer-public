@@ -4,7 +4,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.service.OrderValidationService
+import com.rarible.protocol.order.core.validator.OrderValidator
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -23,7 +23,7 @@ class FloorOrderCheckHandlerTest {
     lateinit var orderRepository: OrderRepository
 
     @MockK
-    lateinit var orderValidationService: OrderValidationService
+    lateinit var coreOrderValidator: OrderValidator
 
     @MockK
     lateinit var topCollectionProvider: TopCollectionProvider
@@ -33,7 +33,7 @@ class FloorOrderCheckHandlerTest {
 
     @BeforeEach
     fun beforeEach() {
-        clearMocks(topCollectionProvider, orderValidationService, orderRepository)
+        clearMocks(topCollectionProvider, coreOrderValidator, orderRepository)
     }
 
     @Test
@@ -61,18 +61,18 @@ class FloorOrderCheckHandlerTest {
             orderRepository.findActiveBestSellOrdersOfCollection(collection, currency2, 1)
         }.returnsMany(listOf(validOrder2))
 
-        coEvery { orderValidationService.validateState(invalidOrder1) } throws OrderDataException("failed")
-        coEvery { orderValidationService.validateState(validOrder1) } returns Unit
-        coEvery { orderValidationService.validateState(validOrder2) } returns Unit
+        coEvery { coreOrderValidator.validate(invalidOrder1) } throws OrderDataException("failed")
+        coEvery { coreOrderValidator.validate(validOrder1) } returns Unit
+        coEvery { coreOrderValidator.validate(validOrder2) } returns Unit
 
         handler.handle()
 
         coVerify(exactly = 2) { orderRepository.findActiveBestSellOrdersOfCollection(collection, currency1, 1) }
         coVerify(exactly = 1) { orderRepository.findActiveBestSellOrdersOfCollection(collection, currency2, 1) }
 
-        coVerify(exactly = 1) { orderValidationService.validateState(invalidOrder1) }
-        coVerify(exactly = 1) { orderValidationService.validateState(validOrder1) }
-        coVerify(exactly = 1) { orderValidationService.validateState(validOrder2) }
+        coVerify(exactly = 1) { coreOrderValidator.validate(invalidOrder1) }
+        coVerify(exactly = 1) { coreOrderValidator.validate(validOrder1) }
+        coVerify(exactly = 1) { coreOrderValidator.validate(validOrder2) }
     }
 
     @Test
@@ -83,7 +83,7 @@ class FloorOrderCheckHandlerTest {
 
         coVerify(exactly = 0) { orderRepository.findActiveSellCurrenciesByCollection(any()) }
         coVerify(exactly = 0) { orderRepository.findActiveBestSellOrdersOfCollection(any(), any(), any()) }
-        coVerify(exactly = 0) { orderValidationService.validateState(any()) }
+        coVerify(exactly = 0) { coreOrderValidator.validate(any()) }
     }
 
     @Test
@@ -97,7 +97,7 @@ class FloorOrderCheckHandlerTest {
 
         coVerify(exactly = 1) { orderRepository.findActiveSellCurrenciesByCollection(collection) }
         coVerify(exactly = 0) { orderRepository.findActiveBestSellOrdersOfCollection(any(), any(), any()) }
-        coVerify(exactly = 0) { orderValidationService.validateState(any()) }
+        coVerify(exactly = 0) { coreOrderValidator.validate(any()) }
     }
 
     @Test
@@ -113,6 +113,6 @@ class FloorOrderCheckHandlerTest {
 
         coVerify(exactly = 1) { orderRepository.findActiveSellCurrenciesByCollection(collection) }
         coVerify(exactly = 1) { orderRepository.findActiveBestSellOrdersOfCollection(collection, currency, 1) }
-        coVerify(exactly = 0) { orderValidationService.validateState(any()) }
+        coVerify(exactly = 0) { coreOrderValidator.validate(any()) }
     }
 }

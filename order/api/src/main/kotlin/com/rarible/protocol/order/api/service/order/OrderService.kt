@@ -9,7 +9,6 @@ import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.order.api.misc.data
-import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
@@ -33,17 +32,18 @@ import com.rarible.protocol.order.core.model.PoolNftItemIds
 import com.rarible.protocol.order.core.model.PoolTradePrice
 import com.rarible.protocol.order.core.model.currency
 import com.rarible.protocol.order.core.model.order.OrderFilter
+import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.core.service.OrderValidationService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.approve.ApproveService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.core.service.pool.PoolOwnershipService
+import com.rarible.protocol.order.core.validator.OrderValidator
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -60,14 +60,14 @@ class OrderService(
     private val orderUpdateService: OrderUpdateService,
     private val nftItemApiService: NftItemApiService,
     private val poolOwnershipService: PoolOwnershipService,
-    private val orderValidator: OrderValidator,
     private val priceUpdateService: PriceUpdateService,
     private val raribleOrderSaveMetric: RegisteredCounter,
     private val poolCurve: PoolCurve,
     private val poolInfoProvider: PoolInfoProvider,
     private val approveService: ApproveService,
     private val commonSigner: CommonSigner,
-    private val orderValidationService: OrderValidationService,
+    private val apiOrderValidator: OrderValidator,
+    private val coreOrderValidator: OrderValidator,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
@@ -105,11 +105,7 @@ class OrderService(
     suspend fun put(form: OrderFormDto): Order {
         val eventTimeMarks = orderOffchainEventMarks()
         val orderVersion = convertFormToVersion(form)
-        orderValidator.validate(orderVersion)
-        val existingOrder = orderRepository.findById(orderVersion.hash)
-        if (existingOrder != null) {
-            orderValidator.validate(existingOrder, orderVersion)
-        }
+        apiOrderValidator.validate(orderVersion.toOrderExactFields())
         return orderUpdateService
             .save(orderVersion, eventTimeMarks)
             .also { raribleOrderSaveMetric.increment() }
@@ -128,7 +124,7 @@ class OrderService(
             return order
         }
 
-        orderValidationService.validateState(order)
+        coreOrderValidator.validate(order)
         return order
     }
 

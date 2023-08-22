@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.toOrderExactFields
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -27,7 +28,7 @@ class OrderDataValidatorTest {
 
         // when, then
         Assertions.assertThatCode {
-            runBlocking { orderValidator.validate(orderVersion) }
+            runBlocking { orderValidator.validate(orderVersion.toOrderExactFields()) }
         }.doesNotThrowAnyException()
     }
 
@@ -42,7 +43,7 @@ class OrderDataValidatorTest {
 
         // when, then
         Assertions.assertThatCode {
-            runBlocking { orderValidator.validate(orderVersion) }
+            runBlocking { orderValidator.validate(orderVersion.toOrderExactFields()) }
         }.doesNotThrowAnyException()
     }
 
@@ -57,7 +58,7 @@ class OrderDataValidatorTest {
 
         // when, then
         Assertions.assertThatCode {
-            runBlocking { orderValidator.validate(orderVersion) }
+            runBlocking { orderValidator.validate(orderVersion.toOrderExactFields()) }
         }.isExactlyInstanceOf(OrderDataException::class.java)
     }
 }

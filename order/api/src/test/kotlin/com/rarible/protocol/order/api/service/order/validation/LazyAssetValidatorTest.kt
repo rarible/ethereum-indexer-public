@@ -16,6 +16,7 @@ import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.toOrderExactFields
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -82,7 +83,7 @@ internal class LazyAssetValidatorTest {
         every { nftCollectionApi.getNftCollectionById(token.hex()) } returns Mono.just(collection)
         coEvery { delegate.validate(lazyNft) } returns ValidationResult.Valid
 
-        lazyAssetValidator.validate(orderVersion)
+        lazyAssetValidator.validate(orderVersion.toOrderExactFields())
 
         coVerify(exactly = 1) { delegate.validate(lazyNft) }
     }
@@ -123,7 +124,7 @@ internal class LazyAssetValidatorTest {
 
         assertThrows<OrderUpdateException> {
             runBlocking {
-                lazyAssetValidator.validate(orderVersion)
+                lazyAssetValidator.validate(orderVersion.toOrderExactFields())
             }
         }
         coVerify(exactly = 1) { delegate.validate(lazyNft) }
@@ -153,7 +154,7 @@ internal class LazyAssetValidatorTest {
 
         assertThrows<OrderUpdateException> {
             runBlocking {
-                lazyAssetValidator.validate(orderVersion)
+                lazyAssetValidator.validate(orderVersion.toOrderExactFields())
             }
         }
 

@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.core.service.floor.FloorSellService
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -31,7 +32,7 @@ internal class MinimalPriceItemBidValidationTest {
         minPercentFromFloorPrice = BigDecimal("0.75")
     )
     private val featureFlags = mockk<OrderIndexerProperties.FeatureFlags>()
-    private val validator = MinimalPriceItemBidValidation(floorSellService, featureFlags, properties)
+    private val validator = MinimalPriceItemBidValidator(floorSellService, featureFlags, properties)
 
     @BeforeEach
     fun setupMockk() {
@@ -68,7 +69,7 @@ internal class MinimalPriceItemBidValidationTest {
     @MethodSource("bidOrder")
     fun `should validate ok bid takePriceUsd`(bid: OrderVersion, token: Address) = runBlocking<Unit> {
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns BigDecimal("1")
-        validator.validate(bid)
+        validator.validate(bid.toOrderExactFields())
         coVerify { floorSellService.getFloorSellPriceUsd(token) }
     }
 
@@ -81,7 +82,7 @@ internal class MinimalPriceItemBidValidationTest {
             takePriceUsd = BigDecimal("75")
         )
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns BigDecimal("100")
-        validator.validate(bid)
+        validator.validate(bid.toOrderExactFields())
     }
 
     @Test
@@ -93,7 +94,7 @@ internal class MinimalPriceItemBidValidationTest {
             takePriceUsd = BigDecimal("1")
         )
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns null
-        validator.validate(bid)
+        validator.validate(bid.toOrderExactFields())
     }
 
     @Test
@@ -105,7 +106,7 @@ internal class MinimalPriceItemBidValidationTest {
             takePriceUsd = BigDecimal("2")
         )
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns null
-        validator.validate(bid)
+        validator.validate(bid.toOrderExactFields())
     }
 
     @Test
@@ -118,7 +119,7 @@ internal class MinimalPriceItemBidValidationTest {
         )
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns BigDecimal("100")
         assertThrows<OrderUpdateException> {
-            validator.validate(bid)
+            validator.validate(bid.toOrderExactFields())
         }
     }
 
@@ -132,7 +133,7 @@ internal class MinimalPriceItemBidValidationTest {
         )
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns null
         assertThrows<OrderUpdateException> {
-            validator.validate(bid)
+            validator.validate(bid.toOrderExactFields())
         }
     }
 
@@ -145,7 +146,7 @@ internal class MinimalPriceItemBidValidationTest {
             take = randomErc721(token),
             takePriceUsd = BigDecimal("100")
         )
-        validator.validate(bid)
+        validator.validate(bid.toOrderExactFields())
         coVerify(exactly = 0) { floorSellService.getFloorSellPriceUsd(token) }
     }
 }

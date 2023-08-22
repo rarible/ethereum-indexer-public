@@ -15,7 +15,7 @@ class CheckingOrderStateValidator(
     private val orderStateCheckService: OrderStateCheckService,
     private val orderCancelService: OrderCancelService,
     private val platform: Platform,
-) : OrderStateValidator {
+) : OrderValidator {
 
     override val type = "aggregation"
 

@@ -1,16 +1,24 @@
 package com.rarible.protocol.order.api.service.order.validation.validators
 
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
-import com.rarible.protocol.order.api.service.order.validation.OrderPatchValidator
+import com.rarible.protocol.order.core.validator.OrderValidator
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import org.springframework.stereotype.Component
 
 @Component
-class ParametersPatchValidator : OrderPatchValidator {
+class ParametersPatchValidator(
+    private val orderRepository: OrderRepository
+) : OrderValidator {
 
-    override suspend fun validate(order: Order, update: OrderVersion) {
+    override val type: String = "patch"
+
+    override fun supportsValidation(order: Order): Boolean = true
+
+    override suspend fun validate(update: Order) {
+        val order = orderRepository.findById(update.hash) ?: return
+
         if (order.cancelled) {
             throw OrderUpdateException("Order is cancelled", EthereumOrderUpdateApiErrorDto.Code.ORDER_CANCELED)
         }

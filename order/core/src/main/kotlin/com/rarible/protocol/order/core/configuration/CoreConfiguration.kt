@@ -9,6 +9,7 @@ import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
 import com.rarible.protocol.order.core.metric.MetricsPackage
+import com.rarible.protocol.order.core.metric.OrderValidationMetricsImpl
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.producer.ProducerPackage
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
@@ -21,8 +22,12 @@ import com.rarible.protocol.order.core.service.auction.AuctionUpdateService
 import com.rarible.protocol.order.core.service.looksrare.LooksrareService
 import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import com.rarible.protocol.order.core.trace.TracePackage
+import com.rarible.protocol.order.core.validator.ApprovalsOrderStateValidator
 import com.rarible.protocol.order.core.validator.CheckingOrderStateValidator
-import com.rarible.protocol.order.core.validator.OrderStateValidator
+import com.rarible.protocol.order.core.validator.CompositeOrderValidator
+import com.rarible.protocol.order.core.validator.OpenseaOrderStateValidator
+import com.rarible.protocol.order.core.validator.OrderValidator
+import com.rarible.protocol.order.core.validator.StatusOrderStateValidator
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -40,7 +45,7 @@ import scalether.transaction.MonoTransactionSender
         TracePackage::class,
         ProducerPackage::class,
         MetricsPackage::class,
-        OrderStateValidator::class
+        OrderValidator::class,
     ]
 
 )
@@ -88,7 +93,7 @@ class CoreConfiguration {
     fun x2y2OrderStateValidator(
         x2Y2Service: X2Y2Service,
         orderCancelService: OrderCancelService,
-    ): OrderStateValidator = CheckingOrderStateValidator(
+    ): OrderValidator = CheckingOrderStateValidator(
         orderStateCheckService = x2Y2Service,
         orderCancelService = orderCancelService,
         platform = Platform.X2Y2,
@@ -98,9 +103,29 @@ class CoreConfiguration {
     fun looksrareOrderStateValidator(
         looksrareService: LooksrareService,
         orderCancelService: OrderCancelService,
-    ): OrderStateValidator = CheckingOrderStateValidator(
+    ): OrderValidator = CheckingOrderStateValidator(
         orderStateCheckService = looksrareService,
         orderCancelService = orderCancelService,
         platform = Platform.LOOKSRARE,
+    )
+
+    @Bean
+    fun coreOrderValidator(
+        approvalsOrderStateValidator: ApprovalsOrderStateValidator,
+        openseaOrderStateValidator: OpenseaOrderStateValidator,
+        statusOrderStateValidator: StatusOrderStateValidator,
+        x2y2OrderStateValidator: OrderValidator,
+        looksrareOrderStateValidator: OrderValidator,
+        orderValidationMetricsImpl: OrderValidationMetricsImpl,
+    ): OrderValidator = CompositeOrderValidator(
+        validators = listOf(
+            statusOrderStateValidator,
+            openseaOrderStateValidator,
+            x2y2OrderStateValidator,
+            looksrareOrderStateValidator,
+            approvalsOrderStateValidator,
+        ),
+        type = "core_order_validator",
+        orderValidationMetrics = orderValidationMetricsImpl,
     )
 }

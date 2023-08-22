@@ -5,7 +5,7 @@ import com.rarible.core.daemon.sequential.SequentialDaemonWorker
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.repository.TopCollectionRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.service.OrderValidationService
+import com.rarible.protocol.order.core.validator.OrderValidator
 import com.rarible.protocol.order.listener.configuration.FloorOrderCheckWorkerProperties
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.async
@@ -43,7 +43,7 @@ class FloorOrderCheckWorker(
 @Component
 class FloorOrderCheckHandler(
     private val orderRepository: OrderRepository,
-    private val orderValidationService: OrderValidationService,
+    private val coreOrderValidator: OrderValidator,
     private val topCollectionProvider: TopCollectionProvider
 ) {
 
@@ -102,7 +102,7 @@ class FloorOrderCheckHandler(
 
     private suspend fun validate(order: Order): Boolean {
         return try {
-            orderValidationService.validateState(order)
+            coreOrderValidator.validate(order)
             true
         } catch (e: Exception) {
             logger.info("Order {} ({}) validation failed: {}", order.hash.prefixed(), order.platform, e.message)

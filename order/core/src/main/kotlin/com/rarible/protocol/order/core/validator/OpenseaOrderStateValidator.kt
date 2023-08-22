@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 @Component
 class OpenseaOrderStateValidator(
     private val seaportSignatureResolver: SeaportSignatureResolver,
-) : OrderStateValidator {
+) : OrderValidator {
 
     override val type = "aggregation"
 
