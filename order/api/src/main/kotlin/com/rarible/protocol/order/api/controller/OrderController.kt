@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.AmmTradeInfoDto
@@ -20,11 +19,12 @@ import com.rarible.protocol.dto.PrepareOrderTxResponseDto
 import com.rarible.protocol.dto.PreparedOrderTxDto
 import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.parser.AddressParser
-import com.rarible.protocol.order.api.configuration.OrderIndexerApiProperties
+import com.rarible.protocol.order.api.converter.OrderFormConverter
 import com.rarible.protocol.order.api.converter.toAddress
 import com.rarible.protocol.order.api.converter.toEthUInt256
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
+import com.rarible.protocol.order.api.service.order.validation.OrderFormValidator
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.dto.AmmTradeInfoDtoConverter
@@ -75,7 +75,6 @@ import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.time.Duration
 import java.time.Instant
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
@@ -92,7 +91,8 @@ class OrderController(
     private val orderReduceService: OrderReduceService,
     private val approveService: ApproveService,
     private val orderUpdateService: OrderUpdateService,
-    private val apiProperties: OrderIndexerApiProperties,
+    private val orderFormConverter: OrderFormConverter,
+    private val orderFormValidator: OrderFormValidator,
     orderIndexerProperties: OrderIndexerProperties
 ) : OrderControllerApi {
 
@@ -168,8 +168,9 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
-    override suspend fun upsertOrder(form: OrderFormDto): ResponseEntity<OrderDto> {
-        validateStartEnd(form)
+    override suspend fun upsertOrder(formDto: OrderFormDto): ResponseEntity<OrderDto> {
+        val form = orderFormConverter.convert(formDto)
+        orderFormValidator.validate(form)
         val order = orderService.put(form)
         val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)
@@ -632,21 +633,6 @@ class OrderController(
             result.map { orderDtoConverter.convert(it) },
             nextContinuation
         )
-    }
-
-    private fun validateStartEnd(form: OrderFormDto) {
-        when {
-            form.end == 0L -> {
-                throw ValidationApiException("Missed end date")
-            }
-            form.start != null && form.end <= form.start!! -> {
-                throw ValidationApiException("End date must be greater than start")
-            }
-            apiProperties.maxOrderEndDate != null &&
-                    (form.end - nowMillis().epochSecond) > apiProperties.maxOrderEndDate -> {
-                throw ValidationApiException("Maximum end date is ${Duration.ofSeconds(apiProperties.maxOrderEndDate)} from now")
-            }
-        }
     }
 
     private fun safeAddress(value: String?): Address? {

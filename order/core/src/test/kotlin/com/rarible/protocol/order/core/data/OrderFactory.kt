@@ -59,6 +59,7 @@ fun randomOrder(
 }
 
 fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormDto {
+    val fixedEnd = end ?: Instant.MAX.epochSecond
     return when (type) {
         OrderType.RARIBLE_V2 -> RaribleV2OrderFormDto(
             maker = maker,
@@ -68,8 +69,8 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
             salt = salt.value,
             data = OrderDataDtoConverter.convert(data) as OrderRaribleV2DataDto,
             start = start,
-            end = end ?: Instant.MAX.epochSecond,
-            signature = eip712Domain.hashToSign(Order.hash(this)).sign(privateKey)
+            end = fixedEnd,
+            signature = eip712Domain.hashToSign(Order.hash(this.copy(end = fixedEnd))).sign(privateKey)
         )
         OrderType.RARIBLE_V1 -> LegacyOrderFormDto(
             maker = maker,
@@ -79,7 +80,7 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
             salt = salt.value,
             data = OrderDataDtoConverter.convert(data) as OrderDataLegacyDto,
             start = start,
-            end = end ?: Instant.MAX.epochSecond,
+            end = fixedEnd,
             signature = CommonSigner().hashToSign(legacyMessage()).sign(privateKey)
         )
         OrderType.OPEN_SEA_V1,

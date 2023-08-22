@@ -2,10 +2,10 @@ package com.rarible.protocol.order.api.service.order.validation.validators
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.api.form.OrderForm
 import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
-import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
 import io.mockk.every
 import io.mockk.mockk
@@ -15,19 +15,19 @@ import org.junit.jupiter.api.Test
 
 class OrderDataValidatorTest {
 
-    private val orderVersion = mockk<OrderVersion>()
+    private val form = mockk<OrderForm>()
     private val orderValidator = OrderDataValidator()
 
     @Test
     fun `validate order data - no payouts - success`() = runBlocking<Unit> {
         // given
         val orderData = OrderRaribleV2DataV1(payouts = emptyList(), originFees = emptyList())
-        every { orderVersion.type } returns OrderType.RARIBLE_V2
-        every { orderVersion.data } returns orderData
+        every { form.type } returns OrderType.RARIBLE_V2
+        every { form.data } returns orderData
 
         // when, then
         Assertions.assertThatCode {
-            runBlocking { orderValidator.validate(orderVersion) }
+            runBlocking { orderValidator.validate(form) }
         }.doesNotThrowAnyException()
     }
 
@@ -37,12 +37,12 @@ class OrderDataValidatorTest {
         val part1 = Part(account = randomAddress(), value = EthUInt256.of(7500))
         val part2 = Part(account = randomAddress(), value = EthUInt256.of(2500))
         val orderData = OrderRaribleV2DataV1(payouts = listOf(part1, part2), originFees = emptyList())
-        every { orderVersion.type } returns OrderType.RARIBLE_V2
-        every { orderVersion.data } returns orderData
+        every { form.type } returns OrderType.RARIBLE_V2
+        every { form.data } returns orderData
 
         // when, then
         Assertions.assertThatCode {
-            runBlocking { orderValidator.validate(orderVersion) }
+            runBlocking { orderValidator.validate(form) }
         }.doesNotThrowAnyException()
     }
 
@@ -52,12 +52,12 @@ class OrderDataValidatorTest {
         val part1 = Part(account = randomAddress(), value = EthUInt256.of(500))
         val part2 = Part(account = randomAddress(), value = EthUInt256.of(2500))
         val orderData = OrderRaribleV2DataV1(payouts = listOf(part1, part2), originFees = emptyList())
-        every { orderVersion.type } returns OrderType.RARIBLE_V2
-        every { orderVersion.data } returns orderData
+        every { form.type } returns OrderType.RARIBLE_V2
+        every { form.data } returns orderData
 
         // when, then
         Assertions.assertThatCode {
-            runBlocking { orderValidator.validate(orderVersion) }
+            runBlocking { orderValidator.validate(form) }
         }.isExactlyInstanceOf(OrderDataException::class.java)
     }
 }

@@ -13,6 +13,7 @@ import com.rarible.protocol.dto.EncodedOrderDto
 import com.rarible.protocol.dto.OrderDataDto
 import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.TextSignMessageDto
+import com.rarible.protocol.order.api.converter.OrderFormConverter
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.converters.model.AssetTypeConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
@@ -34,6 +35,7 @@ import scalether.domain.Address
 class EncodeController(
     private val orderService: OrderService,
     private val transferProxyService: TransferProxyService,
+    private val orderFormConverter: OrderFormConverter,
     @Qualifier("raribleExchangeV2") eip712Domain: EIP712Domain,
     mapper: ObjectMapper
 ) : OrderEncodeControllerApi {
@@ -50,7 +52,7 @@ class EncodeController(
     }
 
     override suspend fun encodeOrder(form: OrderFormDto): ResponseEntity<EncodedOrderDto> {
-        val order = orderService.convertFormToVersion(form).toOrderExactFields()
+        val order = orderService.convertFormToVersion(orderFormConverter.convert(form)).toOrderExactFields()
         val signMessage = when (order.type) {
             OrderType.RARIBLE_V1 -> {
                 TextSignMessageDto(message = order.legacyMessage())

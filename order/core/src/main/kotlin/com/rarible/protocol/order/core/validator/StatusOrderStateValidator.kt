@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 @Component
 class StatusOrderStateValidator(
     private val orderUpdateService: OrderUpdateService
-) : OrderStateValidator {
+) : OrderValidator {
 
     override val type = "status"
 

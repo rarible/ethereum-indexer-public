@@ -1,36 +1,33 @@
 package com.rarible.protocol.order.api.service.order.validation.validators
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.nft.model.LazyNft
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
-import com.rarible.protocol.order.api.service.order.validation.OrderVersionValidator
+import com.rarible.protocol.order.api.form.OrderForm
+import com.rarible.protocol.order.api.service.order.validation.OrderFormValidator
 import com.rarible.protocol.order.core.converters.model.LazyAssetTypeToLazyNftConverter
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.AssetType.Companion.isLazy
-import com.rarible.protocol.order.core.model.OrderVersion
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Service
 import scalether.abi.Uint256Type
 import java.util.Arrays
 
 @Service
-@CaptureSpan(type = SpanType.APP)
 class LazyAssetValidator(
     private val delegate: LazyNftValidator,
     private val nftCollectionClient: NftCollectionControllerApi
-) : OrderVersionValidator {
+) : OrderFormValidator {
 
-    override suspend fun validate(orderVersion: OrderVersion) {
-        orderVersion.make.type.takeIf { it.isLazy }
+    override suspend fun validate(form: OrderForm) {
+        form.make.type.takeIf { it.isLazy }
             ?.let { validate(it, "make") }
 
-        orderVersion.take.type.takeIf { it.isLazy }
+        form.take.type.takeIf { it.isLazy }
             ?.let { validate(it, "take") }
     }
 

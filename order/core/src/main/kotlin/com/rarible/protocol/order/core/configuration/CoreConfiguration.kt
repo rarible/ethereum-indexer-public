@@ -22,7 +22,7 @@ import com.rarible.protocol.order.core.service.looksrare.LooksrareService
 import com.rarible.protocol.order.core.service.x2y2.X2Y2Service
 import com.rarible.protocol.order.core.trace.TracePackage
 import com.rarible.protocol.order.core.validator.CheckingOrderStateValidator
-import com.rarible.protocol.order.core.validator.OrderStateValidator
+import com.rarible.protocol.order.core.validator.OrderValidator
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -40,7 +40,7 @@ import scalether.transaction.MonoTransactionSender
         TracePackage::class,
         ProducerPackage::class,
         MetricsPackage::class,
-        OrderStateValidator::class
+        OrderValidator::class,
     ]
 
 )
@@ -88,7 +88,7 @@ class CoreConfiguration {
     fun x2y2OrderStateValidator(
         x2Y2Service: X2Y2Service,
         orderCancelService: OrderCancelService,
-    ): OrderStateValidator = CheckingOrderStateValidator(
+    ): OrderValidator = CheckingOrderStateValidator(
         orderStateCheckService = x2Y2Service,
         orderCancelService = orderCancelService,
         platform = Platform.X2Y2,
@@ -98,7 +98,7 @@ class CoreConfiguration {
     fun looksrareOrderStateValidator(
         looksrareService: LooksrareService,
         orderCancelService: OrderCancelService,
-    ): OrderStateValidator = CheckingOrderStateValidator(
+    ): OrderValidator = CheckingOrderStateValidator(
         orderStateCheckService = looksrareService,
         orderCancelService = orderCancelService,
         platform = Platform.LOOKSRARE,

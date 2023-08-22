@@ -2,6 +2,7 @@ package com.rarible.protocol.order.api.data
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.api.form.OrderForm
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
@@ -145,4 +146,18 @@ fun createOrderVersion(make: Asset, take: Asset) = OrderVersion(
     end = Instant.now().plusSeconds(1000).epochSecond,
     data = OrderRaribleV2DataV1(emptyList(), emptyList()),
     signature = null
+)
+
+fun OrderVersion.toForm() = OrderForm(
+    make = make,
+    take = take,
+    start = start,
+    end = end!!,
+    maker = maker,
+    taker = taker,
+    data = data,
+    hash = hash,
+    salt = salt.value,
+    signature = signature!!,
+    type = type,
 )

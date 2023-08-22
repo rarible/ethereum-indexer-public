@@ -1,6 +1,8 @@
 package com.rarible.protocol.order.api.service.order.validation.validators
 
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBinary
+import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.data.randomCollection
@@ -8,6 +10,7 @@ import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.exception.OrderUpdateException
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.floor.FloorSellService
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -26,12 +29,13 @@ import java.util.stream.Stream
 
 internal class MinimalPriceItemBidValidationTest {
     private val floorSellService = mockk<FloorSellService>()
+    private val priceUpdateService = mockk<PriceUpdateService>()
     private val properties = OrderIndexerProperties.BidValidationProperties(
         minPriceUsd = BigDecimal("1"),
         minPercentFromFloorPrice = BigDecimal("0.75")
     )
     private val featureFlags = mockk<OrderIndexerProperties.FeatureFlags>()
-    private val validator = MinimalPriceItemBidValidation(floorSellService, featureFlags, properties)
+    private val validator = MinimalPriceItemBidValidator(floorSellService, priceUpdateService, featureFlags, properties)
 
     @BeforeEach
     fun setupMockk() {
@@ -48,7 +52,8 @@ internal class MinimalPriceItemBidValidationTest {
                     createOrderVersion().copy(
                         make = randomErc20(),
                         take = randomErc721(token),
-                        takePriceUsd = BigDecimal("100")
+                        takePriceUsd = BigDecimal("100"),
+                        signature = randomBinary(),
                     ),
                     token
                 ),
@@ -56,7 +61,8 @@ internal class MinimalPriceItemBidValidationTest {
                     createOrderVersion().copy(
                         make = randomErc20(),
                         take = randomCollection(token),
-                        takePriceUsd = BigDecimal("100")
+                        takePriceUsd = BigDecimal("100"),
+                        signature = randomBinary(),
                     ),
                     token
                 ),
@@ -68,7 +74,14 @@ internal class MinimalPriceItemBidValidationTest {
     @MethodSource("bidOrder")
     fun `should validate ok bid takePriceUsd`(bid: OrderVersion, token: Address) = runBlocking<Unit> {
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns BigDecimal("1")
-        validator.validate(bid)
+        coEvery {
+            priceUpdateService.getAssetUsdValue(
+                bid.take.type,
+                bid.take.value.value,
+                any()
+            )
+        } returns bid.takePriceUsd
+        validator.validate(bid.toForm())
         coVerify { floorSellService.getFloorSellPriceUsd(token) }
     }
 
@@ -78,10 +91,18 @@ internal class MinimalPriceItemBidValidationTest {
         val bid = createOrderVersion().copy(
             make = randomErc20(),
             take = randomErc721(token),
-            takePriceUsd = BigDecimal("75")
+            takePriceUsd = BigDecimal("75"),
+            signature = randomBinary(),
         )
+        coEvery {
+            priceUpdateService.getAssetUsdValue(
+                bid.take.type,
+                bid.take.value.value,
+                any()
+            )
+        } returns bid.takePriceUsd
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns BigDecimal("100")
-        validator.validate(bid)
+        validator.validate(bid.toForm())
     }
 
     @Test
@@ -90,10 +111,18 @@ internal class MinimalPriceItemBidValidationTest {
         val bid = createOrderVersion().copy(
             make = randomErc20(),
             take = randomErc721(token),
-            takePriceUsd = BigDecimal("1")
+            takePriceUsd = BigDecimal("1"),
+            signature = randomBinary(),
         )
+        coEvery {
+            priceUpdateService.getAssetUsdValue(
+                bid.take.type,
+                bid.take.value.value,
+                any()
+            )
+        } returns bid.takePriceUsd
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns null
-        validator.validate(bid)
+        validator.validate(bid.toForm())
     }
 
     @Test
@@ -102,10 +131,18 @@ internal class MinimalPriceItemBidValidationTest {
         val bid = createOrderVersion().copy(
             make = randomErc20(),
             take = randomErc721(token),
-            takePriceUsd = BigDecimal("2")
+            takePriceUsd = BigDecimal("2"),
+            signature = randomBinary(),
         )
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns null
-        validator.validate(bid)
+        coEvery {
+            priceUpdateService.getAssetUsdValue(
+                bid.take.type,
+                bid.take.value.value,
+                any()
+            )
+        } returns BigDecimal("2")
+        validator.validate(bid.toForm())
     }
 
     @Test
@@ -114,11 +151,19 @@ internal class MinimalPriceItemBidValidationTest {
         val bid = createOrderVersion().copy(
             make = randomErc20(),
             take = randomErc721(token),
-            takePriceUsd = BigDecimal("74")
+            takePriceUsd = BigDecimal("74"),
+            signature = randomBinary(),
         )
+        coEvery {
+            priceUpdateService.getAssetUsdValue(
+                bid.take.type,
+                bid.take.value.value,
+                any()
+            )
+        } returns bid.takePriceUsd
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns BigDecimal("100")
         assertThrows<OrderUpdateException> {
-            validator.validate(bid)
+            validator.validate(bid.toForm())
         }
     }
 
@@ -128,11 +173,19 @@ internal class MinimalPriceItemBidValidationTest {
         val bid = createOrderVersion().copy(
             make = randomErc20(),
             take = randomErc721(token),
-            takePriceUsd = BigDecimal("0.1")
+            takePriceUsd = BigDecimal("0.1"),
+            signature = randomBinary(),
         )
+        coEvery {
+            priceUpdateService.getAssetUsdValue(
+                bid.take.type,
+                bid.take.value.value,
+                any()
+            )
+        } returns bid.takePriceUsd
         coEvery { floorSellService.getFloorSellPriceUsd(token) } returns null
         assertThrows<OrderUpdateException> {
-            validator.validate(bid)
+            validator.validate(bid.toForm())
         }
     }
 
@@ -143,9 +196,11 @@ internal class MinimalPriceItemBidValidationTest {
         val bid = createOrderVersion().copy(
             make = randomErc20(),
             take = randomErc721(token),
-            takePriceUsd = BigDecimal("100")
+            takePriceUsd = BigDecimal("100"),
+            signature = randomBinary(),
         )
-        validator.validate(bid)
+
+        validator.validate(bid.toForm())
         coVerify(exactly = 0) { floorSellService.getFloorSellPriceUsd(token) }
     }
 }

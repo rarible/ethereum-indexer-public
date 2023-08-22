@@ -73,6 +73,8 @@ class OrderControllerFt : AbstractIntegrationTest() {
     @Autowired
     lateinit var restTemplate: RestTemplate
 
+    private val eip712Domain = EIP712Domain("test", "1", BigInteger.ONE, Address.ZERO())
+
     /**
      * Test that "salt" field in the serialized OrderForm can be a big-integer, 0xHEX or a big-integer string.
      */
@@ -144,7 +146,7 @@ class OrderControllerFt : AbstractIntegrationTest() {
 
         coEvery { orderService.put(any()) } returns order
 
-        val formDto = order.toForm(EIP712Domain("", "", BigInteger.ONE, AddressFactory.create()), privateKey)
+        val formDto = order.toForm(eip712Domain, privateKey)
 
         val orderDto = upsert(formDto)
         assertThat((orderDto as RaribleV2OrderDto).make.value).isEqualTo(BigInteger.TEN)
@@ -220,8 +222,13 @@ class OrderControllerFt : AbstractIntegrationTest() {
     @Test
     fun `should create order with null end - fail`() {
         val (privateKey, _, signer) = generateNewKeys()
-        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN), EthUInt256.TEN, OrderRaribleV2DataV1(emptyList(), emptyList()))
-        val formDto = order.toForm(EIP712Domain("", "", BigInteger.ONE, AddressFactory.create()), privateKey)
+        val order = createOrder(
+            signer,
+            Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+            EthUInt256.TEN,
+            OrderRaribleV2DataV1(emptyList(), emptyList())
+        )
+        val formDto = order.toForm(eip712Domain, privateKey)
         val request: MutableMap<String, Object> = objectMapper.convertValue<Map<String, Object>>(formDto).toMutableMap()
         request.remove("end")
         assertThatExceptionOfType(HttpClientErrorException.BadRequest::class.java).isThrownBy {
@@ -236,10 +243,40 @@ class OrderControllerFt : AbstractIntegrationTest() {
     @Test
     fun `should create order with invalid end - fail`() {
         val (privateKey, _, signer) = generateNewKeys()
-        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN), EthUInt256.TEN, OrderRaribleV2DataV1(emptyList(), emptyList()))
-        val formDto = order.toForm(EIP712Domain("", "", BigInteger.ONE, AddressFactory.create()), privateKey) as RaribleV2OrderFormDto
+        val order = createOrder(
+            signer,
+            Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+            EthUInt256.TEN,
+            OrderRaribleV2DataV1(emptyList(), emptyList())
+        )
+        val formDto = order.toForm(eip712Domain, privateKey) as RaribleV2OrderFormDto
         assertThatExceptionOfType(OrderControllerApi.ErrorUpsertOrder::class.java).isThrownBy {
-            orderClient.upsertOrder(formDto.copy(start = nowMillis().plusSeconds(1000).epochSecond, end = nowMillis().epochSecond)).block()
+            orderClient.upsertOrder(
+                formDto.copy(
+                    start = nowMillis().plusSeconds(1000).epochSecond,
+                    end = nowMillis().epochSecond
+                )
+            ).block()
+        }.withMessageContaining("Bad Request")
+    }
+
+    @Test
+    fun `should create order with invalid signature - fail`() {
+        val (privateKey, _, signer) = generateNewKeys()
+        val order = createOrder(
+            AddressFactory.create(),
+            Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+            EthUInt256.TEN,
+            OrderRaribleV2DataV1(emptyList(), emptyList())
+        )
+        val formDto = order.toForm(eip712Domain, privateKey) as RaribleV2OrderFormDto
+        assertThatExceptionOfType(OrderControllerApi.ErrorUpsertOrder::class.java).isThrownBy {
+            orderClient.upsertOrder(
+                formDto.copy(
+                    start = nowMillis().plusSeconds(1000).epochSecond,
+                    end = nowMillis().epochSecond
+                )
+            ).block()
         }.withMessageContaining("Bad Request")
     }
 

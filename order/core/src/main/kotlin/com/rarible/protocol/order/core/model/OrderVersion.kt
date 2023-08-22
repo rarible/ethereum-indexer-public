@@ -69,10 +69,10 @@ fun OrderVersion.toOrderExactFields() = Order(
     createdAt = createdAt,
     lastUpdateAt = createdAt,
     pending = emptyList(),
-    makePriceUsd = null,
-    takePriceUsd = null,
-    makeUsd = null,
-    takeUsd = null,
+    makePriceUsd = makePriceUsd,
+    takePriceUsd = takePriceUsd,
+    makeUsd = makeUsd,
+    takeUsd = takeUsd,
     priceHistory = emptyList(),
     platform = platform
 )
