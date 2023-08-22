@@ -170,11 +170,7 @@ class OrderController(
 
     override suspend fun upsertOrder(formDto: OrderFormDto): ResponseEntity<OrderDto> {
         val form = orderFormConverter.convert(formDto)
-        try {
-            orderFormValidator.validate(form)
-        } catch (e: Exception) {
-            throw e
-        }
+        orderFormValidator.validate(form)
         val order = orderService.put(form)
         val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)

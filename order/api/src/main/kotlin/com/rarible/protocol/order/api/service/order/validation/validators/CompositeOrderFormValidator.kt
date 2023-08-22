@@ -17,11 +17,7 @@ class CompositeOrderFormValidator(
         coroutineScope {
             validators.map {
                 asyncWithTraceId {
-                    try {
-                        it.validate(form)
-                    } catch (e: Exception) {
-                        throw e
-                    }
+                    it.validate(form)
                 }
             }.awaitAll()
         }
