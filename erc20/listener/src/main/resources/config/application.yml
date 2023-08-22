@@ -1,54 +1,41 @@
-application:
-  project: protocol
-
 server:
-  shutdown: graceful
   port: 8080
 
 spring:
-  application.name: protocol-${listener.blockchain}-erc20-listener
-  jackson:
-    mapper:
-      ACCEPT_CASE_INSENSITIVE_ENUMS: true
-    deserialization:
-      FAIL_ON_UNKNOWN_PROPERTIES: false
-    default-property-inclusion: non_null
-  codec:
-    max-in-memory-size: 50MB
-  aop:
-    proxy-target-class: false
-  main:
-    banner-mode: log
-    web-application-type: reactive
+  application.name: protocol-${common.blockchain}-erc20-listener
+  data:
+    mongodb:
+      uri: mongodb://${mongodb.hosts}
+      database: ${mongodb.database}
+
 mongock:
   change-logs-scan-package:
     - com.rarible.blockchain.scanner.ethereum.migration
 
 rarible:
   core:
-    apm:
-      agent:
-        enabled: false
-        server: http://elk_apm-server:8200
-        packages: org.rarible.ethereum.erc20.api
-  blockchain:
-    monitoring:
-      blockchain: ${listener.blockchain}
+    task:
+      enabled: true
   ethereum:
+    maxFrameSize: 80485760
     cache:
       enabled: true
 
+protocol:
+  erc20:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+  order:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+
 common:
-  metric-root-path: "protocol.erc20.indexer"
-  blockchain: ${listener.blockchain}
-
-ethereumMaxFrameSize: 104857600
-ethereumBlockBatchSize: 50
-
+  kafka-replica-set: ${kafka.hosts}
 
 blockchain:
   scanner:
     kafka:
+      broker-replica-set: ${kafka.hosts}
       maxPollRecords: 100
     ethereum:
       blockchain: ${common.blockchain}

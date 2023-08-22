@@ -1,11 +1,2 @@
-rarible:
-  ethereum:
-    maxFrameSize: 40485760
-    cache:
-      enabled: true
-      expireAfter: 5m
-      maxSize: 500
-
-
 listener:
   blockchain: mantle

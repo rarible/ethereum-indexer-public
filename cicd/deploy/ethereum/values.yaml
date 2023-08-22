@@ -30,7 +30,7 @@ ethereum-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 356
-      max_direct_memory_megabytes: 32
+      max_direct_memory_megabytes: 128
 
 ethereum-erc20-migration:
   image:
@@ -68,7 +68,7 @@ ethereum-order-api:
   updateConfig:
     order: start-first
 
-ethereum-order-listener: 
+ethereum-order-listener:
   image:
     repository: ethereum-indexer-order-listener
   environments:
