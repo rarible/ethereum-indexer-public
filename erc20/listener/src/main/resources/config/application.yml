@@ -1,8 +1,4 @@
-server:
-  port: 8080
-
 spring:
-  application.name: protocol-${common.blockchain}-erc20-listener
   data:
     mongodb:
       uri: mongodb://${mongodb.hosts}

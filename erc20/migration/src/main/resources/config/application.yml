@@ -1,6 +1,3 @@
-spring:
-  application.name: protocol-${common.blockchain}-erc20-migration
-
 mongock:
   change-logs-scan-package:
     - com.rarible.protocol.erc20.migration.mongock
