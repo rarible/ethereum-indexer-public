@@ -1,6 +1,5 @@
 global:
   blockchain: ethereum
-  network: mainnet
 
 ethereum-erc20-api:
   image:
@@ -68,7 +67,7 @@ ethereum-order-api:
   updateConfig:
     order: start-first
 
-ethereum-order-listener: 
+ethereum-order-listener:
   image:
     repository: ethereum-indexer-order-listener
   environments:

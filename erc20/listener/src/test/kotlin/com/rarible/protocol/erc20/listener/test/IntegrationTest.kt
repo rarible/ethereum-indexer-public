@@ -15,7 +15,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = [
         "application.environment = e2e",
-        "listener.blockchain = ethereum",
+        "common.blockchain = ethereum",
         "rarible.blockchain.monitoring = ethereum",
         "spring.cloud.service-registry.auto-registration.enabled = false",
         "spring.cloud.discovery.enabled = false",

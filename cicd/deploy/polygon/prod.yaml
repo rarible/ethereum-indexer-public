@@ -1,7 +1,20 @@
 global:
-  network: mainnet
+  ########### common environments
+  environments: &sharedEnv
+    KAFKA_HOSTS: "PLAINTEXT://kafka1.rarible.int.:9092,kafka2.rarible.int.:9092,kafka3.rarible.int.:9092"
+    MONGODB_HOSTS: "mongo-polygon1.rarible.int.,mongo-polygon2.rarible.int.,mongo-polygon3.rarible.int."
+    ## Public values, as all node is third parties they come via secrets
+    NODE_HOST: "https://rpc.ankr.com/polygon"
+    NODE_WEBSOCKETURL: "wss://rpc.ankr.com/polygon/ws"
+
+  ########### Erc20 Indexer environments
+  erc20Environments: &erc20Env
+    <<: *sharedEnv
+    MONGODB_DATABASE: "polygon-erc20"
 
 polygon-erc20-api:
+  environments:
+    <<: *erc20Env
   replicas: 2
   resources:
     jvm:
@@ -9,10 +22,16 @@ polygon-erc20-api:
       max_direct_memory_megabytes: 256
 
 polygon-erc20-listener:
+  environments:
+    <<: *erc20Env
   resources:
     jvm:
       xmx_megabytes: 2048
       max_direct_memory_megabytes: 2048
+
+polygon-erc20-migration:
+  environments:
+    <<: *erc20Env
 
 polygon-order-api:
   replicas: 2

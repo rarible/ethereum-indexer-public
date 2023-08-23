@@ -5,7 +5,5 @@ spring:
 
 listener:
   tokens:
-    # WETH
-    - "0xdeaddeaddeaddeaddeaddeaddeaddeaddead1111"
-    # WMNT
-    - "0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000"
+    - "0xdeaddeaddeaddeaddeaddeaddeaddeaddead1111" # WETH
+    - "0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000" # WMNT

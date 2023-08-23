@@ -12,6 +12,7 @@ import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFactory
+import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
 import com.rarible.protocol.erc20.core.configuration.ProducerConfiguration
 import com.rarible.protocol.erc20.core.event.Erc20EventPublisher
 import com.rarible.protocol.erc20.core.event.KafkaErc20BalanceEventListener
@@ -36,7 +37,8 @@ import scalether.core.MonoEthereum
 @Import(ProducerConfiguration::class)
 class Erc20ListenerConfiguration(
     private val environmentInfo: ApplicationEnvironmentInfo,
-    private val commonProperties: Erc20ListenerProperties,
+    private val commonProperties: Erc20IndexerProperties,
+    private val listenerProperties: Erc20ListenerProperties,
     private val erc20IndexerEventsConsumerFactory: Erc20IndexerEventsConsumerFactory,
     private val orderIndexerEventsSubscriberProperties: OrderIndexerEventsSubscriberProperties,
 ) {
@@ -68,7 +70,7 @@ class Erc20ListenerConfiguration(
     }
 
     @Bean
-    fun erc20BalanceCleanupJobProperties() = commonProperties.job.balanceCleanup
+    fun erc20BalanceCleanupJobProperties() = listenerProperties.job.balanceCleanup
 
     @Bean
     fun checkerMetrics(blockchain: Blockchain, meterRegistry: MeterRegistry): CheckerMetrics {
@@ -89,13 +91,13 @@ class Erc20ListenerConfiguration(
     ): RaribleKafkaConsumerWorker<Erc20BalanceEventDto> {
         val settings = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsKafkaConsumerSettings(
             group = erc20BalanceConsumerGroup,
-            concurrency = commonProperties.balanceCheckerProperties.eventsHandleConcurrency,
-            batchSize = commonProperties.balanceCheckerProperties.eventsHandleBatchSize,
+            concurrency = listenerProperties.balanceCheckerProperties.eventsHandleConcurrency,
+            batchSize = listenerProperties.balanceCheckerProperties.eventsHandleBatchSize,
             blockchain = blockchain()
         )
         return raribleKafkaConsumerFactory.createWorker(
             settings = settings,
-            handler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, commonProperties)
+            handler = BalanceBatchCheckerHandler(ethereum, checkerMetrics, listenerProperties)
         )
     }
 
@@ -112,8 +114,8 @@ class Erc20ListenerConfiguration(
                 blockchain = blockchain().value
             ),
             group = erc20OrderActivityConsumerGroup,
-            concurrency = commonProperties.orderActivityProperties.eventsHandleConcurrency,
-            batchSize = commonProperties.orderActivityProperties.eventsHandleBatchSize,
+            concurrency = listenerProperties.orderActivityProperties.eventsHandleConcurrency,
+            batchSize = listenerProperties.orderActivityProperties.eventsHandleBatchSize,
             async = false,
             offsetResetStrategy = OffsetResetStrategy.LATEST,
             valueClass = EthActivityEventDto::class.java,

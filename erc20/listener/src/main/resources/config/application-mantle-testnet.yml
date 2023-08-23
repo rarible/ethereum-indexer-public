@@ -1,6 +1,4 @@
 listener:
   tokens:
-    # WETH
-    - "0xdeaddeaddeaddeaddeaddeaddeaddeaddead1111"
-    # WMNT
-    - "0x2c6db4f138a1336db50ab698ca70cf99a37e1198"
+    - "0xdeaddeaddeaddeaddeaddeaddeaddeaddead1111" # WETH
+    - "0x2c6db4f138a1336db50ab698ca70cf99a37e1198" # WMNT

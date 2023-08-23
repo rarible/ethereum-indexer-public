@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
+import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -24,7 +24,7 @@ class IgnoredOwnersResolverTest {
         }
 
         val actual = IgnoredOwnersResolver(
-            Erc20ListenerProperties(
+            Erc20IndexerProperties(
                 blockchain = Blockchain.valueOf(blockchain)
             ),
             ApplicationEnvironmentInfo(env, "host")

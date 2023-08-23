@@ -1,0 +1,58 @@
+application:
+  project: protocol
+
+server:
+  shutdown: graceful
+  port: 8080
+
+spring:
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+    default-property-inclusion: non_null
+  codec:
+    max-in-memory-size: 50MB
+  aop:
+    proxy-target-class: false
+  main:
+    banner-mode: log
+    web-application-type: reactive
+  data:
+    mongodb:
+      uri: mongodb://${mongodb.hosts}
+      database: ${mongodb.database}
+
+common:
+  metricRootPath: "protocol.erc20.indexer"
+  kafkaReplicaSet: ${kafka.hosts}
+
+rarible:
+  ethereum:
+    nodes:
+      - ${node.host}
+        ${node.websocketUrl}
+    indexer:
+      enabled: true
+    converter:
+      enabled: true
+  core:
+    client:
+      name: rarible-protocol
+      k8s: true
+    contract:
+      enabled: true
+    task:
+      enabled: false
+  blockchain:
+    monitoring:
+      blockchain: ${common.blockchain}
+
+blockchain:
+  scanner:
+    ethereum:
+      scan:
+        enabled: false
+      monitoring:
+        rootPath: ${common.metric-root-path}

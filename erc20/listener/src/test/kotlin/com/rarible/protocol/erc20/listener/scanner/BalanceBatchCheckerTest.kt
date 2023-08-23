@@ -33,7 +33,6 @@ internal class BalanceBatchCheckerTest {
     private val checkerMetrics: CheckerMetrics = CheckerMetrics(Blockchain.ETHEREUM, registry)
     private val props = Erc20ListenerProperties(
         tokens = listOf(AddressFactory.create().prefixed()),
-        blockchain = Blockchain.ETHEREUM,
         balanceCheckerProperties = BalanceCheckerProperties(
             enabled = true
         )

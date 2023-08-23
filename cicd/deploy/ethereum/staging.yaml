@@ -1,10 +1,26 @@
 global:
-  network: rinkeby
+  ########### common environments
+  environments: &sharedEnv
+    KAFKA_HOSTS: "PLAINTEXT://staging-kafka1.rarible.int.:9092,staging-kafka2.rarible.int.:9092,staging-kafka3.rarible.int.:9092"
+    MONGODB_HOSTS: "staging-mongo1.rarible.int.,staging-mongo2.rarible.int.,staging-mongo3.rarible.int."
+    NODE_HOST: "staging-node-worker.ethereum-node:8545"
+    NODE_WEBSOCKETURL: "ws://staging-node-worker.ethereum-node:8546"
 
-ethereum-nft-listener:
+  ########### Erc20 Indexer environments
+  erc20Environments: &erc20Env
+    <<: *sharedEnv
+    MONGODB_DATABASE: "staging-protocol-ethereum-erc20"
+
+ethereum-erc20-api:
+  environments:
+    <<: *erc20Env
   livenessProbe:
     initialDelaySeconds: 360
-  resources:
-    jvm:
-      xmx_megabytes: 1024
-      max_direct_memory_megabytes: 256
+
+ethereum-erc20-listener:
+  environments:
+    <<: *erc20Env
+
+ethereum-erc20-migration:
+  environments:
+    <<: *erc20Env
