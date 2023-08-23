@@ -36,11 +36,11 @@ class MinimalPriceItemBidValidator(
         if (featureFlags.checkMinimalCollectionBidPriceOnly) {
             if (nftAsset !is CollectionAssetType) return
         }
-        val takePriceUsd = priceUpdateService.getAssetUsdValue(form.take.type, form.take.value.value, nowMillis())
-            ?: throw OrderUpdateException(
-                "Can't determine 'takePriceUsd', maybe not supported currency: ${form.make.type.token}",
-                EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
-            )
+        val prices = priceUpdateService.getAssetsUsdValue(take = form.take, make = form.make, at = nowMillis())
+        val takePriceUsd = prices?.takePriceUsd ?: throw OrderUpdateException(
+            "Can't determine 'takePriceUsd', maybe not supported currency: ${form.make.type.token}",
+            EthereumOrderUpdateApiErrorDto.Code.INCORRECT_PRICE
+        )
         return when (nftAsset) {
             is NftCollectionAssetType -> validateWithCollectionFloorPrice(nftAsset.token, takePriceUsd)
             is Erc20AssetType,
