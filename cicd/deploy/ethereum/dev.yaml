@@ -1,5 +1,4 @@
 global:
-  network: ropsten
   ########### common environments
   environments: &sharedEnv
     KAFKA_HOSTS: "PLAINTEXT://dev-kafka1.rarible.int.:9092,dev-kafka2.rarible.int.:9092,dev-kafka3.rarible.int.:9092"

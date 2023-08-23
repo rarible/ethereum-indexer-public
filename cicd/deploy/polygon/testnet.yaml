@@ -1,5 +1,4 @@
 global:
-  network: rinkeby
   ########### common environments
   environments: &sharedEnv
     KAFKA_HOSTS: "PLAINTEXT://staging-kafka1.rarible.int.:9092,staging-kafka2.rarible.int.:9092,staging-kafka3.rarible.int.:9092"

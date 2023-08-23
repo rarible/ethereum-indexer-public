@@ -1,6 +1,5 @@
 global:
   blockchain: polygon
-  network: mainnet
 
 polygon-erc20-api:
   image:

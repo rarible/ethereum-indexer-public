@@ -1,5 +1,4 @@
 global:
-  network: mainnet
   ########### common environments
   environments: &sharedEnv
     KAFKA_HOSTS: "PLAINTEXT://kafka1.rarible.int.:9092,kafka2.rarible.int.:9092,kafka3.rarible.int.:9092"

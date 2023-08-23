@@ -1,6 +1,5 @@
 global:
   blockchain: ethereum
-  network: mainnet
 
 ethereum-erc20-api:
   image:
@@ -30,7 +29,7 @@ ethereum-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 356
-      max_direct_memory_megabytes: 128
+      max_direct_memory_megabytes: 32
 
 ethereum-erc20-migration:
   image:
