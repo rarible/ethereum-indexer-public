@@ -17,15 +17,15 @@ rarible:
 protocol:
   erc20:
     subscriber:
-      broker-replica-set: ${kafka.hosts}
+      brokerReplicaSet: ${kafka.hosts}
   order:
     subscriber:
-      broker-replica-set: ${kafka.hosts}
+      brokerReplicaSet: ${kafka.hosts}
 
 blockchain:
   scanner:
     kafka:
-      broker-replica-set: ${kafka.hosts}
+      brokerReplicaSet: ${kafka.hosts}
       maxPollRecords: 100
     ethereum:
       blockchain: ${common.blockchain}
@@ -33,22 +33,22 @@ blockchain:
       optimisticLockRetries: 5
       scan:
         enabled: true
-        batch-load:
+        batchLoad:
           enabled: true
-          batch-size: 50
+          batchSize: 50
       task:
         reindex:
           enabled: true
-        check-blocks:
+        checkBlocks:
           enabled: true
-          reindex-blocks: true
-      retry-policy:
+          reindexBlocks: true
+      retryPolicy:
         scan:
-          reconnect-delay: 2s
+          reconnectDelay: 2s
         client:
           delay: 2s
       monitoring:
         enabled: true
-        rootPath: ${common.metric-root-path}
+        rootPath: ${common.metricRootPath}
         worker:
           pollingPeriod: 1m
