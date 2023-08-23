@@ -1,5 +1,2 @@
-springdoc:
-  swagger-ui:
-    path: /v0.1/swagger/swagger-ui.html
-  api-docs:
-    path: /v0.1/swagger/v3/api-docs
+spring:
+  application.name: protocol-${common.blockchain}-erc20-indexer-api

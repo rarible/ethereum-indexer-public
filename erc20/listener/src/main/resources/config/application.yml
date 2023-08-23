@@ -1,8 +1,5 @@
 spring:
-  data:
-    mongodb:
-      uri: mongodb://${mongodb.hosts}
-      database: ${mongodb.database}
+  application.name: protocol-${common.blockchain}-erc20-listener
 
 mongock:
   change-logs-scan-package:
@@ -24,9 +21,6 @@ protocol:
   order:
     subscriber:
       broker-replica-set: ${kafka.hosts}
-
-common:
-  kafka-replica-set: ${kafka.hosts}
 
 blockchain:
   scanner:

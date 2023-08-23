@@ -26,12 +26,13 @@ spring:
 
 common:
   metric-root-path: "protocol.erc20.indexer"
+  kafka-replica-set: ${kafka.hosts}
 
 rarible:
   ethereum:
     nodes:
       - ${node.host}
-      - ${node.websocketUrl}
+        ${node.websocketUrl}
     indexer:
       enabled: true
     converter:
