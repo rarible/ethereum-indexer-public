@@ -1,0 +1,5 @@
+api:
+  chain-id: 3
+logging:
+  level:
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG

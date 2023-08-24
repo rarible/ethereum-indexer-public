@@ -4,7 +4,3 @@ spring:
       uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
 api:
   chain-id: 5000
-common:
-  royaltyRegistryAddress: "0x0000000000000000000000000000000000000000"
-  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
-  cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"

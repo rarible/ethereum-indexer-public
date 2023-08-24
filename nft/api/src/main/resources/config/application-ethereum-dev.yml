@@ -3,5 +3,3 @@ api:
 logging:
   level:
     org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
-common:
-  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"

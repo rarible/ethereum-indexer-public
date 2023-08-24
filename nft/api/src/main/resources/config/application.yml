@@ -1,97 +1,20 @@
-application:
-  project: protocol
-
-server:
-  shutdown: graceful
-  port: 8080
-
 spring:
   application.name: protocol-${common.blockchain}-nft-indexer-api
-  jackson:
-    mapper:
-      ACCEPT_CASE_INSENSITIVE_ENUMS: true
-    deserialization:
-      FAIL_ON_UNKNOWN_PROPERTIES: false
-    default-property-inclusion: non_null
-  main:
-    banner-mode: log
-    web-application-type: reactive
-
-rarible:
-  core:
-    task:
-      enabled: false
-    apm:
-      agent:
-        enabled: true
-        server: http://elk_apm-server:8200
-        packages: com.rarible.protocol.nft.api
-      web:
-        filter:
-          enabled: true
-      annotation:
-        enabled: true
-    client:
-      name: rarible-protocol
-      k8s: true
-  ethereum:
-    converter:
-      enabled: true
-    read-only-transaction-sender:
-      enabled: true
-  cache:
-    use-locks: true
 
 api:
   opensea:
-    read-timeout: 10000
-    connect-timeout: 3000
-    request-timeout: 20000
+    readTimeout: 10000
+    connectTimeout: 3000
+    requestTimeout: 20000
+    cacheTimeout: 315360000000
+    url: https://api.opensea.io/api/v1
+    apiKey: 00000000000000000000000000000000
+  operator:
+    privateKey: 0x0000000000000000000000000000000000000000000000000000000000000000
   properties:
-    api-url: https://api.rarible.com/images
-    cache-timeout: 315360000000 # 10 years (effectively, forever)
-    request-timeout: 60000
-    media-meta-timeout: 10000
+    apiUrl: https://api.rarible.com/images
+    cacheTimeout: 315360000000 # 10 years (effectively, forever)
+    requestTimeout: 60000
+    mediaMetaTimeout: 10000
   royalty:
-    cache-timeout: 600000 # 10 min
-
-common:
-  metric-root-path: "protocol.nft.indexer"
-  cryptoPunksContractAddress: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
-  ensDomainsContractAddress: "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85"
-  itemMeta:
-    maxNameLength: 1000
-    maxDescriptionLength: 10000
-  ipfs:
-    ipfsGateway: "https://ipfs.io"
-    ipfsPublicGateway: "https://ipfs.io"
-    ipfsLazyGateway: "https://nftstorage.link"
-  feature-flags:
-    scanner-version: V2
-    reduce-version: V2
-
-blockchain:
-  scanner:
-    kafka:
-      maxPollRecords: 0
-    ethereum:
-      blockchain: ${common.blockchain}
-      optimisticLockRetries: 3
-      scan:
-        enabled: false
-        run-reindex-task: false
-      retryPolicy:
-        scan:
-          reconnectDelay: 2s
-          reconnectAttempts: 1
-        client:
-          delay: 2s
-          attempts: 3
-      monitoring:
-        enabled: false
-        worker:
-          pollingPeriod: 1m
-
-mongock:
-  change-logs-scan-package:
-    - com.rarible.blockchain.scanner.ethereum.migration
+    cacheTimeout: 600000 # 10 min

@@ -1,6 +1,2 @@
 api:
   chain-id: 80001
-common:
-  royaltyRegistryAddress: "0xC61627D0b68018242CB983bB244c9B299b9Cce05"
-  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
-  cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"

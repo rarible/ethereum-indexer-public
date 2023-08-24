@@ -1,4 +1,2 @@
 api:
   chain-id: 200500
-common:
-  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"

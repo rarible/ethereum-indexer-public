@@ -1,0 +1,69 @@
+application:
+  project: protocol
+
+server:
+  shutdown: graceful
+  port: 8080
+
+spring:
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+    default-property-inclusion: non_null
+  codec:
+    max-in-memory-size: 50MB
+  aop:
+    proxy-target-class: false
+  main:
+    banner-mode: log
+    web-application-type: reactive
+  data:
+    mongodb:
+      uri: mongodb://${mongodb.hosts}
+      database: ${mongodb.database}
+
+rarible:
+  core:
+    task:
+      enabled: false
+    client:
+      name: rarible-protocol
+      k8s: true
+  ethereum:
+    nodes:
+      - httpUrl: ${node.hosts}
+        websocketUrl: ${node.webSocketHosts}
+    converter:
+      enabled: true
+    readOnlyTransactionSender:
+      enabled: true
+
+common:
+  kafkaReplicaSet: ${kafka.hosts}
+  metricRootPath: "protocol.nft.indexer"
+  cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
+  ensDomainsContractAddress: "0x0000000000000000000000000000000000000000"
+  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
+  itemMeta:
+    maxNameLength: 1000
+    maxDescriptionLength: 10000
+  ipfs:
+    ipfsGateway: "https://ipfs.io"
+    ipfsPublicGateway: "https://ipfs.io"
+    ipfsLazyGateway: "https://nftstorage.link"
+  contractAddresses:
+    market:
+
+blockchain:
+  scanner:
+    kafka:
+      brokerReplicaSet: ${kafka.hosts}
+    ethereum:
+      scan:
+        enabled: false
+      monitoring:
+        rootPath: ${common.metricRootPath}
+
+redisUri: ${redis.uri}
