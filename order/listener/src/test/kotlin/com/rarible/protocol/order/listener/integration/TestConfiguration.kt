@@ -43,7 +43,7 @@ class TestConfiguration {
     fun testEthereum(@Value("\${parityUrls}") url: String): MonoEthereum {
         val transport = WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000)
         return CacheableMonoEthereum(
-            transport = transport,
+            delegate = MonoEthereum(transport),
             expireAfter = Duration.ofMinutes(1),
             cacheMaxSize = 100
         )
