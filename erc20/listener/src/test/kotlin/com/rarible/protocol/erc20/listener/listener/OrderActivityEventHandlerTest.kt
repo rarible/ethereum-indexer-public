@@ -21,9 +21,11 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isNull
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import scalether.domain.Address
@@ -93,6 +95,51 @@ internal class OrderActivityEventHandlerTest {
             },
             event = isNull(),
         )
+    }
+
+    @Test
+    fun `skip BLUR`() = runBlocking<Unit> {
+        orderActivityEventHandler.handle(
+            EthActivityEventDto(
+                activity = OrderActivityMatchDto(
+                    id = "id",
+                    blockHash = Word.apply(randomWord()),
+                    blockNumber = 1,
+                    date = nowMillis(),
+                    logIndex = 1,
+                    price = BigDecimal.ONE,
+                    transactionHash = Word.apply(randomWord()),
+                    source = OrderActivityDto.Source.BLUR,
+                    type = OrderActivityMatchDto.Type.ACCEPT_BID,
+                    left = OrderActivityMatchSideDto(
+                        hash = Word.apply(randomWord()),
+                        maker = Address.ONE(),
+                        asset = AssetDto(
+                            assetType = Erc20AssetTypeDto(
+                                contract = Address.TWO(),
+                            ),
+                            value = BigInteger.ONE,
+                        ),
+                        type = OrderActivityMatchSideDto.Type.BID,
+                    ),
+                    right = OrderActivityMatchSideDto(
+                        hash = Word.apply(randomWord()),
+                        maker = Address.THREE(),
+                        asset = AssetDto(
+                            assetType = Erc721AssetTypeDto(
+                                contract = Address.FOUR(),
+                                tokenId = BigInteger.ONE,
+                            ),
+                            value = BigInteger.ONE,
+                        ),
+                        type = OrderActivityMatchSideDto.Type.SELL,
+                    )
+
+                ),
+                eventTimeMarks = EventTimeMarksDto("source", marks = emptyList())
+            )
+        )
+        verifyNoInteractions(erc20AllowanceService)
     }
 
     @Test
