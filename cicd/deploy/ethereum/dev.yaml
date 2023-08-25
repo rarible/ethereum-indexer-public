@@ -11,6 +11,12 @@ global:
     <<: *sharedEnv
     MONGODB_DATABASE: "dev-protocol-ethereum-erc20"
 
+  ########### Nft Indexer environments
+  nftEnvironments: &nftEnv
+    <<: *sharedEnv
+    MONGODB_DATABASE: "dev-protocol-ethereum-nft"
+
+########### Erc20 Indexer services
 ethereum-erc20-api:
   environments:
     <<: *erc20Env
@@ -22,3 +28,16 @@ ethereum-erc20-listener:
 ethereum-erc20-migration:
   environments:
     <<: *erc20Env
+
+########### Nft Indexer services
+ethereum-nft-api:
+  environments:
+    <<: *nftEnv
+
+ethereum-nft-listener:
+  environments:
+    <<: *nftEnv
+
+ethereum-nft-migration:
+  environments:
+    <<: *nftEnv
