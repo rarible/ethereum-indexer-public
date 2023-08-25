@@ -5,10 +5,10 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumLogRecordEvent
 import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.util.getLogTopicPrefix
+import com.rarible.core.kafka.RaribleKafkaBatchEventHandler
 import com.rarible.core.kafka.RaribleKafkaConsumerFactory
 import com.rarible.core.kafka.RaribleKafkaConsumerSettings
 import com.rarible.core.kafka.RaribleKafkaConsumerWorker
-import com.rarible.core.kafka.RaribleKafkaEventHandler
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import scalether.domain.Address
 
@@ -60,9 +60,9 @@ class KafkaEntityEventConsumer(
     private class BlockEventHandler(
         private val entityEventListener: EntityEventListener,
         private val ignoreContracts: Set<Address>,
-    ) : RaribleKafkaEventHandler<EthereumLogRecordEvent> {
-        override suspend fun handle(event: EthereumLogRecordEvent) {
-            val filteredEvents = listOf(event).filter {
+    ) : RaribleKafkaBatchEventHandler<EthereumLogRecordEvent> {
+        override suspend fun handle(events: List<EthereumLogRecordEvent>) {
+            val filteredEvents = events.filter {
                 ignoreContracts.contains(it.record.address).not()
             }
             entityEventListener.onEntityEvents(filteredEvents.map {
