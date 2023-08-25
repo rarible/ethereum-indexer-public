@@ -14,6 +14,7 @@ import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.configuration.ProducerConfiguration
+import com.rarible.protocol.nft.core.configuration.PropertiesCore
 import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.core.misc.RateLimiter
 import com.rarible.protocol.nft.core.model.ActionEvent
@@ -42,11 +43,12 @@ import java.time.Duration
 @Configuration
 @EnableScaletherMongoConversions
 @EnableConfigurationProperties(NftListenerProperties::class)
+@PropertiesCore
 class NftListenerConfiguration(
     private val nftIndexerProperties: NftIndexerProperties,
     private val nftListenerProperties: NftListenerProperties,
     private val meterRegistry: MeterRegistry,
-    private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
+    applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
     private val logger = LoggerFactory.getLogger(ProducerConfiguration::class.java)
 

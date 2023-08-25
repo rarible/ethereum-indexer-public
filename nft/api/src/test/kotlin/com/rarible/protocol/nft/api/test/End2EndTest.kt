@@ -34,6 +34,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
             "logging.level.org.springframework.data.mongodb.core.ReactiveMongoTemplate=DEBUG"
     ]
 )
-@ActiveProfiles("integration", "reduce-v2")
+@ActiveProfiles("integration", "reduce-v2", "ethereum")
 @Import(TestConfiguration::class)
 annotation class End2EndTest

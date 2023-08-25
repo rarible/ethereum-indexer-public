@@ -56,9 +56,6 @@ import javax.annotation.PostConstruct
 abstract class AbstractIntegrationTest {
     init {
         System.setProperty(
-            "common.blockchain", Blockchain.ETHEREUM.name.lowercase()
-        )
-        System.setProperty(
             "spring.data.mongodb.database", "protocol"
         )
     }

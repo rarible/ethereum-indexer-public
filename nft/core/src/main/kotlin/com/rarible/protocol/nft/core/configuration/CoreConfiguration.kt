@@ -34,7 +34,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.PropertySource
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.http.HttpHeaders
 
@@ -47,13 +46,6 @@ import org.springframework.http.HttpHeaders
         ConvertersPackage::class,
         EventListenerPackage::class
     ]
-)
-@PropertySource(
-    value = [
-        "classpath:config/core.yml",
-        "classpath:config/core-\${common.blockchain}.yml",
-    ],
-    ignoreResourceNotFound = true
 )
 class CoreConfiguration(
     private val properties: NftIndexerProperties,

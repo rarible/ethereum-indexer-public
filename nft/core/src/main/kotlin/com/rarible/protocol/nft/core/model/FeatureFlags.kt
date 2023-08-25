@@ -7,12 +7,12 @@ data class FeatureFlags(
     val internalMetaTopicBatchHandle: Boolean = false,
     val internalMetaTopicBatchSize: Int = 100,
     val enableMetaRawPropertiesCache: Boolean = true,
-    val enableProxyForMetaDownload: Boolean = false,
+    val enableProxyForMetaDownload: Boolean = true,
     val enableNonStandardCollections: Boolean = false,
     @Deprecated("Need remove this flag in release 1.31")
     val pendingDisabled: Boolean = true,
     val enableTokenMetaSelfRepair: Boolean = false,
     val filterScamToken: Boolean = false,
     val saveTokenByteCode: Boolean = true,
-    val compactRevertableEvents: Boolean = false,
+    val compactRevertableEvents: Boolean = true,
 )
