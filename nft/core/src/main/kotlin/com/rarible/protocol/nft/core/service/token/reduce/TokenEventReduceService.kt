@@ -1,8 +1,7 @@
 package com.rarible.protocol.nft.core.service.token.reduce
 
-import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventListener
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
-import com.rarible.core.apm.withTransaction
+import com.rarible.blockchain.scanner.framework.listener.LogRecordEventListener
 import com.rarible.core.common.nowMillis
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -21,24 +20,20 @@ class TokenEventReduceService(
     templateProvider: TokenTemplateProvider,
     reducer: TokenReducer,
     properties: NftIndexerProperties
-) : EntityEventListener {
+) : LogRecordEventListener {
+
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     override val id: String = EntityEventListeners.tokenHistoryListenerId(properties.blockchain)
+    override val groupId: SubscriberGroup = SubscriberGroups.TOKEN_HISTORY
 
-    override val subscriberGroup: SubscriberGroup = SubscriberGroups.TOKEN_HISTORY
-
-    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+    override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
         val now = nowMillis()
-        withTransaction("onTokenEvents", labels = listOf("size" to events.size)) {
-            events
-                .mapNotNull {
-                    TokenEventConverter.convert(
-                        it.record.asEthereumLogRecord(),
-                        it.eventTimeMarks.addIndexerIn(now)
-                    )
-                }
-                .let { delegate.reduceAll(it) }
-        }
+        events.mapNotNull {
+            TokenEventConverter.convert(
+                it.record.asEthereumLogRecord(),
+                it.eventTimeMarks.addIndexerIn(now)
+            )
+        }.let { delegate.reduceAll(it) }
     }
 }
