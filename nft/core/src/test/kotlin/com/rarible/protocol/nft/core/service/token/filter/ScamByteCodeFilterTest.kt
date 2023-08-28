@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.ByteCodeFragment
 import com.rarible.protocol.nft.core.model.ByteCodeMarker
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.WordFactory
 import io.mockk.every
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
@@ -46,28 +47,28 @@ internal class ScamByteCodeFilterTest {
 
     @Test
     fun `filter scam - ok, all scam fragment are matched`() {
-        val resul = filter.isValid(scamCode)
+        val resul = filter.isValid(scamCode, WordFactory.create())
         assertThat(resul).isFalse
     }
 
     @Test
     fun `filter scam - false`() {
         val code = randomBinary(1000)
-        val resul = filter.isValid(code)
+        val resul = filter.isValid(code, WordFactory.create())
         assertThat(resul).isTrue
     }
 
     @Test
     fun `filter scam - ok, match first bytes`() {
         val code = Binary.apply("0x611111111111111111111111111111111111111123456421")
-        val resul = filter.isValid(code)
+        val resul = filter.isValid(code, WordFactory.create())
         assertThat(resul).isFalse
     }
 
     @Test
     fun `filter scam - false, not all fragments are matched`() {
         val code = Binary.apply("0x608060405236600a57005b600036606060008073a281c0d1dce3ff738bbb5aa6849c82f2a3e564936001")
-        val resul = filter.isValid(code)
+        val resul = filter.isValid(code, WordFactory.create())
         assertThat(resul).isTrue
     }
 }

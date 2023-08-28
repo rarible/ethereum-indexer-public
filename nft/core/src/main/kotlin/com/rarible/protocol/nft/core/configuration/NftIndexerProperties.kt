@@ -73,7 +73,8 @@ data class NftIndexerProperties(
     )
 
     data class ScamByteCodeProperties(
-        val markers: List<ByteCodeMarker> = emptyList()
+        val markers: List<ByteCodeMarker> = emptyList(),
+        val hashCodes: Set<String> = emptySet()
     )
 
     data class ReduceProperties(

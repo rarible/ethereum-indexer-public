@@ -71,7 +71,7 @@ class TokenProvider(
 
     fun detectScam(token: Token): Mono<Token> = mono {
         val result = getBytecode(token.id) ?: return@mono token
-        val isValidToken = tokeByteCodeFilters.all { it.isValid(result.code) }
+        val isValidToken = tokeByteCodeFilters.all { it.isValid(result.code, result.hash) }
         if (isValidToken) {
             token
         } else {
