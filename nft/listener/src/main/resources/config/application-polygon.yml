@@ -1,6 +1,6 @@
 common:
   blockchain: polygon
-  scam-byte-codes:
+  scamByteCodes:
     hashCodes:
       - "0x2ceae414e7e0139179fb84a8340ce57e147e86ba3d2453b1d71ea695f5565320"
       - "0x35bece6d5a3be64b7ba8692088df89eb19acb615667beda9e3fe890a76f6b6d3"

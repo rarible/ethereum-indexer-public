@@ -7,7 +7,6 @@ import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import scalether.util.Hash
 
 @Component
 class ScamByteCodeHashFilter(
@@ -19,8 +18,7 @@ class ScamByteCodeHashFilter(
 
     private val markers = scamByteCodeProperties.hashCodes.map { Word.apply(it) }
 
-    override fun isValid(code: Binary): Boolean {
-        val hash = Word.apply(Hash.sha3(code.bytes()))
+    override fun isValid(code: Binary, hash: Word): Boolean {
         if (
             featureFlags.filterScamToken.not() ||
             markers.isEmpty() ||
