@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service
 
-import com.rarible.blockchain.scanner.ethereum.reduce.CompositeEntityEventListener
+import com.rarible.blockchain.scanner.framework.listener.AbstractLogRecordEventListener
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.EntityEventListeners
 import com.rarible.protocol.nft.core.model.SubscriberGroups
@@ -13,8 +13,8 @@ class EthereumCompositeEntityEventListener(
     itemEventReduceService: ItemEventReduceService,
     ownershipEventReduceService: OwnershipEventReduceService,
     properties: NftIndexerProperties
-) : CompositeEntityEventListener(
-    entityEventsSubscribers = listOf(itemEventReduceService, ownershipEventReduceService),
+) : AbstractLogRecordEventListener(
     id = EntityEventListeners.itemHistoryListenerId(properties.blockchain),
-    subscriberGroup = SubscriberGroups.ITEM_HISTORY
+    groupId = SubscriberGroups.ITEM_HISTORY,
+    subscribers = listOf(itemEventReduceService, ownershipEventReduceService),
 )
