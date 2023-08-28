@@ -61,26 +61,21 @@ class ProtocolNftEventPublisher(
         logger.info("Sent ownership event ${event.eventId}: $event")
     }
 
-    suspend fun publish(events: List<NftOwnershipEventDto>) {
-        val messages = events.map { event -> prepareOwnershipKafkaMessage(event) }
-        ownershipEventProducer.send(messages).collect { result ->
-            result.ensureSuccess()
+    suspend fun publish(activities: List<Pair<NftActivityDto, EventTimeMarks>>) {
+        val messages = activities.map {
+            val activity = it.first
+            val eventTimeMarks = it.second
+            val itemId = "${activity.contract}:${activity.tokenId}"
+            val message = KafkaMessage(
+                key = itemId,
+                value = EthActivityEventDto(activity, eventTimeMarks.addIndexerOut().toDto()),
+                headers = ITEM_ACTIVITY_HEADERS,
+                id = itemId
+            )
+            logger.info("Sent item activity event ${activity.id}: $activity")
+            message
         }
-        events.forEach {
-            logger.info("Sent ownership event ${it.eventId}: $it")
-        }
-    }
-
-    suspend fun publish(activity: NftActivityDto, eventTimeMarks: EventTimeMarks) {
-        val itemId = "${activity.contract}:${activity.tokenId}"
-        val message = KafkaMessage(
-            key = itemId,
-            value = EthActivityEventDto(activity, eventTimeMarks.addIndexerOut().toDto()),
-            headers = ITEM_ACTIVITY_HEADERS,
-            id = itemId
-        )
-        nftItemActivityProducer.send(message).ensureSuccess()
-        logger.info("Sent item activity event ${activity.id}: $activity")
+        nftItemActivityProducer.send(messages).collect { it.ensureSuccess() }
     }
 
     suspend fun publish(event: ActionEvent) {
@@ -116,9 +111,11 @@ class ProtocolNftEventPublisher(
     private companion object {
         private val logger = LoggerFactory.getLogger(ProtocolNftEventPublisher::class.java)
 
-        val COLLECTION_EVENT_HEADERS = mapOf("protocol.collection.event.version" to NftCollectionEventTopicProvider.VERSION)
+        val COLLECTION_EVENT_HEADERS =
+            mapOf("protocol.collection.event.version" to NftCollectionEventTopicProvider.VERSION)
         val ITEM_EVENT_HEADERS = mapOf("protocol.item.event.version" to NftItemEventTopicProvider.VERSION)
-        val OWNERSHIP_EVENT_HEADERS = mapOf("protocol.ownership.event.version" to NftOwnershipEventTopicProvider.VERSION)
+        val OWNERSHIP_EVENT_HEADERS =
+            mapOf("protocol.ownership.event.version" to NftOwnershipEventTopicProvider.VERSION)
         val ITEM_ACTIVITY_HEADERS = mapOf("protocol.item.activity.version" to ActivityTopicProvider.VERSION)
         val ACTION_HEADERS = mapOf("protocol.item.internal.action.version" to InternalTopicProvider.VERSION)
     }
