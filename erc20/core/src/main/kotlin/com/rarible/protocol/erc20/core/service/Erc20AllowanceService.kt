@@ -14,6 +14,9 @@ import com.rarible.protocol.erc20.core.model.Erc20AllowanceEvent
 import com.rarible.protocol.erc20.core.model.Erc20Event
 import com.rarible.protocol.erc20.core.model.Erc20MarkedEvent
 import com.rarible.protocol.erc20.core.repository.Erc20AllowanceRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -30,18 +33,22 @@ class Erc20AllowanceService(
     private val transferProxyAddress = erc20IndexerProperties.erc20TransferProxy
     private val saveToDb = erc20IndexerProperties.featureFlags.enableSaveAllowanceToDb
 
-    override suspend fun get(id: BalanceId): Erc20Allowance? =
+    override suspend fun get(id: BalanceId): Erc20Allowance? {
         if (saveToDb) {
-            erc20AllowanceRepository.get(id)
-        } else {
-            Erc20Allowance(
-                owner = id.owner,
-                token = id.token,
-                allowance = getBlockchainAllowance(id) ?: EthUInt256(BigInteger.ZERO),
-                createdAt = nowMillis(),
-                lastUpdatedAt = nowMillis(),
-            )
+            return erc20AllowanceRepository.get(id)
         }
+        return fetchAllowance(id)
+    }
+
+    override suspend fun getAll(ids: Collection<BalanceId>): List<Erc20Allowance> {
+        if (saveToDb) {
+            return erc20AllowanceRepository.getAll(ids)
+        }
+
+        return coroutineScope {
+            ids.map { id -> async { fetchAllowance(id) } }.awaitAll()
+        }
+    }
 
     override suspend fun update(entity: Erc20Allowance, event: Erc20MarkedEvent?): Erc20Allowance =
         update(entity = entity, event = event?.event, eventTimeMarks = event?.eventTimeMarks)
@@ -60,6 +67,16 @@ class Erc20AllowanceService(
             it.onUpdate(Erc20AllowanceEvent(event, eventTimeMarks, entity))
         }
         return result
+    }
+
+    private suspend fun fetchAllowance(id: BalanceId): Erc20Allowance {
+        return Erc20Allowance(
+            owner = id.owner,
+            token = id.token,
+            allowance = getBlockchainAllowance(id) ?: EthUInt256(BigInteger.ZERO),
+            createdAt = nowMillis(),
+            lastUpdatedAt = nowMillis(),
+        )
     }
 
     private suspend fun getBlockchainAllowance(id: BalanceId): EthUInt256? {

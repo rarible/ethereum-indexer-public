@@ -32,6 +32,10 @@ sealed class CompositeUpdateService(
         return null
     }
 
+    override suspend fun getAll(ids: Collection<ItemId>): List<CompositeEntity> {
+        return emptyList()
+    }
+
     override suspend fun update(entity: CompositeEntity, event: CompositeEvent?): CompositeEntity {
         logger.info("Update composite, item=${entity.item?.id}, ownerships=${entity.ownerships.size}")
 
