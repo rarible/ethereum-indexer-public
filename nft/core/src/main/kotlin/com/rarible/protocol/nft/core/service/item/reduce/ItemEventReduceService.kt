@@ -35,14 +35,12 @@ class ItemEventReduceService(
 
     override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
         val start = nowMillis()
+        val markedEvents = events.map { it.copy(eventTimeMarks = it.eventTimeMarks.addIndexerIn(start)) }
         try {
-            events
-                .mapNotNull {
-                    val markedEvent = it.copy(eventTimeMarks = it.eventTimeMarks.addIndexerIn(start))
-                    onNftItemLogEventListener.onLogEvent(markedEvent)
-                    itemEventConverter.convert(markedEvent.record.asEthereumLogRecord(), markedEvent.eventTimeMarks)
-                }
-                .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
+            onNftItemLogEventListener.onLogEvents(markedEvents)
+            markedEvents
+                .mapNotNull { itemEventConverter.convert(it.record.asEthereumLogRecord(), it.eventTimeMarks) }
+                .filter { ItemId.parseId(it.entityId) !in skipTransferContractTokens }
                 .let { delegate.reduceAll(it) }
         } catch (ex: Exception) {
             logger.error("Error on entity events $events", ex)

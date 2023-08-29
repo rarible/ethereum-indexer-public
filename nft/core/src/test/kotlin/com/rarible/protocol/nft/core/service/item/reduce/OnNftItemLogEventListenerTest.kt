@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.converters.dto.NftActivityConverter
 import com.rarible.protocol.nft.core.data.randomReversedLogRecord
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
 import com.rarible.protocol.nft.core.repository.data.createItemHistory
+import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -26,7 +27,8 @@ class OnNftItemLogEventListenerTest {
 
     @BeforeEach
     fun beforeEach() {
-        coEvery { publisher.publish(any<NftActivityDto>(), any()) } returns Unit
+        clearMocks(publisher)
+        coEvery { publisher.publish(any<List<Pair<NftActivityDto, EventTimeMarks>>>()) } returns Unit
     }
 
     @Test
@@ -34,9 +36,9 @@ class OnNftItemLogEventListenerTest {
         val record = randomReversedLogRecord(createItemHistory())
             .copy(topic = TransferEvent.id())
 
-        listener.onLogEvent(LogRecordEvent(record, false, EventTimeMarks("test")))
+        listener.onLogEvents(listOf(LogRecordEvent(record, false, EventTimeMarks("test"))))
 
-        coVerify(exactly = 1) { publisher.publish(any<NftActivityDto>(), any()) }
+        coVerify(exactly = 1) { publisher.publish(any<List<Pair<NftActivityDto, EventTimeMarks>>>()) }
     }
 
     @Test
@@ -48,9 +50,9 @@ class OnNftItemLogEventListenerTest {
 
         val event = LogRecordEvent(record, false, EventTimeMarks("test"))
 
-        listener.onLogEvent(event)
+        listener.onLogEvents(listOf(event))
 
-        coVerify(exactly = 0) { publisher.publish(any<NftActivityDto>(), any()) }
+        coVerify(exactly = 0) { publisher.publish(any<List<Pair<NftActivityDto, EventTimeMarks>>>()) }
     }
 
     @Test
@@ -58,17 +60,17 @@ class OnNftItemLogEventListenerTest {
         val record = randomReversedLogRecord(createItemHistory())
             .copy(topic = TransferEvent.id())
 
-        listener.onLogEvent(LogRecordEvent(record, true, EventTimeMarks("test")))
+        listener.onLogEvents(listOf(LogRecordEvent(record, true, EventTimeMarks("test"))))
 
-        coVerify(exactly = 1) { publisher.publish(any<NftActivityDto>(), any()) }
+        coVerify(exactly = 1) { publisher.publish(any<List<Pair<NftActivityDto, EventTimeMarks>>>()) }
     }
 
     @Test
     fun `on log event - not in topic set`() = runBlocking<Unit> {
         val record = randomReversedLogRecord(createItemHistory())
 
-        listener.onLogEvent(LogRecordEvent(record, true, EventTimeMarks("test")))
+        listener.onLogEvents(listOf(LogRecordEvent(record, true, EventTimeMarks("test"))))
 
-        coVerify(exactly = 0) { publisher.publish(any<NftActivityDto>(), any()) }
+        coVerify(exactly = 0) { publisher.publish(any<List<Pair<NftActivityDto, EventTimeMarks>>>()) }
     }
 }
