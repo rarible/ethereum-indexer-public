@@ -29,6 +29,10 @@ class OwnershipUpdateService(
         return ownershipService.get(id).awaitFirstOrNull()
     }
 
+    override suspend fun getAll(ids: Collection<OwnershipId>): List<Ownership> {
+        return ownershipService.getAll(ids)
+    }
+
     override suspend fun update(entity: Ownership, event: OwnershipEvent?): Ownership {
         val eventTimeMarks = event?.eventTimeMarks ?: nftOffchainEventMarks()
         val savedOwnership = ownershipService.save(entity)
