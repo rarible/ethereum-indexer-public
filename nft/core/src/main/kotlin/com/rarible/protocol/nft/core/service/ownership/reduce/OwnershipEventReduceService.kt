@@ -28,6 +28,7 @@ class OwnershipEventReduceService(
 
     private val skipTransferContractTokens =
         properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
+            .toHashSet()
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     suspend fun reduce(events: List<OwnershipEvent>) {
