@@ -22,6 +22,10 @@ class ConsistencyCorrectorEntityService(
         return null
     }
 
+    override suspend fun getAll(ids: Collection<ItemId>): List<CompositeEntity> {
+        return emptyList()
+    }
+
     override suspend fun update(entity: CompositeEntity, event: CompositeEvent?): CompositeEntity {
         val itemId = entity.id
         val itemSupply = entity.item?.supply?.value

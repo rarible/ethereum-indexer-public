@@ -4,8 +4,11 @@ import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Allowance
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.remove
@@ -22,6 +25,13 @@ class Erc20AllowanceRepository(
 
     suspend fun get(balanceId: BalanceId): Erc20Allowance? {
         return template.findById<Erc20Allowance>(balanceId).awaitFirstOrNull()
+    }
+
+    suspend fun getAll(ids: Collection<BalanceId>): List<Erc20Allowance> {
+        val criteria = Criteria.where("_id").`in`(ids)
+        return template.find<Erc20Allowance>(Query.query(criteria))
+            .collectList()
+            .awaitSingle()
     }
 
     suspend fun deleteByOwner(owner: Address): Long {
