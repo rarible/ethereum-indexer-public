@@ -27,6 +27,7 @@ class ItemEventReduceService(
     private val logger = LoggerFactory.getLogger(javaClass)
     private val skipTransferContractTokens =
         properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
+            .toHashSet()
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     suspend fun reduce(events: List<ItemEvent>) {

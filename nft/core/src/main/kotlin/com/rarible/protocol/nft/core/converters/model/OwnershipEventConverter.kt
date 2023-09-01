@@ -2,7 +2,6 @@ package com.rarible.protocol.nft.core.converters.model
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.EventTimeMarks
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.nft.core.model.BurnItemLazyMint
 import com.rarible.protocol.nft.core.model.Item
@@ -16,7 +15,6 @@ import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
 import org.springframework.stereotype.Component
-import scalether.domain.Address
 
 @Component
 class OwnershipEventConverter(
@@ -24,8 +22,21 @@ class OwnershipEventConverter(
 ) {
 
     suspend fun convert(
+        events: List<Pair<ReversedEthereumLogRecord, EventTimeMarks>>,
+    ): List<OwnershipEvent> {
+        val mintTransfersItemIds = events.mapNotNull { pair ->
+            val source = pair.first
+            val data = source.data as? ItemTransfer ?: return@mapNotNull null
+            ItemId(data.token, data.tokenId)
+        }
+        val items = itemUpdateService.getAll(mintTransfersItemIds).associateBy { it.id }
+        return events.flatMap { convert(it.first, it.second, items) }
+    }
+
+    suspend fun convert(
         source: ReversedEthereumLogRecord,
-        eventTimeMarks: EventTimeMarks? = null
+        eventTimeMarks: EventTimeMarks? = null,
+        itemHint: Map<ItemId, Item> = emptyMap()
     ): List<OwnershipEvent> {
         val events = when (val data = source.data as? ItemHistory) {
             is ItemTransfer -> {
@@ -49,7 +60,8 @@ class OwnershipEventConverter(
                 // Normally it is minting event
                 val changeLazyOwnership = data.from.takeIf { data.isMintTransfer() }?.let {
                     // Get lazy owner from item, but we should skip it if minter is lazy item owner
-                    getItem(data.token, data.tokenId)?.getLazyOwner().takeUnless { it == data.owner }
+                    val itemId = ItemId(data.token, data.tokenId)
+                    (itemHint[itemId] ?: getItem(itemId))?.getLazyOwner().takeUnless { it == data.owner }
                 }?.let { lazyOwner ->
                     OwnershipEvent.ChangeLazyValueEvent(
                         value = data.value,
@@ -89,7 +101,7 @@ class OwnershipEventConverter(
         return convert(LogEventToReversedEthereumLogRecordConverter.convert(source), eventTimeMarks)
     }
 
-    private suspend fun getItem(token: Address, tokenId: EthUInt256): Item? {
-        return itemUpdateService.get(ItemId(token, tokenId))
+    private suspend fun getItem(itemId: ItemId): Item? {
+        return itemUpdateService.get(itemId)
     }
 }

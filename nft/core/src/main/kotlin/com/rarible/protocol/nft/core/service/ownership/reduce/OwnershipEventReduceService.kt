@@ -28,6 +28,7 @@ class OwnershipEventReduceService(
 
     private val skipTransferContractTokens =
         properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
+            .toHashSet()
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     suspend fun reduce(events: List<OwnershipEvent>) {
@@ -36,8 +37,8 @@ class OwnershipEventReduceService(
 
     override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
         val start = nowMillis()
-        events
-            .flatMap { eventConverter.convert(it.record.asEthereumLogRecord(), it.eventTimeMarks.addIndexerIn(start)) }
+        val ethRecords = events.map { it.record.asEthereumLogRecord() to it.eventTimeMarks.addIndexerIn(start) }
+        eventConverter.convert(ethRecords)
             .filter { OwnershipId.parseId(it.entityId).toItemId() !in skipTransferContractTokens }
             .let { delegate.reduceAll(it) }
 
