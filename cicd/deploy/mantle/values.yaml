@@ -11,7 +11,7 @@ mantle-erc20-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   resources:
     jvm:
       xmx_megabytes: 356
@@ -25,7 +25,7 @@ mantle-erc20-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   priorityClassName: high
   resources:
     jvm:
@@ -38,7 +38,7 @@ mantle-erc20-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   priorityClassName: high
   resources:
     jvm:
@@ -58,7 +58,7 @@ mantle-order-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   resources:
     jvm:
       xmx_megabytes: 356
@@ -74,7 +74,7 @@ mantle-order-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   priorityClassName: high
   resources:
     jvm:
@@ -89,7 +89,7 @@ mantle-order-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   priorityClassName: high
   resources:
     jvm:
@@ -109,7 +109,7 @@ mantle-nft-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   resources:
     jvm:
       xmx_megabytes: 456
@@ -125,7 +125,7 @@ mantle-nft-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   priorityClassName: high
   resources:
     jvm:
@@ -140,7 +140,7 @@ mantle-nft-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   priorityClassName: high
   resources:
     jvm:
