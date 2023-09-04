@@ -175,7 +175,8 @@ class NftListenerConfiguration(
             topic = NftOwnershipEventTopicProvider.getTopic(env, blockchain.value),
             valueClass = NftOwnershipEventDto::class.java,
             async = false,
-            concurrency = 9,
+            // This consumer is not thread-safe (but since this is background checker, delay doesn't matter)
+            concurrency = 1,
             batchSize = 500,
             offsetResetStrategy = OffsetResetStrategy.LATEST
         )
