@@ -26,51 +26,58 @@ import scalether.domain.Address
 import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentSkipListMap
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.random.Random
 
 @Component
 class OwnershipBatchCheckerHandler(
-    private val nftListenerProperties: NftListenerProperties,
+    nftListenerProperties: NftListenerProperties,
     private val ethereum: MonoEthereum,
     private val tokenRepository: TokenRepository,
     private val checkerMetrics: CheckerMetrics
 ) : RaribleKafkaBatchEventHandler<NftOwnershipEventDto> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
-    private var lastUpdated = Instant.MIN
-    private var lastBlockNumber: Long = 0
+    private val lastUpdated = AtomicReference(Instant.EPOCH)
+    private val lastBlockNumber = AtomicLong()
 
     // Map<Block number, Map<ownershipId, balance>>
-    private val blockBuffer = emptyMap<Long, MutableMap<OwnershipId, BigInteger>>().toSortedMap()
+    private val blockBuffer = ConcurrentSkipListMap<Long, MutableMap<OwnershipId, BigInteger>>()
     private val props = nftListenerProperties.ownershipCheckerProperties
 
     override suspend fun handle(events: List<NftOwnershipEventDto>) {
         logger.info("Handling ${events.size} NftOwnershipEventDto events")
         try {
-            events.forEach { fillBuffer(it) }
-            checkBuffer()
+            val blockNumber = currentBlockNumber()
+            events.forEach { fillBuffer(it, blockNumber) }
+            checkBuffer(blockNumber)
             consumeBuffer()
         } catch (ex: Exception) {
             logger.error("Error during checking ownership", ex)
         }
     }
 
-    private suspend fun fillBuffer(event: NftOwnershipEventDto) {
+    private suspend fun fillBuffer(
+        event: NftOwnershipEventDto,
+        blockNumber: Long
+    ) {
         checkerMetrics.onIncoming()
-        val blockNumber = currentBlockNumber()
         val eventBlockNumber = event.blockNumber
-        if (eventBlockNumber != null && blockNumber - eventBlockNumber < props.skipNumberOfBlocks) {
-            val eventBuffer: MutableMap<OwnershipId, BigInteger> =
-                blockBuffer.getOrPut(eventBlockNumber) { mapOf<OwnershipId, BigInteger>().toMutableMap() }
-            when (event) {
-                is NftOwnershipUpdateEventDto -> eventBuffer[OwnershipId.parseId(event.ownershipId)] = event.ownership.value
-                is NftOwnershipDeleteEventDto -> eventBuffer[OwnershipId.parseId(event.ownershipId)] = BigInteger.ZERO
-            }
+        if (eventBlockNumber == null || blockNumber - eventBlockNumber >= props.skipNumberOfBlocks) {
+            return
+        }
+        val eventBuffer = blockBuffer.computeIfAbsent(eventBlockNumber) { ConcurrentHashMap() }
+        val ownershipId = OwnershipId.parseId(event.ownershipId)
+        when (event) {
+            is NftOwnershipUpdateEventDto -> eventBuffer[ownershipId] = event.ownership.value
+            is NftOwnershipDeleteEventDto -> eventBuffer[ownershipId] = BigInteger.ZERO
         }
     }
 
-    private suspend fun checkBuffer() {
-        val blockNumber = currentBlockNumber()
+    private suspend fun checkBuffer(blockNumber: Long) {
         blockBuffer.entries.removeIf {
             val isDeleted = blockNumber - it.key >= props.skipNumberOfBlocks
             if (isDeleted) {
@@ -105,11 +112,11 @@ class OwnershipBatchCheckerHandler(
     // to prevent additional requests to the node we cache current block for some time
     private suspend fun currentBlockNumber(): Long {
         val now = Instant.now()
-        if (Duration.between(lastUpdated, now) > props.updateLastBlock) {
-            lastBlockNumber = ethereum.ethBlockNumber().awaitFirst().toLong()
-            lastUpdated = now
+        if (Duration.between(lastUpdated.get(), now) > props.updateLastBlock) {
+            lastBlockNumber.set(ethereum.ethBlockNumber().awaitFirst().toLong())
+            lastUpdated.set(now)
         }
-        return lastBlockNumber
+        return lastBlockNumber.get()
     }
 
     private suspend fun valueOfToken(ownershipId: OwnershipId, blockNumber: Long): BigInteger? {
