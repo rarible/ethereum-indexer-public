@@ -16,7 +16,6 @@ ethereum-erc20-api:
     <<: *erc20Env
 
 ethereum-erc20-listener:
-  resources:
   environments:
     <<: *erc20Env
 
