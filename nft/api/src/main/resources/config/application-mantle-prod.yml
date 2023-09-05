@@ -5,6 +5,6 @@ spring:
 api:
   chain-id: 5000
 common:
-  royaltyRegistryAddress: "0x78F2F3a68F7450b3d33994D3BA9CA11D103f02CC"
+  royaltyRegistryAddress: "0x78f2f3a68f7450b3d33994d3ba9ca11d103f02cc"
   openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
   cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
