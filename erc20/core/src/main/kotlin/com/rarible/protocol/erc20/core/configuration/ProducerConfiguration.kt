@@ -47,7 +47,8 @@ class ProducerConfiguration(
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = Erc20BalanceEventDto::class.java,
             defaultTopic = Erc20BalanceEventTopicProvider.getTopic(env, blockchain.value),
-            bootstrapServers = properties.kafkaReplicaSet
+            bootstrapServers = properties.kafkaReplicaSet,
+            compression = properties.compression,
         )
         return Erc20EventPublisher(producer)
     }

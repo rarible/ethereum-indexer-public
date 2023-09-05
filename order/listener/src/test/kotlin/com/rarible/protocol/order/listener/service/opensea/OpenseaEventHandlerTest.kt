@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.rarible.core.kafka.Compression
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
@@ -35,7 +36,8 @@ class OpenseaEventHandlerTest : AbstractIntegrationTest() {
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = OpenseaEvent::class.java,
             defaultTopic = OpenseaTopicProvider.getEventTopic("e2e", "ethereum"),
-            bootstrapServers = orderIndexerProperties.kafkaReplicaSet
+            bootstrapServers = orderIndexerProperties.kafkaReplicaSet,
+            compression = Compression.SNAPPY,
         )
         producer.send(
             KafkaMessage(

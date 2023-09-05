@@ -18,7 +18,8 @@ class ProducerConfiguration(
         return ProducerFactory(
             kafkaReplicaSet = properties.kafkaReplicaSet,
             blockchain = properties.blockchain,
-            environment = applicationEnvironmentInfo.name
+            environment = applicationEnvironmentInfo.name,
+            compression = properties.compression,
         )
     }
 

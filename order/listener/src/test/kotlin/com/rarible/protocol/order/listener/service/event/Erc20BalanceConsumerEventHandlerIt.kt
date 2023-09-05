@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.event
 
+import com.rarible.core.kafka.Compression
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
@@ -39,7 +40,8 @@ internal class Erc20BalanceConsumerEventHandlerIt : AbstractIntegrationTest() {
             defaultTopic = Erc20BalanceEventTopicProvider.getTopic(
                 application.name, orderIndexerProperties.blockchain.value
             ),
-            bootstrapServers = orderIndexerProperties.kafkaReplicaSet
+            bootstrapServers = orderIndexerProperties.kafkaReplicaSet,
+            compression = Compression.SNAPPY,
         )
 
         val erc20 = AddressFactory.create()

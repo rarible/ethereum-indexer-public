@@ -1,6 +1,7 @@
 package com.rarible.protocol.erc20.core.configuration
 
 import com.rarible.blockchain.scanner.ethereum.reduce.MetricProperties
+import com.rarible.core.kafka.Compression
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.erc20.core.model.FeatureFlags
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -16,4 +17,5 @@ data class Erc20IndexerProperties(
     val kafkaReplicaSet: String = "",
     val erc20TransferProxy: Address = Address.ZERO(),
     val featureFlags: FeatureFlags = FeatureFlags(),
+    val compression: Compression = Compression.SNAPPY,
 ) : MetricProperties
