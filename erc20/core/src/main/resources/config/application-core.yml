@@ -30,9 +30,6 @@ common:
 
 rarible:
   ethereum:
-    nodes:
-      - ${node.host}
-        ${node.websocketUrl}
     indexer:
       enabled: true
     converter:
