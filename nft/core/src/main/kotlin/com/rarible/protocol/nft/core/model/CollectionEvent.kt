@@ -8,6 +8,7 @@ import com.rarible.protocol.contracts.collection.CreateERC721RaribleEvent
 import com.rarible.protocol.contracts.collection.CreateERC721RaribleUserEvent
 import com.rarible.protocol.contracts.collection.CreateERC721_v4Event
 import com.rarible.protocol.contracts.collection.CreateEvent
+import com.rarible.protocol.contracts.collection.TokenUriRevealEvent
 import com.rarible.protocol.contracts.erc721.OwnershipTransferredEvent
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
@@ -23,6 +24,9 @@ enum class CollectionEventType(val topic: Set<Word>) {
             CreateERC1155RaribleUserEvent.id(),
             CreateERC1155RaribleEvent.id()
         )
+    ),
+    TOKEN_URI_REVEAL(
+        setOf(TokenUriRevealEvent.id())
     ),
     OWNERSHIP(
         setOf(OwnershipTransferredEvent.id())
@@ -43,6 +47,11 @@ data class CreateCollection(
     val name: String,
     val symbol: String
 ) : CollectionEvent(CollectionEventType.CREATE)
+
+data class TokenUriReveal(
+    override val id: Address,
+    val tokenUri: String,
+) : CollectionEvent(CollectionEventType.TOKEN_URI_REVEAL)
 
 data class CollectionOwnershipTransferred(
     override val id: Address,
