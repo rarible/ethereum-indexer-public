@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.producer
 
+import com.rarible.core.kafka.Compression
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.ethereum.domain.Blockchain
@@ -13,7 +14,8 @@ import com.rarible.protocol.dto.OrderIndexerTopicProvider
 class ProducerFactory(
     private val kafkaReplicaSet: String,
     private val blockchain: Blockchain,
-    private val environment: String
+    private val environment: String,
+    private val compression: Compression,
 ) {
     private val orderEventsClientId = "$environment.${blockchain.value}.protocol-order-events-importer"
     private val orderActivityClientId = "$environment.${blockchain.value}.protocol-order-activities-importer"
@@ -27,7 +29,8 @@ class ProducerFactory(
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = OrderEventDto::class.java,
             defaultTopic = OrderIndexerTopicProvider.getOrderUpdateTopic(environment, blockchain.value),
-            bootstrapServers = kafkaReplicaSet
+            bootstrapServers = kafkaReplicaSet,
+            compression = compression,
         )
     }
 
@@ -37,7 +40,8 @@ class ProducerFactory(
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = NftOrdersPriceUpdateEventDto::class.java,
             defaultTopic = OrderIndexerTopicProvider.getPriceUpdateTopic(environment, blockchain.value),
-            bootstrapServers = kafkaReplicaSet
+            bootstrapServers = kafkaReplicaSet,
+            compression = compression,
         )
     }
 
@@ -47,7 +51,8 @@ class ProducerFactory(
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = EthActivityEventDto::class.java,
             defaultTopic = ActivityTopicProvider.getActivityTopic(environment, blockchain.value),
-            bootstrapServers = kafkaReplicaSet
+            bootstrapServers = kafkaReplicaSet,
+            compression = compression,
         )
     }
 
@@ -57,7 +62,8 @@ class ProducerFactory(
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = AuctionEventDto::class.java,
             defaultTopic = OrderIndexerTopicProvider.getAuctionUpdateTopic(environment, blockchain.value),
-            bootstrapServers = kafkaReplicaSet
+            bootstrapServers = kafkaReplicaSet,
+            compression = compression,
         )
     }
 
@@ -67,7 +73,8 @@ class ProducerFactory(
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = EthActivityEventDto::class.java,
             defaultTopic = ActivityTopicProvider.getActivityTopic(environment, blockchain.value),
-            bootstrapServers = kafkaReplicaSet
+            bootstrapServers = kafkaReplicaSet,
+            compression = compression,
         )
     }
 }

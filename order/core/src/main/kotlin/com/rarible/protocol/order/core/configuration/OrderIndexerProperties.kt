@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.configuration
 
+import com.rarible.core.kafka.Compression
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.order.core.model.ScannerVersion
 import com.rarible.protocol.order.core.model.TraceMethod
@@ -52,6 +53,7 @@ data class OrderIndexerProperties(
     val orderEventHandle: OrderEventHandleProperties = OrderEventHandleProperties(),
     val poolEventHandle: PoolEventHandleProperties = PoolEventHandleProperties(),
     val looksrareLoad: LooksrareLoadProperties = LooksrareLoadProperties(),
+    val compression: Compression = Compression.SNAPPY,
 ) {
     val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong()) * BigDecimal.valueOf(1, 18)
 
