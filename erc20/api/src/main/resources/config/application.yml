@@ -1,2 +1,8 @@
 spring:
   application.name: protocol-${common.blockchain}-erc20-indexer-api
+
+blockchain:
+  scanner:
+    ethereum:
+      scan:
+        enabled: false

@@ -4,3 +4,9 @@ spring:
 mongock:
   change-logs-scan-package:
     - com.rarible.protocol.erc20.migration.mongock
+
+blockchain:
+  scanner:
+    ethereum:
+      scan:
+        enabled: false
