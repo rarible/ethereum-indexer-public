@@ -48,11 +48,6 @@ data class CreateCollection(
     val symbol: String
 ) : CollectionEvent(CollectionEventType.CREATE)
 
-data class TokenUriReveal(
-    override val id: Address,
-    val tokenUri: String,
-) : CollectionEvent(CollectionEventType.TOKEN_URI_REVEAL)
-
 data class CollectionOwnershipTransferred(
     override val id: Address,
     val previousOwner: Address,
