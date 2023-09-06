@@ -25,9 +25,6 @@ enum class CollectionEventType(val topic: Set<Word>) {
             CreateERC1155RaribleEvent.id()
         )
     ),
-    TOKEN_URI_REVEAL(
-        setOf(TokenUriRevealEvent.id())
-    ),
     OWNERSHIP(
         setOf(OwnershipTransferredEvent.id())
     )
