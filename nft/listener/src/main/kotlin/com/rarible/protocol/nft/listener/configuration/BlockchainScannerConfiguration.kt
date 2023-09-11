@@ -67,6 +67,7 @@ class BlockchainScannerConfiguration(
                 },
                 logRecordFilters = logRecordEventFilters,
                 workerCount = nftListenerProperties.logConsumeWorkerCount,
+                coroutineThreadCount = nftListenerProperties.logConsumeCoroutineThreadCount
             )
         }
     }
