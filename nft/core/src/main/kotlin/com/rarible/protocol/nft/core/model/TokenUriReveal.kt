@@ -2,10 +2,13 @@ package com.rarible.protocol.nft.core.model
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import scalether.domain.Address
+import java.math.BigInteger
 
 data class TokenUriReveal(
-    val id: Address,
-    val tokenUri: String,
+    val contract: Address,
+    val tokenIdFrom: BigInteger,
+    val tokenIdTo: BigInteger,
+//    val tokenUri: String,
 ) : EventData {
-    override fun getKey(log: EthereumLog): String = id.prefixed()
+    override fun getKey(log: EthereumLog): String = contract.prefixed()
 }

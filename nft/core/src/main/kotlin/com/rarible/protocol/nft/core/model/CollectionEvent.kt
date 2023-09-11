@@ -8,7 +8,6 @@ import com.rarible.protocol.contracts.collection.CreateERC721RaribleEvent
 import com.rarible.protocol.contracts.collection.CreateERC721RaribleUserEvent
 import com.rarible.protocol.contracts.collection.CreateERC721_v4Event
 import com.rarible.protocol.contracts.collection.CreateEvent
-import com.rarible.protocol.contracts.collection.TokenUriRevealEvent
 import com.rarible.protocol.contracts.erc721.OwnershipTransferredEvent
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address

@@ -13,5 +13,8 @@ object EntityEventListeners {
     fun tokenHistoryListenerId(blockchain: Blockchain): String =
         "${prefix(blockchain)}.token.history.listener"
 
+    fun tokenRevealListenerId(blockchain: Blockchain): String =
+        "${prefix(blockchain)}.token.reveal.listener"
+
     private fun prefix(blockchain: Blockchain): String = "protocol.${blockchain.value}.nft"
 }
