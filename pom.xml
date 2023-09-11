@@ -36,7 +36,7 @@
 
         <rarible.protocol.ethereum.version>1.60.100</rarible.protocol.ethereum.version>
         <rarible.protocol.currency.version>1.38.4</rarible.protocol.currency.version>
-        <opensea-client-starter.version>2.1.19</opensea-client-starter.version>
+        <opensea-client-starter.version>2.1.20</opensea-client-starter.version>
         <looksrare-client-starter.version>1.2.7</looksrare-client-starter.version>
         <x2y2-client.version>1.1.1</x2y2-client.version>
         <reservoir-client.version>1.0.8</reservoir-client.version>
