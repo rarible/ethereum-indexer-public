@@ -1,0 +1,4 @@
+common:
+  openseaSignatureErrorMessages:
+    - Error when generating fulfillment data
+    - This order can not be fulfilled at this time

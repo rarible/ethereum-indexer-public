@@ -25,6 +25,7 @@ data class OrderIndexerProperties(
     val openseaEip712DomainName: String,
     val openseaEip712DomainVersion: String,
     var openSeaNonceIncrement: Long = 0,
+    val openseaSignatureErrorMessages: List<String> = emptyList(),
     val minSeaportMakeWeiPrice: Int = 1000,
     val chainId: Int,
     var operatorPrivateKey: Binary,
