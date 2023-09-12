@@ -18,6 +18,9 @@ ethereum-erc20-api:
 ethereum-erc20-listener:
   environments:
     <<: *erc20Env
+  resources:
+    jvm:
+      max_direct_memory_megabytes: 64
 
 ethereum-erc20-migration:
   environments:
