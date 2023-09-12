@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.index.Index
+import org.springframework.data.mongodb.core.index.PartialIndexFilter
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -56,6 +57,11 @@ class RoyaltiesHistoryRepository(
             .on(ReversedEthereumLogRecord::blockNumber.name, Sort.Direction.ASC)
             .on(ReversedEthereumLogRecord::logIndex.name, Sort.Direction.ASC)
             .on(ReversedEthereumLogRecord::minorLogIndex.name, Sort.Direction.ASC)
+            .partial(
+                PartialIndexFilter.of(
+                    (ReversedEthereumLogRecord::data / RoyaltiesEvent::type isEqualTo RoyaltiesEventType.SET_CONTRACT_ROYALTIES)
+                )
+            )
             .background()
     )
 }
