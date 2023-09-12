@@ -32,6 +32,7 @@ import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.SetRoyaltiesForContract
 import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.UpdateSuspiciousItemsState
@@ -555,5 +556,12 @@ fun indexerInNftBlockchainTimeMark(log: EthereumLog) = EventTimeMarks(
         EventTimeMark("indexer-in_nft", Instant.now()),
     )
 )
+
+fun randomRoyaltiesHistory(token: Address = randomAddress()): SetRoyaltiesForContract {
+    return SetRoyaltiesForContract(
+        token = token,
+        parts = listOf(Part(randomAddress(), 1000))
+    )
+}
 
 fun randomEnsDomain(): String = "${randomString()}.eth"
