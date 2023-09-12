@@ -13,6 +13,7 @@ import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemEventTopicProvider
+import com.rarible.protocol.dto.NftItemMetaEventDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Component
 class ProtocolNftEventPublisher(
     private val collectionEventsProducer: RaribleKafkaProducer<NftCollectionEventDto>,
     private val itemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,
+    private val itemMetaEventsProducer: RaribleKafkaProducer<NftItemMetaEventDto>,
     private val ownershipEventProducer: RaribleKafkaProducer<NftOwnershipEventDto>,
     private val nftItemActivityProducer: RaribleKafkaProducer<EthActivityEventDto>,
     private val actionProducer: RaribleKafkaProducer<ActionEvent>
@@ -53,6 +55,17 @@ class ProtocolNftEventPublisher(
         )
         itemEventsProducer.send(message).ensureSuccess()
         logger.info("Sent item event ${event.itemId}: ${event.toShort()}")
+    }
+
+    suspend fun publish(event: NftItemMetaEventDto) {
+        val message = KafkaMessage(
+            key = event.itemId,
+            value = event,
+            headers = ITEM_EVENT_HEADERS,
+            id = event.eventId
+        )
+        itemMetaEventsProducer.send(message).ensureSuccess()
+        logger.info("Sent item meta event ${event.itemId}: $event")
     }
 
     suspend fun publish(event: NftOwnershipEventDto) {
