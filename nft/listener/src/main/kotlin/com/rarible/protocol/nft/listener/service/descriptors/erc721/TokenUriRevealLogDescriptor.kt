@@ -43,7 +43,6 @@ class TokenUriRevealLogDescriptor(
                 contract = log.address(),
                 tokenIdFrom = fromTokenId,
                 tokenIdTo = toTokenId,
-//                tokenUri = e.revealedUri()
             )
         }
     }

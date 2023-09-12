@@ -8,7 +8,6 @@ data class TokenUriReveal(
     val contract: Address,
     val tokenIdFrom: BigInteger,
     val tokenIdTo: BigInteger,
-//    val tokenUri: String,
 ) : EventData {
     override fun getKey(log: EthereumLog): String = contract.prefixed()
 }
