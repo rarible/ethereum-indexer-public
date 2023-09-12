@@ -49,7 +49,6 @@ class OrderStartEndCheckerHandler(
                 val saved = orderRepository.save(
                     order
                         .withAdvanceExpired(isExpired)
-                        .cancelEndedBid()
                         .withUpdatedStatus(now)
                 )
                 if (isExpired) orderExpiredMetric.increment() else orderStartedMetric.increment()
