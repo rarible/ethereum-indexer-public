@@ -225,14 +225,6 @@ data class Order(
         )
     }
 
-    fun cancelEndedBid(): Order {
-        return if (isEndedBid()) withCancel(true) else this
-    }
-
-    fun withCancel(cancel: Boolean): Order {
-        return copy(cancelled = cancel)
-    }
-
     fun toOrderVersion(): OrderVersion = OrderVersion(
         maker = maker,
         make = make,
