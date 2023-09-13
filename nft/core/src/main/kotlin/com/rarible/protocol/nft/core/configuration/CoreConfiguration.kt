@@ -39,7 +39,7 @@ import org.springframework.http.HttpHeaders
 
 @Configuration
 @EnableConfigurationProperties(NftIndexerProperties::class)
-@Import(RepositoryConfiguration::class, ProducerConfiguration::class, MetricsCountersConfiguration::class)
+@Import(RepositoryConfiguration::class, ProducerConfiguration::class, MetricsConfiguration::class)
 @ComponentScan(
     basePackageClasses = [
         Package::class,
