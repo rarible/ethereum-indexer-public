@@ -20,7 +20,8 @@ ethereum-erc20-listener:
     <<: *erc20Env
   resources:
     jvm:
-      max_direct_memory_megabytes: 64
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
 
 ethereum-erc20-migration:
   environments:
