@@ -11,10 +11,10 @@ abstract class InternalEventHandler<T>(
 
     protected suspend fun withMetric(type: EventCountMetrics.EventType, delegate: suspend () -> Unit) {
         try {
-            eventCountMetrics.eventReceived(EventCountMetrics.Stage.INDEXER, properties.blockchain.value, type)
+            eventCountMetrics.eventReceived(EventCountMetrics.Stage.INDEXER_INTERNAL, properties.blockchain.value, type)
             delegate()
         } catch (e: Exception) {
-            eventCountMetrics.eventReceived(EventCountMetrics.Stage.INDEXER, properties.blockchain.value, type, -1)
+            eventCountMetrics.eventReceived(EventCountMetrics.Stage.INDEXER_INTERNAL, properties.blockchain.value, type, -1)
             throw e
         }
     }

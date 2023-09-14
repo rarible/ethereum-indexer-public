@@ -43,10 +43,10 @@ class OwnershipConsumerEventHandler(
 
     protected suspend fun withMetric(type: EventType, delegate: suspend () -> Unit) {
         try {
-            eventCountMetrics.eventReceived(Stage.INDEXER, properties.blockchain.value, type)
+            eventCountMetrics.eventReceived(Stage.INDEXER_INTERNAL, properties.blockchain.value, type)
             delegate()
         } catch (e: Exception) {
-            eventCountMetrics.eventReceived(Stage.INDEXER, properties.blockchain.value, type, -1)
+            eventCountMetrics.eventReceived(Stage.INDEXER_INTERNAL, properties.blockchain.value, type, -1)
             throw e
         }
     }
