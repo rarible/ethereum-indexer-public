@@ -83,6 +83,10 @@
 
         <!-- ================== Other ==================== -->
         <dependency>
+            <groupId>ch.sbb</groupId>
+            <artifactId>springboot-graceful-shutdown</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.daonomic.scalether</groupId>
             <artifactId>transaction-mono_${scala.major.version}</artifactId>
             <version>${scalether.version}</version>

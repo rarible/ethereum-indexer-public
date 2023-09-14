@@ -30,6 +30,9 @@ class ProducerConfiguration(
     fun itemEventsProducer(producerFactory: ProducerFactory) = producerFactory.createItemEventsProducer()
 
     @Bean
+    fun itemMetaEventsProducer(producerFactory: ProducerFactory) = producerFactory.createItemMetaEventsProducer()
+
+    @Bean
     fun ownershipEventsProducer(producerFactory: ProducerFactory) = producerFactory.createOwnershipEventsProducer()
 
     @Bean

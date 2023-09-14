@@ -25,12 +25,15 @@ import com.rarible.protocol.nft.api.test.End2EndTest
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.dto.ItemDtoConverter
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
+import com.rarible.protocol.nft.core.data.randomReversedLogRecord
+import com.rarible.protocol.nft.core.data.randomRoyaltiesHistory
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import com.rarible.protocol.nft.core.repository.history.RoyaltiesHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.Binary
@@ -79,6 +82,9 @@ class ItemControllerFt : AbstractIntegrationTest() {
 
     @Autowired
     protected lateinit var featureFlags: FeatureFlags
+
+    @Autowired
+    protected lateinit var royaltiesHistoryRepository: RoyaltiesHistoryRepository
 
     @Autowired
     private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
@@ -362,6 +368,20 @@ class ItemControllerFt : AbstractIntegrationTest() {
         // get from api
         val dto = nftItemApiClient.getNftItemRoyaltyById(item.id.toString()).awaitSingle()
         assertEquals(NftItemRoyaltyListDto(listOf(NftItemRoyaltyDto(royalty._1, royalty._2.intValueExact()))), dto)
+    }
+
+    @Test
+    fun `get royalty by itemId from history`() = runBlocking<Unit> {
+        val item = createItem()
+        val history = randomRoyaltiesHistory(item.token)
+        val log = randomReversedLogRecord(history)
+
+        // set royalty
+        royaltiesHistoryRepository.save(log)
+
+        // get from api
+        val dto = nftItemApiClient.getNftItemRoyaltyById(item.id.toString()).awaitSingle()
+        assertThat(dto).isEqualTo(NftItemRoyaltyListDto(history.parts.map { NftItemRoyaltyDto(it.account, it.value) }))
     }
 
     @Test

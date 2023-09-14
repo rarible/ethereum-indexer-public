@@ -16,6 +16,7 @@ import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
+import com.rarible.protocol.dto.NftItemMetaEventDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
@@ -126,6 +127,9 @@ abstract class AbstractIntegrationTest {
 
     @Autowired
     protected lateinit var collectionEventHandler: TestKafkaHandler<NftCollectionEventDto>
+
+    @Autowired
+    protected lateinit var itemMetaEventHandler: TestKafkaHandler<NftItemMetaEventDto>
 
     @Autowired
     protected lateinit var eventHandlers: List<TestKafkaHandler<*>>

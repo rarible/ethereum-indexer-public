@@ -1,9 +1,10 @@
 package com.rarible.protocol.order.listener
 
+import com.rarible.core.kafka.KafkaShutdownHook
 import com.rarible.core.kafka.RaribleKafkaConsumerWorker
 import org.springframework.boot.CommandLineRunner
+import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
 
 @SpringBootApplication
 class OrderListenerApplication(
@@ -16,5 +17,8 @@ class OrderListenerApplication(
 }
 
 fun main(args: Array<String>) {
-    runApplication<OrderListenerApplication>(*args)
+    val app = SpringApplication(OrderListenerApplication::class.java)
+    app.setRegisterShutdownHook(false)
+    val context = app.run(*args)
+    Runtime.getRuntime().addShutdownHook(Thread(KafkaShutdownHook(context, context::close)))
 }
