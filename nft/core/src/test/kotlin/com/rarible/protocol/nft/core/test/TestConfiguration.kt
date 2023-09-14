@@ -9,6 +9,7 @@ import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemEventTopicProvider
+import com.rarible.protocol.dto.NftItemMetaEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -169,6 +170,27 @@ class TestConfiguration {
             group = "test-group-collection-event",
             topic = NftCollectionEventTopicProvider.getTopic(application.name, properties.blockchain.value),
             valueClass = NftCollectionEventDto::class.java,
+            concurrency = 1,
+            batchSize = 500,
+            offsetResetStrategy = OffsetResetStrategy.EARLIEST,
+        )
+        return factory.createWorker(settings, handler)
+    }
+
+    @Bean
+    fun testItemMetaEventHandler() = TestKafkaHandler<NftItemMetaEventDto>()
+
+    @Bean
+    fun testItemMetaEventConsumer(
+        factory: RaribleKafkaConsumerFactory,
+        application: ApplicationEnvironmentInfo,
+        handler: TestKafkaHandler<NftItemMetaEventDto>
+    ): RaribleKafkaConsumerWorker<NftItemMetaEventDto> {
+        val settings = RaribleKafkaConsumerSettings(
+            hosts = properties.kafkaReplicaSet,
+            group = "test-group-item-meta-event",
+            topic = NftItemEventTopicProvider.getItemMetaTopic(application.name, properties.blockchain.value),
+            valueClass = NftItemMetaEventDto::class.java,
             concurrency = 1,
             batchSize = 500,
             offsetResetStrategy = OffsetResetStrategy.EARLIEST,
