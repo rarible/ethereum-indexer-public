@@ -5,6 +5,9 @@ import com.rarible.core.apm.SpanType
 import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
+import com.rarible.ethereum.monitoring.EventCountMetrics
+import com.rarible.ethereum.monitoring.EventCountMetrics.EventType
+import com.rarible.ethereum.monitoring.EventCountMetrics.Stage
 import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.NftActivityDto
@@ -17,6 +20,7 @@ import com.rarible.protocol.dto.NftItemMetaEventDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.misc.addIndexerOut
 import com.rarible.protocol.nft.core.misc.toDto
 import com.rarible.protocol.nft.core.model.ActionEvent
@@ -33,9 +37,11 @@ class ProtocolNftEventPublisher(
     private val itemMetaEventsProducer: RaribleKafkaProducer<NftItemMetaEventDto>,
     private val ownershipEventProducer: RaribleKafkaProducer<NftOwnershipEventDto>,
     private val nftItemActivityProducer: RaribleKafkaProducer<EthActivityEventDto>,
-    private val actionProducer: RaribleKafkaProducer<ActionEvent>
+    private val actionProducer: RaribleKafkaProducer<ActionEvent>,
+    private val properties: NftIndexerProperties,
+    private val eventCountMetrics: EventCountMetrics
 ) {
-    suspend fun publish(event: NftCollectionEventDto) {
+    suspend fun publish(event: NftCollectionEventDto) = withMetric(EventType.COLLECTION) {
         val message = KafkaMessage(
             key = event.id.hex(),
             value = event,
@@ -46,7 +52,7 @@ class ProtocolNftEventPublisher(
         logger.info("Sent collection event ${event.eventId}: $event")
     }
 
-    suspend fun publish(event: NftItemEventDto) {
+    suspend fun publish(event: NftItemEventDto) = withMetric(EventType.ITEM) {
         val message = KafkaMessage(
             key = event.itemId,
             value = event,
@@ -68,7 +74,7 @@ class ProtocolNftEventPublisher(
         logger.info("Sent item meta event ${event.itemId}: $event")
     }
 
-    suspend fun publish(event: NftOwnershipEventDto) {
+    suspend fun publish(event: NftOwnershipEventDto) = withMetric(EventType.OWNERSHIP) {
         val message = prepareOwnershipKafkaMessage(event)
         ownershipEventProducer.send(message).ensureSuccess()
         logger.info("Sent ownership event ${event.eventId}: $event")
@@ -88,10 +94,14 @@ class ProtocolNftEventPublisher(
             logger.info("Sent item activity event ${activity.id}: $activity")
             message
         }
-        nftItemActivityProducer.send(messages).collect { it.ensureSuccess() }
+        nftItemActivityProducer.send(messages).collect {
+            withMetric(EventType.ACTIVITY) {
+                it.ensureSuccess()
+            }
+        }
     }
 
-    suspend fun publish(event: ActionEvent) {
+    suspend fun publish(event: ActionEvent) = withMetric(EventType.AUCTION) {
         val itemId = ItemId(event.token, event.tokenId)
         val message = KafkaMessage(
             key = itemId.stringValue,
@@ -101,6 +111,16 @@ class ProtocolNftEventPublisher(
         )
         actionProducer.send(message).ensureSuccess()
         logger.info("Sent action event for ${itemId.decimalStringValue}: $event")
+    }
+
+    private suspend fun withMetric(type: EventType, delegate: suspend () -> Unit) {
+        try {
+            eventCountMetrics.eventSent(Stage.INDEXER, properties.blockchain.value, type)
+            delegate()
+        } catch (e: Exception) {
+            eventCountMetrics.eventSent(Stage.INDEXER, properties.blockchain.value, type, -1)
+            throw e
+        }
     }
 
     private fun prepareOwnershipKafkaMessage(event: NftOwnershipEventDto): KafkaMessage<NftOwnershipEventDto> {

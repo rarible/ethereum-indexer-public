@@ -5,6 +5,9 @@ import com.rarible.core.apm.SpanType
 import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
+import com.rarible.ethereum.monitoring.EventCountMetrics
+import com.rarible.ethereum.monitoring.EventCountMetrics.EventType
+import com.rarible.ethereum.monitoring.EventCountMetrics.Stage
 import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.AmmNftAssetTypeDto
 import com.rarible.protocol.dto.AmmOrderNftUpdateEventDto
@@ -31,6 +34,7 @@ import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.dto.OrderIndexerTopicProvider
 import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.PublishProperties
 import com.rarible.protocol.order.core.misc.addIndexerOut
 import com.rarible.protocol.order.core.misc.platform
@@ -44,7 +48,9 @@ class ProtocolOrderPublisher(
     private val orderActivityProducer: RaribleKafkaProducer<EthActivityEventDto>,
     private val orderEventProducer: RaribleKafkaProducer<OrderEventDto>,
     private val ordersPriceUpdateEventProducer: RaribleKafkaProducer<NftOrdersPriceUpdateEventDto>,
-    private val publishProperties: PublishProperties
+    private val publishProperties: PublishProperties,
+    private val properties: OrderIndexerProperties,
+    private val eventCountMetrics: EventCountMetrics
 ) {
     private val orderActivityHeaders = mapOf("protocol.order.activity.version" to ActivityTopicProvider.VERSION)
     private val orderEventHeaders = mapOf("protocol.order.event.version" to OrderIndexerTopicProvider.VERSION)
@@ -56,18 +62,20 @@ class ProtocolOrderPublisher(
             is AmmOrderNftUpdateEventDto ->
                 event.orderId to publishProperties.publishAmmOrders
         }
-        val message = KafkaMessage(
-            key = key,
-            value = event,
-            headers = orderEventHeaders,
-            id = event.eventId
-        )
         if (needPublish) {
-            orderEventProducer.send(message).ensureSuccess()
+            val message = KafkaMessage(
+                key = key,
+                value = event,
+                headers = orderEventHeaders,
+                id = event.eventId
+            )
+            withMetric(EventType.ORDER) {
+                orderEventProducer.send(message).ensureSuccess()
+            }
         }
     }
 
-    suspend fun publish(event: OrderActivityDto, eventTimeMarks: EventTimeMarks) {
+    suspend fun publish(event: OrderActivityDto, eventTimeMarks: EventTimeMarks) = withMetric(EventType.ACTIVITY) {
         // TODO ideally there should be itemId key
         val key = when (event) {
             is OrderActivityMatchDto -> event.transactionHash.toString()
@@ -93,6 +101,16 @@ class ProtocolOrderPublisher(
             id = event.eventId
         )
         ordersPriceUpdateEventProducer.send(message).ensureSuccess()
+    }
+
+    private suspend fun withMetric(type: EventType, delegate: suspend () -> Unit) {
+        try {
+            eventCountMetrics.eventSent(Stage.INDEXER, properties.blockchain.value, type)
+            delegate()
+        } catch (e: Exception) {
+            eventCountMetrics.eventSent(Stage.INDEXER, properties.blockchain.value, type, -1)
+            throw e
+        }
     }
 
     private val OrderDto.key: String?
