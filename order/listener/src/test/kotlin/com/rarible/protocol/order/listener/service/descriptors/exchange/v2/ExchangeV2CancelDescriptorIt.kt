@@ -20,6 +20,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.contract.MonoPreparedTransaction
+import java.time.Instant
 
 @IntegrationTest
 @FlowPreview
@@ -50,7 +51,7 @@ class ExchangeV2CancelDescriptorIt : AbstractExchangeV2Test() {
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
             start = null,
-            end = null,
+            end = Instant.MAX.epochSecond,
             data = OrderRaribleV2DataV1(emptyList(), emptyList()),
             signature = null,
             createdAt = nowMillis(),
