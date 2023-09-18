@@ -16,6 +16,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredA
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OriginalUrlPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.PegaxyPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.PxlvrPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RectguyCatsPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.StonerCatsPropertiesResolver
@@ -49,6 +50,7 @@ class ItemPropertiesResolverProvider(
     rectguyCatsPropertiesResolver: RectguyCatsPropertiesResolver,
     sandboxPropertiesResolver: SandboxPropertiesResolver,
     originalUrlPropertiesResolver: OriginalUrlPropertiesResolver,
+    pxlvrPropertiesResolver: PxlvrPropertiesResolver,
 ) {
     /**
      * Must not be returned from the [orderedResolvers]
@@ -76,6 +78,7 @@ class ItemPropertiesResolverProvider(
         rectguyCatsPropertiesResolver,
         sandboxPropertiesResolver,
         originalUrlPropertiesResolver,
+        pxlvrPropertiesResolver,
         // Default resolvers, should be last in the list
         lazyItemPropertiesResolver,
         raribleResolver
