@@ -22,7 +22,8 @@ abstract class AbstractBalanceLogEventSubscriber(
     private val metrics: DescriptorMetrics,
     group: SubscriberGroup,
     topic: Word,
-    collection: String
+    collection: String,
+    saveLogs: Boolean = true
 ) : EthereumLogEventSubscriber() {
 
     private val ignoredOwners = ignoredOwnersResolver.resolve()
@@ -33,7 +34,8 @@ abstract class AbstractBalanceLogEventSubscriber(
         groupId = group,
         collection = collection,
         contracts = emptyList(),
-        entityType = ReversedEthereumLogRecord::class.java
+        entityType = ReversedEthereumLogRecord::class.java,
+        saveLogs = saveLogs
     )
 
     override fun getDescriptor(): EthereumDescriptor = descriptor
