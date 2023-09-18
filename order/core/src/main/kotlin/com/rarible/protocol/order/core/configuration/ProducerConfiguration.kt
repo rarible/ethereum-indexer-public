@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.core.configuration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
+import com.rarible.ethereum.monitoring.EventCountMetrics
 import com.rarible.protocol.order.core.producer.ProducerFactory
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -37,4 +39,9 @@ class ProducerConfiguration(
 
     @Bean
     fun publishProperties() = properties.publish
+
+    @Bean
+    fun eventCountMetrics(registry: MeterRegistry): EventCountMetrics {
+        return EventCountMetrics(registry)
+    }
 }

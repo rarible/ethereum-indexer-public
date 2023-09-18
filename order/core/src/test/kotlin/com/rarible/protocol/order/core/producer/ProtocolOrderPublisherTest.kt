@@ -3,6 +3,8 @@ package com.rarible.protocol.order.core.producer
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.KafkaSendResult
 import com.rarible.core.kafka.RaribleKafkaProducer
+import com.rarible.ethereum.domain.Blockchain
+import com.rarible.ethereum.monitoring.EventCountMetrics
 import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.NftOrdersPriceUpdateEventDto
 import com.rarible.protocol.dto.OrderDto
@@ -13,6 +15,7 @@ import com.rarible.protocol.order.core.data.createOrderDto
 import com.rarible.protocol.order.core.data.createSeaportOrderDto
 import com.rarible.protocol.order.core.data.createX2Y2OrderDto
 import com.rarible.protocol.order.core.data.randomOrderEventDto
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -34,7 +37,11 @@ internal class ProtocolOrderPublisherTest {
         orderActivityProducer,
         orderEventProducer,
         ordersPriceUpdateEventProducer,
-        publishProperties
+        publishProperties,
+        mockk {
+            every { blockchain } returns Blockchain.ETHEREUM
+        },
+        EventCountMetrics(SimpleMeterRegistry())
     )
 
     private companion object {

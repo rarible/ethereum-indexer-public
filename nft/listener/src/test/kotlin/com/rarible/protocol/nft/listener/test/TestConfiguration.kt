@@ -42,7 +42,9 @@ class TestConfiguration {
         return CacheableMonoEthereum(
             delegate = MonoEthereum(transport),
             expireAfter = Duration.ofMinutes(1),
-            cacheMaxSize = 100
+            cacheMaxSize = 100,
+            blockByNumberCacheExpireAfter = Duration.ofMinutes(1),
+            enableCacheByNumber = false
         )
     }
 
