@@ -59,7 +59,7 @@ fun randomOrder(
 }
 
 fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormDto {
-    val fixedEnd = end ?: Instant.MAX.epochSecond
+    val fixedEnd = end ?: 0
     return when (type) {
         OrderType.RARIBLE_V2 -> RaribleV2OrderFormDto(
             maker = maker,

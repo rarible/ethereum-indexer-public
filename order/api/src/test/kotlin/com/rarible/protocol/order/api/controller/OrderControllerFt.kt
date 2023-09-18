@@ -58,6 +58,7 @@ import org.web3jold.utils.Numeric
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
+import java.time.Instant
 import com.rarible.protocol.order.core.data.randomOrder as createOrderFully
 
 @IntegrationTest
@@ -142,7 +143,12 @@ class OrderControllerFt : AbstractIntegrationTest() {
         upsert: suspend (OrderFormDto) -> OrderDto
     ) {
         val (privateKey, _, signer) = generateNewKeys()
-        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN), salt, data)
+        val order = createOrder(
+            maker = signer,
+            make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+            salt = salt,
+            data = data
+        )
 
         coEvery { orderService.put(any()) } returns order
 
@@ -168,9 +174,9 @@ class OrderControllerFt : AbstractIntegrationTest() {
 
         coEvery { orderService.findOrders(any(), any(), any()) } returns listOf(
             createOrder(
-                user,
-                Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.ONE), EthUInt256.of(5)),
-                EthUInt256.TEN
+                maker = user,
+                make = Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.ONE), EthUInt256.of(5)),
+                salt = EthUInt256.TEN
             )
         )
 
@@ -223,10 +229,11 @@ class OrderControllerFt : AbstractIntegrationTest() {
     fun `should create order with null end - fail`() {
         val (privateKey, _, signer) = generateNewKeys()
         val order = createOrder(
-            signer,
-            Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-            EthUInt256.TEN,
-            OrderRaribleV2DataV1(emptyList(), emptyList())
+            maker = signer,
+            make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+            salt = EthUInt256.TEN,
+            data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+            endDate = null
         )
         val formDto = order.toForm(eip712Domain, privateKey)
         val request: MutableMap<String, Object> = objectMapper.convertValue<Map<String, Object>>(formDto).toMutableMap()
@@ -244,10 +251,10 @@ class OrderControllerFt : AbstractIntegrationTest() {
     fun `should create order with invalid end - fail`() {
         val (privateKey, _, signer) = generateNewKeys()
         val order = createOrder(
-            signer,
-            Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-            EthUInt256.TEN,
-            OrderRaribleV2DataV1(emptyList(), emptyList())
+            maker = signer,
+            make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+            salt = EthUInt256.TEN,
+            data = OrderRaribleV2DataV1(emptyList(), emptyList())
         )
         val formDto = order.toForm(eip712Domain, privateKey) as RaribleV2OrderFormDto
         assertThatExceptionOfType(OrderControllerApi.ErrorUpsertOrder::class.java).isThrownBy {
@@ -264,10 +271,10 @@ class OrderControllerFt : AbstractIntegrationTest() {
     fun `should create order with invalid signature - fail`() {
         val (privateKey, _, signer) = generateNewKeys()
         val order = createOrder(
-            AddressFactory.create(),
-            Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-            EthUInt256.TEN,
-            OrderRaribleV2DataV1(emptyList(), emptyList())
+            maker = AddressFactory.create(),
+            make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+            salt = EthUInt256.TEN,
+            data = OrderRaribleV2DataV1(emptyList(), emptyList())
         )
         val formDto = order.toForm(eip712Domain, privateKey) as RaribleV2OrderFormDto
         assertThatExceptionOfType(OrderControllerApi.ErrorUpsertOrder::class.java).isThrownBy {
@@ -289,7 +296,8 @@ class OrderControllerFt : AbstractIntegrationTest() {
         maker: Address,
         make: Asset,
         salt: EthUInt256,
-        data: OrderData = OrderRaribleV2DataV1(emptyList(), emptyList())
+        data: OrderData = OrderRaribleV2DataV1(emptyList(), emptyList()),
+        endDate: Instant? = Instant.MAX
     ) = Order(
         maker = maker,
         taker = null,
@@ -301,7 +309,7 @@ class OrderControllerFt : AbstractIntegrationTest() {
         cancelled = false,
         salt = salt,
         start = null,
-        end = null,
+        end = endDate?.epochSecond,
         data = data,
         signature = null,
         createdAt = nowMillis(),
