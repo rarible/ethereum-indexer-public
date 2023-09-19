@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.listener.service.item
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskHandler
 import com.rarible.core.task.TaskRepository
@@ -7,6 +8,7 @@ import com.rarible.core.task.TaskStatus
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
 import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.model.ScannerVersion
@@ -35,18 +37,37 @@ class ItemReduceTaskHandler(
     }
 
     override fun runLongTask(from: ItemReduceState?, param: String): Flow<ItemReduceState> {
-        val to = if (param.isNotBlank()) ItemId(Address.apply(param), EthUInt256.ZERO) else null
-
-        return itemReduceService.update(
-            from = from?.let { ItemId(it.token, it.tokenId) },
-            to = to,
-            updateNotChanged = false
-        ).map { (token, tokenId) -> ItemReduceState(token, tokenId) }
+        val (fromItemId, toItemId) = rangeItemId(from, param)
+        return (if (fromItemId != null && fromItemId == toItemId) {
+            itemReduceService.update(
+                token = fromItemId.token,
+                tokenId = fromItemId.tokenId,
+                updateNotChanged = false
+            )
+        } else {
+            itemReduceService.update(
+                from = fromItemId,
+                to = toItemId,
+                updateNotChanged = false
+            )
+        }).map { (token, tokenId) -> ItemReduceState(token, tokenId) }
             .windowTimeout(Int.MAX_VALUE, Duration.ofSeconds(5))
             .flatMap {
                 it.takeLast(1).next()
             }
             .asFlow()
+    }
+
+    private fun rangeItemId(state: ItemReduceState?, param: String): Pair<ItemId?, ItemId?> {
+        val fromItemId = state?.let { ItemId(it.token, it.tokenId) }
+        val toItemId = if (param.isNotBlank()) {
+            try {
+                ItemId(Address.apply(param), EthUInt256.ZERO)
+            } catch (e: Throwable) {
+                Item.parseId(param)
+            }
+        } else null
+        return Pair(fromItemId, toItemId)
     }
 
     private suspend fun verifyAllCompleted(topics: Iterable<Word>): Boolean {

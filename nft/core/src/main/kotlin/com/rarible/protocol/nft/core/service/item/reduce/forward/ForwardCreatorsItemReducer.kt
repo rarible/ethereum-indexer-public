@@ -6,7 +6,9 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.ItemCreatorService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -15,7 +17,8 @@ import java.time.Instant
 @Component
 class ForwardCreatorsItemReducer(
     private val creatorService: ItemCreatorService,
-    private val nftIndexerProperties: NftIndexerProperties
+    private val nftIndexerProperties: NftIndexerProperties,
+    private val tokenService: TokenService,
 ) : Reducer<ItemEvent, Item> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -28,16 +31,20 @@ class ForwardCreatorsItemReducer(
             }
 
             is ItemEvent.ItemMintEvent -> {
-                val creators = if (!entity.creatorsFinal) {
-                    if (!nftIndexerProperties.featureFlags.validateCreatorByTransactionSender ||
-                        event.log.from == event.owner
-                    ) {
-                        listOf(Part.fullPart(event.owner))
-                    } else {
-                        emptyList()
-                    }
-                } else {
+                val creators = if (entity.creatorsFinal) {
                     entity.creators
+                } else if (nftIndexerProperties.featureFlags.erc1155FirstMinterIsCreator &&
+                    tokenService.getTokenStandard(entity.token) == TokenStandard.ERC1155
+                ) {
+                    entity.creators.ifEmpty {
+                        listOf(Part.fullPart(event.owner))
+                    }
+                } else if (nftIndexerProperties.featureFlags.validateCreatorByTransactionSender &&
+                    event.log.from != event.owner
+                ) {
+                    emptyList()
+                } else {
+                    listOf(Part.fullPart(event.owner))
                 }
                 entity.copy(
                     mintedAt = entity.mintedAt ?: event.log.blockTimestamp?.let { Instant.ofEpochSecond(it) },
