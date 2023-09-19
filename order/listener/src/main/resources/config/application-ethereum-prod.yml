@@ -31,6 +31,9 @@ listener:
   seaport-load:
     ignored-sell-tokens: "0xa604060890923ff400e8c6f5290461a83aedacec"
   handle-approval-after-block: 15969000
+  tenderlyProperties:
+    mapping:
+      ethereum: mainnet
 rarible:
   seaport:
     network: ethereum

@@ -5,9 +5,11 @@ import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.validator.OrderValidator
+import com.rarible.protocol.order.listener.service.order.OrderSimulationService
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -26,6 +28,9 @@ class FloorOrderCheckHandlerTest {
     lateinit var coreOrderValidator: OrderValidator
 
     @MockK
+    lateinit var orderSimulationService: OrderSimulationService
+
+    @MockK
     lateinit var topCollectionProvider: TopCollectionProvider
 
     @InjectMockKs
@@ -38,6 +43,8 @@ class FloorOrderCheckHandlerTest {
 
     @Test
     fun `handle - ok`() = runBlocking<Unit> {
+        every { orderSimulationService.isEnabled } returns false
+
         val collection = randomAddress()
 
         val currency1 = randomAddress()
@@ -73,10 +80,40 @@ class FloorOrderCheckHandlerTest {
         coVerify(exactly = 1) { coreOrderValidator.validate(invalidOrder1) }
         coVerify(exactly = 1) { coreOrderValidator.validate(validOrder1) }
         coVerify(exactly = 1) { coreOrderValidator.validate(validOrder2) }
+        coVerify(exactly = 0) { orderSimulationService.simulate(any()) }
+    }
+
+    @Test
+    fun `simulate - ok`() = runBlocking<Unit> {
+        every { orderSimulationService.isEnabled } returns true
+        coEvery { orderSimulationService.simulate(any()) } returns true
+
+        val collection = randomAddress()
+
+        val currency = randomAddress()
+
+        coEvery { topCollectionProvider.getTopCollections() } returns listOf(collection)
+
+        coEvery {
+            orderRepository.findActiveSellCurrenciesByCollection(collection)
+        } returns listOf(currency)
+
+        val validOrder1 = randomOrder()
+
+        coEvery {
+            orderRepository.findActiveBestSellOrdersOfCollection(collection, currency, 1)
+        }.returnsMany(listOf(validOrder1))
+
+        coEvery { coreOrderValidator.validate(validOrder1) } returns Unit
+
+        handler.handle()
+
+        coVerify(exactly = 1) { orderSimulationService.simulate(any()) }
     }
 
     @Test
     fun `handle - ok, empty top collection list`() = runBlocking<Unit> {
+        every { orderSimulationService.isEnabled } returns false
         coEvery { topCollectionProvider.getTopCollections() } returns listOf()
 
         handler.handle()
@@ -88,6 +125,7 @@ class FloorOrderCheckHandlerTest {
 
     @Test
     fun `handle - ok, no currencies found`() = runBlocking<Unit> {
+        every { orderSimulationService.isEnabled } returns false
         val collection = randomAddress()
 
         coEvery { topCollectionProvider.getTopCollections() } returns listOf(collection)
@@ -102,6 +140,7 @@ class FloorOrderCheckHandlerTest {
 
     @Test
     fun `handle - ok, no orders found`() = runBlocking<Unit> {
+        every { orderSimulationService.isEnabled } returns false
         val collection = randomAddress()
         val currency = randomAddress()
 

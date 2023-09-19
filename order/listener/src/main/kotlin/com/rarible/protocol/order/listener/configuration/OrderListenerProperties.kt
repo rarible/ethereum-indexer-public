@@ -39,6 +39,8 @@ data class OrderListenerProperties(
     val sudoSwapLoad: SudoSwapLoadProperties = SudoSwapLoadProperties(),
     val startEndWorker: StartEndWorkerProperties = StartEndWorkerProperties(),
     val floorOrderCheckWorker: FloorOrderCheckWorkerProperties = FloorOrderCheckWorkerProperties(),
+    val txBackendProperties: TxBackendProperties = TxBackendProperties(),
+    val tenderlyProperties: TenderlyProperties = TenderlyProperties(),
     var fixApproval: Boolean = false,
     var fixX2Y2: Boolean = false,
     val approvalEvenHandleDelay: Duration = Duration.ZERO,
@@ -124,7 +126,8 @@ data class StartEndWorkerProperties(
 data class FloorOrderCheckWorkerProperties(
     val enabled: Boolean = true,
     val pollingPeriod: Duration = Duration.ofMinutes(60),
-    val errorDelay: Duration = Duration.ofMinutes(60)
+    val errorDelay: Duration = Duration.ofMinutes(60),
+    val simulateFloorOrders: Boolean = false,
 )
 
 sealed class X2Y2LoadProperties {
@@ -163,6 +166,19 @@ data class ReservoirProperties(
     val size: Long = 50,
     val pollingPeriod: Duration = Duration.ofSeconds(60),
     val errorDelay: Duration = Duration.ofSeconds(1)
+)
+
+data class TxBackendProperties(
+    val url: String = "http://transaction-backend:8080"
+)
+
+data class TenderlyProperties(
+    val url: String = "https://:network.gateway.tenderly.co",
+    val apiKey: String = "",
+    val requestsPerMonth: Int = 1000,
+
+    // this is needed for test networks
+    val mapping: Map<String, String> = emptyMap(),
 )
 
 data class OpenseaEventProperties(
