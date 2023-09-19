@@ -4,6 +4,7 @@ spring:
 mongock:
   change-logs-scan-package:
     - com.rarible.protocol.erc20.migration.mongock
+    - com.rarible.blockchain.scanner.ethereum.migration
 
 blockchain:
   scanner:

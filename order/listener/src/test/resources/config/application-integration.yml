@@ -56,6 +56,10 @@ common:
     blur-enabled: true
     scanner-version: V2
 
+mongock:
+  change-logs-scan-package:
+    - com.rarible.blockchain.scanner.ethereum.migration
+
 listener:
   load-open-sea-orders: false
   metricJobStartEnd: "protocol.order.indexer.job-start-end"

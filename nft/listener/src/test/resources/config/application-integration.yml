@@ -27,6 +27,10 @@ parityWebSocketUrls: ${rarible.common.parityWebSocketUrls}
 jms-brokerUrls: ${rarible.common.jms-brokerUrls}
 eventTopic: ${rarible.common.jms-eventTopic}
 
+mongock:
+  change-logs-scan-package:
+    - com.rarible.blockchain.scanner.ethereum.migration
+
 api:
   royalty:
     cache-timeout: 600000 # 10 min

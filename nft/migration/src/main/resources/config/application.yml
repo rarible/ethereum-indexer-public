@@ -35,6 +35,7 @@ rarible:
 mongock:
   change-logs-scan-package:
     - com.rarible.protocol.nft.migration.mongock.mongo
+    - com.rarible.blockchain.scanner.ethereum.migration
 
 common:
   metric-root-path: "protocol.nft.indexer"

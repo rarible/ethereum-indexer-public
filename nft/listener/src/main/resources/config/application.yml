@@ -20,9 +20,6 @@ spring:
   main:
     banner-mode: log
     web-application-type: reactive
-mongock:
-  change-logs-scan-package:
-    - com.rarible.ethereum.listener.log.mongock
 
 rarible:
   core:

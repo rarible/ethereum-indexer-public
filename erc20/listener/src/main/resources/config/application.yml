@@ -1,10 +1,6 @@
 spring:
   application.name: protocol-${common.blockchain}-erc20-listener
 
-mongock:
-  change-logs-scan-package:
-    - com.rarible.blockchain.scanner.ethereum.migration
-
 rarible:
   core:
     task:

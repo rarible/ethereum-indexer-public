@@ -5,6 +5,10 @@ pendingLogsProcessingEnabled: false
 reindexBlocksJobEnabled: false
 ethereumBlockProcessingDelay: 200
 
+mongock:
+  change-logs-scan-package:
+    - com.rarible.blockchain.scanner.ethereum.migration
+
 protocol:
   erc20:
     subscriber:

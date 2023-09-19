@@ -18,9 +18,6 @@ spring:
   main:
     banner-mode: log
     web-application-type: reactive
-mongock:
-  change-logs-scan-package:
-    - com.rarible.blockchain.scanner.ethereum.migration
 
 rarible:
   ethereum:
