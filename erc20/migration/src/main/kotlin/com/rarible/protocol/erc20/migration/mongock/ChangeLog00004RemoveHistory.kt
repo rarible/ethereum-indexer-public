@@ -7,6 +7,7 @@ import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
 import io.changock.migration.api.annotations.NonLockGuarded
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -27,8 +28,12 @@ class ChangeLog00004RemoveHistory {
         runAlways = false
     )
     fun dropCollection(@NonLockGuarded template: ReactiveMongoOperations) = runBlocking {
-        template.dropCollection(Erc20TransferHistoryRepository.COLLECTION).awaitFirstOrNull()
-        logger.info("Collection ${Erc20TransferHistoryRepository.COLLECTION} has been dropped!")
+        if (template.collectionExists(Erc20TransferHistoryRepository.COLLECTION).awaitFirst()) {
+            template.dropCollection(Erc20TransferHistoryRepository.COLLECTION).awaitFirstOrNull()
+            logger.info("Collection ${Erc20TransferHistoryRepository.COLLECTION} has been dropped!")
+        } else {
+            logger.info("Collection ${Erc20TransferHistoryRepository.COLLECTION} isn't existed, skipped!")
+        }
     }
 
     @ChangeSet(
