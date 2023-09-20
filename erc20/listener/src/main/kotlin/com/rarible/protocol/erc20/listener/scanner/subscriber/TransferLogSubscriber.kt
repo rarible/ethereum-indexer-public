@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.listener.scanner.subscriber
 import com.rarible.contracts.interfaces.weth9.TransferEvent
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.contract.TransferEventWithFullData
+import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
 import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
 import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
@@ -25,6 +26,7 @@ class TransferLogSubscriber(
     ignoredOwnersResolver: IgnoredOwnersResolver,
     metrics: DescriptorMetrics,
     commonProps: Erc20ListenerProperties,
+    indexerProperties: Erc20IndexerProperties,
 ) : AbstractBalanceLogEventSubscriber(
     ignoredOwnersResolver = ignoredOwnersResolver,
     metrics = metrics,
@@ -32,6 +34,7 @@ class TransferLogSubscriber(
     topic = TransferEvent.id(),
     collection = Erc20TransferHistoryRepository.COLLECTION,
     tokens = commonProps.tokens,
+    saveLogs = indexerProperties.featureFlags.enableSaveHistoryToDb
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
