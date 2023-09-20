@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.listener.scanner.subscriber
 import com.rarible.contracts.interfaces.weth9.WithdrawalEvent
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.contract.WithdrawalEventByLogData
+import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
 import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.model.Erc20Withdrawal
@@ -22,6 +23,7 @@ class WithdrawalLogSubscriber(
     ignoredOwnersResolver: IgnoredOwnersResolver,
     metrics: DescriptorMetrics,
     commonProps: Erc20ListenerProperties,
+    indexerProperties: Erc20IndexerProperties,
 ) : AbstractBalanceLogEventSubscriber(
     ignoredOwnersResolver = ignoredOwnersResolver,
     metrics = metrics,
@@ -29,6 +31,7 @@ class WithdrawalLogSubscriber(
     topic = WithdrawalEvent.id(),
     collection = Erc20TransferHistoryRepository.COLLECTION,
     tokens = commonProps.tokens,
+    saveLogs = indexerProperties.featureFlags.enableSaveHistoryToDb
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)

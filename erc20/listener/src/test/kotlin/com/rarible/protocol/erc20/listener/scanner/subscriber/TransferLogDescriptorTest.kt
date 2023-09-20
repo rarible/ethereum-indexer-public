@@ -5,6 +5,8 @@ import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.core.contract.model.Contract
 import com.rarible.core.contract.model.ContractType
 import com.rarible.core.test.data.randomAddress
+import com.rarible.ethereum.domain.Blockchain
+import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
 import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.Erc20RegistrationService
@@ -42,6 +44,7 @@ internal class TransferLogDescriptorTest {
     private val block: EthereumBlockchainBlock = mockk() {
         every { timestamp } returns Instant.now().epochSecond
     }
+    private val indexerProperties = Erc20IndexerProperties(blockchain = Blockchain.ETHEREUM)
 
     @Test
     fun `shouldn't ignore event records if empty properties`() = runBlocking<Unit> {
@@ -52,7 +55,8 @@ internal class TransferLogDescriptorTest {
             registrationService,
             ignoredOwnersResolver,
             metrics,
-            commonProps
+            commonProps,
+            indexerProperties
         )
         val log: EthereumBlockchainLog = mockk() {
             every { ethLog } returns log(
@@ -81,7 +85,8 @@ internal class TransferLogDescriptorTest {
             registrationService,
             ignoredOwnersResolver,
             metrics,
-            commonProps
+            commonProps,
+            indexerProperties
         )
         val log: EthereumBlockchainLog = mockk() {
             every { ethLog } returns log(
@@ -111,7 +116,8 @@ internal class TransferLogDescriptorTest {
             registrationService,
             ignoredOwnersResolver,
             metrics,
-            commonProps
+            commonProps,
+            indexerProperties
         )
         val log: EthereumBlockchainLog = mockk() {
             every { ethLog } returns log(
