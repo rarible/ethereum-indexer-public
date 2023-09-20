@@ -21,7 +21,7 @@ ethereum-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 512
-      max_direct_memory_megabytes: 128
+      max_direct_memory_megabytes: 512
 
 ethereum-erc20-migration:
   environments:
@@ -30,7 +30,7 @@ ethereum-erc20-migration:
 ethereum-nft-api:
   resources:
     jvm:
-      max_direct_memory_megabytes: 128
+      max_direct_memory_megabytes: 512
 
 ethereum-nft-listener:
   livenessProbe:
