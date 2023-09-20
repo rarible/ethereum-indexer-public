@@ -57,7 +57,7 @@ class RoyaltyService(
             provider.getRoyalties(address, tokenId.value)
                 .call().awaitSingle()
                 .map { Part(it._1, it._2.intValueExact()) }.toList()
-                .also { logger.info("Got royalties for $address:$tokenId: $it") }
+                .also { logger.info("Got royalties for $address:$tokenId: $it (registry=${nftIndexerProperties.royaltyRegistryAddress})") }
         } catch (e: RpcCodeException) {
             logger.info(
                 "RoyaltiesProvider does not know about royalties for $address:$tokenId, see Jira RPC-109, " +

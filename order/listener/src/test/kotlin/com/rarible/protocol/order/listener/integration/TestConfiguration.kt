@@ -47,7 +47,7 @@ class TestConfiguration {
             expireAfter = Duration.ofMinutes(1),
             cacheMaxSize = 100,
             blockByNumberCacheExpireAfter = Duration.ofMinutes(1),
-            enableCacheByNumber = false
+            enableCacheByNumber = false,
         )
     }
 
