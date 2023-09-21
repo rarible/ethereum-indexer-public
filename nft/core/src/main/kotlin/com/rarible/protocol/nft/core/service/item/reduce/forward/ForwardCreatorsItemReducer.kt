@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.service.item.ItemCreatorService
-import com.rarible.protocol.nft.core.service.token.TokenService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
