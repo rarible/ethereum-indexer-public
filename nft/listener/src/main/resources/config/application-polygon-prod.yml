@@ -7,3 +7,7 @@ blockchain:
   scanner:
     kafka:
       numberOfPartitionsPerLogGroup: 100
+
+common:
+  scannerProperties:
+    skipBlockRange: 47791035..47791134

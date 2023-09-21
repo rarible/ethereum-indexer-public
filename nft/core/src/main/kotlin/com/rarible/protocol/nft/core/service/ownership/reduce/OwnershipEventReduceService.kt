@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.misc.addIndexerIn
 import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
+import com.rarible.protocol.nft.core.misc.toLongRange
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
 import org.slf4j.LoggerFactory
@@ -30,6 +31,7 @@ class OwnershipEventReduceService(
         properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
             .toHashSet()
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
+    private val skipBlockRange = properties.scannerProperties.skipBlockRange?.toLongRange()
 
     suspend fun reduce(events: List<OwnershipEvent>) {
         delegate.reduceAll(events)
@@ -37,7 +39,9 @@ class OwnershipEventReduceService(
 
     override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
         val start = nowMillis()
-        val ethRecords = events.map { it.record.asEthereumLogRecord() to it.eventTimeMarks.addIndexerIn(start) }
+        val ethRecords = events
+            .filter { skipBlockRange == null || it.record.getBlock() == null || it.record.getBlock() !in skipBlockRange }
+            .map { it.record.asEthereumLogRecord() to it.eventTimeMarks.addIndexerIn(start) }
         eventConverter.convert(ethRecords)
             .filter { OwnershipId.parseId(it.entityId).toItemId() !in skipTransferContractTokens }
             .let { delegate.reduceAll(it) }

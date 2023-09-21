@@ -49,7 +49,8 @@ data class NftIndexerProperties(
 
     data class ScannerProperties(
         val skipTransferContractTokens: List<String> = emptyList(),
-        val senderCreatedTokens: List<String> = emptyList()
+        val senderCreatedTokens: List<String> = emptyList(),
+        val skipBlockRange: String? = null,
     )
 
     data class ItemMetaProperties(

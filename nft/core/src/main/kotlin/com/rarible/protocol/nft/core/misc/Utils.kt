@@ -101,3 +101,8 @@ fun <T> applyLog(log: Log, applyMethod: (Log) -> T): T {
         throw RuntimeException("Can't apply log: tx=${log.transactionHash()}, logIndex=${log.logIndex()}", ex)
     }
 }
+
+fun String.toLongRange(): LongRange {
+    val parts = split("..")
+    return parts[0].toLong()..parts[1].toLong()
+}

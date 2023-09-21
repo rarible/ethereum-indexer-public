@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.misc.addIndexerIn
 import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
+import com.rarible.protocol.nft.core.misc.toLongRange
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import org.slf4j.LoggerFactory
@@ -29,6 +30,7 @@ class ItemEventReduceService(
         properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
             .toHashSet()
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
+    private val skipBlockRange = properties.scannerProperties.skipBlockRange?.toLongRange()
 
     suspend fun reduce(events: List<ItemEvent>) {
         delegate.reduceAll(events)
@@ -36,7 +38,9 @@ class ItemEventReduceService(
 
     override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
         val start = nowMillis()
-        val markedEvents = events.map { it.copy(eventTimeMarks = it.eventTimeMarks.addIndexerIn(start)) }
+        val markedEvents = events
+            .filter { skipBlockRange == null || it.record.getBlock() == null || it.record.getBlock() !in skipBlockRange }
+            .map { it.copy(eventTimeMarks = it.eventTimeMarks.addIndexerIn(start)) }
         try {
             onNftItemLogEventListener.onLogEvents(markedEvents)
             markedEvents
