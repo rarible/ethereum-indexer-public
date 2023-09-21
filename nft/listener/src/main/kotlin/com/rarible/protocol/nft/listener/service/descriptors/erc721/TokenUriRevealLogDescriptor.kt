@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import io.daonomic.rpc.domain.Word
 import org.reactivestreams.Publisher
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -36,15 +37,20 @@ class TokenUriRevealLogDescriptor(
         if (log.address() in skipContracts) {
             return Mono.empty()
         }
-        val e = TokenUriRevealEvent.apply(log)
-        val tokenIdRangeMono = revealTokenRange(log, e)
-        return tokenIdRangeMono.map { (fromTokenId, toTokenId) ->
-            TokenUriReveal(
-                contract = log.address(),
-                tokenIdFrom = fromTokenId,
-                tokenIdTo = toTokenId,
-            )
+        try {
+            val e = TokenUriRevealEvent.apply(log)
+            val tokenIdRangeMono = revealTokenRange(log, e)
+            return tokenIdRangeMono.map { (fromTokenId, toTokenId) ->
+                TokenUriReveal(
+                    contract = log.address(),
+                    tokenIdFrom = fromTokenId,
+                    tokenIdTo = toTokenId,
+                )
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to handle reveal event: ${e.message}", e)
         }
+        return Mono.empty()
     }
 
     /**
@@ -69,4 +75,8 @@ class TokenUriRevealLogDescriptor(
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = emptyList<Address>().toMono()
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(TokenUriRevealLogDescriptor::class.java)
+    }
 }
