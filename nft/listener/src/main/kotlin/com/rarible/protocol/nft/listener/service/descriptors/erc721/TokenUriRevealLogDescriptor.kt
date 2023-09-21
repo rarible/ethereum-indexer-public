@@ -46,6 +46,9 @@ class TokenUriRevealLogDescriptor(
                     tokenIdFrom = fromTokenId,
                     tokenIdTo = toTokenId,
                 )
+            }.onErrorResume {
+                logger.error("Failed to handle reveal event: ${it.message}", it)
+                Mono.empty()
             }
         } catch (e: Exception) {
             logger.error("Failed to handle reveal event: ${e.message}", e)
