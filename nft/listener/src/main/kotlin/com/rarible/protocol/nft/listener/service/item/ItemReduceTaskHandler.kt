@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.listener.service.item
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskHandler
 import com.rarible.core.task.TaskRepository
