@@ -22,11 +22,10 @@ internal class ForwardCreatorsItemReducerTest {
     private val creatorService = mockk<ItemCreatorService>()
     private val nftIndexerProperties = mockk<NftIndexerProperties> {
         every { featureFlags.validateCreatorByTransactionSender } returns false
-        every { featureFlags.erc1155FirstMinterIsCreator } returns true
+        every { featureFlags.firstMinterIsCreator } returns true
     }
     private val tokenService = mockk<TokenService>()
-    private val forwardCreatorsItemReducer =
-        ForwardCreatorsItemReducer(creatorService, nftIndexerProperties, tokenService)
+    private val forwardCreatorsItemReducer = ForwardCreatorsItemReducer(creatorService, nftIndexerProperties)
 
     @Test
     fun `should get creators from creators event`() = runBlocking<Unit> {
