@@ -34,12 +34,14 @@ class TransferLogsPostProcessor(
     private suspend fun detectScam(logs: List<ReversedEthereumLogRecord>) {
         val scamTokens = logs.filter { it.data is ItemTransfer }
             .filter { (it.data as ItemTransfer).from == Address.ZERO() }
-            .groupBy { Triple(it.transactionHash, (it.data as ItemTransfer).token, (it.data as ItemTransfer).owner) }
-            .filterKeys { (_, tokenAddress, _) ->
+            .groupBy { Pair(it.transactionHash, (it.data as ItemTransfer).token) }
+            .filterKeys { (_, tokenAddress) ->
                 tokenStandardCache.get(tokenAddress)
                     .let { standard -> standard == null || standard != TokenStandard.NONE }
             }
-            .filterValues { it.size >= featureFlags.detectScamTokenThreshold }
+            .filterValues { events ->
+                events.map { (it.data as ItemTransfer).owner }.toSet().size > featureFlags.detectScamTokenThreshold
+            }
             .keys
             .map { it.second }
         if (scamTokens.isNotEmpty()) {
