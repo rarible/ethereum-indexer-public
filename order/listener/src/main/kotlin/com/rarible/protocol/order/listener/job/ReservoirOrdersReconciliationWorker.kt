@@ -93,15 +93,13 @@ class ReservoirOrdersReconciliationWorker(
         val eventTimeMarks = orderOffchainEventMarks()
         val id = Word.apply(event.order.id)
         val order = orderRepository.findById(id) ?: return
-        if (order.status == com.rarible.protocol.order.core.model.OrderStatus.ACTIVE &&
-            order.platform != Platform.RARIBLE
-        ) {
+        if (order.status == com.rarible.protocol.order.core.model.OrderStatus.ACTIVE) {
+            val cancelEnabled = properties.cancelEnabled && order.platform != Platform.RARIBLE
             logger.warn(
-                "Found canceled order but active in the database ${order.type}: $id. " +
-                    "Will cancel: ${properties.cancelEnabled}"
+                "Found canceled order but active in the database ${order.type}: $id. Will cancel: $cancelEnabled"
             )
             foreignOrderMetrics.onOrderInconsistency(platform = order.platform, status = event.order.status.name)
-            if (properties.cancelEnabled) {
+            if (cancelEnabled) {
                 addToMdc("orderType" to order.type.name) {
                     logger.info("Unexpected order cancellation: ${order.type}:${order.hash}")
                 }
