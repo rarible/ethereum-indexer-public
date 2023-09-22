@@ -30,6 +30,9 @@ listener:
   seaport-load:
     enabled: true
     save-enabled: true
+  tenderlyProperties:
+    mapping:
+      polygon: mumbai
 rarible:
   seaport:
     network: mumbai
