@@ -1,8 +1,8 @@
 package com.rarible.protocol.nft.listener.service.descriptors.erc721
 
 import com.rarible.ethereum.listener.log.LogEventDescriptor
-import com.rarible.protocol.contracts.collection.TokenUriRevealEvent
 import com.rarible.protocol.contracts.erc721.thirdweb.DropERC721
+import com.rarible.protocol.contracts.erc721.thirdweb.TokenURIRevealedEvent
 import com.rarible.protocol.nft.core.model.TokenUriReveal
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
@@ -25,7 +25,7 @@ class TokenUriRevealLogDescriptor(
 ) : LogEventDescriptor<TokenUriReveal> {
     private val skipContracts = ignoredTokenResolver.resolve()
     override val collection: String = NftHistoryRepository.COLLECTION
-    override val topic: Word = TokenUriRevealEvent.id()
+    override val topic: Word = TokenURIRevealedEvent.id()
 
     override fun convert(
         log: Log,
@@ -38,7 +38,7 @@ class TokenUriRevealLogDescriptor(
             return Mono.empty()
         }
         try {
-            val e = TokenUriRevealEvent.apply(log)
+            val e = TokenURIRevealedEvent.apply(log)
             val tokenIdRangeMono = revealTokenRange(log, e)
             return tokenIdRangeMono.map { (fromTokenId, toTokenId) ->
                 TokenUriReveal(
@@ -61,7 +61,7 @@ class TokenUriRevealLogDescriptor(
      * toItemId: our batchId - 1 is last itemId in our batch (and first itemId in next batch)
      * Please refer to LazyMint.sol#lazyMint and BatchMintMetadata.sol for details
      */
-    private fun revealTokenRange(log: Log, e: TokenUriRevealEvent): Mono<Pair<BigInteger, BigInteger>> {
+    private fun revealTokenRange(log: Log, e: TokenURIRevealedEvent): Mono<Pair<BigInteger, BigInteger>> {
         val contract = DropERC721(log.address(), sender)
         val index = e.index()
         // batchId at index - 1 is the tokenId of first item in our batch

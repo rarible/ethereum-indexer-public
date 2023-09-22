@@ -81,8 +81,10 @@ internal class ReservoirOrdersReconciliationWorkerTest {
         )
         val canceledOrderId = Word.apply(randomWord())
         val inconsistentOrderId = Word.apply(randomWord())
+        val canceledRaribleOrderId = Word.apply(randomWord())
         val canceledOrder = createReservoirOrderEvent(id = canceledOrderId)
         val inconsistentOrder = createReservoirOrderEvent(id = inconsistentOrderId)
+        val canceledRaribleOrder = createReservoirOrderEvent(id = canceledRaribleOrderId)
         coEvery {
             reservoirClient.getAskEventsV3(any())
         } returns ReservoirResult.success(
@@ -91,13 +93,20 @@ internal class ReservoirOrdersReconciliationWorkerTest {
                     canceledOrder,
                     inconsistentOrder,
                     createReservoirOrderEvent(eventKind = EventKind.NEW_ORDER, status = ReservoirOrderStatus.ACTIVE),
+                    canceledRaribleOrder,
                 ),
                 continuation = cursor2,
             )
         )
-        coEvery { orderRepository.findById(canceledOrderId) } returns randomOrder().copy(cancelled = true)
+        coEvery { orderRepository.findById(canceledOrderId) } returns randomOrder().copy(
+            cancelled = true,
+            platform = Platform.LOOKSRARE
+        )
         coEvery { orderRepository.findById(inconsistentOrderId) } returns randomOrder().copy(
             platform = Platform.X2Y2
+        )
+        coEvery { orderRepository.findById(canceledRaribleOrderId) } returns randomOrder().copy(
+            platform = Platform.RARIBLE
         )
         coEvery {
             orderCancelService.cancelOrder(

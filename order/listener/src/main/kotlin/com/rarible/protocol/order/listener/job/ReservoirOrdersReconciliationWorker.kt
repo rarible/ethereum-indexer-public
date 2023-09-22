@@ -4,6 +4,7 @@ import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
 import com.rarible.core.logging.addToMdc
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.ReservoirAsksEventFetchState
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
@@ -92,7 +93,9 @@ class ReservoirOrdersReconciliationWorker(
         val eventTimeMarks = orderOffchainEventMarks()
         val id = Word.apply(event.order.id)
         val order = orderRepository.findById(id) ?: return
-        if (order.status == com.rarible.protocol.order.core.model.OrderStatus.ACTIVE) {
+        if (order.status == com.rarible.protocol.order.core.model.OrderStatus.ACTIVE &&
+            order.platform != Platform.RARIBLE
+        ) {
             logger.warn(
                 "Found canceled order but active in the database ${order.type}: $id. " +
                     "Will cancel: ${properties.cancelEnabled}"
