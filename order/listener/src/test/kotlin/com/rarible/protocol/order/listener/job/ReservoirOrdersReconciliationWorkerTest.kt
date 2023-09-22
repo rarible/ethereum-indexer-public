@@ -115,6 +115,12 @@ internal class ReservoirOrdersReconciliationWorkerTest {
             )
         } returns createSellOrder()
         coEvery { foreignOrderMetrics.onOrderInconsistency(platform = Platform.X2Y2, status = "CANCELED") } returns Unit
+        coEvery {
+            foreignOrderMetrics.onOrderInconsistency(
+                platform = Platform.RARIBLE,
+                status = "CANCELED"
+            )
+        } returns Unit
         coEvery { aggregatorStateRepository.save(ReservoirAsksEventFetchState(cursor = cursor2)) } returns Unit
         val timer = mockk<Timer>()
         coEvery { meterRegistry.timer("reservoir_reconciliation_delay") } returns timer
@@ -125,6 +131,7 @@ internal class ReservoirOrdersReconciliationWorkerTest {
         coVerify {
             orderCancelService.cancelOrder(id = eq(inconsistentOrderId), eventTimeMarksDto = any())
             foreignOrderMetrics.onOrderInconsistency(platform = Platform.X2Y2, status = "CANCELED")
+            foreignOrderMetrics.onOrderInconsistency(platform = Platform.RARIBLE, status = "CANCELED")
             aggregatorStateRepository.save(ReservoirAsksEventFetchState(cursor = cursor2))
             timer.record(any<Duration>())
         }
