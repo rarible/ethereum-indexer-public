@@ -4,6 +4,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.exception.OrderDataException
 import com.rarible.protocol.order.core.metric.FloorOrderCheckMetrics
+import com.rarible.protocol.order.core.model.order.OrderSimulation
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.validator.OrderValidator
 import com.rarible.protocol.order.listener.service.order.OrderSimulationService
@@ -92,7 +93,7 @@ class FloorOrderCheckHandlerTest {
     @Test
     fun `simulate - ok`() = runBlocking<Unit> {
         every { orderSimulationService.isEnabled } returns true
-        coEvery { orderSimulationService.simulate(any()) } returns true
+        coEvery { orderSimulationService.simulate(any()) } returns OrderSimulation.SUCCESS
 
         val collection = randomAddress()
 

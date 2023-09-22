@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.model.BuyTx
+import com.rarible.protocol.order.core.model.order.OrderSimulation
 import com.rarible.protocol.order.listener.configuration.FloorOrderCheckWorkerProperties
 import com.rarible.protocol.order.listener.service.tenderly.SimulationResult
 import com.rarible.protocol.order.listener.service.tenderly.TenderlyService
@@ -32,7 +33,7 @@ class OrderSimulationServiceTest {
 
         assertThat(service.isEnabled).isTrue()
         val result = service.simulate(order)
-        assertThat(result).isTrue()
+        assertThat(result).isEqualTo(OrderSimulation.SUCCESS)
     }
 
     @Test
@@ -46,7 +47,7 @@ class OrderSimulationServiceTest {
 
         assertThat(service.isEnabled).isTrue()
         val result = service.simulate(order)
-        assertThat(result).isFalse()
+        assertThat(result).isEqualTo(OrderSimulation.FAIL)
     }
 
     @Test
@@ -59,6 +60,6 @@ class OrderSimulationServiceTest {
 
         assertThat(service.isEnabled).isTrue()
         val result = service.simulate(order)
-        assertThat(result).isNull()
+        assertThat(result).isEqualTo(OrderSimulation.ERROR)
     }
 }

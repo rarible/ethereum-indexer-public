@@ -4,6 +4,7 @@ import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
 import com.rarible.protocol.order.core.metric.FloorOrderCheckMetrics
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.order.OrderSimulation
 import com.rarible.protocol.order.core.repository.TopCollectionRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.validator.OrderValidator
@@ -115,8 +116,12 @@ class FloorOrderCheckHandler(
         }
         return if (valid && orderSimulation.isEnabled) {
             val status = orderSimulation.simulate(order)
-            status?.let { floorOrderCheckMetrics.onOrderSimulated(it) }
-            status ?: true
+            floorOrderCheckMetrics.onOrderSimulated(status.name.lowercase())
+            when (status) {
+                // we should count only fail
+                OrderSimulation.FAIL -> false
+                else -> true
+            }
         } else {
             valid
         }
