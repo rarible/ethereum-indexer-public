@@ -5,7 +5,6 @@ import com.rarible.protocol.nft.core.misc.LogUtils
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.TokenByteCode
 import com.rarible.protocol.nft.core.repository.token.TokenByteCodeRepository
-import com.rarible.protocol.nft.core.service.token.filter.ScamByteCodeHashCache
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -17,7 +16,6 @@ import java.time.Duration
 class TokenByteCodeService(
     private val byteCodeProvider: TokenByteCodeProvider,
     private val tokenByteCodeRepository: TokenByteCodeRepository,
-    private val scamByteCodeHashCache: ScamByteCodeHashCache,
     private val featureFlags: FeatureFlags,
 ) {
     private val wasSaved = CacheBuilder.newBuilder()
@@ -25,23 +23,18 @@ class TokenByteCodeService(
         .expireAfterWrite(CACHE_EXPIRE_AFTER)
         .build<Word, Boolean>()
 
-    suspend fun registerByteCode(token: Address, scam: Boolean = false): TokenByteCode? {
+    suspend fun getByteCode(token: Address): TokenByteCode? {
         val code = byteCodeProvider.fetchByteCode(token)
         if (code == null || code.length() == 0) {
             logger.info("Can't get token byte code for $token")
             return null
         }
         val hash = Word.apply(Hash.sha3(code.bytes()))
-        return TokenByteCode(hash = hash, code = code, scam = scam)
+        return TokenByteCode(hash, code)
             .also { save(it) }
             .also {
-                if (scam) {
-                    scamByteCodeHashCache.add(it.hash)
-                }
-            }
-            .also {
                 LogUtils.addToMdc("tokenByteCodeHash" to it.hash.prefixed()) {
-                    logger.info("Get token $token byte code (size=${it.code.length()})")
+                   logger.info("Get token $token byte code (size=${it.code.length()})")
                 }
             }
     }

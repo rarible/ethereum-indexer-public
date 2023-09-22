@@ -70,7 +70,7 @@ class TokenProvider(
     }
 
     fun detectScam(token: Token): Mono<Token> = mono {
-        val result = registerByteCode(token.id) ?: return@mono token
+        val result = getBytecode(token.id) ?: return@mono token
         val isValidToken = tokeByteCodeFilters.all { it.isValid(result.code, result.hash) }
         if (isValidToken) {
             token
@@ -134,7 +134,7 @@ class TokenProvider(
      */
     suspend fun fetchTokenStandardBySignature(address: Address): TokenStandard {
         logStandard(address, "determine standard by presence of function signatures")
-        val bytecode = registerByteCode(address)?.code ?: return TokenStandard.NONE
+        val bytecode = getBytecode(address)?.code ?: return TokenStandard.NONE
 
         val hexBytecode = bytecode.hex()
         for (standard in TokenStandard.values()) {
@@ -162,7 +162,7 @@ class TokenProvider(
 
     private fun fetchFeatures(address: Address): Mono<Set<TokenFeature>> {
         return Mono.zip(
-            registerByteCodeMono(address)
+            getBytecodeWithMono(address)
                 .map { it.toString() }
                 .map { code ->
                     FEATURES.entries
@@ -197,12 +197,12 @@ class TokenProvider(
             .onErrorResume { false.toMono() }
     }
 
-    private suspend fun registerByteCode(address: Address): TokenByteCode? {
-        return tokenByteCodeService.registerByteCode(address)
+    private suspend fun getBytecode(address: Address): TokenByteCode? {
+        return tokenByteCodeService.getByteCode(address)
     }
 
-    private fun registerByteCodeMono(address: Address): Mono<Binary> = mono {
-        registerByteCode(address)?.code ?: Binary.empty()
+    private fun getBytecodeWithMono(address: Address): Mono<Binary> = mono {
+        getBytecode(address)?.code ?: Binary.empty()
     }
 
     private fun <T : Any> Mono<T>.emptyIfError(): Mono<Optional<T>> {

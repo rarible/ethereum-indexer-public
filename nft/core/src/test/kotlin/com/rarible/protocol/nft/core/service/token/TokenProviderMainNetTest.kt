@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.core.service.token
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.token.TokenByteCodeRepository
-import com.rarible.protocol.nft.core.service.token.filter.ScamByteCodeHashCache
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -21,9 +20,8 @@ class TokenProviderMainNetTest {
     private val sender = createSender()
     private val tokenByteCodeProvider = TokenByteCodeProvider(sender, 3, 5, 1, Duration.ofMinutes(1))
     private val tokenByteCodeRepository = mockk<TokenByteCodeRepository>()
-    private val scamByteCodeHashCache = mockk<ScamByteCodeHashCache>()
     private val featureFlags = FeatureFlags(saveTokenByteCode = false, enableNonStandardCollections = true)
-    private val tokenByteCodeService = TokenByteCodeService(tokenByteCodeProvider, tokenByteCodeRepository, scamByteCodeHashCache, featureFlags)
+    private val tokenByteCodeService = TokenByteCodeService(tokenByteCodeProvider, tokenByteCodeRepository, featureFlags)
     private val service = TokenProvider(sender, tokenByteCodeService, emptyList(), featureFlags)
 
     private fun createSender() = ReadOnlyMonoTransactionSender(

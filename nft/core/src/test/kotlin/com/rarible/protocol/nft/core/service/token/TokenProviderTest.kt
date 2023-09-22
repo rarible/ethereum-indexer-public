@@ -30,7 +30,7 @@ internal class TokenProviderTest {
 
     private val sender = mockk<MonoTransactionSender>()
     private val tokenByteCodeService = mockk<TokenByteCodeService> {
-        coEvery { registerByteCode(any()) } returns null
+        coEvery { getByteCode(any()) } returns null
     }
     private val tokeByteCodeFilter = mockk<TokeByteCodeFilter> {
         every { isValid(any(), any()) } returns true
@@ -73,7 +73,7 @@ internal class TokenProviderTest {
         val code = randomBinary(100)
 
         every { tokeByteCodeFilter.isValid(code, any()) } returns false
-        coEvery { tokenByteCodeService.registerByteCode(token.id) } returns TokenByteCode(WordFactory.create(), code)
+        coEvery { tokenByteCodeService.getByteCode(token.id) } returns TokenByteCode(WordFactory.create(), code)
         val updatedToken = tokenProvider.detectScam(token).awaitFirst()
 
         assertThat(updatedToken.standard).isEqualTo(TokenStandard.NONE)
@@ -93,7 +93,7 @@ internal class TokenProviderTest {
 
         every { sender.call(any()) } returns Mono.just(Binary("test".toByteArray()))
         every { tokeByteCodeFilter.isValid(code, any()) } returns true
-        coEvery { tokenByteCodeService.registerByteCode(token.id) } returns null
+        coEvery { tokenByteCodeService.getByteCode(token.id) } returns null
         val updatedToken = tokenProvider.fetchToken(token.id).awaitFirst()
 
         assertThat(updatedToken.standard).isEqualTo(TokenStandard.NONE)

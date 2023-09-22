@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.token.filter
 
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -10,18 +11,21 @@ import org.springframework.stereotype.Component
 @Component
 class ScamByteCodeHashFilter(
     private val featureFlags: FeatureFlags,
-    private val scamByteCodeHashCache: ScamByteCodeHashCache
+    scamByteCodeProperties: NftIndexerProperties.ScamByteCodeProperties
 ) : TokeByteCodeFilter {
+
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
+
+    private val markers = scamByteCodeProperties.hashCodes.map { Word.apply(it) }
 
     override fun isValid(code: Binary, hash: Word): Boolean {
         if (
             featureFlags.filterScamToken.not() ||
-            scamByteCodeHashCache.markers().isEmpty() ||
+            markers.isEmpty() ||
             code.bytes().isEmpty()
         ) return true
 
-        val scam = scamByteCodeHashCache.markers().contains(Word.apply(hash))
+        val scam = markers.contains(Word.apply(hash))
         if (scam) {
             logger.warn("Found scam collection by hash: $hash")
         }

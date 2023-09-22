@@ -516,11 +516,10 @@ fun createRandomInconsistentItem() = InconsistentItem(
     ownershipsValue = BigInteger.TEN,
 )
 
-fun createTokenByteCode(scam: Boolean = false): TokenByteCode {
+fun createTokenByteCode(): TokenByteCode {
     return TokenByteCode(
         hash = Word.apply(randomWord()),
-        code = randomBinary(10),
-        scam = scam
+        code = randomBinary(10)
     )
 }
 
