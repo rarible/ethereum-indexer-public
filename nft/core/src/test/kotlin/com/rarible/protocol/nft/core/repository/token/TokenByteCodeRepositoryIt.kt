@@ -40,4 +40,17 @@ class TokenByteCodeRepositoryIt : AbstractIntegrationTest() {
             tokenByteCodeRepository.exist(code.hash)
         ).isTrue()
     }
+
+    @Test
+    fun `all scam hashes`() = runBlocking<Unit> {
+        val codes = listOf(
+            createTokenByteCode(),
+            createTokenByteCode(scam = true),
+            createTokenByteCode(scam = true),
+        )
+        codes.forEach { tokenByteCodeRepository.save(it) }
+
+        Assertions.assertThat(tokenByteCodeRepository.allScamHashes())
+            .containsAll(codes.filter { it.scam }.map { it.hash })
+    }
 }

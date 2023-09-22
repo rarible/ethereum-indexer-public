@@ -11,6 +11,7 @@ data class TokenByteCode(
     @Id
     val hash: Word,
     val code: Binary,
+    val scam: Boolean = false,
     val createdAt: Instant = Instant.now(),
 ) {
     companion object {

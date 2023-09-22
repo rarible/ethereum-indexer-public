@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.service.token
 import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.repository.token.TokenByteCodeRepository
+import com.rarible.protocol.nft.core.service.token.filter.ScamByteCodeHashCache
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -17,9 +18,11 @@ import scalether.util.Hash
 class TokenByteCodeServiceTest {
     private val byteCodeProvider = mockk<TokenByteCodeProvider>()
     private val tokenByteCodeRepository = mockk<TokenByteCodeRepository>()
+    private val scamByteCodeHashCache = mockk<ScamByteCodeHashCache>()
     private val featureFlags = mockk<FeatureFlags>()
 
-    private val service = TokenByteCodeService(byteCodeProvider, tokenByteCodeRepository, featureFlags)
+    private val service =
+        TokenByteCodeService(byteCodeProvider, tokenByteCodeRepository, scamByteCodeHashCache, featureFlags)
 
     @Test
     fun `get and save byte code`() = runBlocking<Unit> {
@@ -32,13 +35,15 @@ class TokenByteCodeServiceTest {
         coEvery { tokenByteCodeRepository.exist(any()) } returns false
         every { featureFlags.saveTokenByteCode } returns true
 
-        val result = service.getByteCode(address)
+        val result = service.registerByteCode(address)
         assertThat(result?.code).isEqualTo(code)
         assertThat(result?.hash).isEqualTo(hash)
 
-        coVerify { tokenByteCodeRepository.save(withArg {
-            assertThat(it.hash).isEqualTo(hash)
-        }) }
+        coVerify {
+            tokenByteCodeRepository.save(withArg {
+                assertThat(it.hash).isEqualTo(hash)
+            })
+        }
     }
 
     @Test
@@ -50,7 +55,7 @@ class TokenByteCodeServiceTest {
         coEvery { byteCodeProvider.fetchByteCode(address) } returns code
         every { featureFlags.saveTokenByteCode } returns false
 
-        val result = service.getByteCode(address)
+        val result = service.registerByteCode(address)
         assertThat(result?.code).isEqualTo(code)
         assertThat(result?.hash).isEqualTo(hash)
 
