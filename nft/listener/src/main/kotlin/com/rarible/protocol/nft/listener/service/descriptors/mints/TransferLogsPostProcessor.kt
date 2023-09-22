@@ -40,7 +40,7 @@ class TransferLogsPostProcessor(
                     .let { standard -> standard == null || standard != TokenStandard.NONE }
             }
             .filterValues { events ->
-                events.map { (it.data as ItemTransfer).owner }.toSet().size > featureFlags.detectScamTokenThreshold
+                events.map { (it.data as ItemTransfer).owner }.toSet().size >= featureFlags.detectScamTokenThreshold
             }
             .keys
             .map { it.second }
