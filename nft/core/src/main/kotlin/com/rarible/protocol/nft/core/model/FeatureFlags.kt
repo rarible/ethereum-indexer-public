@@ -4,6 +4,7 @@ data class FeatureFlags(
     var scannerVersion: ScannerVersion = ScannerVersion.V2,
     var isRoyaltyServiceEnabled: Boolean = true,
     var validateCreatorByTransactionSender: Boolean = false,
+    var firstMinterIsCreator: Boolean = true,
     val internalMetaTopicBatchHandle: Boolean = false,
     val internalMetaTopicBatchSize: Int = 100,
     val enableMetaRawPropertiesCache: Boolean = true,

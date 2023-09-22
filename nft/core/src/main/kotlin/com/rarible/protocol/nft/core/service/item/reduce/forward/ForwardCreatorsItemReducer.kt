@@ -15,7 +15,7 @@ import java.time.Instant
 @Component
 class ForwardCreatorsItemReducer(
     private val creatorService: ItemCreatorService,
-    private val nftIndexerProperties: NftIndexerProperties
+    private val nftIndexerProperties: NftIndexerProperties,
 ) : Reducer<ItemEvent, Item> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -28,17 +28,18 @@ class ForwardCreatorsItemReducer(
             }
 
             is ItemEvent.ItemMintEvent -> {
-                val creators = if (!entity.creatorsFinal) {
-                    if (!nftIndexerProperties.featureFlags.validateCreatorByTransactionSender ||
-                        event.log.from == event.owner
+                val creators =
+                    if (entity.creatorsFinal ||
+                        nftIndexerProperties.featureFlags.firstMinterIsCreator && entity.creators.isNotEmpty()
                     ) {
-                        listOf(Part.fullPart(event.owner))
-                    } else {
+                        entity.creators
+                    } else if (nftIndexerProperties.featureFlags.validateCreatorByTransactionSender &&
+                        event.log.from != event.owner
+                    ) {
                         emptyList()
+                    } else {
+                        listOf(Part.fullPart(event.owner))
                     }
-                } else {
-                    entity.creators
-                }
                 entity.copy(
                     mintedAt = entity.mintedAt ?: event.log.blockTimestamp?.let { Instant.ofEpochSecond(it) },
                     creators = getCreator(entity.id, creators)

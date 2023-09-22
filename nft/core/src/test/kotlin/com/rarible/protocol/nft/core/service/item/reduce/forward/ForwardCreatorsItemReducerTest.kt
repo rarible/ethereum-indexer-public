@@ -6,7 +6,9 @@ import com.rarible.protocol.nft.core.data.createRandomCreatorsItemEvent
 import com.rarible.protocol.nft.core.data.createRandomItem
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.ItemCreatorService
+import com.rarible.protocol.nft.core.service.token.TokenService
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -20,7 +22,9 @@ internal class ForwardCreatorsItemReducerTest {
     private val creatorService = mockk<ItemCreatorService>()
     private val nftIndexerProperties = mockk<NftIndexerProperties> {
         every { featureFlags.validateCreatorByTransactionSender } returns false
+        every { featureFlags.firstMinterIsCreator } returns true
     }
+    private val tokenService = mockk<TokenService>()
     private val forwardCreatorsItemReducer = ForwardCreatorsItemReducer(creatorService, nftIndexerProperties)
 
     @Test
@@ -30,6 +34,7 @@ internal class ForwardCreatorsItemReducerTest {
         val item = createRandomItem().copy(creators = emptyList(), creatorsFinal = false)
 
         coEvery { creatorService.getCreator(item.id) } returns Mono.empty()
+        coEvery { tokenService.getTokenStandard(item.token) } returns TokenStandard.ERC721
 
         val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
         assertThat(reducedItem.creators).isEqualTo(creators)
@@ -44,6 +49,7 @@ internal class ForwardCreatorsItemReducerTest {
         val item = createRandomItem().copy(creators = emptyList(), creatorsFinal = false)
 
         coEvery { creatorService.getCreator(item.id) } returns Mono.just(serviceCreators.single().account)
+        coEvery { tokenService.getTokenStandard(item.token) } returns TokenStandard.ERC721
 
         val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
         assertThat(reducedItem.creators).isEqualTo(serviceCreators)
@@ -58,6 +64,7 @@ internal class ForwardCreatorsItemReducerTest {
         val item = createRandomItem().copy(creators = emptyList(), creatorsFinal = false)
 
         coEvery { creatorService.getCreator(item.id) } returns Mono.empty()
+        coEvery { tokenService.getTokenStandard(item.token) } returns TokenStandard.ERC721
 
         val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
         assertThat(reducedItem.creators).isEqualTo(owner)
@@ -73,6 +80,7 @@ internal class ForwardCreatorsItemReducerTest {
         val item = createRandomItem().copy(creators = emptyList(), creatorsFinal = false)
 
         coEvery { creatorService.getCreator(item.id) } returns Mono.empty()
+        coEvery { tokenService.getTokenStandard(item.token) } returns TokenStandard.ERC721
 
         val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
         assertThat(reducedItem.creators).isEmpty()
@@ -87,6 +95,7 @@ internal class ForwardCreatorsItemReducerTest {
         val item = createRandomItem().copy(creators = finalCreators, creatorsFinal = true)
 
         coEvery { creatorService.getCreator(item.id) } returns Mono.empty()
+        coEvery { tokenService.getTokenStandard(item.token) } returns TokenStandard.ERC721
 
         val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
         assertThat(reducedItem.creators).isEqualTo(finalCreators)
@@ -100,9 +109,40 @@ internal class ForwardCreatorsItemReducerTest {
         val item = createRandomItem().copy(creators = emptyList(), creatorsFinal = false)
 
         coEvery { creatorService.getCreator(item.id) } returns Mono.just(serviceCreators.single().account)
+        coEvery { tokenService.getTokenStandard(item.token) } returns TokenStandard.ERC721
 
         val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
         assertThat(reducedItem.creators).isEqualTo(serviceCreators)
+        assertThat(reducedItem.mintedAt).isEqualTo(Instant.ofEpochSecond(event.log.blockTimestamp!!))
+        assertThat(reducedItem.creatorsFinal).isFalse()
+    }
+
+    @Test
+    fun `should set creators for erc1155`() = runBlocking<Unit> {
+        val owner = listOf(Part.fullPart(randomAddress()))
+        val event = createRandomMintItemEvent().copy(owner = owner.single().account)
+        val item = createRandomItem().copy(creators = emptyList(), creatorsFinal = false)
+
+        coEvery { creatorService.getCreator(item.id) } returns Mono.empty()
+        coEvery { tokenService.getTokenStandard(item.token) } returns TokenStandard.ERC1155
+
+        val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
+        assertThat(reducedItem.creators).isEqualTo(owner)
+        assertThat(reducedItem.mintedAt).isEqualTo(Instant.ofEpochSecond(event.log.blockTimestamp!!))
+        assertThat(reducedItem.creatorsFinal).isFalse()
+    }
+
+    @Test
+    fun `should not update creators for erc1155`() = runBlocking<Unit> {
+        val creators = listOf(Part.fullPart(randomAddress()))
+        val event = createRandomMintItemEvent()
+        val item = createRandomItem().copy(creators = creators, creatorsFinal = false)
+
+        coEvery { creatorService.getCreator(item.id) } returns Mono.empty()
+        coEvery { tokenService.getTokenStandard(item.token) } returns TokenStandard.ERC1155
+
+        val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
+        assertThat(reducedItem.creators).isEqualTo(creators)
         assertThat(reducedItem.mintedAt).isEqualTo(Instant.ofEpochSecond(event.log.blockTimestamp!!))
         assertThat(reducedItem.creatorsFinal).isFalse()
     }
