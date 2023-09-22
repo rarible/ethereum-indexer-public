@@ -1,8 +1,8 @@
 package com.rarible.protocol.order.core.repository.tenderly
 
 import com.rarible.protocol.order.core.model.tenderly.TenderlyStat
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.query.Criteria
@@ -18,7 +18,7 @@ class TenderlyRepository(
     }
 
     suspend fun save(stat: TenderlyStat): TenderlyStat {
-        return template.save(stat).awaitFirst()
+        return template.save(stat).awaitSingle()
     }
 
     suspend fun requestsByMonth(): Long {

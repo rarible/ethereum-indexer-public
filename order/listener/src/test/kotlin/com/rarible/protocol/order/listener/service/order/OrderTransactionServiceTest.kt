@@ -21,9 +21,11 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import scalether.domain.Address
+import scalether.domain.AddressFactory
 import java.math.BigInteger
 
 class OrderTransactionServiceTest {
@@ -67,6 +69,17 @@ class OrderTransactionServiceTest {
         // check request
         assertThat(mockServer.requestCount).isEqualTo(1)
         assertThat(mockServer.takeRequest().path).isEqualTo("/v0.1/orders/buy-tx")
+    }
+
+    @Test
+    fun `get tx - fail with 5xx`() = runBlocking<Unit> {
+        mockServer.enqueue(MockResponse().setResponseCode(500))
+
+        val address = AddressFactory.create()
+        val order = createOrder()
+        assertThrows<RuntimeException> {
+            service.buyTx(order, address)
+        }
     }
 
     private fun mockOkResponse(result: BuyTx): MockResponse {

@@ -88,8 +88,8 @@ class TenderlyService(
                 else -> SimulationResult(status = false, error = result.error?.message)
             }
         } catch (e: Exception) {
-            logger.error("", e)
-            SimulationResult(status = false, error = e.message)
+            logger.error("Exception during request to tenderly for contract ${buyTx.to}", e)
+            throw RuntimeException("Can't get response from tenderly for contract ${buyTx.to}")
         }
     }
 

@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
+import com.rarible.protocol.order.core.metric.FloorOrderCheckMetrics
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.repository.TopCollectionRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -47,6 +48,7 @@ class FloorOrderCheckHandler(
     private val coreOrderValidator: OrderValidator,
     private val topCollectionProvider: TopCollectionProvider,
     private val orderSimulation: OrderSimulationService,
+    private val floorOrderCheckMetrics: FloorOrderCheckMetrics,
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -103,6 +105,7 @@ class FloorOrderCheckHandler(
     }
 
     private suspend fun checkOrder(order: Order): Boolean {
+        floorOrderCheckMetrics.onOrderChecked()
         val valid = try {
             coreOrderValidator.validate(order)
             true
@@ -111,7 +114,9 @@ class FloorOrderCheckHandler(
             false
         }
         return if (valid && orderSimulation.isEnabled) {
-            orderSimulation.simulate(order)
+            val status = orderSimulation.simulate(order)
+            status?.let { floorOrderCheckMetrics.onOrderSimulated(it) }
+            status ?: true
         } else {
             valid
         }

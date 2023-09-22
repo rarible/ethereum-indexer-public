@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.model.tenderly
 
+import com.rarible.core.common.nowMillis
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
@@ -10,7 +11,7 @@ import java.time.LocalDate
 data class TenderlyStat(
     @Id
     val id: LocalDate,
-    val createdAt: Instant = Instant.now(),
+    val createdAt: Instant = nowMillis(),
     val attempts: Long = 0,
     val requests: Long = 0,
     @Version
@@ -23,9 +24,6 @@ data class TenderlyStat(
     companion object {
         fun create(date: LocalDate) = TenderlyStat(
             id = date,
-            createdAt = Instant.now(),
-            attempts = 0L,
-            requests = 0L
         )
     }
 }

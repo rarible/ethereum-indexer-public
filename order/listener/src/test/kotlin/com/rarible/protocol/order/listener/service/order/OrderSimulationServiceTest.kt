@@ -34,4 +34,31 @@ class OrderSimulationServiceTest {
         val result = service.simulate(order)
         assertThat(result).isTrue()
     }
+
+    @Test
+    fun `simulation - fail`() = runBlocking<Unit> {
+        val order = randomOrder()
+        val buyTx: BuyTx = mockk()
+        val simulationResult = SimulationResult(status = false)
+        coEvery { transactionService.buyTx(any(), any()) } returns buyTx
+        coEvery { tenderlyService.simulate(buyTx) } returns simulationResult
+        coEvery { tenderlyService.hasCapacity() } returns true
+
+        assertThat(service.isEnabled).isTrue()
+        val result = service.simulate(order)
+        assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `simulation - error`() = runBlocking<Unit> {
+        val order = randomOrder()
+        val buyTx: BuyTx = mockk()
+        coEvery { transactionService.buyTx(any(), any()) } returns buyTx
+        coEvery { tenderlyService.simulate(buyTx) } throws RuntimeException()
+        coEvery { tenderlyService.hasCapacity() } returns true
+
+        assertThat(service.isEnabled).isTrue()
+        val result = service.simulate(order)
+        assertThat(result).isNull()
+    }
 }

@@ -19,12 +19,11 @@ class OrderSimulationService(
 
     val isEnabled get() = properties.simulateFloorOrders
 
-    suspend fun simulate(order: Order): Boolean {
+    suspend fun simulate(order: Order): Boolean? {
         return try {
-            val hasCapacity = tenderlyService.hasCapacity()
-            if (!hasCapacity) {
+            if (!tenderlyService.hasCapacity()) {
                 // Send fake positive in case of reaching limit
-                return true
+                return null
             }
 
             val address = randomAddress() // buyer, could be any address
@@ -33,14 +32,14 @@ class OrderSimulationService(
 
             when {
                 // Send fake positive in case of reaching limit
-                result.reachLimit -> true
+                result.reachLimit -> null
 
                 // That means we don't reach request limit and order could be executed
                 else -> result.status
             }
         } catch (ex: Exception) {
             logger.error("Simulation failed for order ${order.id}: ${ex.message}")
-            false
+            null
         }
     }
 

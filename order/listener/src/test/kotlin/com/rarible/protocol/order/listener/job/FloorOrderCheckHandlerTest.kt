@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.job
 import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.order.core.data.randomOrder
 import com.rarible.protocol.order.core.exception.OrderDataException
+import com.rarible.protocol.order.core.metric.FloorOrderCheckMetrics
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.validator.OrderValidator
 import com.rarible.protocol.order.listener.service.order.OrderSimulationService
@@ -36,9 +37,14 @@ class FloorOrderCheckHandlerTest {
     @InjectMockKs
     lateinit var handler: FloorOrderCheckHandler
 
+    @MockK
+    lateinit var metrics: FloorOrderCheckMetrics
+
     @BeforeEach
     fun beforeEach() {
         clearMocks(topCollectionProvider, coreOrderValidator, orderRepository)
+        every { metrics.onOrderChecked() } returns Unit
+        every { metrics.onOrderSimulated(any()) } returns Unit
     }
 
     @Test
