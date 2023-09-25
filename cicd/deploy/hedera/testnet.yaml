@@ -9,10 +9,19 @@ global:
     <<: *sharedEnv
     MONGODB_DATABASE: "testnet-protocol-hedera-erc20"
 
+  nftEnvironments: &nftEnv
+    <<: *sharedEnv
+    COMMON_BASEPUBLICAPIURL: "https://testnet-hedera-api.rarible.org/v0.1/nft"
+    COMMON_OPENSEALAZYMINTADDRESS: "0x0000000000000000000000000000000000000000"
+    MONGODB_DATABASE: "testnet-protocol-hedera-nft"
+    REDIS_URI: redis://redis
+
 hedera-nft-api:
   resources:
     jvm:
       max_direct_memory_megabytes: 128
+  environments:
+    <<: *nftEnv
 
 hedera-nft-listener:
   livenessProbe:
@@ -21,3 +30,5 @@ hedera-nft-listener:
     jvm:
       xmx_megabytes: 512
       max_direct_memory_megabytes: 512
+  environments:
+    <<: *nftEnv
