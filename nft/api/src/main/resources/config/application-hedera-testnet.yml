@@ -5,11 +5,6 @@ common:
   openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
   cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
 
-rarible:
-  ethereum:
-    nodes:
-      - httpUrl: https://testnet.hashio.io/api
-        websocketUrl:
 node:
   hosts: https://testnet.hashio.io/api
   webSocketHosts:
