@@ -1,0 +1,16 @@
+apiVersion: v2
+name: protocol
+version: 0.1.0
+dependencies:
+- name: rarible-helm-chart
+  alias: hedera-nft-api
+  repository: file://../../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: hedera-nft-listener
+  repository: file://../../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: hedera-nft-migration
+  repository: file://../../resources/helm/rarible
+  version: 0.1.0

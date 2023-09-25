@@ -1,0 +1,16 @@
+common:
+  blockchain: hedera
+
+rarible:
+  ethereum:
+    cache:
+      enabled: true
+      expireAfter: 5m
+      maxSize: 500
+blockchain:
+  scanner:
+    kafka:
+      enabled: false
+    ethereum:
+      blockPoller:
+        enabled: true

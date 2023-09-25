@@ -100,7 +100,8 @@ class SeaportSignatureResolver(
                 if (env == "prod") Network.POLYGON else Network.MUMBAI
             }
             Blockchain.OPTIMISM,
-            Blockchain.MANTLE -> {
+            Blockchain.MANTLE,
+            Blockchain.HEDERA -> {
                 throw IllegalArgumentException("Unsupported blockchain $this")
             }
         }
