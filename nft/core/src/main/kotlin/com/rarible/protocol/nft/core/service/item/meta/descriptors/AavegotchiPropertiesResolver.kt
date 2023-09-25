@@ -45,7 +45,8 @@ class AavegotchiOpenSeaImageUrlParser(
             Blockchain.ETHEREUM -> node.getText("image_url")
             Blockchain.POLYGON,
             Blockchain.OPTIMISM,
-            Blockchain.MANTLE -> node.getText("image")
+            Blockchain.MANTLE,
+            Blockchain.HEDERA -> node.getText("image")
         }
     }
 }

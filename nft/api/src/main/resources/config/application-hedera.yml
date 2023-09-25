@@ -1,0 +1,10 @@
+common:
+  blockchain: hedera
+
+api:
+  opensea:
+    apiKey: 00000000000000000000000000000000
+    cacheTimeout: 315360000000
+    url: https://api.opensea.io/api/v2
+  operator:
+    privateKey: 0x0000000000000000000000000000000000000000000000000000000000000000
