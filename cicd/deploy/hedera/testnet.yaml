@@ -34,3 +34,7 @@ hedera-nft-listener:
       max_direct_memory_megabytes: 512
   environments:
     <<: *nftEnv
+
+hedera-nft-migration:
+  environments:
+    <<: *nftEnv
