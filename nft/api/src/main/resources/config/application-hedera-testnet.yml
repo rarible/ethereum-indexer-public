@@ -4,7 +4,3 @@ common:
   royaltyRegistryAddress: "0x0000000000000000000000000000000000000000"
   openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
   cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
-
-node:
-  hosts: https://testnet.hashio.io/api
-  webSocketHosts:

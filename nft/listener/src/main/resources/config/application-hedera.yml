@@ -13,4 +13,4 @@ blockchain:
       enabled: false
     ethereum:
       blockPoller:
-        enabled: true
+        enabled: false
