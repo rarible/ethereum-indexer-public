@@ -5,19 +5,16 @@ import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogRecord
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.FullBlock
+import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemTransfer
-import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenService
-import com.rarible.protocol.nft.core.service.token.TokenStandardCache
 import org.springframework.stereotype.Component
-import scalether.domain.Address
 import java.math.BigInteger
 
 @Component
 class TransferLogsPostProcessor(
     private val tokenService: TokenService,
-    private val tokenStandardCache: TokenStandardCache,
     private val featureFlags: FeatureFlags,
 ) {
     suspend fun process(
@@ -33,25 +30,22 @@ class TransferLogsPostProcessor(
 
     private suspend fun detectScam(logs: List<ReversedEthereumLogRecord>) {
         val scamTokens = logs.filter { it.data is ItemTransfer }
-            .filter { (it.data as ItemTransfer).from == Address.ZERO() }
             .groupBy { Pair(it.transactionHash, (it.data as ItemTransfer).token) }
-            .filterKeys { (_, tokenAddress) ->
-                tokenStandardCache.get(tokenAddress)
-                    .let { standard -> standard == null || standard != TokenStandard.NONE }
-            }
             .filterValues { events ->
                 events.map { (it.data as ItemTransfer).owner }.toSet().size >= featureFlags.detectScamTokenThreshold
             }
             .keys
             .map { it.second }
         if (scamTokens.isNotEmpty()) {
-            scamTokens.chunked(10)
-                .flatMap { tokenAddress ->
-                    tokenService.getTokens(tokenAddress)
+            scamTokens.chunked(10).flatMap { tokenAddresses ->
+                optimisticLock {
+                    tokenService.getTokens(tokenAddresses)
+                        .filterNot { token -> token.scam }
+                        .map { token ->
+                            tokenService.saveToken(token.copy(scam = true))
+                        }
                 }
-                .map { token ->
-                    tokenService.saveToken(token.copy(standard = TokenStandard.NONE, scam = true))
-                }
+            }
         }
     }
 
