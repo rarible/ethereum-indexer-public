@@ -18,42 +18,39 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
-
 @IntegrationTest
 class TransferLogsPostProcessorIt : AbstractIntegrationTest() {
     @Test
-    fun `detect scam token`(): Unit {
-        runBlocking {
-            val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
-            Address.apply(Keys.getAddressFromPrivateKey(privateKey))
+    fun `detect scam token`(): Unit = runBlocking {
+        val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
+        Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
-            val userSender = MonoSigningTransactionSender(
-                ethereum,
-                MonoSimpleNonceProvider(ethereum),
-                privateKey,
-                BigInteger.valueOf(8000000)
-            ) { Mono.just(BigInteger.ZERO) }
+        val userSender = MonoSigningTransactionSender(
+            ethereum,
+            MonoSimpleNonceProvider(ethereum),
+            privateKey,
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
 
-            val contract = TestERC1155.deployAndWait(userSender, poller).awaitFirst()
-            val minter = userSender.from()
+        val contract = TestERC1155.deployAndWait(userSender, poller).awaitFirst()
+        val minter = userSender.from()
 
-            // normal transfers
-            contract.mint(minter, BigInteger.ONE, BigInteger("10")).execute().verifySuccess()
-            batchTransferRandom(10, minter, contract)
-            Wait.waitAssert {
-                val token = tokenService.getToken(contract.address())
-                assertThat(token).isNotNull
-                assertThat(token!!.scam).isFalse()
-            }
+        // normal transfers
+        contract.mint(minter, BigInteger.ONE, BigInteger("10")).execute().verifySuccess()
+        batchTransferRandom(10, minter, contract)
+        Wait.waitAssert {
+            val token = tokenService.getToken(contract.address())
+            assertThat(token).isNotNull
+            assertThat(token!!.scam).isFalse()
+        }
 
-            // scam transfers
-            contract.mint(minter, BigInteger.ONE, BigInteger("100")).execute().verifySuccess()
-            batchTransferRandom(100, minter, contract)
-            Wait.waitAssert {
-                val token = tokenService.getToken(contract.address())
-                assertThat(token).isNotNull
-                assertThat(token!!.scam).isTrue()
-            }
+        // scam transfers
+        contract.mint(minter, BigInteger.ONE, BigInteger("100")).execute().verifySuccess()
+        batchTransferRandom(100, minter, contract)
+        Wait.waitAssert {
+            val token = tokenService.getToken(contract.address())
+            assertThat(token).isNotNull
+            assertThat(token!!.scam).isTrue()
         }
     }
 
