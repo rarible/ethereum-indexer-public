@@ -34,7 +34,7 @@ class TokenByteCodeService(
             .also { save(it) }
             .also {
                 LogUtils.addToMdc("tokenByteCodeHash" to it.hash.prefixed()) {
-                   logger.info("Get token $token byte code (size=${it.code.length()})")
+                    logger.info("Get token $token byte code (size=${it.code.length()})")
                 }
             }
     }

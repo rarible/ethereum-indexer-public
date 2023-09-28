@@ -59,8 +59,8 @@ class ExchangeCancelDescriptorIt : AbstractIntegrationTest() {
             BigInteger.valueOf(8000000),
             MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
         )
-        token = TestERC1155.deployAndWait(userSender, poller, "ipfs:/").block()!!
-        buyToken = TestERC1155.deployAndWait(userSender, poller, "ipfs:/").block()!!
+        token = TestERC1155.deployAndWait(userSender, poller).block()!!
+        buyToken = TestERC1155.deployAndWait(userSender, poller).block()!!
     }
 
     @Test

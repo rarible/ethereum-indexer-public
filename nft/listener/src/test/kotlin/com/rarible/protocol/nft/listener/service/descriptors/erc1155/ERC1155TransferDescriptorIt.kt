@@ -39,14 +39,10 @@ class ERC1155TransferDescriptorIt : AbstractIntegrationTest() {
             BigInteger.valueOf(8000000)
         ) { Mono.just(BigInteger.ZERO) }
 
-        val token = TestERC1155.deployAndWait(
-            userSender,
-            poller,
-            ""
-        ).awaitFirst()
+        val token = TestERC1155.deployAndWait(userSender, poller).awaitFirst()
 
         val itemId = ItemId(token.address(), EthUInt256(BigInteger.ONE))
-        token.mint(userSender.from(), itemId.tokenId.value, BigInteger.valueOf(5), ByteArray(0)).execute().verifySuccess()
+        token.mint(userSender.from(), itemId.tokenId.value, BigInteger.valueOf(5)).execute().verifySuccess()
 
         Wait.waitAssert {
             val transfers = nftItemHistoryRepository
