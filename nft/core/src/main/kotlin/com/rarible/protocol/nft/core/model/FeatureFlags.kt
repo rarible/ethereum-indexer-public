@@ -15,7 +15,7 @@ data class FeatureFlags(
     val enableTokenMetaSelfRepair: Boolean = false,
     val filterScamToken: Boolean = false,
     val detectScamToken: Boolean = true,
-    var detectScamTokenThreshold: Int = 1000,
+    var detectScamTokenThreshold: Int = 100,
     val saveTokenByteCode: Boolean = true,
     val compactRevertableEvents: Boolean = false,
 )
