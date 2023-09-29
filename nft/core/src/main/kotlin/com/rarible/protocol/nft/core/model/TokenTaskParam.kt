@@ -171,3 +171,5 @@ data class ReduceTokenItemsDependentTaskParams(
         }
     }
 }
+
+const val ADMIN_AUTO_REDUCE_TASK_TYPE = "ADMIN_AUTO_REDUCE_TASK"

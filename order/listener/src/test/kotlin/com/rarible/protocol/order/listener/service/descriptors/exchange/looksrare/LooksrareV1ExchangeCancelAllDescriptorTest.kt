@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.convert
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
@@ -27,9 +28,11 @@ internal class LooksrareV1ExchangeCancelAllDescriptorTest {
     private val contractsProvider = mockk<ContractsProvider> {
         every { looksrareV1() } returns listOf(randomAddress())
     }
+    private val autoReduceService = mockk<AutoReduceService>()
     private val descriptor = LooksrareV1ExchangeCancelAllDescriptor(
         contractsProvider,
-        metrics
+        metrics,
+        autoReduceService
     )
 
     @Test

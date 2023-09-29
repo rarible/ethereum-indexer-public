@@ -24,6 +24,7 @@ class BlurV2Execution721TakerFeePackedDescriptorTest : AbstractBlurV2ExecutionDe
     private val descriptor = BlurV2kpExecution721TakerFeePackedDescriptor(
         contractsProvider = contractsProvider,
         blurV2EventConverter = blurV2EventConverter,
+        autoReduceService = autoReduceService,
     )
 
     @Test

@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.NonceSubscriber
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
@@ -19,11 +20,13 @@ import java.time.Instant
 @CaptureSpan(type = SpanType.EVENT)
 class LooksrareV2ExchangeGlobalNonceDescriptor(
     contractsProvider: ContractsProvider,
-    private val metrics: ForeignOrderMetrics
+    private val metrics: ForeignOrderMetrics,
+    autoReduceService: AutoReduceService,
 ) : NonceSubscriber(
     name = "lr_v2_new_bid_ask_nonces",
     topic = NewBidAskNoncesEvent.id(),
-    contracts = contractsProvider.looksrareV2()
+    contracts = contractsProvider.looksrareV2(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<ChangeNonceHistory> {
         val event = NewBidAskNoncesEvent.apply(log)

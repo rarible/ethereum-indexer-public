@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import org.springframework.stereotype.Service
@@ -29,11 +30,13 @@ class SudoSwapInNftPairDescriptor(
     private val sudoSwapCurve: PoolCurve,
     private val priceUpdateService: PriceUpdateService,
     private val sudoSwapLoad: SudoSwapLoadProperties,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
+    autoReduceService: AutoReduceService,
 ) : PoolSubscriber<PoolTargetNftIn>(
     name = "sudo_nft_in_pair",
     topic = SwapNFTInPairEvent.id(),
-    contracts = emptyList()
+    contracts = emptyList(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftIn> {
         // TODO: Remove this in release 1.41

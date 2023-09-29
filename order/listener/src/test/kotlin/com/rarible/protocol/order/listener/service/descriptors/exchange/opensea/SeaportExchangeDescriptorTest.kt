@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.convert
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.opensea.SeaportEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -42,6 +43,7 @@ internal class SeaportExchangeDescriptorTest {
     private val prizeNormalizer: PriceNormalizer = mockk()
     private val wrapperSeaportMatchEventMetric: RegisteredCounter = mockk()
     private val nonceHistoryRepository: NonceHistoryRepository = mockk()
+    private val autoReduceService = mockk<AutoReduceService>()
 
     private val seaportEventConverter = SeaportEventConverter(
         traceCallService,
@@ -56,7 +58,8 @@ internal class SeaportExchangeDescriptorTest {
         contractsProvider,
         seaportEventConverter,
         metrics,
-        featureFlags
+        featureFlags,
+        autoReduceService,
     )
 
     @BeforeEach

@@ -5,6 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderParser
@@ -18,11 +19,13 @@ import java.time.Instant
 class WyvernExchangeOrderCancelDescriptor(
     private val contractsProvider: ContractsProvider,
     private val openSeaOrderEventConverter: OpenSeaOrderEventConverter,
-    private val openSeaOrderParser: OpenSeaOrderParser
+    private val openSeaOrderParser: OpenSeaOrderParser,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderCancel>(
     name = "os_cancelled",
     topic = OrderCancelledEvent.id(),
-    contracts = contractsProvider.openSea()
+    contracts = contractsProvider.openSea(),
+    autoReduceService = autoReduceService,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 

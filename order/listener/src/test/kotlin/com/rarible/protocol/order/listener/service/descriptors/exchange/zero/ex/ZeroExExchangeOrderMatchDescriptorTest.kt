@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.model.ZeroExFeeData
 import com.rarible.protocol.order.core.model.ZeroExMatchOrdersData
 import com.rarible.protocol.order.core.model.ZeroExOrder
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderEventConverter
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderParser
 import io.daonomic.rpc.domain.Binary
@@ -43,11 +44,13 @@ class ZeroExExchangeOrderMatchDescriptorTest {
     }
     private val zeroExOrderEventConverter = mockk<ZeroExOrderEventConverter>()
     private val zeroExOrderParser = mockk<ZeroExOrderParser>()
+    private val autoReduceService = mockk<AutoReduceService>()
 
     private val zeroExExchangeOrderMatchDescriptor = ZeroExExchangeOrderMatchDescriptor(
         contractsProvider,
         zeroExOrderEventConverter,
-        zeroExOrderParser
+        zeroExOrderParser,
+        autoReduceService,
     )
 
     @BeforeEach

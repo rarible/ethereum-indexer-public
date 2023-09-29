@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
@@ -17,13 +18,15 @@ import java.time.Instant
 class LooksrareV2ExchangeOrderNoncesCanceledDescriptor(
     contractsProvider: ContractsProvider,
     orderRepository: OrderRepository,
-    metrics: ForeignOrderMetrics
+    metrics: ForeignOrderMetrics,
+    autoReduceService: AutoReduceService,
 ) : AbstractLooksrareExchangeDescriptor<OrderCancel>(
     name = "lr_v2_nonces_cancelled",
     OrderNoncesCancelledEvent.id(),
     contractsProvider.looksrareV2(),
     orderRepository,
-    metrics
+    metrics,
+    autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderCancel> {
         val event = OrderNoncesCancelledEvent.apply(log)

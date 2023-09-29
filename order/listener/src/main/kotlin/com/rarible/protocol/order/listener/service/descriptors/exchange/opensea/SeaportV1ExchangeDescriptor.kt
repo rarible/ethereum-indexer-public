@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.opensea.SeaportEventConverter
 import org.slf4j.LoggerFactory
@@ -22,11 +23,13 @@ class SeaportV1ExchangeDescriptor(
     contractsProvider: ContractsProvider,
     private val seaportEventConverter: SeaportEventConverter,
     private val metrics: ForeignOrderMetrics,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderSideMatch>(
     name = "os_fulfilled",
     topic = OrderFulfilledEvent.id(),
-    contracts = contractsProvider.seaportV1()
+    contracts = contractsProvider.seaportV1(),
+    autoReduceService = autoReduceService,
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
