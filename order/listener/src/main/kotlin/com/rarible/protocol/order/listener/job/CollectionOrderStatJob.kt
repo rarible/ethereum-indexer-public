@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.job
 
-import com.rarible.core.apm.withTransaction
 import com.rarible.protocol.order.core.model.CollectionOrderStat
 import com.rarible.protocol.order.core.repository.CollectionOrderStatRepository
 import com.rarible.protocol.order.core.service.CollectionOrderStatService
@@ -56,12 +55,7 @@ class CollectionOrderStatJob(
         return coroutineScope {
             oldStats.map {
                 async {
-                    withTransaction(
-                        name = "updateCollectionOrderStats",
-                        labels = listOf("collection" to it.id.prefixed())
-                    ) {
-                        collectionOrderStatService.updateStat(it.id, currencies)
-                    }
+                    collectionOrderStatService.updateStat(it.id, currencies)
                 }
             }.awaitAll()
         }

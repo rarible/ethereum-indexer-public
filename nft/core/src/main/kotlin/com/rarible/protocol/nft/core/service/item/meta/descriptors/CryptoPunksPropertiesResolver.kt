@@ -1,12 +1,9 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CryptoPunksMeta
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
@@ -17,7 +14,6 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 @Component
-@CaptureSpan(type = SpanType.EXT, subtype = "meta")
 class CryptoPunksPropertiesResolver(
     val cryptoPunksRepository: CryptoPunksRepository,
     nftIndexerProperties: NftIndexerProperties
@@ -52,7 +48,6 @@ class CryptoPunksPropertiesResolver(
 }
 
 @Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class CryptoPunksRepository(private val mongo: ReactiveMongoOperations) {
 
     fun findById(id: BigInteger): Mono<CryptoPunksMeta> {

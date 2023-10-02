@@ -21,16 +21,6 @@ rarible:
   core:
     task:
       enabled: false
-    apm:
-      agent:
-        enabled: false
-        server: http://elk_apm-server:8200
-        packages: com.rarible.protocol.nft.api
-      web:
-        filter:
-          enabled: true
-      annotation:
-        enabled: true
     client:
       name: rarible-protocol
       k8s: true

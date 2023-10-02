@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.repository
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.model.CollectionStat
 import kotlinx.coroutines.reactive.awaitFirst
@@ -16,7 +14,6 @@ import scalether.domain.Address
 import java.time.Duration
 
 @Component
-@CaptureSpan(type = SpanType.DB)
 class CollectionStatRepository(
     private val mongo: ReactiveMongoOperations
 ) {

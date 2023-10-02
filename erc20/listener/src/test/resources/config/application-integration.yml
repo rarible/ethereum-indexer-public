@@ -22,9 +22,6 @@ blockchain:
 
 rarible:
   core:
-    apm:
-      agent:
-        enabled: false
     task:
       enabled: false
 

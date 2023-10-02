@@ -2,7 +2,6 @@ package com.rarible.protocol.order.core.service
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.core.apm.withSpan
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.Blockchain
@@ -58,7 +57,8 @@ class CollectionOrderStatService(
     }
 
     val makeNftKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / AssetType::nft
-    val makeNftContractKey = ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / NftAssetType::token
+    val makeNftContractKey =
+        ReversedEthereumLogRecord::data / OrderExchangeHistory::make / Asset::type / NftAssetType::token
 
     suspend fun getOrSchedule(token: Address, currency: String?): CollectionOrderStat {
         val stat = optimisticLock {
@@ -144,10 +144,9 @@ class CollectionOrderStatService(
     }
 
     private suspend fun getRate(currency: String): BigDecimal {
-        return withSpan(name = "getCurrencyRate") {
-            currencyApi.getCurrencyRate(blockchainDto, currency, nowMillis().toEpochMilli())
-                .awaitFirstOrNull()?.rate
-        } ?: BigDecimal.ZERO
+        return currencyApi.getCurrencyRate(blockchainDto, currency, nowMillis().toEpochMilli())
+            .awaitFirstOrNull()?.rate
+            ?: BigDecimal.ZERO
     }
 
     private suspend fun applyRate(usd: BigDecimal, rate: BigDecimal): BigDecimal {

@@ -4,7 +4,6 @@ import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc165.IERC165
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.contracts.ownable.Ownable
-import com.rarible.core.apm.withSpan
 import com.rarible.core.common.component1
 import com.rarible.core.common.component2
 import com.rarible.core.common.component3
@@ -66,7 +65,7 @@ class TokenProvider(
             )
         }.flatMap { token ->
             detectScam(token)
-        }.withSpan(name = "fetchToken", labels = listOf("address" to address.toString()))
+        }
     }
 
     fun detectScam(token: Token): Mono<Token> = mono {

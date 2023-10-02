@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.looksrare
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.contracts.exchange.looksrare.v2.OrderNoncesCancelledEvent
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -14,7 +12,6 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class LooksrareV2ExchangeOrderNoncesCanceledDescriptor(
     contractsProvider: ContractsProvider,
     orderRepository: OrderRepository,

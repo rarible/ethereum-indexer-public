@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.composit
 
-import com.rarible.core.apm.withTransaction
 import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CompositeEntity
@@ -39,19 +38,15 @@ sealed class CompositeUpdateService(
     override suspend fun update(entity: CompositeEntity, event: CompositeEvent?): CompositeEntity {
         logger.info("Update composite, item=${entity.item?.id}, ownerships=${entity.ownerships.size}")
 
-        return withTransaction(
-            "updateCompositeEntity", labels = listOf("itemId" to (entity.item?.id?.toString() ?: ""))
-        ) {
-            coroutineScope {
-                val savedItem = entity.item?.let { async { updateItem(it) } }
+        return coroutineScope {
+            val savedItem = entity.item?.let { async { updateItem(it) } }
 
-                val savedOwnerships = entity.ownerships.values.chunked(properties.ownershipSaveBatch)
-                    .flatMap { ownerships ->
-                        ownerships.map { async { updateOwnership(it) } }.awaitAll()
-                    }
+            val savedOwnerships = entity.ownerships.values.chunked(properties.ownershipSaveBatch)
+                .flatMap { ownerships ->
+                    ownerships.map { async { updateOwnership(it) } }.awaitAll()
+                }
 
-                CompositeEntity(entity.id, savedItem?.await(), savedOwnerships.associateBy { it.owner }.toMutableMap())
-            }
+            CompositeEntity(entity.id, savedItem?.await(), savedOwnerships.associateBy { it.owner }.toMutableMap())
         }
     }
 

@@ -1,12 +1,10 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.contracts.external.quotation.QuotationData
 import com.rarible.protocol.contracts.external.yinsure.YInsure
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
@@ -18,7 +16,6 @@ import java.util.Date
 import java.util.Locale
 
 @Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class YInsurePropertiesResolver(
     sender: MonoTransactionSender,
     @Value("\${api.properties.api-url}") private val apiUrl: String

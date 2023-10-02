@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.api.service.order
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.model.BidStatus
 import com.rarible.protocol.order.core.model.CompositeBid
 import com.rarible.protocol.order.core.model.Order
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
 @Component
-@CaptureSpan(type = SpanType.APP)
 class OrderBidsService(
     private val orderRepository: OrderRepository,
     private val orderVersionRepository: OrderVersionRepository

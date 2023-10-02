@@ -2,8 +2,6 @@ package com.rarible.protocol.order.core.repository.pool
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.HistorySource
@@ -39,7 +37,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
-@CaptureSpan(type = SpanType.DB)
 @Component
 class PoolHistoryRepository(
     private val template: ReactiveMongoTemplate

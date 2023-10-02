@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.core.repository.auction
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AuctionOffchainHistory
 import com.rarible.protocol.order.core.model.NftAssetType
@@ -22,7 +20,6 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-@CaptureSpan(type = SpanType.DB)
 @Component
 class AuctionOffchainHistoryRepository(
     private val template: ReactiveMongoTemplate

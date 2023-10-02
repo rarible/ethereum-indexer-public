@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.looksrare
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.looksrare.v2.TakerBidEvent
@@ -19,7 +17,6 @@ import scalether.domain.response.Log
 import java.math.BigInteger
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class LooksrareV2ExchangeTakerBidDescriptor(
     contractsProvider: ContractsProvider,
     orderRepository: OrderRepository,

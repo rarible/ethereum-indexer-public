@@ -2,8 +2,6 @@ package com.rarible.protocol.order.core.repository.auction
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.reduce.repository.ReduceEventRepository
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.Asset
@@ -35,7 +33,6 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-@CaptureSpan(type = SpanType.DB)
 @Component
 class AuctionHistoryRepository(
     private val template: ReactiveMongoTemplate

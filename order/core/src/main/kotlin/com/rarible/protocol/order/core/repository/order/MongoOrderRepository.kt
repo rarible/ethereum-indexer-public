@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.core.repository.order
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.isSingleton
@@ -52,7 +50,6 @@ import java.math.BigInteger
 import java.time.Instant
 import java.util.Date
 
-@CaptureSpan(type = SpanType.DB)
 @Component
 class MongoOrderRepository(
     private val template: ReactiveMongoOperations

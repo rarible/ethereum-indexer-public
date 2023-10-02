@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.contracts.erc1155.v1.rarible.RaribleToken
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
 import com.rarible.protocol.nft.core.model.ItemId
@@ -15,7 +14,6 @@ import scalether.transaction.MonoTransactionSender
 import java.time.Duration
 
 @Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class BlockchainTokenUriResolver(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,

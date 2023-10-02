@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.core.repository.state
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.model.AggregatorFetchState
 import com.rarible.protocol.order.core.model.LooksrareFetchState
 import com.rarible.protocol.order.core.model.LooksrareV2CancelListEventFetchState
@@ -15,7 +13,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.stereotype.Component
 
-@CaptureSpan(type = SpanType.DB)
 @Component
 class AggregatorStateRepository(
     private val template: ReactiveMongoTemplate

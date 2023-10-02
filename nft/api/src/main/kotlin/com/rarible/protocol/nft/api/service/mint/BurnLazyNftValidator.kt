@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.api.service.mint
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.dto.BurnLazyNftFormDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Component
 import scalether.util.Hash
 
 @Component
-@CaptureSpan(type = SpanType.APP)
 class BurnLazyNftValidator(
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository,
     private val signService: ERC1271SignService

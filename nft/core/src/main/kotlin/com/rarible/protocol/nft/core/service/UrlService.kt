@@ -1,15 +1,12 @@
 package com.rarible.protocol.nft.core.service
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.meta.resource.model.UrlResource
 import com.rarible.core.meta.resource.parser.UrlParser
 import com.rarible.core.meta.resource.resolver.UrlResolver
-import com.rarible.protocol.nft.core.service.item.meta.IPFS_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(type = IPFS_CAPTURE_SPAN_TYPE)
 class UrlService(
     private val urlParser: UrlParser,
     private val urlResolver: UrlResolver

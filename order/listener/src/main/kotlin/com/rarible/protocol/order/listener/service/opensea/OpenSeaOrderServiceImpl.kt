@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.opensea
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.opensea.client.SeaportProtocolClient
 import com.rarible.opensea.client.model.OpenSeaError
 import com.rarible.opensea.client.model.OperationResult
@@ -19,7 +17,6 @@ import kotlin.math.max
 import com.rarible.opensea.client.model.v2.OrdersRequest as SeaportOrdersRequest
 
 @Component
-@CaptureSpan(type = SpanType.EXT)
 class OpenSeaOrderServiceImpl(
     private val seaportRequestCursorProducer: SeaportRequestCursorProducer,
     private val seaportProtocolClient: SeaportProtocolClient,

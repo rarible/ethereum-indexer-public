@@ -1,7 +1,5 @@
 package com.rarible.protocol.erc20.core.admin
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +14,6 @@ import org.springframework.data.mongodb.core.query.ne
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(type = SpanType.DB)
 class Erc20TaskRepository(
     private val template: ReactiveMongoOperations
 ) {
