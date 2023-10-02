@@ -59,7 +59,7 @@ class AutoReduceTaskHandler(
         }
         logger.info(
             "Finished AutoReduceTaskHandler. Reduced: ${reducedItemsCount.get()} items " +
-                "and ${reducedTokensCount.get()} in ${System.currentTimeMillis() - start} ms"
+                "and ${reducedTokensCount.get()} tokens in ${System.currentTimeMillis() - start}ms"
         )
     }.withTraceId()
 

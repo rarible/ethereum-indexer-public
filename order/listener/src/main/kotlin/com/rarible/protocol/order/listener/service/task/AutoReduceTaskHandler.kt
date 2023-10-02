@@ -36,21 +36,23 @@ class AutoReduceTaskHandler(
 
     override fun runLongTask(from: String?, param: String): Flow<String> = flow<String> {
         logger.info("Starting AutoReduceTaskHandler")
-        val reducedItemsCount = AtomicInteger()
-        val reducedTokensCount = AtomicInteger()
+        val reducedOrdersCount = AtomicInteger()
+        val reducedAuctionsCount = AtomicInteger()
         val start = System.currentTimeMillis()
         autoReduceRepository.findOrders().collect {
             orderReduceService.update(orderHash = Word.apply(it.id)).asFlow().collect()
             autoReduceRepository.removeOrder(it)
+            reducedOrdersCount.incrementAndGet()
         }
         autoReduceRepository.findAuctions().collect {
             val hash = Word.apply(it.id)
             auctionReduceService.update(hash, Long.MAX_VALUE).asFlow().collect()
             autoReduceRepository.removeAuction(it)
+            reducedAuctionsCount.incrementAndGet()
         }
         logger.info(
-            "Finished AutoReduceTaskHandler. Reduced: ${reducedItemsCount.get()} items " +
-                "and ${reducedTokensCount.get()} in ${System.currentTimeMillis() - start} ms"
+            "Finished AutoReduceTaskHandler. Reduced: ${reducedOrdersCount.get()} orders " +
+                "and ${reducedAuctionsCount.get()} auctions in ${System.currentTimeMillis() - start}ms"
         )
     }.withTraceId()
 
