@@ -26,11 +26,6 @@ mongock:
 
 rarible:
   core:
-    apm:
-      agent:
-        enabled: false
-        server: http://elk_apm-server:8200
-        packages: com.rarible.protocol.nft.listener
     client:
       name: rarible-protocol
       k8s: true

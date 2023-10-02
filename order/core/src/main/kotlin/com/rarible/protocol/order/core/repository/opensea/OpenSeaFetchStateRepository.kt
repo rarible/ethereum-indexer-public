@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.core.repository.opensea
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.model.OpenSeaFetchState
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -11,7 +9,6 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 
-@CaptureSpan(type = SpanType.DB)
 @Component
 @Deprecated("Remove in release 1.33")
 class OpenSeaFetchStateRepository(

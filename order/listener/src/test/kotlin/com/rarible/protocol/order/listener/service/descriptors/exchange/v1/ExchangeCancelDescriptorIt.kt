@@ -194,7 +194,8 @@ class ExchangeCancelDescriptorIt : AbstractIntegrationTest() {
                 hash = block.hash,
                 parentHash = block.parentHash,
                 timestamp = block.timestamp,
-                status = BlockStatus.SUCCESS
+                status = BlockStatus.SUCCESS,
+                errors = emptyList()
             ),
             blocksRanges = flowOf(
                 TypedBlockRange(

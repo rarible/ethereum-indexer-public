@@ -1,8 +1,5 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
-import com.rarible.core.apm.withSpan
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
@@ -15,7 +12,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderUsdValue
 import com.rarible.protocol.order.core.model.OrderVersion
-import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import scalether.domain.Address
@@ -24,7 +21,6 @@ import java.math.BigInteger
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EXT)
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class PriceUpdateService(
     private val blockchain: Blockchain,
@@ -84,9 +80,9 @@ class PriceUpdateService(
     }
 
     suspend fun getTokenRate(token: Address, at: Instant): BigDecimal? {
-        val rate = withSpan(name = "getCurrencyRate") {
-            currencyApi.getCurrencyRate(convert(blockchain), token.hex(), at.toEpochMilli()).awaitFirstOrNull()?.rate
-        }
+        val rate = currencyApi.getCurrencyRate(convert(blockchain), token.hex(), at.toEpochMilli())
+            .awaitSingleOrNull()?.rate
+
         if (rate == null) {
             logger.warn("Currency api didn't respond any value for $blockchain: $token")
         }

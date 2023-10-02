@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkNoLongerForSaleEvent
@@ -28,7 +26,6 @@ import java.math.BigInteger
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkNoLongerForSaleLogDescriptor(
     private val contractsProvider: ContractsProvider,
     private val ethereum: MonoEthereum,

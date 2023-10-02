@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.api.service.descriptor
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Part
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
-@CaptureSpan(type = SpanType.EXT)
 class RoyaltyCacheDescriptor(
     private val royaltyService: RoyaltyService,
     @Value("\${api.royalty.cache-timeout}") private val cacheTimeout: Long

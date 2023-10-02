@@ -1,12 +1,10 @@
 package com.rarible.protocol.nft.core.service.token.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
-import com.rarible.protocol.nft.core.service.item.meta.TOKEN_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.getInt
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = TOKEN_META_CAPTURE_SPAN_TYPE)
 class StandardTokenPropertiesResolver(
     private val urlService: UrlService,
     private val externalHttpClient: ExternalHttpClient,

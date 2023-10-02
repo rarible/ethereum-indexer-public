@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.listener.job
 
-import com.rarible.core.apm.withTransaction
 import com.rarible.protocol.nft.core.model.CollectionStat
 import com.rarible.protocol.nft.core.repository.CollectionStatRepository
 import com.rarible.protocol.nft.core.service.CollectionStatService
@@ -47,9 +46,7 @@ class CollectionStatJob(
         return coroutineScope {
             oldStats.map {
                 async {
-                    withTransaction(name = "updateCollectionStats", labels = listOf("collection" to it.id.prefixed())) {
-                        collectionStatService.updateStat(it.id)
-                    }
+                    collectionStatService.updateStat(it.id)
                 }
             }.awaitAll()
         }

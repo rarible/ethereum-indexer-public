@@ -1,14 +1,11 @@
 package com.rarible.protocol.nft.core.repository
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.stereotype.Component
 
-@CaptureSpan(type = SpanType.DB)
 @Component
 class JobStateRepository(
     private val template: ReactiveMongoTemplate,

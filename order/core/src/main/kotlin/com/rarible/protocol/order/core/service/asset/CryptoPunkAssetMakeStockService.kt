@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.core.service.asset
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -12,7 +10,6 @@ import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 
 @Component
-@CaptureSpan(type = SpanType.EXT)
 class CryptoPunkAssetMakeStockService(
     private val ethereumSender: MonoTransactionSender,
     private val orderIndexerProperties: OrderIndexerProperties

@@ -1,13 +1,11 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import kotlinx.coroutines.TimeoutCancellationException
 import org.springframework.stereotype.Service
 
 @Service
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class ItemPropertiesService(
     private val itemPropertiesResolverProvider: ItemPropertiesResolverProvider,
     private val openseaItemPropertiesService: OpenseaItemPropertiesService

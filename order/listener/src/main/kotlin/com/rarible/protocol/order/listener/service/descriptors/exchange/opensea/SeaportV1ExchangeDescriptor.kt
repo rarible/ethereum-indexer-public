@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.OrderSideMatch
@@ -18,7 +16,6 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class SeaportV1ExchangeDescriptor(
     contractsProvider: ContractsProvider,
     private val seaportEventConverter: SeaportEventConverter,

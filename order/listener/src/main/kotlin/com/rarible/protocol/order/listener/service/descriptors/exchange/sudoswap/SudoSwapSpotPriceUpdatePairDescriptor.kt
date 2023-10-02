@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswap
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SpotPriceUpdateEvent
 import com.rarible.protocol.order.core.model.HistorySource
@@ -15,7 +13,6 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 @EnableSudoSwap
 class SudoSwapSpotPriceUpdatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,

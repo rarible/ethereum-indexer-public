@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.api.service.activity
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.model.ActivityResult
 import com.rarible.protocol.order.core.model.ActivitySort
 import com.rarible.protocol.order.core.model.OrderActivityResult
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 
 @Component
-@CaptureSpan(type = SpanType.APP)
 class OrderActivityService(
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val orderVersionRepository: OrderVersionRepository,

@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
@@ -24,7 +22,6 @@ import scalether.domain.Address
 import java.math.BigInteger
 import java.time.Instant
 
-@CaptureSpan(type = SpanType.EVENT)
 abstract class AbstractAuctionDescriptor<T : AuctionHistory>(
     name: String,
     topic: Word,

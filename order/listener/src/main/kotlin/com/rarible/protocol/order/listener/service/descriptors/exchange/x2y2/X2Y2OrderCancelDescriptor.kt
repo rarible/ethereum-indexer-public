@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.x2y2
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.contracts.exchange.x2y2.v1.EvCancelEvent
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.Platform
@@ -16,7 +14,6 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class X2Y2OrderCancelDescriptor(
     contractsProvider: ContractsProvider,
     private val converter: X2Y2EventConverter,

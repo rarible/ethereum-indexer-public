@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.contracts.exchange.v2.events.CancelEventDeprecated
 import com.rarible.protocol.order.core.model.HistorySource
@@ -17,7 +15,6 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class ExchangeV2CancelDeprecatedDescriptor(
     contractsProvider: ContractsProvider,
     private val orderRepository: OrderRepository,

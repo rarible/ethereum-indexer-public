@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.listener.service.descriptors.erc721
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.erc721.OwnershipTransferredEvent
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
@@ -20,7 +18,6 @@ import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class CollectionOwnershipTransferLogDescriptor(
     private val tokenService: TokenService,
     private val properties: NftListenerProperties,

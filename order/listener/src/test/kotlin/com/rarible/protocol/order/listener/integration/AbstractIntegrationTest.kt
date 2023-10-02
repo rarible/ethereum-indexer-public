@@ -207,7 +207,8 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 hash = currentBlock.hash().prefixed(),
                 parentHash = currentBlock.parentHash().prefixed(),
                 timestamp = currentBlock.timestamp().toLong(),
-                status = com.rarible.blockchain.scanner.block.BlockStatus.SUCCESS
+                status = com.rarible.blockchain.scanner.block.BlockStatus.SUCCESS,
+                errors = emptyList()
             )
             blockRepository!!.save(block)
             legacyBlockRepository?.save(legacyBlockHead)

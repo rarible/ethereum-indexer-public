@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v1
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.v1.CancelEvent
 import com.rarible.protocol.order.core.model.Asset
@@ -18,7 +16,6 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class ExchangeCancelDescriptor(
     contractsProvider: ContractsProvider,
     private val assetTypeService: AssetTypeService,

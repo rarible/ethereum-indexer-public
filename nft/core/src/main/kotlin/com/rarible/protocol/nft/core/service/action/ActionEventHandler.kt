@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.service.action
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.RaribleKafkaEventHandler
 import com.rarible.core.telemetry.metrics.RegisteredCounter
@@ -18,7 +16,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(SpanType.APP)
 class ActionEventHandler(
     private val nftItemActionEventRepository: NftItemActionEventRepository,
     private val incomeBurnActionMetric: RegisteredCounter,
