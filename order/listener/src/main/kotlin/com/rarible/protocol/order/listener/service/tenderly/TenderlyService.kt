@@ -78,11 +78,12 @@ class TenderlyService(
         )
         return try {
             val url = tenderlyUrl()
+            logger.info("Sending simulation for contract ${buyTx.to} to $url with apiKey=${props.apiKey.take(5)}*****")
             val result = client.post()
                 .uri(props.apiKey)
                 .body(BodyInserters.fromValue(request))
                 .retrieve().awaitBody<SimulateResponse>()
-            logger.info("Send simulation for contract ${buyTx.to} to $url with apiKey=${props.apiKey.take(5)}*****")
+            logger.info("Received result: $result")
             when {
                 result.result != null -> SimulationResult(status = result.result.status)
                 else -> SimulationResult(status = false, error = result.error?.message)
