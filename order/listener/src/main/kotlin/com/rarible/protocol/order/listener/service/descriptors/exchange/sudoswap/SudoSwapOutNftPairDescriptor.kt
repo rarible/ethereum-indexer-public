@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
@@ -36,11 +37,13 @@ class SudoSwapOutNftPairDescriptor(
     private val poolCurve: PoolCurve,
     private val priceUpdateService: PriceUpdateService,
     private val sudoSwapLoad: SudoSwapLoadProperties,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
+    autoReduceService: AutoReduceService,
 ) : PoolSubscriber<PoolTargetNftOut>(
     name = "sudo_nft_out_pair",
     topic = SwapNFTOutPairEvent.id(),
-    contracts = emptyList()
+    contracts = emptyList(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftOut> {
         logger.info("log=$log, transaction=$transaction, index=$index, totalLogs=$totalLogs")

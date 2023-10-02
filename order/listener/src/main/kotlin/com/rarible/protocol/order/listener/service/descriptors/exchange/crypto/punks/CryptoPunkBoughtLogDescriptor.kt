@@ -21,6 +21,7 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -41,11 +42,13 @@ class CryptoPunkBoughtLogDescriptor(
     private val contractsProvider: ContractsProvider,
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
-    private val ethereum: MonoEthereum
+    private val ethereum: MonoEthereum,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderExchangeHistory>(
     name = "punk_bought",
     topic = PunkBoughtEvent.id(),
-    contracts = contractsProvider.cryptoPunks()
+    contracts = contractsProvider.cryptoPunks(),
+    autoReduceService = autoReduceService,
 ) {
     private val logger = LoggerFactory.getLogger(CryptoPunkBoughtLogDescriptor::class.java)
 

@@ -28,6 +28,7 @@ class BlurV2Execution721PackedDescriptorTest : AbstractBlurV2ExecutionDescriptor
     private val descriptor = BlurV2Execution721PackedDescriptor(
         contractsProvider = contractsProvider,
         blurV2EventConverter = blurV2EventConverter,
+        autoReduceService = autoReduceService,
     )
 
     @Test

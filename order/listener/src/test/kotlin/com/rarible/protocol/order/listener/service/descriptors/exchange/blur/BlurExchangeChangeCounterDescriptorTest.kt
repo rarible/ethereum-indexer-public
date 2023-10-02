@@ -7,7 +7,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
 class BlurExchangeChangeCounterDescriptorTest : AbstractBlurDescriptorTest() {
-    private val subscriber = BlurExchangeChangeCounterDescriptor(contractsProvider, blurEventConverter)
+    private val subscriber =
+        BlurExchangeChangeCounterDescriptor(contractsProvider, blurEventConverter, autoReduceService)
 
     @Test
     fun `convert change nonce`() = runBlocking<Unit> {

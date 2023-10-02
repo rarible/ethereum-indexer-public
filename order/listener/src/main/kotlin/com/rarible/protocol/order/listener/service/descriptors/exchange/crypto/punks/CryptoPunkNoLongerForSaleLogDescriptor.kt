@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
@@ -30,11 +31,13 @@ import java.time.Instant
 @CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkNoLongerForSaleLogDescriptor(
     private val contractsProvider: ContractsProvider,
-    private val ethereum: MonoEthereum
+    private val ethereum: MonoEthereum,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderExchangeHistory>(
     name = "punk_no_longer_for_sale",
     topic = PunkNoLongerForSaleEvent.id(),
-    contracts = contractsProvider.cryptoPunks()
+    contracts = contractsProvider.cryptoPunks(),
+    autoReduceService = autoReduceService,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 

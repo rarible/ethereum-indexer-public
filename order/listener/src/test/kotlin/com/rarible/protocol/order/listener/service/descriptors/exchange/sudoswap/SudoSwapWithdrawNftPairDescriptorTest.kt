@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.PoolNftWithdraw
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -30,11 +31,13 @@ internal class SudoSwapWithdrawNftPairDescriptorTest {
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
     private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
+    private val autoReduceService = mockk<AutoReduceService>()
 
     private val descriptor = SudoSwapWithdrawNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapWithdrawNftEventCounter = counter,
-        sudoSwapLoad = SudoSwapLoadProperties()
+        sudoSwapLoad = SudoSwapLoadProperties(),
+        autoReduceService = autoReduceService,
     )
 
     @Test

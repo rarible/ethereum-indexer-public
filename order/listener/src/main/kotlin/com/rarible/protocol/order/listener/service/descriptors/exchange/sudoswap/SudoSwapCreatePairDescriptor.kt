@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
 import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import org.springframework.stereotype.Service
@@ -27,11 +28,13 @@ import java.time.Instant
 class SudoSwapCreatePairDescriptor(
     private val contractsProvider: ContractsProvider,
     private val sudoSwapEventConverter: SudoSwapEventConverter,
-    private val sudoSwapCreatePairEventCounter: RegisteredCounter
+    private val sudoSwapCreatePairEventCounter: RegisteredCounter,
+    autoReduceService: AutoReduceService,
 ) : PoolSubscriber<PoolCreate>(
     name = "sudo_new_pair",
     topic = NewPairEvent.id(),
-    contracts = contractsProvider.pairFactoryV1()
+    contracts = contractsProvider.pairFactoryV1(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolCreate> {
         val event = NewPairEvent.apply(log)

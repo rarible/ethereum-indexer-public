@@ -6,6 +6,7 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SpotPriceUpdateEvent
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolSpotPriceUpdate
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import org.springframework.stereotype.Service
@@ -18,11 +19,13 @@ import java.time.Instant
 @EnableSudoSwap
 class SudoSwapSpotPriceUpdatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
-    private val sudoSwapUpdateSpotPriceEventCounter: RegisteredCounter
+    private val sudoSwapUpdateSpotPriceEventCounter: RegisteredCounter,
+    autoReduceService: AutoReduceService,
 ) : PoolSubscriber<PoolSpotPriceUpdate>(
     name = "sudo_spot_price_update",
     topic = SpotPriceUpdateEvent.id(),
-    contracts = emptyList()
+    contracts = emptyList(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolSpotPriceUpdate> {
         val event = SpotPriceUpdateEvent.apply(log)

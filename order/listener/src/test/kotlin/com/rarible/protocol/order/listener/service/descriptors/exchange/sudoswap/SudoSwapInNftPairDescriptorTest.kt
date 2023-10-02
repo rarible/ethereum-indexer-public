@@ -18,6 +18,7 @@ import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -44,6 +45,7 @@ internal class SudoSwapInNftPairDescriptorTest {
     private val priceUpdateService = mockk<PriceUpdateService> {
         coEvery { getAssetUsdValue(any(), any(), any()) } returns BigDecimal.ONE
     }
+    private val autoReduceService = mockk<AutoReduceService>()
 
     private val descriptor = SudoSwapInNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
@@ -52,7 +54,8 @@ internal class SudoSwapInNftPairDescriptorTest {
         sudoSwapCurve = sudoSwapCurve,
         priceUpdateService = priceUpdateService,
         featureFlags = OrderIndexerProperties.FeatureFlags(),
-        sudoSwapLoad = sudoSwapLoad
+        sudoSwapLoad = sudoSwapLoad,
+        autoReduceService = autoReduceService,
     )
 
     @Test

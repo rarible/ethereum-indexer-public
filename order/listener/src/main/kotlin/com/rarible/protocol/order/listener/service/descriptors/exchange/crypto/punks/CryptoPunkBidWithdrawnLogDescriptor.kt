@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
@@ -22,10 +23,12 @@ import java.time.Instant
 @CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkBidWithdrawnLogDescriptor(
     contractsProvider: ContractsProvider,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderCancel>(
     name = "punk_bid_withdrawn",
     topic = PunkBidWithdrawnEvent.id(),
-    contracts = contractsProvider.cryptoPunks()
+    contracts = contractsProvider.cryptoPunks(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderCancel> {
         val bidWithdrawnEvent = PunkBidWithdrawnEvent.apply(log)

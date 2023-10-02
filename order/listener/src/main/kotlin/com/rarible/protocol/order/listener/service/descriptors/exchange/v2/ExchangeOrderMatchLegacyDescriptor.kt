@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.descriptors.getOriginMaker
 import io.daonomic.rpc.domain.Word
@@ -29,11 +30,13 @@ class ExchangeOrderMatchLegacyDescriptor(
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
     private val raribleOrderParser: RaribleExchangeV2OrderParser,
-    private val raribleMatchEventMetric: RegisteredCounter
+    private val raribleMatchEventMetric: RegisteredCounter,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderSideMatch>(
     name = "rari_v2_match_legacy",
     topic = MatchEvent.id(),
-    contracts = contractsProvider.raribleExchangeV2()
+    contracts = contractsProvider.raribleExchangeV2(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
         val event = MatchEvent.apply(log)

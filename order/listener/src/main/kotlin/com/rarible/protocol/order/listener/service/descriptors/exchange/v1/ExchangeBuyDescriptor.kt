@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
@@ -26,11 +27,13 @@ class ExchangeBuyDescriptor(
     contractsProvider: ContractsProvider,
     private val assetTypeService: AssetTypeService,
     private val priceUpdateService: PriceUpdateService,
-    private val prizeNormalizer: PriceNormalizer
+    private val prizeNormalizer: PriceNormalizer,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderSideMatch>(
     name = "rari_v1_buy",
     topic = BuyEvent.id(),
-    contracts = contractsProvider.raribleExchangeV1()
+    contracts = contractsProvider.raribleExchangeV1(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
         val event = BuyEvent.apply(log)

@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
@@ -19,11 +20,13 @@ import java.time.Instant
 class AuctionBidDescriptor(
     contractsProvider: ContractsProvider,
     private val prizeNormalizer: PriceNormalizer,
-    private val auctionRepository: AuctionRepository
+    private val auctionRepository: AuctionRepository,
+    autoReduceService: AutoReduceService,
 ) : AbstractAuctionDescriptor<BidPlaced>(
     name = "auction_bid_placed",
     topic = BidPlacedEvent.id(),
-    contractsProvider = contractsProvider
+    contractsProvider = contractsProvider,
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<BidPlaced> {
         val event = BidPlacedEvent.apply(log)

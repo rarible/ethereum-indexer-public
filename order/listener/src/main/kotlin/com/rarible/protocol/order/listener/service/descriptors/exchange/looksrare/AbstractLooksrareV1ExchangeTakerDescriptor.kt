@@ -20,6 +20,7 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
@@ -40,13 +41,15 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
     private val tokenStandardProvider: TokenStandardProvider,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
-    private val metrics: ForeignOrderMetrics
+    private val metrics: ForeignOrderMetrics,
+    autoReduceService: AutoReduceService,
 ) : AbstractLooksrareExchangeDescriptor<OrderExchangeHistory>(
     name,
     topic,
     contracts,
     orderRepository,
-    metrics
+    metrics,
+    autoReduceService,
 ) {
     protected val logger: Logger = LoggerFactory.getLogger(javaClass::class.java)
 

@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
@@ -20,11 +21,13 @@ import java.time.Instant
 class ExchangeV2CancelDeprecatedDescriptor(
     contractsProvider: ContractsProvider,
     private val orderRepository: OrderRepository,
-    private val raribleCancelEventMetric: RegisteredCounter
+    private val raribleCancelEventMetric: RegisteredCounter,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderCancel>(
     name = "rari_v2_cancel_deprecated",
     topic = CancelEventDeprecated.id(),
-    contracts = contractsProvider.raribleExchangeV2()
+    contracts = contractsProvider.raribleExchangeV2(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderCancel> {
         val event = CancelEventDeprecated.apply(log)

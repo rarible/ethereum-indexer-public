@@ -20,6 +20,7 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -46,11 +47,13 @@ internal class SudoSwapCreatePairDescriptorTest {
     private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
     private val priceUpdateService = mockk<PriceUpdateService>()
+    private val autoReduceService = mockk<AutoReduceService>()
 
     private val descriptor = SudoSwapCreatePairDescriptor(
         contractsProvider = contractsProvider,
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapCreatePairEventCounter = counter,
+        autoReduceService = autoReduceService,
     )
 
     @Test
