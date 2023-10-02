@@ -123,7 +123,10 @@ class FloorOrderCheckHandler(
             floorOrderCheckMetrics.onOrderSimulated(status.name.lowercase())
             when (status) {
                 // we should count only fail
-                OrderSimulation.FAIL -> false
+                OrderSimulation.FAIL -> {
+                    logger.info("Order {} ({}) simulation failed: {}", order.hash.prefixed(), order.platform)
+                    false
+                }
                 else -> true
             }
         } else {

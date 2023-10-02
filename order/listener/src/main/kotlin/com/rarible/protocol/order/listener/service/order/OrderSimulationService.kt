@@ -44,7 +44,7 @@ class OrderSimulationService(
                 else -> OrderSimulation.ERROR
             }
         } catch (ex: Exception) {
-            logger.error("Simulation failed for order ${order.id}: ${ex.message}")
+            logger.error("Simulation failed for order ${order.id} (${order.platform.name}): ${ex.message}")
             OrderSimulation.ERROR
         } finally {
             logger.info("Simulation finished for ${order.id}")
