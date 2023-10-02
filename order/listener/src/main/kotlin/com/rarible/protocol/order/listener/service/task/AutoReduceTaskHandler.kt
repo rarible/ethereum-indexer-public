@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.reactive.asFlow
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class AutoReduceTaskHandler(
@@ -35,6 +36,9 @@ class AutoReduceTaskHandler(
 
     override fun runLongTask(from: String?, param: String): Flow<String> = flow<String> {
         logger.info("Starting AutoReduceTaskHandler")
+        val reducedItemsCount = AtomicInteger()
+        val reducedTokensCount = AtomicInteger()
+        val start = System.currentTimeMillis()
         autoReduceRepository.findOrders().collect {
             orderReduceService.update(orderHash = Word.apply(it.id)).asFlow().collect()
             autoReduceRepository.removeOrder(it)
@@ -44,7 +48,10 @@ class AutoReduceTaskHandler(
             auctionReduceService.update(hash, Long.MAX_VALUE).asFlow().collect()
             autoReduceRepository.removeAuction(it)
         }
-        logger.info("Finished AutoReduceTaskHandler")
+        logger.info(
+            "Finished AutoReduceTaskHandler. Reduced: ${reducedItemsCount.get()} items " +
+                "and ${reducedTokensCount.get()} in ${System.currentTimeMillis() - start} ms"
+        )
     }.withTraceId()
 
     private suspend fun isReindexInProgress(): Boolean {

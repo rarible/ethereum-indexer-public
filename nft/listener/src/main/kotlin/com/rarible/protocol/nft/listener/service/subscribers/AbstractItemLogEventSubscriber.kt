@@ -58,7 +58,7 @@ abstract class AbstractItemLogEventSubscriber<T : EventData>(
         block: FullBlock<EthereumBlockchainBlock, EthereumBlockchainLog>,
         logs: List<EthereumLogRecord>
     ): List<EthereumLogRecord> {
-        if (event.mode == ScanMode.REINDEX) {
+        if (event.mode != ScanMode.REALTIME) {
             autoReduceService.autoReduce(logs)
         }
         return logs

@@ -18,6 +18,7 @@ import kotlinx.coroutines.reactive.asFlow
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class AutoReduceTaskHandler(
@@ -36,6 +37,9 @@ class AutoReduceTaskHandler(
 
     override fun runLongTask(from: String?, param: String): Flow<String> = flow<String> {
         logger.info("Starting AutoReduceTaskHandler")
+        val reducedItemsCount = AtomicInteger()
+        val reducedTokensCount = AtomicInteger()
+        val start = System.currentTimeMillis()
         autoReduceRepository.findItems().collect {
             val itemId = ItemId.parseId(it.id)
             itemReduceService.update(
@@ -45,13 +49,18 @@ class AutoReduceTaskHandler(
                 to = itemId,
             ).asFlow().collect()
             autoReduceRepository.removeItem(it)
+            reducedItemsCount.incrementAndGet()
         }
         autoReduceRepository.findTokens().collect {
             val token = Address.apply(it.id)
             tokenReduceService.reduce(token)
             autoReduceRepository.removeToken(it)
+            reducedTokensCount.incrementAndGet()
         }
-        logger.info("Finished AutoReduceTaskHandler")
+        logger.info(
+            "Finished AutoReduceTaskHandler. Reduced: ${reducedItemsCount.get()} items " +
+                "and ${reducedTokensCount.get()} in ${System.currentTimeMillis() - start} ms"
+        )
     }.withTraceId()
 
     private suspend fun isReindexInProgress(): Boolean {

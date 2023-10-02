@@ -38,7 +38,7 @@ abstract class HistorySubscriber<T : EventData>(
         logs: List<EthereumLogRecord>
     ): List<EthereumLogRecord> {
         val processedLogs = super.postProcess(event, block, logs)
-        if (event.mode == ScanMode.REINDEX) {
+        if (event.mode != ScanMode.REALTIME) {
             autoReduceService.autoReduce(logs)
         }
         return processedLogs
