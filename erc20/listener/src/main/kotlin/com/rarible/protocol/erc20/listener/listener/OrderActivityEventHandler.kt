@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.listener.listener
 import com.rarible.core.kafka.RaribleKafkaEventHandler
 import com.rarible.protocol.dto.Erc20AssetTypeDto
 import com.rarible.protocol.dto.EthActivityEventDto
+import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.toModel
 import com.rarible.protocol.erc20.core.misc.addIndexerIn
@@ -22,7 +23,8 @@ class OrderActivityEventHandler(
             return
         }
         logger.info("Handle event: $event")
-        if (activity.type == OrderActivityMatchDto.Type.ACCEPT_BID) {
+        if (activity.type == OrderActivityMatchDto.Type.ACCEPT_BID &&
+            activity.source in SUPPORTED_PLATFORM) {
             handleActivity(activity, event)
         }
     }
@@ -52,6 +54,10 @@ class OrderActivityEventHandler(
     }
 
     companion object {
+        private val SUPPORTED_PLATFORM = OrderActivityDto.Source.values()
+            .filter { it != OrderActivityDto.Source.BLUR }
+            .toSet()
+
         private val logger = LoggerFactory.getLogger(OrderActivityEventHandler::class.java)
     }
 }

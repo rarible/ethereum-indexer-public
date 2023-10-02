@@ -18,6 +18,7 @@ import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.parser.BlurV2Parser
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.service.converter.AbstractEventConverter
 import io.daonomic.rpc.domain.Binary
@@ -35,6 +36,7 @@ class BlurV2EventConverter(
     traceCallService: TraceCallService,
     featureFlags: OrderIndexerProperties.FeatureFlags,
     private val contractsProvider: ContractsProvider,
+    private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val sender: MonoTransactionSender,
@@ -69,6 +71,8 @@ class BlurV2EventConverter(
             BlurV2OrderType.ASK -> executionEvent.nft() to executionEvent.ethPayment()
             BlurV2OrderType.BID -> executionEvent.erc20Payment(contractsProvider.weth()) to executionEvent.nft()
         }
+        val sellUsdValue = priceUpdateService.getAssetsUsdValue(make = make, take = take, at = date)
+        val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = take, take = make, at = date)
         val taker = when (executionEvent.orderType) {
             BlurV2OrderType.ASK -> blurV2Take.tokenRecipient
             BlurV2OrderType.BID -> transaction.from()
@@ -98,10 +102,10 @@ class BlurV2EventConverter(
             source = HistorySource.BLUR,
             date = date,
             originFees = makeOriginFees,
-            makeUsd = null,
-            takeUsd = null,
-            makePriceUsd = null,
-            takePriceUsd = null,
+            makeUsd = sellUsdValue?.makeUsd,
+            takeUsd = sellUsdValue?.takeUsd,
+            makePriceUsd = sellUsdValue?.makePriceUsd,
+            takePriceUsd = sellUsdValue?.takePriceUsd,
             counterAdhoc = true,
             origin = null,
             externalOrderExecutedOnRarible = null,
@@ -121,10 +125,10 @@ class BlurV2EventConverter(
             counterAdhoc = false,
             date = date,
             originFees = takeOriginFees,
-            makeUsd = null,
-            takeUsd = null,
-            makePriceUsd = null,
-            takePriceUsd = null,
+            makeUsd = buyUsdValue?.makeUsd,
+            takeUsd = buyUsdValue?.takeUsd,
+            makePriceUsd = buyUsdValue?.makePriceUsd,
+            takePriceUsd = buyUsdValue?.takePriceUsd,
             adhoc = true,
             origin = null,
             externalOrderExecutedOnRarible = null,

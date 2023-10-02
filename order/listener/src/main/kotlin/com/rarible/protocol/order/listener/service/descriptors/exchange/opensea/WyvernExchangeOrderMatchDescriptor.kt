@@ -5,6 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderParser
@@ -17,11 +18,13 @@ import java.time.Instant
 class WyvernExchangeOrderMatchDescriptor(
     private val contractsProvider: ContractsProvider,
     private val openSeaOrdersSideMatcher: OpenSeaOrderEventConverter,
-    private val openSeaOrderParser: OpenSeaOrderParser
+    private val openSeaOrderParser: OpenSeaOrderParser,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderSideMatch>(
     name = "os_matched",
     topic = OrdersMatchedEvent.id(),
-    contracts = contractsProvider.openSea()
+    contracts = contractsProvider.openSea(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
         val event = OrdersMatchedEvent.apply(log)

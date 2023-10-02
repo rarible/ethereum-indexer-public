@@ -2,6 +2,8 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.blur
 
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.data.randomBidOrderUsdValue
+import com.rarible.protocol.order.core.data.randomSellOrderUsdValue
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
@@ -11,6 +13,7 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.listener.data.log
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -21,6 +24,7 @@ class BlurV2Execution721MakerFeePackedDescriptorTest : AbstractBlurV2ExecutionDe
     private val descriptor = BlurV2Execution721MakerFeePackedDescriptor(
         contractsProvider = contractsProvider,
         blurV2EventConverter = blurV2EventConverter,
+        autoReduceService = autoReduceService,
     )
 
     @Test
@@ -50,6 +54,12 @@ class BlurV2Execution721MakerFeePackedDescriptorTest : AbstractBlurV2ExecutionDe
             EthAssetType,
             EthUInt256.of("440000000000000000")
         )
+
+        val bidOrderUsd = randomBidOrderUsdValue()
+        val sellOrderUsd = randomSellOrderUsdValue()
+
+        coEvery { priceUpdateService.getAssetsUsdValue(any(), any(), at = any()) } returns sellOrderUsd
+        coEvery { priceUpdateService.getAssetsUsdValue(any(), any(), at = any()) } returns bidOrderUsd
 
         val matches = descriptor.convert<OrderSideMatch>(mockkBlock, ethereumBlockchainLog)
         assertThat(matches).hasSize(2)

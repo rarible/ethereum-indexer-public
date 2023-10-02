@@ -5,6 +5,7 @@ import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenEvent
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -24,6 +25,10 @@ class TokenService(
 
     suspend fun getToken(address: Address): Token? {
         return tokenRepository.findById(address).awaitFirstOrNull()
+    }
+
+    suspend fun getTokens(address: Collection<Address>): List<Token> {
+        return tokenRepository.findByIds(address).toList()
     }
 
     suspend fun saveToken(token: Token, event: TokenEvent? = null): Token {
@@ -94,7 +99,8 @@ class TokenService(
             symbol = fetched.symbol,
             features = fetched.features,
             standard = fetched.standard,
-            owner = fetched.owner
+            owner = fetched.owner,
+            scam = fetched.scam,
         )
 
         val result = saveToken(updatedToken)

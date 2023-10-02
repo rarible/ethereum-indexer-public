@@ -6,6 +6,7 @@ import com.rarible.ethereum.domain.Blockchain
 import com.rarible.opensea.client.Network
 import com.rarible.opensea.client.SeaportProtocolClient
 import com.rarible.opensea.client.model.OpenSeaError
+import com.rarible.opensea.client.model.OpenSeaErrorCode
 import com.rarible.opensea.client.model.OperationResult
 import com.rarible.opensea.client.model.v2.FulfillListingRequest
 import com.rarible.opensea.client.model.v2.FulfillListingResponse
@@ -75,7 +76,11 @@ class SeaportSignatureResolver(
 
     private suspend fun handleError(hash: Word, result: OperationResult.Fail<OpenSeaError>): Binary {
         logger.info("Get order $hash signature because of error: ${result.error.code}: ${result.error.message}")
-        val (error, exception) = if (result.error.isGeneratingFulfillmentDataError()) {
+        val (error, exception) = if (result.error.isGeneratingFulfillmentDataError() || (
+                result.error.code == OpenSeaErrorCode.BAD_REQUEST &&
+                    properties.openseaSignatureErrorMessages.any { result.error.message.contains(it) }
+                )
+        ) {
             cancelOrder(hash, result)
             orderMetrics.onOrderExecutionFailed(Platform.OPEN_SEA, ExecutionError.SIGNATURE)
             ExecutionError.SIGNATURE to Retry.SkipRetryException(result.error.toApiException())
@@ -95,7 +100,8 @@ class SeaportSignatureResolver(
                 if (env == "prod") Network.POLYGON else Network.MUMBAI
             }
             Blockchain.OPTIMISM,
-            Blockchain.MANTLE -> {
+            Blockchain.MANTLE,
+            Blockchain.HEDERA -> {
                 throw IllegalArgumentException("Unsupported blockchain $this")
             }
         }

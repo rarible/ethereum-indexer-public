@@ -5,6 +5,7 @@ import com.rarible.core.cache.get
 import com.rarible.protocol.dto.NftItemRoyaltyDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
+import com.rarible.protocol.nft.api.service.colllection.CollectionRoyaltiesService
 import com.rarible.protocol.nft.api.service.descriptor.RoyaltyCacheDescriptor
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
 import com.rarible.protocol.nft.core.model.Item
@@ -31,6 +32,7 @@ import scalether.domain.Address
 @Component
 class ItemService(
     private val royaltyCacheDescriptor: RoyaltyCacheDescriptor,
+    private val collectionRoyaltiesService: CollectionRoyaltiesService,
     private val cacheService: CacheService,
     private val itemRepository: ItemRepository,
     private val ownershipApiService: OwnershipApiService,
@@ -47,10 +49,11 @@ class ItemService(
             .awaitFirstOrNull() ?: throw EntityNotFoundApiException("Lazy Item", itemId)
 
     suspend fun getRoyalty(itemId: ItemId): NftItemRoyaltyListDto = coroutineScope {
-        val parts = cacheService
-            .get(itemId.toString(), royaltyCacheDescriptor, false)
-            .awaitSingle()
-        logger.debug("Got royalty for item - $ItemId from cache: $parts")
+        val parts = collectionRoyaltiesService.getRoyaltiesHistory(itemId.token)
+            ?: cacheService
+                .get(itemId.toString(), royaltyCacheDescriptor, false)
+                .awaitSingle()
+                .also { logger.debug("Got royalty for item - $ItemId from cache: $it") }
         NftItemRoyaltyListDto(parts.map { NftItemRoyaltyDto(it.account, it.value) })
     }
 

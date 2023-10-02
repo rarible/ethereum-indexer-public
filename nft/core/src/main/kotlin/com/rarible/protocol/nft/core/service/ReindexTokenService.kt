@@ -6,6 +6,7 @@ import com.rarible.blockchain.scanner.reindex.BlockRange
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.misc.splitToRanges
+import com.rarible.protocol.nft.core.model.ADMIN_AUTO_REDUCE_TASK_TYPE
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsDependentTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
@@ -106,6 +107,15 @@ class ReindexTokenService(
         )
     }
 
+    suspend fun createAutoReduceTask(): Task {
+        return saveTask(
+            param = "",
+            type = ADMIN_AUTO_REDUCE_TASK_TYPE,
+            state = null,
+            force = true
+        )
+    }
+
     suspend fun createReduceTokenRangeTask(from: ItemId, to: ItemId, taskCount: Int, force: Boolean = false) {
         val parent = "${from.stringValue}..${to.stringValue}"
 
@@ -178,11 +188,13 @@ class ReindexTokenService(
         logger.info("Found $startBlock start block for tokens: $tokens")
         if (startBlock != null) {
             val reindextask = saveTask(
-                param = mapper.writeValueAsString(EthereumReindexParam(
-                    range = BlockRange(startBlock, null, 250),
-                    topics = emptyList(),
-                    addresses = tokens
-                )),
+                param = mapper.writeValueAsString(
+                    EthereumReindexParam(
+                        range = BlockRange(startBlock, null, 250),
+                        topics = emptyList(),
+                        addresses = tokens
+                    )
+                ),
                 type = "BLOCK_SCANNER_REINDEX_TASK",
                 state = null,
                 force = false

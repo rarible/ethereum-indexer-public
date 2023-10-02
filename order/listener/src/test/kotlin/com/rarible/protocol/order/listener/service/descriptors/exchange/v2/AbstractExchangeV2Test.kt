@@ -69,7 +69,7 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
         token1 = TestERC20.deployAndWait(sender, poller, "Test1", "TST1").block()!!
         token2 = TestERC20.deployAndWait(sender, poller, "Test2", "TST2").block()!!
         token721 = TestERC721.deployAndWait(sender, poller, "Test", "TST").block()!!
-        token1155 = TestERC1155.deployAndWait(sender, poller, "ipfs:/").block()!!
+        token1155 = TestERC1155.deployAndWait(sender, poller).block()!!
         transferProxy = TransferProxy.deployAndWait(sender, poller).block()!!
         erc20TransferProxy = ERC20TransferProxy.deployAndWait(sender, poller).block()!!
         val royaltiesProvider = TestRoyaltiesProvider.deployAndWait(sender, poller).block()!!

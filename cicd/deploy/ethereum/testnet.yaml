@@ -3,8 +3,8 @@ global:
   environments: &sharedEnv
     KAFKA_HOSTS: "PLAINTEXT://staging-kafka1.rarible.int.:9092,staging-kafka2.rarible.int.:9092,staging-kafka3.rarible.int.:9092"
     MONGODB_HOSTS: "staging-mongo1.rarible.int.,staging-mongo2.rarible.int.,staging-mongo3.rarible.int."
-    NODE_HOST: "http://goerli-node.ethereum-node:8545"
-    NODE_WEBSOCKETURL: "ws://goerli-node.ethereum-node:8546"
+    RARIBLE_ETHEREUM_NODES_0_HTTPURL: "http://goerli-node.ethereum-node:8545"
+    RARIBLE_ETHEREUM_NODES_0_WEBSOCKETURL: "ws://goerli-node.ethereum-node:8546"
 
   ########### Erc20 Indexer environments
   erc20Environments: &erc20Env
@@ -22,9 +22,12 @@ ethereum-erc20-api:
     <<: *erc20Env
 
 ethereum-erc20-listener:
-  resources:
   environments:
     <<: *erc20Env
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 512
 
 ethereum-erc20-migration:
   environments:
@@ -36,7 +39,7 @@ ethereum-nft-api:
     <<: *nftEnv
   resources:
     jvm:
-      max_direct_memory_megabytes: 128
+      max_direct_memory_megabytes: 512
 
 ethereum-nft-listener:
   environments:

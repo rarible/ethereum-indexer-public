@@ -1,7 +1,9 @@
 package com.rarible.protocol.nft.core.configuration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
+import com.rarible.ethereum.monitoring.EventCountMetrics
 import com.rarible.protocol.nft.core.producer.ProducerFactory
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -18,7 +20,8 @@ class ProducerConfiguration(
         return ProducerFactory(
             kafkaReplicaSet = properties.kafkaReplicaSet,
             blockchain = properties.blockchain,
-            environment = applicationEnvironmentInfo.name
+            environment = applicationEnvironmentInfo.name,
+            compression = properties.compression,
         )
     }
 
@@ -29,6 +32,9 @@ class ProducerConfiguration(
     fun itemEventsProducer(producerFactory: ProducerFactory) = producerFactory.createItemEventsProducer()
 
     @Bean
+    fun itemMetaEventsProducer(producerFactory: ProducerFactory) = producerFactory.createItemMetaEventsProducer()
+
+    @Bean
     fun ownershipEventsProducer(producerFactory: ProducerFactory) = producerFactory.createOwnershipEventsProducer()
 
     @Bean
@@ -36,4 +42,9 @@ class ProducerConfiguration(
 
     @Bean
     fun actionProducer(producerFactory: ProducerFactory) = producerFactory.createItemActionEventProducer()
+
+    @Bean
+    fun eventCountMetrics(registry: MeterRegistry): EventCountMetrics {
+        return EventCountMetrics(registry)
+    }
 }

@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
@@ -26,7 +27,8 @@ class LooksrareV2ExchangeTakerBidDescriptor(
     tokenStandardProvider: TokenStandardProvider,
     priceUpdateService: PriceUpdateService,
     prizeNormalizer: PriceNormalizer,
-    metrics: ForeignOrderMetrics
+    metrics: ForeignOrderMetrics,
+    autoReduceService: AutoReduceService,
 ) : AbstractLooksrareV1ExchangeTakerDescriptor(
     name = "lr_v2_taker_bid",
     TakerBidEvent.id(),
@@ -37,7 +39,8 @@ class LooksrareV2ExchangeTakerBidDescriptor(
     tokenStandardProvider,
     priceUpdateService,
     prizeNormalizer,
-    metrics
+    metrics,
+    autoReduceService,
 ) {
     override fun getTakeEvent(log: Log): TakeEvent? {
         val event = TakerBidEvent.apply(log)

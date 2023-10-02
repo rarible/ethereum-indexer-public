@@ -1,12 +1,22 @@
 package com.rarible.protocol.nft.listener.service.descriptors.erc721
 
+import com.rarible.blockchain.scanner.block.Block
+import com.rarible.blockchain.scanner.block.BlockStatus
+import com.rarible.blockchain.scanner.ethereum.EthereumScannerManager
+import com.rarible.blockchain.scanner.ethereum.client.EthereumClient
+import com.rarible.blockchain.scanner.handler.TypedBlockRange
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUserMinimal
 import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken
+import com.rarible.protocol.nft.core.model.AutoReduce
 import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.repository.AutoReduceRepository
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.test.IntegrationTest
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -14,6 +24,7 @@ import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.web3jold.crypto.Keys
 import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
@@ -24,6 +35,14 @@ import java.math.BigInteger
 
 @IntegrationTest
 class CollectionDescriptorIt : AbstractIntegrationTest() {
+    @Autowired
+    private lateinit var manager: EthereumScannerManager
+
+    @Autowired
+    private lateinit var autoReduceRepository: AutoReduceRepository
+
+    @Autowired
+    private lateinit var ethereumClient: EthereumClient
 
     @Test
     fun convert() = runBlocking<Unit> {
@@ -59,6 +78,34 @@ class CollectionDescriptorIt : AbstractIntegrationTest() {
             assertEquals(savedToken.name, "Test")
             assertEquals(savedToken.owner, address)
             assertEquals(savedToken.symbol, "TST")
+        }
+
+        val block = ethereumClient.getBlock(token.blockNumber().longValueExact() - 1)
+
+        manager.blockReindexer.reindex(
+            baseBlock = Block(
+                id = block.number,
+                hash = block.hash,
+                parentHash = block.parentHash,
+                timestamp = block.timestamp,
+                status = BlockStatus.SUCCESS
+            ),
+            blocksRanges = flowOf(
+                TypedBlockRange(
+                    range = LongRange(
+                        start = token.blockNumber().longValueExact(),
+                        endInclusive = token.blockNumber().longValueExact()
+                    ),
+                    stable = true,
+                )
+            )
+        ).collect()
+        Wait.waitAssert {
+            assertThat(autoReduceRepository.findTokens().toList()).containsExactly(
+                AutoReduce(
+                    token.contractAddress().toString()
+                )
+            )
         }
     }
 

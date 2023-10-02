@@ -3,6 +3,7 @@ package com.rarible.protocol.erc20.listener.scanner.subscriber
 import com.rarible.contracts.erc20.ApprovalEvent
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.contract.ApprovalEventByLogData
+import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
 import com.rarible.protocol.erc20.core.metric.DescriptorMetrics
 import com.rarible.protocol.erc20.core.model.Erc20TokenApproval
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
@@ -21,7 +22,8 @@ class ApprovalLogSubscriber(
     ignoredOwnersResolver: IgnoredOwnersResolver,
     metrics: DescriptorMetrics,
     private val registrationService: Erc20RegistrationService,
-    commonProps: Erc20ListenerProperties
+    commonProps: Erc20ListenerProperties,
+    indexerProperties: Erc20IndexerProperties,
 ) : AbstractBalanceLogEventSubscriber(
     ignoredOwnersResolver = ignoredOwnersResolver,
     metrics = metrics,
@@ -29,6 +31,7 @@ class ApprovalLogSubscriber(
     topic = ApprovalEvent.id(),
     collection = Erc20ApprovalHistoryRepository.COLLECTION,
     tokens = commonProps.tokens,
+    saveLogs = indexerProperties.featureFlags.enableSaveAllowanceToDb
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)

@@ -33,7 +33,7 @@ import java.time.Instant
 
 @IntegrationTest
 @ExperimentalCoroutinesApi
-internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
+internal class OrderStartEndCheckerHandlerIt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var handler: OrderStartEndCheckerHandler
 
@@ -121,7 +121,7 @@ internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
 
         val updateTime = nowMillis()
         handler.update(updateTime)
-        assertThat(check(orderVersion.hash, OrderStatus.CANCELLED)).isEqualTo(updateTime)
+        assertThat(check(orderVersion.hash, OrderStatus.ENDED)).isEqualTo(updateTime)
     }
 
     @Test

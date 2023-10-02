@@ -63,6 +63,10 @@
             <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-metrics</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-monitoring</artifactId>
+        </dependency>
 
         <!-- =============== Blockchain-scanner ================ -->
         <dependency>

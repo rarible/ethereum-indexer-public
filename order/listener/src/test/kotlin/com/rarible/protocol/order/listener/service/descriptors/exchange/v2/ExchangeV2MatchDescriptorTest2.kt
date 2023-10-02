@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.convert
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -41,13 +42,15 @@ class ExchangeV2MatchDescriptorTest2 {
         OrderIndexerProperties.FeatureFlags()
     )
     private val raribleOrderParser = RaribleExchangeV2OrderParser(exchangeContractAddresses, traceCallService)
+    private val autoReduceService = mockk<AutoReduceService>()
     private val descriptor = ExchangeOrderMatchDescriptor(
         contractsProvider,
         priceUpdateService,
         priceNormalizer,
         raribleOrderParser,
         raribleMatchEventMetric,
-        featureFlags
+        featureFlags,
+        autoReduceService,
     )
 
     @Test

@@ -30,9 +30,6 @@ common:
 
 rarible:
   ethereum:
-    nodes:
-      - httpUrl: ${node.host}
-        websocketUrl: ${node.websocketUrl}
     indexer:
       enabled: true
     converter:
@@ -52,7 +49,5 @@ rarible:
 blockchain:
   scanner:
     ethereum:
-      scan:
-        enabled: false
       monitoring:
         rootPath: ${common.metricRootPath}

@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.convert
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
@@ -26,9 +27,11 @@ internal class SeaportExchangeChangeCounterDescriptorTest {
     private val metrics: ForeignOrderMetrics = mockk {
         every { onOrderEventHandled(Platform.OPEN_SEA, "counter") } returns Unit
     }
+    private val autoReduceService = mockk<AutoReduceService>()
     private val descriptor = SeaportExchangeChangeCounterDescriptor(
         contractsProvider,
-        metrics
+        metrics,
+        autoReduceService,
     )
 
     @Test

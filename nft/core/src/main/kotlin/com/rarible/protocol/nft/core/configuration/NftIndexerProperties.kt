@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.configuration
 
 import com.rarible.blockchain.scanner.ethereum.reduce.MetricProperties
 import com.rarible.core.daemon.DaemonWorkerProperties
+import com.rarible.core.kafka.Compression
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.misc.toAddressSet
 import com.rarible.protocol.nft.core.model.ByteCodeMarker
@@ -40,6 +41,7 @@ data class NftIndexerProperties(
     val ipfs: IpfsProperties,
     val ownershipFetchBatchSize: Int = 1000,
     val reduce: ReduceProperties = ReduceProperties(),
+    val compression: Compression = Compression.SNAPPY,
 ) : MetricProperties {
     data class ActionProperties(
         val burnDelay: Duration = Duration.ofHours(24)
@@ -73,7 +75,8 @@ data class NftIndexerProperties(
     )
 
     data class ScamByteCodeProperties(
-        val markers: List<ByteCodeMarker> = emptyList()
+        val markers: List<ByteCodeMarker> = emptyList(),
+        val hashCodes: Set<String> = emptySet()
     )
 
     data class ReduceProperties(

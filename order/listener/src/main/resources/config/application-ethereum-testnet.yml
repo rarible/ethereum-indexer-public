@@ -42,6 +42,9 @@ listener:
   seaport-load:
     enabled: true
     save-enabled: true
+  tenderlyProperties:
+    mapping:
+      ethereum: goerli
 rarible:
   seaport:
     network: goerli

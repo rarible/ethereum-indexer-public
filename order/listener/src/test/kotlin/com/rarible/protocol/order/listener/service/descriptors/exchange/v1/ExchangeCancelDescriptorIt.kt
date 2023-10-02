@@ -1,5 +1,10 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v1
 
+import com.rarible.blockchain.scanner.block.Block
+import com.rarible.blockchain.scanner.block.BlockStatus
+import com.rarible.blockchain.scanner.ethereum.EthereumScannerManager
+import com.rarible.blockchain.scanner.ethereum.client.EthereumClient
+import com.rarible.blockchain.scanner.handler.TypedBlockRange
 import com.rarible.contracts.test.erc1155.TestERC1155
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
@@ -11,6 +16,7 @@ import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v1.state.ExchangeStateV1
 import com.rarible.protocol.dto.OrderActivityCancelBidDto
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AutoReduce
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.model.LegacyAssetTypeClass.ERC1155
@@ -18,14 +24,19 @@ import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.repository.AutoReduceRepository
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
 import scala.Tuple3
@@ -48,6 +59,15 @@ class ExchangeCancelDescriptorIt : AbstractIntegrationTest() {
         private val buyTokenId = BigInteger.TEN
     }
 
+    @Autowired
+    private lateinit var manager: EthereumScannerManager
+
+    @Autowired
+    private lateinit var autoReduceRepository: AutoReduceRepository
+
+    @Autowired
+    private lateinit var ethereumClient: EthereumClient
+
     @BeforeEach
     fun before() {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
@@ -59,8 +79,8 @@ class ExchangeCancelDescriptorIt : AbstractIntegrationTest() {
             BigInteger.valueOf(8000000),
             MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
         )
-        token = TestERC1155.deployAndWait(userSender, poller, "ipfs:/").block()!!
-        buyToken = TestERC1155.deployAndWait(userSender, poller, "ipfs:/").block()!!
+        token = TestERC1155.deployAndWait(userSender, poller).block()!!
+        buyToken = TestERC1155.deployAndWait(userSender, poller).block()!!
     }
 
     @Test
@@ -79,7 +99,17 @@ class ExchangeCancelDescriptorIt : AbstractIntegrationTest() {
         val proxy = TransferProxy.deployAndWait(userSender, poller).block()!!
         val proxyForDeprecated = TransferProxyForDeprecated.deployAndWait(userSender, poller).block()!!
         val erc20Proxy = ERC20TransferProxy.deployAndWait(userSender, poller).block()!!
-        val sale = ExchangeV1.deployAndWait(userSender, poller, proxy.address(), proxyForDeprecated.address(), erc20Proxy.address(), state.address(), Address.ZERO(), beneficiary, buyerFeeSigner.from()).block()!!
+        val sale = ExchangeV1.deployAndWait(
+            userSender,
+            poller,
+            proxy.address(),
+            proxyForDeprecated.address(),
+            erc20Proxy.address(),
+            state.address(),
+            Address.ZERO(),
+            beneficiary,
+            buyerFeeSigner.from()
+        ).block()!!
 
         state.addOperator(sale.address())
             .execute().verifySuccess()
@@ -113,9 +143,14 @@ class ExchangeCancelDescriptorIt : AbstractIntegrationTest() {
         )
         save(orderLeftVersion)
 
-        val orderKey = Tuple4(sender.from(), salt, Tuple3(token.address(), tokenId, ERC1155.value), Tuple3(buyToken.address(), buyTokenId, ERC1155.value))
+        val orderKey = Tuple4(
+            sender.from(),
+            salt,
+            Tuple3(token.address(), tokenId, ERC1155.value),
+            Tuple3(buyToken.address(), buyTokenId, ERC1155.value)
+        )
 
-        sale.cancel(orderKey)
+        val saleReceipt = sale.cancel(orderKey)
             .withSender(sender)
             .execute().verifySuccess()
 
@@ -149,6 +184,32 @@ class ExchangeCancelDescriptorIt : AbstractIntegrationTest() {
                     assertThat(it.hash).isEqualTo(orderLeftVersion.hash)
                 }
             }
+        }
+
+        val block = ethereumClient.getBlock(saleReceipt.blockNumber().longValueExact() - 1)
+
+        manager.blockReindexer.reindex(
+            baseBlock = Block(
+                id = block.number,
+                hash = block.hash,
+                parentHash = block.parentHash,
+                timestamp = block.timestamp,
+                status = BlockStatus.SUCCESS
+            ),
+            blocksRanges = flowOf(
+                TypedBlockRange(
+                    range = LongRange(
+                        start = saleReceipt.blockNumber().longValueExact(),
+                        endInclusive = saleReceipt.blockNumber().longValueExact()
+                    ),
+                    stable = true,
+                )
+            )
+        ).collect()
+        Wait.waitAssert {
+            assertThat(autoReduceRepository.findOrders().toList()).containsExactly(
+                AutoReduce(orderLeftVersion.hash.toString())
+            )
         }
     }
 }

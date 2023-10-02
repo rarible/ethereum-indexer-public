@@ -17,6 +17,10 @@ class TokenUpdateService(
         return tokenService.getToken(id)
     }
 
+    override suspend fun getAll(ids: Collection<Address>): List<Token> {
+        return tokenService.getTokens(ids)
+    }
+
     override suspend fun update(entity: Token, event: TokenEvent?): Token {
         val result = tokenService.saveToken(entity, event)
         logUpdatedToken(entity)
@@ -27,6 +31,7 @@ class TokenUpdateService(
         logger.info(buildString {
             append("Updated token: ")
             append("id=${token.id}, ")
+            append("version=${token.version}, ")
             append("owner=${token.owner}, ")
             append("symbol=${token.symbol}, ")
             append("status=${token.status}, ")

@@ -11,8 +11,10 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceNormalizer
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.service.blur.BlurV2EventConverter
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -43,12 +45,15 @@ abstract class AbstractBlurV2ExecutionDescriptorTest {
         coEvery { get(weth) } returns Erc20Token(weth, "weth", "w", 18)
     }
     private val prizeNormalizer = PriceNormalizer(contractService)
+    protected val priceUpdateService = mockk<PriceUpdateService>()
+    protected val autoReduceService = mockk<AutoReduceService>()
 
     protected val blurV2EventConverter = BlurV2EventConverter(
         traceCallService = traceCallService,
         featureFlags = featureFlags,
         contractsProvider = contractsProvider,
         prizeNormalizer = prizeNormalizer,
+        priceUpdateService = priceUpdateService,
         sender = sender
     )
 

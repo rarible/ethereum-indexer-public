@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.model.BidV1
 import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.AuctionSubscriber
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import scala.Tuple11
@@ -28,10 +29,12 @@ abstract class AbstractAuctionDescriptor<T : AuctionHistory>(
     name: String,
     topic: Word,
     contractsProvider: ContractsProvider,
+    private val autoReduceService: AutoReduceService,
 ) : AuctionSubscriber<T>(
     name = name,
     topic = topic,
-    contracts = contractsProvider.raribleAuctionV1()
+    contracts = contractsProvider.raribleAuctionV1(),
+    autoReduceService = autoReduceService,
 ) {
     protected companion object {
 

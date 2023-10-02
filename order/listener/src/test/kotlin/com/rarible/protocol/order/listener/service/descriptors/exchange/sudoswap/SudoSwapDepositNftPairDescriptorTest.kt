@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.PoolNftDeposit
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -33,10 +34,12 @@ internal class SudoSwapDepositNftPairDescriptorTest {
     private val contractsProvider = mockk<ContractsProvider> {
         every { pairFactoryV1() } returns listOf(randomAddress())
     }
+    private val autoReduceService = mockk<AutoReduceService>()
     private val descriptor = SudoSwapDepositNftPairDescriptor(
         contractsProvider = contractsProvider,
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapDepositNftEventCounter = counter,
+        autoReduceService = autoReduceService,
     )
 
     @Test

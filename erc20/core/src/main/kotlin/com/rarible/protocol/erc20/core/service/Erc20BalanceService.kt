@@ -43,6 +43,10 @@ class Erc20BalanceService(
         return erc20BalanceRepository.get(id)
     }
 
+    override suspend fun getAll(ids: Collection<BalanceId>): List<Erc20Balance> {
+        return erc20BalanceRepository.getAll(ids)
+    }
+
     suspend fun getBlockchainBalance(id: BalanceId): EthUInt256? {
         return IERC20(id.token, sender).balanceOf(id.owner).awaitFirstOrNull()?.let { EthUInt256(it) }
     }

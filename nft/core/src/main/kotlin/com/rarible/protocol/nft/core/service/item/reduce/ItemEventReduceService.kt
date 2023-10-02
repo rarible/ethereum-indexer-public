@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
-import com.rarible.blockchain.scanner.ethereum.reduce.EntityEventsSubscriber
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.blockchain.scanner.framework.listener.LogRecordEventSubscriber
 import com.rarible.core.common.nowMillis
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -23,26 +23,25 @@ class ItemEventReduceService(
     private val onNftItemLogEventListener: OnNftItemLogEventListener,
     private val itemEventConverter: ItemEventConverter,
     properties: NftIndexerProperties,
-) : EntityEventsSubscriber {
+) : LogRecordEventSubscriber {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val skipTransferContractTokens =
         properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
+            .toHashSet()
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     suspend fun reduce(events: List<ItemEvent>) {
         delegate.reduceAll(events)
     }
 
-    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
+    override suspend fun onLogRecordEvents(events: List<LogRecordEvent>) {
         val start = nowMillis()
+        val markedEvents = events.map { it.copy(eventTimeMarks = it.eventTimeMarks.addIndexerIn(start)) }
         try {
-            events
-                .mapNotNull {
-                    val markedEvent = it.copy(eventTimeMarks = it.eventTimeMarks.addIndexerIn(start))
-                    onNftItemLogEventListener.onLogEvent(markedEvent)
-                    itemEventConverter.convert(markedEvent.record.asEthereumLogRecord(), markedEvent.eventTimeMarks)
-                }
-                .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
+            onNftItemLogEventListener.onLogEvents(markedEvents)
+            markedEvents
+                .mapNotNull { itemEventConverter.convert(it.record.asEthereumLogRecord(), it.eventTimeMarks) }
+                .filter { ItemId.parseId(it.entityId) !in skipTransferContractTokens }
                 .let { delegate.reduceAll(it) }
         } catch (ex: Exception) {
             logger.error("Error on entity events $events", ex)

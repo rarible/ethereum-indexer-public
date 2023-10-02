@@ -1,6 +1,7 @@
 spring:
   application.name: protocol-${common.blockchain}-nft-indexer-api
 
+>>>>>>> main
 api:
   opensea:
     readTimeout: 10000

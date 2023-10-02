@@ -1,3 +1,0 @@
-mongock:
-  change-logs-scan-package:
-    - com.rarible.blockchain.scanner.ethereum.migration

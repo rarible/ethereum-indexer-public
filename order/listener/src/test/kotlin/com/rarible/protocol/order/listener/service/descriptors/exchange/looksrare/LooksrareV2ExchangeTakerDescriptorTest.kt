@@ -23,6 +23,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.convert
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -53,6 +54,7 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
     private val priceUpdateService = mockk<PriceUpdateService>()
     private val contractService = mockk<ContractService>()
     private val orderRepository = mockk<OrderRepository>()
+    private val autoReduceService = mockk<AutoReduceService>()
     private val prizeNormalizer = PriceNormalizer(contractService)
 
     private val descriptorAsk = LooksrareV2ExchangeTakerAskDescriptor(
@@ -62,7 +64,8 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         tokenStandardProvider,
         priceUpdateService,
         prizeNormalizer,
-        metrics
+        metrics,
+        autoReduceService,
     )
     private val descriptorBid = LooksrareV2ExchangeTakerBidDescriptor(
         contractsProvider,
@@ -71,7 +74,8 @@ internal class LooksrareV2ExchangeTakerDescriptorTest {
         tokenStandardProvider,
         priceUpdateService,
         prizeNormalizer,
-        metrics
+        metrics,
+        autoReduceService,
     )
 
     @Test

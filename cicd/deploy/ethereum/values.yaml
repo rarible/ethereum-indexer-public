@@ -10,7 +10,7 @@ ethereum-erc20-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   resources:
     jvm:
       xmx_megabytes: 356
@@ -24,7 +24,7 @@ ethereum-erc20-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   priorityClassName: high
   resources:
     jvm:
@@ -37,7 +37,7 @@ ethereum-erc20-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   priorityClassName: high
   resources:
     jvm:
@@ -57,7 +57,7 @@ ethereum-order-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
   resources:
     jvm:
       xmx_megabytes: 356
@@ -73,7 +73,7 @@ ethereum-order-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
   priorityClassName: high
   resources:
     jvm:
@@ -88,7 +88,7 @@ ethereum-order-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
   priorityClassName: high
   resources:
     jvm:
@@ -108,7 +108,7 @@ ethereum-nft-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
   resources:
     jvm:
       xmx_megabytes: 456
@@ -124,7 +124,7 @@ ethereum-nft-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
   priorityClassName: high
   resources:
     jvm:
@@ -139,7 +139,7 @@ ethereum-nft-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
     CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},core,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
   priorityClassName: high
   resources:
     jvm:

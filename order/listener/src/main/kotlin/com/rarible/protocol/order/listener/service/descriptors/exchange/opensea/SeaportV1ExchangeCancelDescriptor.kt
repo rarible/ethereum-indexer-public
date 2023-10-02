@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.opensea.SeaportEventConverter
 import org.springframework.stereotype.Service
@@ -19,11 +20,13 @@ import java.time.Instant
 class SeaportV1ExchangeCancelDescriptor(
     contractsProvider: ContractsProvider,
     private val seaportEventConverter: SeaportEventConverter,
-    private val metrics: ForeignOrderMetrics
+    private val metrics: ForeignOrderMetrics,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderCancel>(
     name = "os_cancelled",
     topic = OrderCancelledEvent.id(),
-    contracts = contractsProvider.seaportV1()
+    contracts = contractsProvider.seaportV1(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderCancel> {
         val event = OrderCancelledEvent.apply(log)

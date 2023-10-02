@@ -4,8 +4,8 @@ global:
     KAFKA_HOSTS: "PLAINTEXT://kafka1.rarible.int.:9092,kafka2.rarible.int.:9092,kafka3.rarible.int.:9092"
     MONGODB_HOSTS: "mongo-polygon1.rarible.int.,mongo-polygon2.rarible.int.,mongo-polygon3.rarible.int."
     ## Public values, as all node is third parties they come via secrets
-    NODE_HOST: "https://rpc.ankr.com/polygon"
-    NODE_WEBSOCKETURL: "wss://rpc.ankr.com/polygon/ws"
+    RARIBLE_ETHEREUM_NODES_0_HTTPURL: "https://matic17097.allnodes.me:8545"
+    RARIBLE_ETHEREUM_NODES_0_WEBSOCKETURL: "wss://matic17097.allnodes.me:8546"
 
   ########### Erc20 Indexer environments
   erc20Environments: &erc20Env

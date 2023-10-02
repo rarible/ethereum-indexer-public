@@ -2,6 +2,8 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.blur
 
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.data.randomBidOrderUsdValue
+import com.rarible.protocol.order.core.data.randomSellOrderUsdValue
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
@@ -11,6 +13,7 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.listener.data.log
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import io.mockk.coEvery
 import io.mockk.every
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -25,6 +28,7 @@ class BlurV2Execution721PackedDescriptorTest : AbstractBlurV2ExecutionDescriptor
     private val descriptor = BlurV2Execution721PackedDescriptor(
         contractsProvider = contractsProvider,
         blurV2EventConverter = blurV2EventConverter,
+        autoReduceService = autoReduceService,
     )
 
     @Test
@@ -54,6 +58,12 @@ class BlurV2Execution721PackedDescriptorTest : AbstractBlurV2ExecutionDescriptor
             EthAssetType,
             EthUInt256.of("015000000000000000")
         )
+
+        val bidOrderUsd = randomBidOrderUsdValue()
+        val sellOrderUsd = randomSellOrderUsdValue()
+
+        coEvery { priceUpdateService.getAssetsUsdValue(any(), any(), at = any()) } returns sellOrderUsd
+        coEvery { priceUpdateService.getAssetsUsdValue(any(), any(), at = any()) } returns bidOrderUsd
 
         val matches = descriptor.convert<OrderSideMatch>(mockkBlock, ethereumBlockchainLog)
         assertThat(matches).hasSize(2)
@@ -123,13 +133,72 @@ class BlurV2Execution721PackedDescriptorTest : AbstractBlurV2ExecutionDescriptor
             sender.call(any())
         } returns Mono.just(Uint32Type.encode(BigInteger("0")))
 
+        val bidOrderUsd = randomBidOrderUsdValue()
+        val sellOrderUsd = randomSellOrderUsdValue()
+
+        coEvery { priceUpdateService.getAssetsUsdValue(any(), any(), at = any()) } returns sellOrderUsd
+        coEvery { priceUpdateService.getAssetsUsdValue(any(), any(), at = any()) } returns bidOrderUsd
+
         val matches1 = descriptor.convert<OrderSideMatch>(mockkBlock, ethereumBlockchainLog1)
+
         assertThat(matches1).hasSize(2)
         assertThat(matches1.first().hash).isEqualTo(Word.apply("0xE169F8AF644CE38A96B0E965BEC1A512E70F32DF91C3389DB44BA8EA353AD231"))
 
         val matches2 = descriptor.convert<OrderSideMatch>(mockkBlock, ethereumBlockchainLog2)
         assertThat(matches2).hasSize(2)
         assertThat(matches2.first().hash).isEqualTo(Word.apply("0x3BDF2102C79FCB71EA7E9960B22702005FA25B49E55F6349E4332E652F82DEF8"))
+    }
+
+    @Test
+    fun `checking usd prices`() = runBlocking<Unit> {
+        // https://etherscan.io/tx/0x372bdb0be920d0066251dbf9164ef0da5538a9083eac848ecfa60e2e3c12c87e#eventlog
+        val log1 = log(
+            topics = listOf(
+                Word.apply("0x1d5e12b51dee5e4d34434576c3fb99714a85f57b0fd546ada4b0bddd736d12b2"),
+            ),
+            data = "0xe169f8af644ce38a96b0e965bec1a512e70f32df91c3389db44ba8ea353ad23100000000000000000004860056b8dbe783ce1945d7758ad82dabf9260b20692000000000003ee20e64864000789e35a999c443fe6089544056f728239b8ffee7"
+        )
+        val transient = mockkTransaction(multyExecution721PackedTx)
+        val ethereumBlockchainLog1 = EthereumBlockchainLog(
+            ethLog = log1,
+            ethTransaction = transient,
+            index = 0,
+            total = 2
+        )
+        every {
+            sender.call(any())
+        } returns Mono.just(Uint32Type.encode(BigInteger("0")))
+
+        val bidOrderUsd = randomBidOrderUsdValue()
+        val sellOrderUsd = randomSellOrderUsdValue()
+        val nft = Asset(
+            type = Erc721AssetType(
+                token = Address.apply("0x789e35a999c443fe6089544056f728239b8ffee7"),
+                tokenId = EthUInt256(1158.toBigInteger())
+            ),
+            value = EthUInt256.ONE
+        )
+        val payment = Asset(
+            type = EthAssetType,
+            value = EthUInt256(17700000000000000.toBigInteger())
+        )
+        coEvery { priceUpdateService.getAssetsUsdValue(make = nft, take = payment, at = any()) } returns sellOrderUsd
+        coEvery { priceUpdateService.getAssetsUsdValue(make = payment, take = nft, at = any()) } returns bidOrderUsd
+
+        val matches1 = descriptor.convert<OrderSideMatch>(mockkBlock, ethereumBlockchainLog1)
+
+        assertThat(matches1).hasSize(2)
+        assertThat(matches1.first().hash).isEqualTo(Word.apply("0xE169F8AF644CE38A96B0E965BEC1A512E70F32DF91C3389DB44BA8EA353AD231"))
+
+        assertThat(matches1.first().makeUsd).isEqualTo(sellOrderUsd.makeUsd)
+        assertThat(matches1.first().takeUsd).isEqualTo(sellOrderUsd.takeUsd)
+        assertThat(matches1.first().makePriceUsd).isEqualTo(sellOrderUsd.makePriceUsd)
+        assertThat(matches1.first().takePriceUsd).isEqualTo(sellOrderUsd.takePriceUsd)
+
+        assertThat(matches1.last().makeUsd).isEqualTo(bidOrderUsd.makeUsd)
+        assertThat(matches1.last().takeUsd).isEqualTo(bidOrderUsd.takeUsd)
+        assertThat(matches1.last().makePriceUsd).isEqualTo(bidOrderUsd.makePriceUsd)
+        assertThat(matches1.last().takePriceUsd).isEqualTo(bidOrderUsd.takePriceUsd)
     }
 
     private val execution721PackedTx = Binary.apply(

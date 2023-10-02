@@ -7,7 +7,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
 class BlurV1ExchangeCancelDescriptorTest : AbstractBlurDescriptorTest() {
-    private val subscriber = BlurV1ExchangeCancelDescriptor(contractsProvider, blurEventConverter)
+    private val subscriber = BlurV1ExchangeCancelDescriptor(contractsProvider, blurEventConverter, autoReduceService)
 
     @Test
     fun `convert cancel`() = runBlocking<Unit> {

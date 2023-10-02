@@ -8,6 +8,7 @@ import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NFTDepositEve
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolNftDeposit
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import org.springframework.stereotype.Service
@@ -21,11 +22,13 @@ import java.time.Instant
 class SudoSwapDepositNftPairDescriptor(
     contractsProvider: ContractsProvider,
     private val sudoSwapEventConverter: SudoSwapEventConverter,
-    private val sudoSwapDepositNftEventCounter: RegisteredCounter
+    private val sudoSwapDepositNftEventCounter: RegisteredCounter,
+    autoReduceService: AutoReduceService,
 ) : PoolSubscriber<PoolNftDeposit>(
     name = "sudo_nft_deposit",
     topic = NFTDepositEvent.id(),
-    contracts = contractsProvider.pairFactoryV1()
+    contracts = contractsProvider.pairFactoryV1(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolNftDeposit> {
         val event = NFTDepositEvent.apply(log)

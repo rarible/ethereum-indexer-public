@@ -50,7 +50,9 @@ class NftItemHistoryRepository(
             "data.type_1_status_1_data.from_1_data.date_-1_id_-1",
             "data.type_1_status_1_data.owner_1_data.date_-1_id_-1",
             "data.type_1_status_1_data.token_1_data.date_-1_id_-1",
-            "data.type_1_status_1_data.date_1__id_1"
+            "data.type_1_status_1_data.date_1__id_1",
+            "blockNumber_1_topic_1",
+            "blockNumber_1_logIndex_1",
         )
     }
 

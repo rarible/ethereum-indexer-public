@@ -96,6 +96,51 @@ internal class OrderActivityEventHandlerTest {
     }
 
     @Test
+    fun `skip BLUR`() = runBlocking<Unit> {
+        orderActivityEventHandler.handle(
+            EthActivityEventDto(
+                activity = OrderActivityMatchDto(
+                    id = "id",
+                    blockHash = Word.apply(randomWord()),
+                    blockNumber = 1,
+                    date = nowMillis(),
+                    logIndex = 1,
+                    price = BigDecimal.ONE,
+                    transactionHash = Word.apply(randomWord()),
+                    source = OrderActivityDto.Source.BLUR,
+                    type = OrderActivityMatchDto.Type.ACCEPT_BID,
+                    left = OrderActivityMatchSideDto(
+                        hash = Word.apply(randomWord()),
+                        maker = Address.ONE(),
+                        asset = AssetDto(
+                            assetType = Erc20AssetTypeDto(
+                                contract = Address.TWO(),
+                            ),
+                            value = BigInteger.ONE,
+                        ),
+                        type = OrderActivityMatchSideDto.Type.BID,
+                    ),
+                    right = OrderActivityMatchSideDto(
+                        hash = Word.apply(randomWord()),
+                        maker = Address.THREE(),
+                        asset = AssetDto(
+                            assetType = Erc721AssetTypeDto(
+                                contract = Address.FOUR(),
+                                tokenId = BigInteger.ONE,
+                            ),
+                            value = BigInteger.ONE,
+                        ),
+                        type = OrderActivityMatchSideDto.Type.SELL,
+                    )
+
+                ),
+                eventTimeMarks = EventTimeMarksDto("source", marks = emptyList())
+            )
+        )
+        verifyNoInteractions(erc20AllowanceService)
+    }
+
+    @Test
     fun `handle not ACCEPT_BID`() = runBlocking<Unit> {
         orderActivityEventHandler.handle(
             EthActivityEventDto(

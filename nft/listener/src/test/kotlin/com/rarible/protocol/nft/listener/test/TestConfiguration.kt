@@ -10,12 +10,12 @@ import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.EthActivityEventDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
+import com.rarible.protocol.dto.NftItemEventTopicProvider
+import com.rarible.protocol.dto.NftItemMetaEventDto
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.test.TestKafkaHandler
-import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
 import io.daonomic.rpc.mono.WebClientTransport
-import io.mockk.mockk
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -44,7 +44,9 @@ class TestConfiguration {
         return CacheableMonoEthereum(
             delegate = MonoEthereum(transport),
             expireAfter = Duration.ofMinutes(1),
-            cacheMaxSize = 100
+            cacheMaxSize = 100,
+            blockByNumberCacheExpireAfter = Duration.ofMinutes(1),
+            enableCacheByNumber = false,
         )
     }
 
@@ -86,6 +88,29 @@ class TestConfiguration {
     }
 
     @Bean
+    fun testItemMetaHandler(): TestKafkaHandler<NftItemMetaEventDto> = TestKafkaHandler()
+
+    @Bean
+    fun testItemMetaWorker(
+        factory: RaribleKafkaConsumerFactory,
+        handler: TestKafkaHandler<NftItemMetaEventDto>
+    ): RaribleKafkaConsumerWorker<NftItemMetaEventDto> {
+        val settings = RaribleKafkaConsumerSettings(
+            hosts = nftIndexerProperties.kafkaReplicaSet,
+            group = "test-group-item-meta-event",
+            topic = NftItemEventTopicProvider.getItemMetaTopic(
+                application.name,
+                nftIndexerProperties.blockchain.value
+            ),
+            valueClass = NftItemMetaEventDto::class.java,
+            concurrency = 1,
+            batchSize = 500,
+            offsetResetStrategy = OffsetResetStrategy.EARLIEST,
+        )
+        return factory.createWorker(settings, handler)
+    }
+
+    @Bean
     fun testActivityHandler(): TestKafkaHandler<EthActivityEventDto> = TestKafkaHandler()
 
     @Bean
@@ -115,8 +140,4 @@ class TestConfiguration {
         host = "localhost",
         environment = env.name
     )
-
-    @Bean
-    @Primary
-    fun testEntityEventConsumer(): KafkaEntityEventConsumer = mockk()
 }

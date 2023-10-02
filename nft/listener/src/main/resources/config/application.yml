@@ -1,10 +1,6 @@
 spring:
   application.name: protocol-${common.blockchain}-nft-listener
 
-mongock:
-  change-logs-scan-package:
-    - com.rarible.ethereum.listener.log.mongock
-
 listener:
   itemAndOwnershipsCheckRate: PT8H
 

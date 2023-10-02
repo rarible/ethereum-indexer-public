@@ -22,6 +22,10 @@ class ItemUpdateService(
         return itemRepository.findById(id).awaitFirstOrNull()
     }
 
+    override suspend fun getAll(ids: Collection<ItemId>): List<Item> {
+        return itemRepository.searchByIds(ids.toSet())
+    }
+
     override suspend fun update(entity: Item, event: ItemEvent?): Item {
         val eventTimeMarks = event?.eventTimeMarks ?: nftOffchainEventMarks()
         val savedItem = itemRepository.save(entity).awaitFirst()

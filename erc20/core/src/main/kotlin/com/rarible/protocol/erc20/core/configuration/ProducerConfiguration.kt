@@ -3,12 +3,14 @@ package com.rarible.protocol.erc20.core.configuration
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
+import com.rarible.ethereum.monitoring.EventCountMetrics
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceEventTopicProvider
 import com.rarible.protocol.erc20.core.event.Erc20EventPublisher
 import com.rarible.protocol.erc20.core.service.reduce.Erc20EventChainUpdateService
 import com.rarible.protocol.erc20.core.service.reduce.Erc20EventReduceService
 import com.rarible.protocol.erc20.core.service.reduce.Erc20EventService
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -41,14 +43,20 @@ class ProducerConfiguration(
     }
 
     @Bean
-    fun erc20EventPublisher(): Erc20EventPublisher {
+    fun erc20EventPublisher(eventCountMetrics: EventCountMetrics): Erc20EventPublisher {
         val producer = RaribleKafkaProducer(
             clientId = "$env.${blockchain.value}.protocol-erc20-events-importer",
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = Erc20BalanceEventDto::class.java,
             defaultTopic = Erc20BalanceEventTopicProvider.getTopic(env, blockchain.value),
-            bootstrapServers = properties.kafkaReplicaSet
+            bootstrapServers = properties.kafkaReplicaSet,
+            compression = properties.compression,
         )
-        return Erc20EventPublisher(producer)
+        return Erc20EventPublisher(producer, properties, eventCountMetrics)
+    }
+
+    @Bean
+    fun eventCountMetrics(registry: MeterRegistry): EventCountMetrics {
+        return EventCountMetrics(registry)
     }
 }

@@ -43,6 +43,16 @@ class AdminController(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    @GetMapping(
+        value = ["/admin/nft/autoReduce"],
+        produces = ["application/json"],
+        consumes = ["application/json"]
+    )
+    suspend fun autoReduce(): ResponseEntity<Void> {
+        reindexTokenService.createAutoReduceTask()
+        return ResponseEntity.noContent().build()
+    }
+
     @PostMapping(
         value = ["/admin/nft/items/{itemId}/reduce"],
         produces = ["application/json"],

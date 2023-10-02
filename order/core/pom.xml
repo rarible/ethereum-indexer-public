@@ -75,6 +75,10 @@
             <artifactId>protocol-ethereum-contracts-nft</artifactId>
             <version>${rarible.ethereum.contracts.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-monitoring</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.rarible.core</groupId>
