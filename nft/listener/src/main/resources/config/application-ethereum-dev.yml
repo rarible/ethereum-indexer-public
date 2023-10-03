@@ -1,0 +1,5 @@
+listener:
+  skipContracts:
+    - "0x09c36ed5d5beb7fc2ca1400d084a74457ea742c2"
+  fixStandardJob:
+    enabled: false

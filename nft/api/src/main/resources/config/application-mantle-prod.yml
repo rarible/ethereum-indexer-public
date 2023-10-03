@@ -4,4 +4,4 @@ spring:
       uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
 
 api:
-  chain-id: 5000
+  chainId: 5000

@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @EnableScaletherMongoConversions
 @EnableRaribleMongo
-@PropertiesCore
 class NftMigrationConfiguration {
     @Bean
     fun springDataMongodb(@Value("\${spring.data.mongodb.uri}") mongodbUri: String): SpringDataMongodb {

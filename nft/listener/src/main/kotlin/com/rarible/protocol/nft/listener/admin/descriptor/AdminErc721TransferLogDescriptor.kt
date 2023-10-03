@@ -19,7 +19,6 @@ class AdminErc721TransferLogDescriptor(
     customMintDetector,
     ignoredTokenResolver,
     NftIndexerProperties(
-        basePublicApiUrl = "",
         kafkaReplicaSet = "",
         blockchain = Blockchain.ETHEREUM,
         metricRootPath = "",

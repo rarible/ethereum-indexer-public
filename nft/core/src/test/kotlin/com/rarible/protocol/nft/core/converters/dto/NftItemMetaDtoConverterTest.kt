@@ -29,7 +29,6 @@ class NftItemMetaDtoConverterTest {
 
     @BeforeEach
     fun beforeEach() {
-        every { properties.basePublicApiUrl } returns basePublicApiUrl
         every { properties.itemMeta } returns itemMetaProperties
         converter = NftItemMetaDtoConverter(properties)
     }

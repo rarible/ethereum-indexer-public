@@ -16,7 +16,6 @@ const val RARIBLE_PROTOCOL_NFT_INDEXER = "common"
 @ConstructorBinding
 @ConfigurationProperties(RARIBLE_PROTOCOL_NFT_INDEXER)
 data class NftIndexerProperties(
-    val basePublicApiUrl: String,
     val kafkaReplicaSet: String,
     override val blockchain: Blockchain,
     override val metricRootPath: String,

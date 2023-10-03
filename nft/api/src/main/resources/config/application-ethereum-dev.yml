@@ -1,5 +1,5 @@
 api:
-  chain-id: 3
+  chainId: 300500
 
 logging:
   level:
