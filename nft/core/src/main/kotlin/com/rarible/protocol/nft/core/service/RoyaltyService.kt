@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.core.service
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.external.royalties.IRoyaltiesProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.Royalty
@@ -23,15 +22,12 @@ class RoyaltyService(
     private val nftIndexerProperties: NftIndexerProperties,
     private val royaltyRepository: RoyaltyRepository,
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository,
-    private val featureFlags: FeatureFlags
 ) {
     // TODO: handle the two cases differently:
     //  1) royalties are not yet set for the item (this is the case while the item hasn't been minted yet - pending transaction)
     //  2) item doesn't have any royalties at all
     //  Currently, we request royalties from the contract in both cases.
     suspend fun getRoyaltyDeprecated(address: Address, tokenId: EthUInt256): List<Part> {
-        if (featureFlags.isRoyaltyServiceEnabled.not()) return emptyList()
-
         val itemId = ItemId(address, tokenId)
         val cachedRoyalties = royaltyRepository.findByItemId(itemId).awaitFirstOrNull()
         if (cachedRoyalties != null && cachedRoyalties.royalty.isNotEmpty()) {

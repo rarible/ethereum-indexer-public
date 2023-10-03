@@ -4,8 +4,12 @@ spring:
       uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
 
 common:
-  royaltyRegistryAddress: "0xEa90CFad1b8e030B8Fd3E63D22074E0AEb8E0DCD"
+  royaltyRegistryAddress: "0xea90cfad1b8e030b8fd3e63d22074e0aeb8e0dcd"
   scannerProperties:
     senderCreatedTokens:
       - "0xd4d15a32c2087cf8ca00f448f7337d1c29ec87af"
       - "0xa1cf7d60fc126c5f3a8ce143ebc2db80e0f5a948"
+
+listener:
+  updateSuspiciousItemsHandler:
+    enabled: true

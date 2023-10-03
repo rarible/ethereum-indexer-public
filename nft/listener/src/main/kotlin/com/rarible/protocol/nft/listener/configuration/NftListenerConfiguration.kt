@@ -13,16 +13,11 @@ import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.configuration.ProducerConfiguration
 import com.rarible.protocol.nft.core.configuration.PropertiesCore
 import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.core.misc.RateLimiter
-import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
-import com.rarible.protocol.nft.core.producer.InternalTopicProvider
-import com.rarible.protocol.nft.core.service.action.ActionEventHandler
-import com.rarible.protocol.nft.core.service.action.ActionJobHandler
 import com.rarible.protocol.nft.listener.service.checker.OwnershipBatchCheckerHandler
 import com.rarible.protocol.nft.listener.service.item.InconsistentItemsRepairJobHandler
 import com.rarible.protocol.nft.listener.service.item.ItemOwnershipConsistencyJobHandler
@@ -30,7 +25,6 @@ import com.rarible.protocol.nft.listener.service.ownership.OwnershipItemConsiste
 import com.rarible.protocol.nft.listener.service.suspicios.UpdateSuspiciousItemsHandler
 import io.micrometer.core.instrument.MeterRegistry
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
-import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -50,8 +44,6 @@ class NftListenerConfiguration(
     private val meterRegistry: MeterRegistry,
     applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
-    private val logger = LoggerFactory.getLogger(ProducerConfiguration::class.java)
-
     private val blockchain = nftIndexerProperties.blockchain
     private val env = applicationEnvironmentInfo.name
     private val host = applicationEnvironmentInfo.host
@@ -64,21 +56,6 @@ class NftListenerConfiguration(
     @Bean
     fun updateSuspiciousItemsHandlerProperties(): UpdateSuspiciousItemsHandlerProperties {
         return nftListenerProperties.updateSuspiciousItemsHandler
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
-        name = ["action-execute.enabled"],
-        havingValue = "true"
-    )
-    fun actionExecutorWorker(handler: ActionJobHandler): JobDaemonWorker {
-        return JobDaemonWorker(
-            jobHandler = handler,
-            meterRegistry = meterRegistry,
-            properties = nftListenerProperties.actionExecute.daemon,
-            workerName = "action-executor-worker"
-        ).apply { start() }
     }
 
     @Bean
@@ -141,29 +118,6 @@ class NftListenerConfiguration(
     @Bean
     fun checkerMetrics(meterRegistry: MeterRegistry): CheckerMetrics {
         return CheckerMetrics(blockchain, meterRegistry)
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
-        name = ["action-execute.enabled"],
-        havingValue = "true"
-    )
-    fun actionConsumerWorker(
-        factory: RaribleKafkaConsumerFactory,
-        handler: ActionEventHandler
-    ): RaribleKafkaConsumerWorker<ActionEvent> {
-        val settings = RaribleKafkaConsumerSettings(
-            hosts = nftIndexerProperties.kafkaReplicaSet,
-            group = "protocol.${blockchain.value}.nft.indexer.internal.action",
-            topic = InternalTopicProvider.getItemActionTopic(env, blockchain.value),
-            valueClass = ActionEvent::class.java,
-            async = true,
-            concurrency = nftIndexerProperties.actionWorkersCount,
-            batchSize = 500,
-            offsetResetStrategy = OffsetResetStrategy.LATEST
-        )
-        return factory.createWorker(settings, handler)
     }
 
     @Bean
