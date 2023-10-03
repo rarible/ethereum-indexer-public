@@ -26,6 +26,8 @@ data class OrderListenerProperties(
     val ownershipConsumerBatchSize: Int = 500,
     val itemConsumerWorkersCount: Int = 9,
     val itemConsumerBatchSize: Int = 500,
+    val collectionConsumerWorkersCount: Int = 9,
+    val collectionConsumerBatchSize: Int = 500,
     val zeroExExchangeDomainHash: String = "0x",
     val openSeaExchangeDomainHashV2: String = "0x0000000000000000000000000000000000000000000000000000000000000000",
     val openSeaOrdersLoadPeriodWorker: OpenSeaOrdersLoadPeriodWorkerProperties = OpenSeaOrdersLoadPeriodWorkerProperties(),

@@ -1,6 +1,8 @@
 package com.rarible.protocol.nft.core.model
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
+import com.rarible.contracts.pausable.PausedEvent
+import com.rarible.contracts.pausable.UnpausedEvent
 import com.rarible.protocol.contracts.collection.CreateERC1155RaribleEvent
 import com.rarible.protocol.contracts.collection.CreateERC1155RaribleUserEvent
 import com.rarible.protocol.contracts.collection.CreateERC1155_v1Event
@@ -26,6 +28,12 @@ enum class CollectionEventType(val topic: Set<Word>) {
     ),
     OWNERSHIP(
         setOf(OwnershipTransferredEvent.id())
+    ),
+    PAUSE(
+        setOf(
+            PausedEvent.id(),
+            UnpausedEvent.id(),
+        )
     )
 }
 
@@ -49,3 +57,8 @@ data class CollectionOwnershipTransferred(
     val previousOwner: Address,
     val newOwner: Address
 ) : CollectionEvent(CollectionEventType.OWNERSHIP)
+
+data class CollectionPaused(
+    override val id: Address,
+    val paused: Boolean
+) : CollectionEvent(CollectionEventType.PAUSE)

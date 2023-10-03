@@ -335,6 +335,14 @@ class MongoOrderRepository(
         ).collectList().awaitFirst()
     }
 
+    override fun findNotCancelledOrdersByToken(token: Address): Flow<Order> {
+        val criteria = Criteria().orOperator(
+            (Order::make / Asset::type / NftAssetType::token).isEqualTo(token),
+            (Order::take / Asset::type / NftAssetType::token).isEqualTo(token),
+        ).and(Order::cancelled).isEqualTo(false)
+        return template.query<Order>().matching(Query(criteria)).all().asFlow()
+    }
+
     override fun findNotStartedOrders(now: Instant): Flow<Order> {
         val query = Query(
             Criteria().andOperator(

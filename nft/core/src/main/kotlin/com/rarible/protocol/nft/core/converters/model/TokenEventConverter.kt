@@ -5,6 +5,7 @@ import com.rarible.core.common.EventTimeMarks
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.nft.core.model.CollectionEvent
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
+import com.rarible.protocol.nft.core.model.CollectionPaused
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.model.TokenEvent
 
@@ -26,6 +27,14 @@ object TokenEventConverter {
                 TokenEvent.TokenChangeOwnershipEvent(
                     owner = data.newOwner,
                     previousOwner = data.previousOwner,
+                    log = source.log,
+                    entityId = data.id.prefixed(),
+                )
+            }
+
+            is CollectionPaused -> {
+                TokenEvent.TokenPauseEvent(
+                    paused = data.paused,
                     log = source.log,
                     entityId = data.id.prefixed(),
                 )

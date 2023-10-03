@@ -18,6 +18,7 @@ data class Token(
     val symbol: String? = null,
     val status: ContractStatus = ContractStatus.CONFIRMED,
     val features: Set<TokenFeature> = emptySet(),
+    val flags: Map<TokenFlag, String> = emptyMap(),
     val dbUpdatedAt: Instant? = null, // TODO Can't be null after migration
 
     val lastEventId: String? = null,
@@ -50,11 +51,11 @@ data class Token(
 
     fun hasChanges(token: Token): Boolean {
         return standard != token.standard ||
-                name != token.name ||
-                symbol != token.symbol ||
-                features != token.features ||
-                owner != token.owner ||
-                scam != token.scam
+            name != token.name ||
+            symbol != token.symbol ||
+            features != token.features ||
+            owner != token.owner ||
+            scam != token.scam
     }
 
     companion object {
@@ -64,6 +65,7 @@ data class Token(
             standard = TokenStandard.NONE,
             status = ContractStatus.PENDING
         )
+
         const val COLLECTION = "token"
     }
 }

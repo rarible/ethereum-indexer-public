@@ -25,7 +25,8 @@ class TokenReducer(
     override suspend fun reduce(entity: Token, event: TokenEvent): Token {
         return when (event) {
             is TokenEvent.TokenCreateEvent,
-            is TokenEvent.TokenChangeOwnershipEvent -> {
+            is TokenEvent.TokenChangeOwnershipEvent,
+            is TokenEvent.TokenPauseEvent -> {
                 eventStatusTokenReducer.reduce(entity, event)
             }
         }

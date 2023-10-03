@@ -14,6 +14,7 @@ object CollectionFeatureDtoConverter {
             TokenFeature.SECONDARY_SALE_FEES -> NftCollectionDto.Features.SECONDARY_SALE_FEES
             TokenFeature.MINT_AND_TRANSFER -> NftCollectionDto.Features.MINT_AND_TRANSFER
             TokenFeature.NOT_FOR_SALE -> NftCollectionDto.Features.NOT_FOR_SALE
+            TokenFeature.PAUSABLE -> NftCollectionDto.Features.PAUSABLE
         }
     }
 }
