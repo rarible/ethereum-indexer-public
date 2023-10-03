@@ -53,7 +53,7 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
             assertThat(testCollectionHandler.events.size).isEqualTo(1)
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
-            assertThat(event.collection.flagsTyped).isEmpty()
+            assertThat(event.collection.flags).isEmpty()
         }
 
         contract.emitPauseEvent(true).execute().verifySuccess()
@@ -65,7 +65,7 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
             assertThat(testCollectionHandler.events.size).isEqualTo(1)
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
-            assertThat(event.collection.flagsTyped)
+            assertThat(event.collection.flags)
                 .contains(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "true"))
         }
 
@@ -78,7 +78,7 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
             assertThat(testCollectionHandler.events.size).isEqualTo(1)
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
-            assertThat(event.collection.flagsTyped)
+            assertThat(event.collection.flags)
                 .contains(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "false"))
         }
     }

@@ -38,7 +38,7 @@ class OrderCollectionServiceTest {
         val sellOrder = createSellOrder()
         val buyOrder = createBidOrder()
         val collection = createNftCollectionDto(token)
-            .copy(flagsTyped = listOf(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "true")))
+            .copy(flags = listOf(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "true")))
 
         coEvery {
             orderRepository.findNotCancelledOrdersByToken(token)
@@ -59,7 +59,7 @@ class OrderCollectionServiceTest {
         val sellOrder = createSellOrder()
         val buyOrder = createBidOrder()
         val collection = createNftCollectionDto(token)
-            .copy(flagsTyped = listOf(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "false")))
+            .copy(flags = listOf(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "false")))
 
         coEvery {
             orderRepository.findNotCancelledOrdersByToken(token)

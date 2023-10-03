@@ -39,7 +39,7 @@ class OrderCollectionService(
         collection: NftCollectionDto,
         eventTimeMarks: EventTimeMarks
     ) {
-        val paused = collection.flagsTyped
+        val paused = collection.flags
             ?.firstOrNull { it.flag == NftCollectionFlagDto.Flag.PAUSED }
             ?.value?.toBooleanStrict() ?: false
         if (paused) {

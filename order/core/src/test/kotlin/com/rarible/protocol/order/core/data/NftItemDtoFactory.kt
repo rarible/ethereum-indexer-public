@@ -46,7 +46,7 @@ fun createNftCollectionDto(id: Address): NftCollectionDto {
         id = id,
         type = NftCollectionDto.Type.ERC721,
         features = listOf(NftCollectionDto.Features.MINT_AND_TRANSFER),
-        flagsTyped = emptyList(),
+        flags = emptyList(),
         name = "TEST",
         symbol = null,
         owner = null,
