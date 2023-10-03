@@ -5,3 +5,5 @@ spring:
 
 api:
   chainId: 1
+  metaSyncLoadingTimeout: 30000
+

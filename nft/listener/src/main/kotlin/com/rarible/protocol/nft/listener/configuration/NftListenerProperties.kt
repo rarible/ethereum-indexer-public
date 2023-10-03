@@ -55,7 +55,7 @@ data class InconsistentItemsRepairProperties(
         pollingPeriod = Duration.ofMinutes(1),
         errorDelay = Duration.ofMinutes(1),
     ),
-    val rateLimitMaxEntities: Int = 50,
+    val rateLimitMaxEntities: Int = 30,
     val rateLimitPeriod: Long = 10000,
 )
 
@@ -76,6 +76,6 @@ data class FixStandardJobProperties(
     val enabled: Boolean = true,
     val batchSize: Int = 500,
     val reduceBatch: Int = 2,
-    val retries: Int = 5,
+    val retries: Int = 2,
     val reindexLimit: Int = 2 // Max number of reindex tasks
 )
