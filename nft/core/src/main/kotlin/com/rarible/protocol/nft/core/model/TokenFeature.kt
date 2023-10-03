@@ -16,5 +16,5 @@ enum class TokenFeature(val erc165: List<Binary> = emptyList()) {
         Binary.apply("0x911ec470"), // eip-5633
         Binary.apply("0xeb72bb7c") // eip-4973
     )),
-    PAUSABLE(listOf(Binary.apply("0xa468e08f"))), // not used by now, can't check supportInterface by id
+    PAUSABLE(listOf(Binary.apply("0x5c975abb"))), // not used by now, can't check supportInterface by id
 }
