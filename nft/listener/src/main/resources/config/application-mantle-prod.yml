@@ -2,6 +2,3 @@ spring:
   data:
     mongodb:
       uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
-
-common:
-  royaltyRegistryAddress: "0x78f2f3a68f7450b3d33994d3ba9ca11d103f02cc"

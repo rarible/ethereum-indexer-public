@@ -1,6 +1,0 @@
-common:
-  blockchain: polygon
-api:
-  opensea:
-    url: https://api.opensea.io/api/v2
-

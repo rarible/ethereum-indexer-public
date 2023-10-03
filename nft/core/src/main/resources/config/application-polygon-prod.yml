@@ -1,5 +1,5 @@
 common:
-  blockchain: polygon
+  royaltyRegistryAddress: "0xf2514f32ae798ca29641f6e2313bacb1650cc76f"
   scamByteCodes:
     hashCodes:
       - "0x2ceae414e7e0139179fb84a8340ce57e147e86ba3d2453b1d71ea695f5565320"

@@ -9,7 +9,6 @@ import com.rarible.ethereum.autoconfigure.EthereumProperties
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.sign.service.ERC1271SignService
-import com.rarible.protocol.nft.core.configuration.PropertiesCore
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -26,7 +25,6 @@ import java.math.BigInteger
 @EnableLoggingContextFilter
 @EnableRaribleRedisLock
 @EnableEthereumScanner
-@PropertiesCore
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class NftIndexerApiConfiguration(
     private val nftIndexerApiProperties: NftIndexerApiProperties,

@@ -13,7 +13,6 @@ import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.configuration.PropertiesCore
 import com.rarible.protocol.nft.core.metric.CheckerMetrics
 import com.rarible.protocol.nft.core.misc.RateLimiter
 import com.rarible.protocol.nft.core.model.ItemId
@@ -37,7 +36,6 @@ import java.time.Duration
 @Configuration
 @EnableScaletherMongoConversions
 @EnableConfigurationProperties(NftListenerProperties::class)
-@PropertiesCore
 class NftListenerConfiguration(
     private val nftIndexerProperties: NftIndexerProperties,
     private val nftListenerProperties: NftListenerProperties,

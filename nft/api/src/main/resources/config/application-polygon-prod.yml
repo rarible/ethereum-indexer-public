@@ -2,5 +2,8 @@ spring:
   data:
     mongodb:
       uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
+
 api:
   chain-id: 137
+  opensea:
+    url: https://api.opensea.io/api/v2

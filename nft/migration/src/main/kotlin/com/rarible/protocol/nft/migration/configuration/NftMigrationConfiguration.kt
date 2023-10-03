@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.migration.configuration
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.mongo.configuration.EnableRaribleMongo
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
-import com.rarible.protocol.nft.core.configuration.PropertiesCore
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.migration.model.SpringDataMongodb
 import org.springframework.beans.factory.annotation.Value
