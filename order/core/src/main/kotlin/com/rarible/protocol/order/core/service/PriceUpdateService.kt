@@ -2,7 +2,6 @@ package com.rarible.protocol.order.core.service
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.core.apm.withSpan
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
@@ -84,11 +83,9 @@ class PriceUpdateService(
     }
 
     suspend fun getTokenRate(token: Address, at: Instant): BigDecimal? {
-        val rate = withSpan(name = "getCurrencyRate") {
-            currencyApi.getCurrencyRate(convert(blockchain), token.hex(), at.toEpochMilli()).awaitFirstOrNull()?.rate
-        }
+        val rate = currencyApi.getCurrencyRate(convert(blockchain), token.hex(), at.toEpochMilli()).awaitFirstOrNull()?.rate
         if (rate == null) {
-            logger.warn("Currency api didn't respond any value for $blockchain: $token")
+            logger.warn("Currency api didn't respond any value for $blockchain: $token at $at")
         }
         return rate
     }
