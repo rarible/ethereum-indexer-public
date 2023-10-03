@@ -18,3 +18,9 @@ api:
     mediaMetaTimeout: 10000
   royalty:
     cacheTimeout: 600000 # 10 min
+
+blockchain:
+  scanner:
+    ethereum:
+      scan:
+        enabled: false

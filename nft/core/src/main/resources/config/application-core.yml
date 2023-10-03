@@ -91,8 +91,6 @@ blockchain:
     kafka:
       brokerReplicaSet: ${kafka.hosts}
     ethereum:
-      scan:
-        enabled: false
       monitoring:
         rootPath: ${common.metricRootPath}
 
