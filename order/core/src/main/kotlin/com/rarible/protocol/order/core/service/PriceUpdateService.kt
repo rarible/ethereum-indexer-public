@@ -158,7 +158,7 @@ class PriceUpdateService(
             Blockchain.ETHEREUM -> BlockchainDto.ETHEREUM
             Blockchain.POLYGON -> BlockchainDto.POLYGON
             Blockchain.OPTIMISM -> BlockchainDto.OPTIMISM
-            Blockchain.MANTLE -> BlockchainDto.POLYGON // TODO: Fix it
+            Blockchain.MANTLE -> BlockchainDto.MANTLE
         }
     }
 }
