@@ -2,7 +2,6 @@ package com.rarible.protocol.erc20.core.repository
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.mongo.util.div
 import com.rarible.protocol.erc20.core.converters.Erc20HistoryLogConverter
 import com.rarible.protocol.erc20.core.model.BalanceId
@@ -27,7 +26,6 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = "db", subtype = "erc20-transfer-history")
 class Erc20TransferHistoryRepository(
     private val template: ReactiveMongoTemplate
 ) {

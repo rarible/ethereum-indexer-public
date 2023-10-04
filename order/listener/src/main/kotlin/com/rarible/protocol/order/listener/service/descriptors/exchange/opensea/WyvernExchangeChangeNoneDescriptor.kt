@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -16,7 +14,6 @@ import java.math.BigInteger
 import java.time.Instant
 
 // @Service //TODO: Activate after move to a new scanner
-@CaptureSpan(type = SpanType.EVENT)
 class WyvernExchangeChangeNoneDescriptor(
     contractsProvider: ContractsProvider,
     private val properties: OrderIndexerProperties,

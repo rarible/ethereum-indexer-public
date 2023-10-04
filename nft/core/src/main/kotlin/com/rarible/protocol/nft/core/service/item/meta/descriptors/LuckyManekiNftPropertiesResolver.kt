@@ -1,12 +1,10 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class LuckyManekiNftPropertiesResolver(
     private val externalHttpClient: ExternalHttpClient,
 ) : ItemPropertiesResolver {

@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.repository
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.nft.core.model.InconsistentItem
 import com.rarible.protocol.nft.core.model.InconsistentItem.Companion.COLLECTION
 import com.rarible.protocol.nft.core.model.InconsistentItemStatus
@@ -23,7 +21,6 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(type = SpanType.DB)
 class InconsistentItemRepository(
     private val mongo: ReactiveMongoOperations
 ) {

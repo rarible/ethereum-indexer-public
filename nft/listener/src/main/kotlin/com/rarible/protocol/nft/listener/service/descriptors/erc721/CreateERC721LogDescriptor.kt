@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.listener.service.descriptors.erc721
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.collection.CreateEvent
 import com.rarible.protocol.contracts.collection.CreateEventWithFullData
@@ -17,7 +15,6 @@ import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class CreateERC721LogDescriptor : LogEventDescriptor<CreateCollection> {
     override val collection: String = NftHistoryRepository.COLLECTION
 

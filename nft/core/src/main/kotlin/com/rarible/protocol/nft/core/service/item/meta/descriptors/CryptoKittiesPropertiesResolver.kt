@@ -2,13 +2,11 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.client.WebClientHelper
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -18,7 +16,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class CryptoKittiesPropertiesResolver : ItemPropertiesResolver {
 
     private val client = WebClient.builder()

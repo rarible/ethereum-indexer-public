@@ -1,12 +1,10 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.contracts.external.loot.LootMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
@@ -21,7 +19,6 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class LootPropertiesResolver(
     sender: MonoTransactionSender,
     val mapper: ObjectMapper

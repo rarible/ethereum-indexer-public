@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.converters.dto
 
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBoolean
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
 import com.rarible.protocol.dto.NftCollectionDto
@@ -41,6 +42,7 @@ class CollectionDtoConverterTest {
         assertThat(actual.features).containsExactly(NftCollectionDto.Features.APPROVE_FOR_ALL)
         assertThat(actual.supportsLazyMint).isFalse()
         assertThat(actual.minters).containsExactly(token.owner)
+        assertThat(actual.scam).isEqualTo(token.scam)
     }
 
     @Test
@@ -85,6 +87,7 @@ class CollectionDtoConverterTest {
                 isRaribleContract = true,
                 deleted = false,
                 revertableEvents = emptyList(),
+                scam = randomBoolean(),
             )
     }
 }

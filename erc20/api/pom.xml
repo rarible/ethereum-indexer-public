@@ -48,10 +48,6 @@
         </dependency>
         <dependency>
             <groupId>com.rarible.core</groupId>
-            <artifactId>rarible-core-apm-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-telemetry-starter</artifactId>
         </dependency>
         <dependency>

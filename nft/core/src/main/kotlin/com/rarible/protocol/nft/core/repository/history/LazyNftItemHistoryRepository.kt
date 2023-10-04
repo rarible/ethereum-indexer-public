@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.repository.history
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.common.filterIsInstance
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
@@ -19,7 +17,6 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = SpanType.DB)
 class LazyNftItemHistoryRepository(
     private val mongo: ReactiveMongoOperations
 ) {

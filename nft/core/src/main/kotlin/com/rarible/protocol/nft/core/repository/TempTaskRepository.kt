@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.repository
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.task.Task
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -18,7 +16,6 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(type = SpanType.DB)
 class TempTaskRepository(
     private val template: ReactiveMongoOperations
 ) {

@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.service.ContractsProvider
@@ -14,7 +12,6 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 // @Service //TODO: Activate after move to a new scanner
-@CaptureSpan(type = SpanType.EVENT)
 class WyvernExchangeOrderMatchDescriptor(
     private val contractsProvider: ContractsProvider,
     private val openSeaOrdersSideMatcher: OpenSeaOrderEventConverter,

@@ -2,8 +2,6 @@ package com.rarible.protocol.order.core.repository.nonce
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.mongo.util.div
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository.Indexes.ALL_INDEXES
@@ -23,7 +21,6 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
-@CaptureSpan(type = SpanType.DB)
 @Component
 class NonceHistoryRepository(
     private val template: ReactiveMongoTemplate

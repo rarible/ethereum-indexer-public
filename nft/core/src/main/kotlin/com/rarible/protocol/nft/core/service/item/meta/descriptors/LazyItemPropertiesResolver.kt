@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.meta.resource.model.IpfsUrl
 import com.rarible.core.meta.resource.parser.UrlParser
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -9,14 +8,12 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class LazyItemPropertiesResolver(
     private val rariblePropertiesResolver: RariblePropertiesResolver,
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository,

@@ -2,8 +2,6 @@ package com.rarible.protocol.nft.api.service.mint
 
 import com.rarible.contracts.interfaces.erc1155.lazymint.IERC1155LazyMint
 import com.rarible.contracts.interfaces.erc721.lazymint.IERC721LazyMint
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.ethereum.sign.service.InvalidSignatureException
 import com.rarible.protocol.dto.LazyErc1155Dto
@@ -25,7 +23,6 @@ import java.util.Arrays
 import com.rarible.ethereum.nft.validation.LazyNftValidator as DaonomicLazyNftValidator
 
 @Component
-@CaptureSpan(type = SpanType.APP)
 class LazyNftValidator(
     private val delegate: DaonomicLazyNftValidator,
     private val tokenRepository: TokenRepository,

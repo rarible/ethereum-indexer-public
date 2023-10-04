@@ -1,14 +1,12 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.common.ifNotBlank
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.parseAttributes
@@ -20,7 +18,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.math.BigInteger
 
 @Service
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class OpenSeaPropertiesResolver(
     private val externalHttpClient: ExternalHttpClient,
     private val properties: NftIndexerProperties,

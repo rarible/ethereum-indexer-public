@@ -1,5 +1,0 @@
-rarible:
-  core:
-    apm:
-      agent:
-        enabled: false

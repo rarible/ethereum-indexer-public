@@ -1,8 +1,6 @@
 package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderActivityBidDto
 import com.rarible.protocol.dto.OrderActivityCancelBidDto
@@ -43,7 +41,6 @@ import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
 @Component
-@CaptureSpan(type = SpanType.APP)
 class OrderActivityConverter(
     private val priceNormalizer: PriceNormalizer,
     private val assetDtoConverter: AssetDtoConverter,
