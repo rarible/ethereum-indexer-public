@@ -7,6 +7,7 @@ import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionFlagDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.dto.toModel
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.addIndexerIn
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -23,7 +24,8 @@ import org.springframework.stereotype.Service
 @Service
 class OrderCollectionService(
     private val orderRepository: OrderRepository,
-    private val orderCancelService: OrderCancelService
+    private val orderCancelService: OrderCancelService,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -40,6 +42,7 @@ class OrderCollectionService(
         collection: NftCollectionDto,
         eventTimeMarks: EventTimeMarks
     ) {
+        if (featureFlags.ignoreTokenPause) return
         val paused = collection.flags
             ?.firstOrNull { it.flag == EthCollectionFlagDto.Flag.PAUSED }
             ?.value?.toBooleanStrict() ?: false
