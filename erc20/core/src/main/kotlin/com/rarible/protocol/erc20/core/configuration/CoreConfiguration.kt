@@ -1,7 +1,6 @@
 package com.rarible.protocol.erc20.core.configuration
 
 import com.rarible.core.mongo.configuration.EnableRaribleMongo
-import com.rarible.core.spring.YamlPropertySourceFactory
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.erc20.core.admin.AdminPackage
 import com.rarible.protocol.erc20.core.converters.Erc20BalanceDtoConverter
@@ -29,10 +28,6 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
         Erc20BalanceRepository::class,
         Erc20BalanceDtoConverter::class
     ]
-)
-@PropertySource(
-    value = ["classpath:config/core.yml"],
-    factory = YamlPropertySourceFactory::class
 )
 class CoreConfiguration {
     @Bean
