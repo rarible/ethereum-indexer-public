@@ -41,7 +41,7 @@ class OrderCollectionServiceTest {
             .copy(flags = listOf(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "true")))
 
         coEvery {
-            orderRepository.findNotCancelledOrdersByToken(token)
+            orderRepository.findNonTerminateOrdersByToken(token)
         } returns flowOf(sellOrder, buyOrder)
         coEvery { orderCancelService.cancelOrder(any(), any()) } returns createSellOrder()
 
@@ -62,7 +62,7 @@ class OrderCollectionServiceTest {
             .copy(flags = listOf(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "false")))
 
         coEvery {
-            orderRepository.findNotCancelledOrdersByToken(token)
+            orderRepository.findNonTerminateOrdersByToken(token)
         } returns flowOf(sellOrder, buyOrder)
         coEvery { orderCancelService.cancelOrder(any(), any()) } returns createSellOrder()
 

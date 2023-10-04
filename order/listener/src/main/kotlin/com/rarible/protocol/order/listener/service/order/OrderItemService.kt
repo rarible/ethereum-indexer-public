@@ -48,7 +48,7 @@ class OrderItemService(
 
     private suspend fun onOsSuspiciousItem(itemId: ItemId, eventTimeMarks: EventTimeMarks) {
         val start = System.currentTimeMillis()
-        val toCancel = orderRepository.findSellOrdersNotCancelledByItemId(
+        val toCancel = orderRepository.findNonTerminateStatusSellOrdersByItemId(
             Platform.OPEN_SEA,
             itemId.contract,
             EthUInt256.of(itemId.tokenId)

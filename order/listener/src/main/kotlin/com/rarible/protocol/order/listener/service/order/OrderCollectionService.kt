@@ -44,7 +44,7 @@ class OrderCollectionService(
             ?.value?.toBooleanStrict() ?: false
         if (!paused) return
         val start = System.currentTimeMillis()
-        val toCancel = orderRepository.findNotCancelledOrdersByToken(collection.id)
+        val toCancel = orderRepository.findNonTerminateOrdersByToken(collection.id)
             .take(ORDER_TO_CANCEL_MAX_COUNT).map { it.hash }.toList()
         // Should never happen since there are not a lot of such items/orders, but let's monitor it
         if (toCancel.size == ORDER_TO_CANCEL_MAX_COUNT) {

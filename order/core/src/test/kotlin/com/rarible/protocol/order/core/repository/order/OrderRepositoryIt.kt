@@ -320,7 +320,7 @@ internal class OrderRepositoryIt : AbstractIntegrationTest() {
         val order3 = createSellOrder().copy(platform = Platform.OPEN_SEA, make = asset, cancelled = true)
         listOf(order1, order2, order3, order4).forEach { orderRepository.save(it) }
 
-        val result = orderRepository.findSellOrdersNotCancelledByItemId(
+        val result = orderRepository.findNonTerminateStatusSellOrdersByItemId(
             Platform.OPEN_SEA,
             asset.type.token,
             asset.type.tokenId!!

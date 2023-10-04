@@ -36,7 +36,7 @@ class OrderItemServiceTest {
         val order = randomOrder()
 
         coEvery {
-            orderRepository.findSellOrdersNotCancelledByItemId(
+            orderRepository.findNonTerminateStatusSellOrdersByItemId(
                 Platform.OPEN_SEA,
                 item.contract,
                 EthUInt256.of(item.tokenId)

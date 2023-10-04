@@ -42,7 +42,7 @@ interface OrderRepository {
 
     fun findByTargetNftAndNotCanceled(maker: Address, token: Address, tokenId: EthUInt256): Flow<Order>
 
-    fun findSellOrdersNotCancelledByItemId(platform: Platform, token: Address, tokenId: EthUInt256): Flow<Order>
+    fun findNonTerminateStatusSellOrdersByItemId(platform: Platform, token: Address, tokenId: EthUInt256): Flow<Order>
 
     fun findByTargetBalanceAndNotCanceled(maker: Address, token: Address): Flow<Order>
 
@@ -92,5 +92,5 @@ interface OrderRepository {
 
     suspend fun findActiveSellCurrenciesByCollection(token: Address): List<Address>
 
-    fun findNotCancelledOrdersByToken(token: Address): Flow<Order>
+    fun findNonTerminateOrdersByToken(token: Address): Flow<Order>
 }
