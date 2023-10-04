@@ -16,7 +16,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = [
         "application.environment = e2e",
-        "common.blockchain = ethereum",
         "spring.cloud.service-registry.auto-registration.enabled = false",
         "spring.cloud.discovery.enabled = false",
         "spring.cloud.consul.config.enabled = false",
@@ -25,7 +24,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
         "node.websocketUrl = localhost"
     ]
 )
-@ActiveProfiles("integration")
+@ActiveProfiles("integration", "ethereum", "core")
 @Import(TestPropertiesConfiguration::class)
 @Testcontainers
 annotation class IntegrationTest
