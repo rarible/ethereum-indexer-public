@@ -84,7 +84,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
         )
         val orderHash = sudoSwapEventConverter.getPoolHash(log.address())
 
-        every { sudoSwapLoad.ignorePairs } returns emptySet()
+        every { sudoSwapLoad.ignoreCollections } returns emptySet()
         coEvery { sudoSwapPoolInfoProvider.getPollInfo(orderHash, log.address()) } returns poolInfo
         coEvery {
             sudoSwapCurve.getBuyInputValues(
@@ -150,7 +150,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
         val purchaseValue = randomSudoSwapPurchaseValue()
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
         val expectedTokenId = randomBigInt()
-        every { sudoSwapLoad.ignorePairs } returns emptySet()
+        every { sudoSwapLoad.ignoreCollections } returns emptySet()
         coEvery { sudoSwapPoolInfoProvider.getPollInfo(orderHash, log.address()) } returns poolInfo
         coEvery { nftTransferDetector.detectNftTransfers(log, poolInfo.collection) } returns listOf(expectedTokenId)
         coEvery {
@@ -194,10 +194,37 @@ internal class SudoSwapOutNftPairDescriptorTest {
     }
 
     @Test
-    fun `convert - ignore pair`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction>()
-        val log = log()
-        every { sudoSwapLoad.ignorePairs } returns setOf(log.address())
+    fun `convert - ignore collection`() = runBlocking<Unit> {
+        val transaction = mockk<Transaction> {
+            every { hash() } returns Word.apply(randomWord())
+            every { from() } returns randomAddress()
+            every { to() } returns randomAddress()
+            every { input() } returns Binary.apply("0x6d8b99f700000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000002bc120d8ac42604000000000000000000000000c2681d0606ebd7719040f2bc1c0fda3e9215db900000000000000000000000000000000000000000000000000000000000000001000000000000000000000000c2681d0606ebd7719040f2bc1c0fda3e9215db900000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000351c00000000000000000000000000000000000000000000000109616c6c64617461")
+            every { value() } returns BigInteger.ZERO
+        }
+        val poolInfo = randomPoolInfo().copy(collection = Address.ONE())
+        val purchaseValue = randomSudoSwapPurchaseValue()
+        val log = log(
+            listOf(
+                Word.apply("0xbc479dfc6cb9c1a9d880f987ee4b30fa43dd7f06aec121db685b67d587c93c93")
+            ),
+            ""
+        )
+        val orderHash = sudoSwapEventConverter.getPoolHash(log.address())
+
+        every { sudoSwapLoad.ignoreCollections } returns emptySet()
+        coEvery { sudoSwapPoolInfoProvider.getPollInfo(orderHash, log.address()) } returns poolInfo
+        coEvery {
+            sudoSwapCurve.getBuyInputValues(
+                poolInfo.curve,
+                poolInfo.spotPrice,
+                poolInfo.delta,
+                1,
+                poolInfo.fee,
+                poolInfo.protocolFee
+            )
+        } returns listOf(purchaseValue)
+        every { sudoSwapLoad.ignoreCollections } returns setOf(Address.ONE())
 
         val ethBlock = EthereumBlockchainBlock(
             number = 1,

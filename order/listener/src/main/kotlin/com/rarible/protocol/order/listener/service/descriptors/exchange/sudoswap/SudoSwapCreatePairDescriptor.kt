@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
 import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
@@ -26,6 +27,7 @@ class SudoSwapCreatePairDescriptor(
     private val contractsProvider: ContractsProvider,
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapCreatePairEventCounter: RegisteredCounter,
+    private val sudoSwapLoad: SudoSwapLoadProperties,
     autoReduceService: AutoReduceService,
 ) : PoolSubscriber<PoolCreate>(
     name = "sudo_new_pair",
@@ -38,6 +40,9 @@ class SudoSwapCreatePairDescriptor(
         val details = sudoSwapEventConverter.getCreatePairDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
+        }
+        if (details.nft in sudoSwapLoad.ignoreCollections) {
+            return emptyList()
         }
         val (currency, balance) = when (details) {
             is SudoSwapEthPairDetail ->

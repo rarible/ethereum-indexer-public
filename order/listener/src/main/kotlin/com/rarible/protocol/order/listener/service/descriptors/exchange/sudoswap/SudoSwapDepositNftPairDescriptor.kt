@@ -6,6 +6,7 @@ import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NFTDepositEve
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolNftDeposit
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
@@ -20,6 +21,7 @@ class SudoSwapDepositNftPairDescriptor(
     contractsProvider: ContractsProvider,
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val sudoSwapDepositNftEventCounter: RegisteredCounter,
+    private val sudoSwapLoad: SudoSwapLoadProperties,
     autoReduceService: AutoReduceService,
 ) : PoolSubscriber<PoolNftDeposit>(
     name = "sudo_nft_deposit",
@@ -32,6 +34,9 @@ class SudoSwapDepositNftPairDescriptor(
         val details = sudoSwapEventConverter.getNftDepositDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
+        }
+        if (details.collection in sudoSwapLoad.ignoreCollections) {
+            return emptyList()
         }
         return listOf(
             PoolNftDeposit(

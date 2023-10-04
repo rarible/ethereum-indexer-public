@@ -42,19 +42,28 @@ class SudoSwapOutNftPairDescriptor(
     contracts = emptyList(),
     autoReduceService = autoReduceService,
 ) {
-    override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftOut> {
+    override suspend fun convert(
+        log: Log,
+        transaction: Transaction,
+        timestamp: Instant,
+        index: Int,
+        totalLogs: Int
+    ): List<PoolTargetNftOut> {
         logger.info("log=$log, transaction=$transaction, index=$index, totalLogs=$totalLogs")
-        if (log.address() in sudoSwapLoad.ignorePairs) {
-            return emptyList()
-        }
         val details = sudoSwapEventConverter.getSwapOutNftDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
         }
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
         val poolInfo = sudoSwapPoolInfoProvider.getPollInfo(hash, log.address()) ?: run {
-            if (featureFlags.getPoolInfoFromChain) throw IllegalStateException("Can't get pool ${log.address()} info")
-            else return emptyList()
+            if (featureFlags.getPoolInfoFromChain) {
+                throw IllegalStateException("Can't get pool ${log.address()} info")
+            } else {
+                return emptyList()
+            }
+        }
+        if (poolInfo.collection in sudoSwapLoad.ignoreCollections) {
+            return emptyList()
         }
         val tokenIds = when (details) {
             is SudoSwapAnyOutNftDetail -> {

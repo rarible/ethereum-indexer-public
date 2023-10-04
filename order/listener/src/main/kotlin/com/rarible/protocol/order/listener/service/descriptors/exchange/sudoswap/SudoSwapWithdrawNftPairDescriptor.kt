@@ -28,12 +28,12 @@ class SudoSwapWithdrawNftPairDescriptor(
     autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolNftWithdraw> {
-        if (log.address() in sudoSwapLoad.ignorePairs) {
-            return emptyList()
-        }
         val details = sudoSwapEventConverter.getNftWithdrawDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
+        }
+        if (details.collection in sudoSwapLoad.ignoreCollections) {
+            return emptyList()
         }
         return listOf(
             PoolNftWithdraw(

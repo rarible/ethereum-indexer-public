@@ -36,18 +36,20 @@ class SudoSwapInNftPairDescriptor(
     autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftIn> {
-        // TODO: Remove this in release 1.41
-        if (log.address() in sudoSwapLoad.ignorePairs) {
-            return emptyList()
-        }
         val details = sudoSwapEventConverter.getSwapInNftDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
         }
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
         val poolInfo = sudoSwapPoolInfoProvider.getPollInfo(hash, log.address()) ?: run {
-            if (featureFlags.getPoolInfoFromChain) throw IllegalStateException("Can't get pool ${log.address()} info")
-            else return emptyList()
+            if (featureFlags.getPoolInfoFromChain) {
+                throw IllegalStateException("Can't get pool ${log.address()} info")
+            } else {
+                return emptyList()
+            }
+        }
+        if (poolInfo.collection in sudoSwapLoad.ignoreCollections) {
+            return emptyList()
         }
         val outputValue = sudoSwapCurve.getSellOutputValues(
             curve = poolInfo.curve,
