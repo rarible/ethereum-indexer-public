@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.test.data.randomAddress
+import com.rarible.protocol.dto.EthCollectionFlagDto
 import com.rarible.protocol.dto.NftCollectionFlagDto
 import com.rarible.protocol.order.core.data.createBidOrder
 import com.rarible.protocol.order.core.data.createNftCollectionDto
@@ -38,7 +39,7 @@ class OrderCollectionServiceTest {
         val sellOrder = createSellOrder()
         val buyOrder = createBidOrder()
         val collection = createNftCollectionDto(token)
-            .copy(flags = listOf(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "true")))
+            .copy(flags = listOf(EthCollectionFlagDto(EthCollectionFlagDto.Flag.PAUSED, "true")))
 
         coEvery {
             orderRepository.findNonTerminateOrdersByToken(token)
@@ -59,7 +60,7 @@ class OrderCollectionServiceTest {
         val sellOrder = createSellOrder()
         val buyOrder = createBidOrder()
         val collection = createNftCollectionDto(token)
-            .copy(flags = listOf(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "false")))
+            .copy(flags = listOf(EthCollectionFlagDto(EthCollectionFlagDto.Flag.PAUSED, "false")))
 
         coEvery {
             orderRepository.findNonTerminateOrdersByToken(token)

@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.asyncWithTraceId
+import com.rarible.protocol.dto.EthCollectionFlagDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionFlagDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
@@ -40,7 +41,7 @@ class OrderCollectionService(
         eventTimeMarks: EventTimeMarks
     ) {
         val paused = collection.flags
-            ?.firstOrNull { it.flag == NftCollectionFlagDto.Flag.PAUSED }
+            ?.firstOrNull { it.flag == EthCollectionFlagDto.Flag.PAUSED }
             ?.value?.toBooleanStrict() ?: false
         if (!paused) return
         val start = System.currentTimeMillis()

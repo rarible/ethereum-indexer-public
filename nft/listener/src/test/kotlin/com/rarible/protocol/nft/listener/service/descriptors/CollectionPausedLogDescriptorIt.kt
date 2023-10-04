@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.listener.service.descriptors
 import com.rarible.contracts.test.erc1155.TestERC1155
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.EthCollectionFlagDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionFlagDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
@@ -50,7 +51,6 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
         Wait.waitAssert {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
-//            assertThat(testCollectionHandler.events.size).isEqualTo(1)
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
             assertThat(event.collection.flags).isEmpty()
@@ -62,11 +62,10 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
             assertThat(token!!.flags).containsEntry(TokenFlag.PAUSED, "true")
-//            assertThat(testCollectionHandler.events.size).isEqualTo(1)
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
             assertThat(event.collection.flags)
-                .contains(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "true"))
+                .contains(EthCollectionFlagDto(EthCollectionFlagDto.Flag.PAUSED, "true"))
         }
 
         contract.emitPauseEvent(false).execute().verifySuccess()
@@ -75,11 +74,10 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
             assertThat(token!!.flags).containsEntry(TokenFlag.PAUSED, "false")
-//            assertThat(testCollectionHandler.events.size).isEqualTo(1)
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
             assertThat(event.collection.flags)
-                .contains(NftCollectionFlagDto(NftCollectionFlagDto.Flag.PAUSED, "false"))
+                .contains(EthCollectionFlagDto(EthCollectionFlagDto.Flag.PAUSED, "false"))
         }
     }
 }
