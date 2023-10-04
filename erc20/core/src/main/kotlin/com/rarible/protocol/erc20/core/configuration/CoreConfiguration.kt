@@ -9,7 +9,6 @@ import com.rarible.protocol.erc20.core.service.Erc20BalanceService
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.PropertySource
 import org.springframework.data.mongodb.config.EnableMongoAuditing
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories
 import scalether.core.MonoEthereum
