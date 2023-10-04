@@ -42,38 +42,37 @@ class OrderCollectionService(
         val paused = collection.flags
             ?.firstOrNull { it.flag == NftCollectionFlagDto.Flag.PAUSED }
             ?.value?.toBooleanStrict() ?: false
-        if (paused) {
-            val start = System.currentTimeMillis()
-            val toCancel = orderRepository.findNotCancelledOrdersByToken(collection.id)
-                .take(ORDER_TO_CANCEL_MAX_COUNT).map { it.hash }.toList()
-            // Should never happen since there are not a lot of such items/orders, but let's monitor it
-            if (toCancel.size == ORDER_TO_CANCEL_MAX_COUNT) {
-                logger.warn("WARNING! Too many active Orders found for Collection {} which was paused", collection.id)
-            }
-            if (toCancel.isEmpty()) {
-                return
-            }
-            coroutineScope {
-                toCancel.chunked(ORDER_TO_CANCEL_CHUNK_SIZE).forEach { chunk ->
-                    chunk.map { hash ->
-                        asyncWithTraceId(context = NonCancellable) {
-                            logger.info(
-                                "Cancelled Order {} for Collection {} which was paused",
-                                hash.prefixed(),
-                                collection.id
-                            )
-                            orderCancelService.cancelOrder(hash, eventTimeMarks)
-                        }
-                    }.awaitAll()
-                }
-            }
-            logger.info(
-                "Cancelled {} active Orders for Collection {} which was paused ({}ms)",
-                toCancel.size,
-                collection.id,
-                System.currentTimeMillis() - start
-            )
+        if (!paused) return
+        val start = System.currentTimeMillis()
+        val toCancel = orderRepository.findNotCancelledOrdersByToken(collection.id)
+            .take(ORDER_TO_CANCEL_MAX_COUNT).map { it.hash }.toList()
+        // Should never happen since there are not a lot of such items/orders, but let's monitor it
+        if (toCancel.size == ORDER_TO_CANCEL_MAX_COUNT) {
+            logger.warn("WARNING! Too many active Orders found for Collection {} which was paused", collection.id)
         }
+        if (toCancel.isEmpty()) {
+            return
+        }
+        coroutineScope {
+            toCancel.chunked(ORDER_TO_CANCEL_CHUNK_SIZE).forEach { chunk ->
+                chunk.map { hash ->
+                    asyncWithTraceId(context = NonCancellable) {
+                        logger.info(
+                            "Cancelled Order {} for Collection {} which was paused",
+                            hash.prefixed(),
+                            collection.id
+                        )
+                        orderCancelService.cancelOrder(hash, eventTimeMarks)
+                    }
+                }.awaitAll()
+            }
+        }
+        logger.info(
+            "Cancelled {} active Orders for Collection {} which was paused ({}ms)",
+            toCancel.size,
+            collection.id,
+            System.currentTimeMillis() - start
+        )
     }
 
     companion object {

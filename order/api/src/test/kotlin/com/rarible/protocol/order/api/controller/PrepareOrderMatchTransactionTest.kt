@@ -12,17 +12,21 @@ import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.service.order.AbstractOrderIt
+import com.rarible.protocol.order.core.data.createNftCollectionDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.token
 import io.daonomic.rpc.domain.Binary
+import io.mockk.every
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.web3jold.utils.Numeric
 import reactor.core.publisher.Mono
@@ -55,6 +59,8 @@ class PrepareOrderMatchTransactionTest : AbstractOrderIt() {
                 value = EthUInt256.of(100)
             )
         )
+        every { nftCollectionApi.getNftCollectionById(order.make.type.token.prefixed()) } returns
+            Mono.just(createNftCollectionDto(order.make.type.token))
         val created = orderClient.upsertOrder(order.toForm(sellerKey)).awaitFirst()
         val prepared = orderClient.prepareOrderTransaction(
             created.hash.toString(), PrepareOrderTxFormDto(
@@ -99,6 +105,8 @@ class PrepareOrderMatchTransactionTest : AbstractOrderIt() {
                 value = EthUInt256.of(100)
             )
         )
+        every { nftCollectionApi.getNftCollectionById(order.make.type.token.prefixed()) } returns
+            Mono.just(createNftCollectionDto(order.make.type.token))
         val created = orderClient.upsertOrder(order.toForm(sellerKey)).awaitFirst()
         val prepared = orderClient.prepareOrderTransaction(
             created.hash.toString(), PrepareOrderTxFormDto(
@@ -165,7 +173,13 @@ class PrepareOrderMatchTransactionTest : AbstractOrderIt() {
         val v2 = ExchangeV2.deployAndWait(sender, poller).awaitFirst()
         setV2Address(v2.address())
         val royaltiesProvider = TestRoyaltiesProvider.deployAndWait(sender, poller).awaitFirst()
-        v2.__ExchangeV2_init(transferProxy.address(), Address.ZERO(), BigInteger.ZERO, beneficiary, royaltiesProvider.address()).execute().verifySuccess()
+        v2.__ExchangeV2_init(
+            transferProxy.address(),
+            Address.ZERO(),
+            BigInteger.ZERO,
+            beneficiary,
+            royaltiesProvider.address()
+        ).execute().verifySuccess()
         transferProxy.addOperator(v2.address()).execute().verifySuccess()
         exchangeContractAddresses.v1 = v1.address()
         exchangeContractAddresses.v1Old = null

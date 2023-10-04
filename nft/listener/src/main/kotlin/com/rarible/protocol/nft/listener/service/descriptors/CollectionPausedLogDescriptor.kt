@@ -15,7 +15,7 @@ import scalether.domain.response.Transaction
 
 @Component
 class CollectionPausedLogDescriptor(ignoredTokenResolver: IgnoredTokenResolver) : LogEventDescriptor<CollectionPaused> {
-    private val skipContracts = ignoredTokenResolver.resolve()
+    private val skipContracts: Set<Address> = ignoredTokenResolver.resolve()
     override val collection: String = NftHistoryRepository.COLLECTION
     override val topic: Word = PausedEvent.id()
 
