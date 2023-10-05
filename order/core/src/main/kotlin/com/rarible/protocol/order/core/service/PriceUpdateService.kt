@@ -82,9 +82,8 @@ class PriceUpdateService(
     suspend fun getTokenRate(token: Address, at: Instant): BigDecimal? {
         val rate = currencyApi.getCurrencyRate(convert(blockchain), token.hex(), at.toEpochMilli())
             .awaitSingleOrNull()?.rate
-
         if (rate == null) {
-            logger.warn("Currency api didn't respond any value for $blockchain: $token")
+            logger.warn("Currency api didn't respond any value for $blockchain: $token at $at")
         }
         return rate
     }
@@ -157,7 +156,7 @@ class PriceUpdateService(
             Blockchain.ETHEREUM -> BlockchainDto.ETHEREUM
             Blockchain.POLYGON -> BlockchainDto.POLYGON
             Blockchain.OPTIMISM -> BlockchainDto.OPTIMISM
-            Blockchain.MANTLE -> BlockchainDto.POLYGON // TODO: Fix it
+            Blockchain.MANTLE -> BlockchainDto.MANTLE
             Blockchain.HEDERA -> BlockchainDto.POLYGON // TODO: Fix it
         }
     }
