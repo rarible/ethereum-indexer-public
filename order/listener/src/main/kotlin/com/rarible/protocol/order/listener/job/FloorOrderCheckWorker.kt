@@ -14,6 +14,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.time.delay
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.event.ApplicationReadyEvent
@@ -37,7 +38,10 @@ class FloorOrderCheckWorker(
     workerName = "floor-bid-check-job"
 ) {
 
-    override suspend fun handle() = handler.handle()
+    override suspend fun handle() {
+        handler.handle()
+        delay(pollingPeriod)
+    }
 
     @EventListener(ApplicationReadyEvent::class)
     fun onApplicationStarted() = start()
@@ -119,7 +123,10 @@ class FloorOrderCheckHandler(
             floorOrderCheckMetrics.onOrderSimulated(status.name.lowercase())
             when (status) {
                 // we should count only fail
-                OrderSimulation.FAIL -> false
+                OrderSimulation.FAIL -> {
+                    logger.info("Order {} ({}) simulation failed: {}", order.hash.prefixed(), order.platform)
+                    false
+                }
                 else -> true
             }
         } else {
