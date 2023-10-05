@@ -157,7 +157,7 @@ class PriceUpdateService(
             Blockchain.POLYGON -> BlockchainDto.POLYGON
             Blockchain.OPTIMISM -> BlockchainDto.OPTIMISM
             Blockchain.MANTLE -> BlockchainDto.MANTLE
-            Blockchain.HEDERA -> BlockchainDto.POLYGON // TODO: Fix it
+            Blockchain.HEDERA -> BlockchainDto.POLYGON
         }
     }
 }
