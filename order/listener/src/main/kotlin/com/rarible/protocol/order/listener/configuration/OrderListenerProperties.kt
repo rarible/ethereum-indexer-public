@@ -157,7 +157,7 @@ data class X2Y2EventLoadProperties(
 ) : X2Y2LoadProperties()
 
 data class SudoSwapLoadProperties(
-    val ignorePairs: Set<Address> = emptySet(),
+    val ignoreCollections: Set<Address> = emptySet(),
 )
 
 data class ReservoirProperties(

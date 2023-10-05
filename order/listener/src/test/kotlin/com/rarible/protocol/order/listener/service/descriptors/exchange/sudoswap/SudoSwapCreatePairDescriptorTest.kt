@@ -19,6 +19,7 @@ import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
@@ -54,6 +55,7 @@ internal class SudoSwapCreatePairDescriptorTest {
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapCreatePairEventCounter = counter,
         autoReduceService = autoReduceService,
+        sudoSwapLoad = SudoSwapLoadProperties(ignoreCollections = setOf(Address.ONE())),
     )
 
     @Test
@@ -89,7 +91,13 @@ internal class SudoSwapCreatePairDescriptorTest {
         )
         val expectedPrice = BigInteger("308407960199005000")
 
-        coEvery { priceUpdateService.getAssetUsdValue(expectedNftAsset.type, expectedPrice, date) } returns BigDecimal.valueOf(3)
+        coEvery {
+            priceUpdateService.getAssetUsdValue(
+                expectedNftAsset.type,
+                expectedPrice,
+                date
+            )
+        } returns BigDecimal.valueOf(3)
 
         val ethBlock = EthereumBlockchainBlock(
             number = 1,
@@ -155,7 +163,13 @@ internal class SudoSwapCreatePairDescriptorTest {
         )
         val expectedPrice = BigInteger("241463414634146360")
 
-        coEvery { priceUpdateService.getAssetUsdValue(expectedNftAsset.type, expectedPrice, date) } returns randomBigDecimal()
+        coEvery {
+            priceUpdateService.getAssetUsdValue(
+                expectedNftAsset.type,
+                expectedPrice,
+                date
+            )
+        } returns randomBigDecimal()
 
         val ethBlock = EthereumBlockchainBlock(
             number = 1,
@@ -186,5 +200,40 @@ internal class SudoSwapCreatePairDescriptorTest {
             EthUInt256.of(5197),
             EthUInt256.of(4956),
         )
+    }
+
+    @Test
+    fun `should ignore collections`() = runBlocking<Unit> {
+        val transaction = mockk<Transaction> {
+            every { hash() } returns Word.apply(randomWord())
+            every { from() } returns randomAddress()
+            every { to() } returns randomAddress()
+            every { input() } returns Binary.apply("0xce9c095d00000000000000000000000000000000000000000000000000000000000000010000000000000000000000005b6ac51d9b1cede0068a1b26533cace807f883ee0000000000000000000000002a3b53e1ce8cb9f3290e9ba70033951f07c686f30000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000002386f26fc1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000447af67e190834800000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000120f")
+            every { value() } returns BigInteger.ZERO
+        }
+        val date = Instant.now().truncatedTo(ChronoUnit.SECONDS)
+        val log = log(
+            listOf(
+                Word.apply("0xf5bdc103c3e68a20d5f97d2d46792d3fdddfa4efeb6761f8141e6a7b936ca66c")
+            ),
+            "0x00000000000000000000000023a46b04d72d9ad624e99fb432c5a9ce212ac2f7"
+        )
+
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
+            timestamp = date.epochSecond,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
+            index = 0,
+            total = 1,
+        )
+        val result = descriptor.getEthereumEventRecords(ethBlock, ethLog)
+
+        assertThat(result).isEmpty()
     }
 }
