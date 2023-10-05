@@ -22,4 +22,3 @@ common:
     weth: "0xecd2728000E21aA49aA1F823242dc8C8bc5BB4aB"
   feature-flags:
     skipEventsIfNoTraceFound: true
-    scanner-version: V2

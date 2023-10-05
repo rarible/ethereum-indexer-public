@@ -12,23 +12,17 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenService
 import com.rarible.protocol.nft.listener.admin.descriptor.AdminErc1155TransferLogDescriptor
 import com.rarible.protocol.nft.listener.admin.descriptor.AdminErc721TransferLogDescriptor
-import com.rarible.protocol.nft.listener.configuration.EnableOnScannerV1
 import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
 import com.rarible.protocol.nft.listener.service.resolver.IgnoredTokenResolver
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 
-/**
- * Background job that re-indexes all items of a token (specified by `param`).
- */
-@Component
-@EnableOnScannerV1
+// TODO should be refactored to be compatible with V2 Scanner, or removed (PT-3910)
 class ReindexTokenItemsTaskHandler(
     private val taskRepository: TaskRepository,
     private val customMintDetector: CustomMintDetector,
