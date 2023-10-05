@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.job
 
-import com.rarible.core.apm.withTransaction
 import com.rarible.protocol.order.core.misc.orderOffchainEventMarks
 import com.rarible.protocol.order.core.model.AuctionOffchainHistory
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
@@ -25,25 +24,23 @@ class AuctionOngoingUpdateJob(
     fun execute() = runBlocking<Unit> {
         if (properties.updateAuctionOngoingStateEnabled.not()) return@runBlocking
 
-        withTransaction("auction_ongoing_update") {
-            auctionRepository.findOngoingNotUpdatedIds().collect {
-                val eventTimeMarks = orderOffchainEventMarks()
-                val auction = auctionStateService.updateOngoingState(it, true)
-                auctionStateService.onAuctionOngoingStateUpdated(
-                    auction,
-                    AuctionOffchainHistory.Type.STARTED,
-                    eventTimeMarks
-                )
-            }
-            auctionRepository.findEndedNotUpdatedIds(properties.updateAuctionOngoingStateEndLag).collect {
-                val eventTimeMarks = orderOffchainEventMarks()
-                val auction = auctionStateService.updateOngoingState(it, false)
-                auctionStateService.onAuctionOngoingStateUpdated(
-                    auction,
-                    AuctionOffchainHistory.Type.ENDED,
-                    eventTimeMarks
-                )
-            }
+        auctionRepository.findOngoingNotUpdatedIds().collect {
+            val eventTimeMarks = orderOffchainEventMarks()
+            val auction = auctionStateService.updateOngoingState(it, true)
+            auctionStateService.onAuctionOngoingStateUpdated(
+                auction,
+                AuctionOffchainHistory.Type.STARTED,
+                eventTimeMarks
+            )
+        }
+        auctionRepository.findEndedNotUpdatedIds(properties.updateAuctionOngoingStateEndLag).collect {
+            val eventTimeMarks = orderOffchainEventMarks()
+            val auction = auctionStateService.updateOngoingState(it, false)
+            auctionStateService.onAuctionOngoingStateUpdated(
+                auction,
+                AuctionOffchainHistory.Type.ENDED,
+                eventTimeMarks
+            )
         }
     }
 }

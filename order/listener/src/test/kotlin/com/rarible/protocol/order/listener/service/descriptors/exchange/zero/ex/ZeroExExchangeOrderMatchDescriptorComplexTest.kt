@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.trace.NoopTransactionTraceProvider
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.misc.convert
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderEventConverter
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderParser
 import io.daonomic.rpc.domain.Binary
@@ -52,6 +53,9 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
     @MockK
     private lateinit var priceNormalizer: PriceNormalizer
 
+    @MockK
+    private lateinit var autoReduceService: AutoReduceService
+
     @BeforeEach
     fun before() {
         every {
@@ -78,7 +82,13 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
                     zeroExExchangeDomainHash = "0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67"
                 )
             ),
-            zeroExOrderParser = ZeroExOrderParser(TraceCallServiceImpl(NoopTransactionTraceProvider(), OrderIndexerProperties.FeatureFlags()))
+            zeroExOrderParser = ZeroExOrderParser(
+                TraceCallServiceImpl(
+                    NoopTransactionTraceProvider(),
+                    OrderIndexerProperties.FeatureFlags()
+                )
+            ),
+            autoReduceService = autoReduceService,
         )
     }
 

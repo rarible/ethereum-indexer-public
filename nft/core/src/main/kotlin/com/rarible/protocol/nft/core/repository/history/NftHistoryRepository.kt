@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.repository.history
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -17,7 +15,6 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = SpanType.DB)
 class NftHistoryRepository(
     private val mongo: ReactiveMongoOperations
 ) {

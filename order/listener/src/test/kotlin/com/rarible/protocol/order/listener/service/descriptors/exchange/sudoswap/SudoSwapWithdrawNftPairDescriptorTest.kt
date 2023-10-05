@@ -12,13 +12,14 @@ import com.rarible.protocol.order.core.model.PoolNftWithdraw
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
 import scalether.domain.response.Transaction
@@ -30,11 +31,13 @@ internal class SudoSwapWithdrawNftPairDescriptorTest {
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
     private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
+    private val autoReduceService = mockk<AutoReduceService>()
 
     private val descriptor = SudoSwapWithdrawNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapWithdrawNftEventCounter = counter,
-        sudoSwapLoad = SudoSwapLoadProperties()
+        sudoSwapLoad = SudoSwapLoadProperties(ignoreCollections = setOf(Address.ONE())),
+        autoReduceService = autoReduceService,
     )
 
     @Test
@@ -72,9 +75,43 @@ internal class SudoSwapWithdrawNftPairDescriptorTest {
             .map { it.asEthereumLogRecord().data as PoolNftWithdraw }
             .single()
 
-        Assertions.assertThat(withdraw.collection).isEqualTo(Address.apply("0xeF1a89cbfAbE59397FfdA11Fc5DF293E9bC5Db90"))
-        Assertions.assertThat(withdraw.tokenIds).containsExactlyInAnyOrder(EthUInt256.of(4623))
-        Assertions.assertThat(withdraw.date).isEqualTo(date)
-        Assertions.assertThat(withdraw.source).isEqualTo(HistorySource.SUDOSWAP)
+        assertThat(withdraw.collection).isEqualTo(Address.apply("0xeF1a89cbfAbE59397FfdA11Fc5DF293E9bC5Db90"))
+        assertThat(withdraw.tokenIds).containsExactlyInAnyOrder(EthUInt256.of(4623))
+        assertThat(withdraw.date).isEqualTo(date)
+        assertThat(withdraw.source).isEqualTo(HistorySource.SUDOSWAP)
+    }
+
+    @Test
+    fun `should ignore collection`() = runBlocking<Unit> {
+        val transaction = mockk<Transaction> {
+            every { hash() } returns Word.apply(randomWord())
+            every { from() } returns randomAddress()
+            every { to() } returns randomAddress()
+            every { input() } returns Binary.apply("0x13edab81000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000120f")
+            every { value() } returns BigInteger.ZERO
+        }
+        val date = Instant.now().truncatedTo(ChronoUnit.SECONDS)
+        val log = log(
+            listOf(
+                Word.apply("0x242b9b8fb5c0e6298454fcf80a0fbcbb7308620133d92b50091a1f64cee790e8")
+            ),
+            ""
+        )
+        val ethBlock = EthereumBlockchainBlock(
+            number = 1,
+            hash = randomWord(),
+            parentHash = randomWord(),
+            timestamp = date.epochSecond,
+            ethBlock = mockk()
+        )
+        val ethLog = EthereumBlockchainLog(
+            ethLog = log,
+            ethTransaction = transaction,
+            index = 0,
+            total = 1,
+        )
+        val result = descriptor.getEthereumEventRecords(ethBlock, ethLog)
+
+        assertThat(result).isEmpty()
     }
 }

@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.core.service.nft
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
@@ -11,7 +9,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException
 
 @Component
-@CaptureSpan(type = SpanType.EXT)
 class NftItemApiService(
     private val nftItemApi: NftItemControllerApi
 ) {

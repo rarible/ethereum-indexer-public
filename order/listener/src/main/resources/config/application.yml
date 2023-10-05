@@ -31,11 +31,6 @@ rarible:
     cache:
       enabled: true
   core:
-    apm:
-      agent:
-        enabled: true
-        server: http://elk_apm-server:8200
-        packages: com.rarible.protocol.order.listener
     contract:
       enabled: true
     client:

@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
@@ -14,6 +12,7 @@ import com.rarible.protocol.order.core.model.BidV1
 import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.descriptors.AuctionSubscriber
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import scala.Tuple11
@@ -23,15 +22,16 @@ import scalether.domain.Address
 import java.math.BigInteger
 import java.time.Instant
 
-@CaptureSpan(type = SpanType.EVENT)
 abstract class AbstractAuctionDescriptor<T : AuctionHistory>(
     name: String,
     topic: Word,
     contractsProvider: ContractsProvider,
+    private val autoReduceService: AutoReduceService,
 ) : AuctionSubscriber<T>(
     name = name,
     topic = topic,
-    contracts = contractsProvider.raribleAuctionV1()
+    contracts = contractsProvider.raribleAuctionV1(),
+    autoReduceService = autoReduceService,
 ) {
     protected companion object {
 

@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import com.rarible.protocol.order.core.model.Asset
@@ -12,6 +10,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.parser.ExchangeV2OrderDataParser
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import io.daonomic.rpc.domain.Binary
 import org.springframework.stereotype.Service
@@ -21,13 +20,14 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class ExchangeV2UpsertOrderDescriptor(
     contractsProvider: ContractsProvider,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OnChainOrder>(
     name = "rari_v2_upsert",
     topic = UpsertOrderEvent.id(),
-    contracts = contractsProvider.raribleExchangeV2()
+    contracts = contractsProvider.raribleExchangeV2(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OnChainOrder> {
         val event = UpsertOrderEvent.apply(log)

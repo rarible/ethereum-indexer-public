@@ -2,8 +2,6 @@ package com.rarible.protocol.order.core.repository.exchange
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.ActivitySort
@@ -48,7 +46,6 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 import java.util.Date
 
-@CaptureSpan(type = SpanType.DB)
 @Component
 class ExchangeHistoryRepository(
     private val template: ReactiveMongoTemplate

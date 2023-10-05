@@ -3,8 +3,6 @@ package com.rarible.protocol.order.core.service
 import com.rarible.blockchain.scanner.ethereum.model.EthereumBlockStatus
 import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -61,7 +59,6 @@ import scalether.domain.Address
 import java.time.Instant
 
 @Component
-@CaptureSpan(type = SpanType.APP)
 class OrderReduceService(
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val poolHistoryRepository: PoolHistoryRepository,

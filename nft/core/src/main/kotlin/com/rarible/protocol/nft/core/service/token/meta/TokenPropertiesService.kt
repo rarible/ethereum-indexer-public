@@ -1,9 +1,7 @@
 package com.rarible.protocol.nft.core.service.token.meta
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
-import com.rarible.protocol.nft.core.service.item.meta.TOKEN_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.TokenPropertiesResolver
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -14,7 +12,6 @@ import scalether.domain.Address
 import java.util.concurrent.atomic.AtomicReference
 
 @Component
-@CaptureSpan(type = TOKEN_META_CAPTURE_SPAN_TYPE)
 class TokenPropertiesService(
     resolvers: List<TokenPropertiesResolver>,
     private val tokenRepository: TokenRepository,

@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswap
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NewPairEvent
@@ -13,6 +11,8 @@ import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
 import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import org.springframework.stereotype.Service
@@ -22,22 +22,27 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 @EnableSudoSwap
 class SudoSwapCreatePairDescriptor(
     private val contractsProvider: ContractsProvider,
     private val sudoSwapEventConverter: SudoSwapEventConverter,
-    private val sudoSwapCreatePairEventCounter: RegisteredCounter
+    private val sudoSwapCreatePairEventCounter: RegisteredCounter,
+    private val sudoSwapLoad: SudoSwapLoadProperties,
+    autoReduceService: AutoReduceService,
 ) : PoolSubscriber<PoolCreate>(
     name = "sudo_new_pair",
     topic = NewPairEvent.id(),
-    contracts = contractsProvider.pairFactoryV1()
+    contracts = contractsProvider.pairFactoryV1(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolCreate> {
         val event = NewPairEvent.apply(log)
         val details = sudoSwapEventConverter.getCreatePairDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
+        }
+        if (details.nft in sudoSwapLoad.ignoreCollections) {
+            return emptyList()
         }
         val (currency, balance) = when (details) {
             is SudoSwapEthPairDetail ->

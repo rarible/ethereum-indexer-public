@@ -99,7 +99,8 @@ class TokenService(
             symbol = fetched.symbol,
             features = fetched.features,
             standard = fetched.standard,
-            owner = fetched.owner
+            owner = fetched.owner,
+            scam = fetched.scam,
         )
 
         val result = saveToken(updatedToken)

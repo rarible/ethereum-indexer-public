@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
@@ -21,6 +19,7 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -36,16 +35,17 @@ import java.math.BigInteger
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkBoughtLogDescriptor(
     private val contractsProvider: ContractsProvider,
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
-    private val ethereum: MonoEthereum
+    private val ethereum: MonoEthereum,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderExchangeHistory>(
     name = "punk_bought",
     topic = PunkBoughtEvent.id(),
-    contracts = contractsProvider.cryptoPunks()
+    contracts = contractsProvider.cryptoPunks(),
+    autoReduceService = autoReduceService,
 ) {
     private val logger = LoggerFactory.getLogger(CryptoPunkBoughtLogDescriptor::class.java)
 

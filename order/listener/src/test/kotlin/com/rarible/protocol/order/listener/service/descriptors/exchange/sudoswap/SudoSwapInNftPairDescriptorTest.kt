@@ -18,6 +18,7 @@ import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
 import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -44,6 +45,7 @@ internal class SudoSwapInNftPairDescriptorTest {
     private val priceUpdateService = mockk<PriceUpdateService> {
         coEvery { getAssetUsdValue(any(), any(), any()) } returns BigDecimal.ONE
     }
+    private val autoReduceService = mockk<AutoReduceService>()
 
     private val descriptor = SudoSwapInNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
@@ -52,7 +54,8 @@ internal class SudoSwapInNftPairDescriptorTest {
         sudoSwapCurve = sudoSwapCurve,
         priceUpdateService = priceUpdateService,
         featureFlags = OrderIndexerProperties.FeatureFlags(),
-        sudoSwapLoad = sudoSwapLoad
+        sudoSwapLoad = sudoSwapLoad,
+        autoReduceService = autoReduceService,
     )
 
     @Test
@@ -76,9 +79,18 @@ internal class SudoSwapInNftPairDescriptorTest {
         )
         val orderHash = sudoSwapEventConverter.getPoolHash(log.address())
 
-        every { sudoSwapLoad.ignorePairs } returns emptySet()
+        every { sudoSwapLoad.ignoreCollections } returns emptySet()
         coEvery { sudoSwapPoolInfoProvider.getPollInfo(orderHash, log.address()) } returns poolInfo
-        coEvery { sudoSwapCurve.getSellOutputValues(poolInfo.curve, poolInfo.spotPrice, poolInfo.delta, 1, poolInfo.fee, poolInfo.protocolFee) } returns listOf(purchaseValue)
+        coEvery {
+            sudoSwapCurve.getSellOutputValues(
+                poolInfo.curve,
+                poolInfo.spotPrice,
+                poolInfo.delta,
+                1,
+                poolInfo.fee,
+                poolInfo.protocolFee
+            )
+        } returns listOf(purchaseValue)
 
         val ethBlock = EthereumBlockchainBlock(
             number = 1,
@@ -112,10 +124,35 @@ internal class SudoSwapInNftPairDescriptorTest {
     }
 
     @Test
-    fun `convert - ignore pair`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction>()
-        val log = log()
-        every { sudoSwapLoad.ignorePairs } returns setOf(log.address())
+    fun `convert - ignore collection`() = runBlocking<Unit> {
+        val transaction = mockk<Transaction> {
+            every { hash() } returns Word.apply(randomWord())
+            every { from() } returns randomAddress()
+            every { to() } returns randomAddress()
+            every { input() } returns Binary.apply("0xb1d3f1c100000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000046e9ab8cad0c0c00000000000000000000000003cb23ccc26a1870eb9e79b7a061907bdaef4f7d60000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000001841")
+            every { value() } returns BigInteger.ZERO
+        }
+        val log = log(
+            listOf(
+                Word.apply("0x3614eb567740a0ee3897c0e2b11ad6a5720d2e4438f9c8accf6c95c24af3a470")
+            ),
+            ""
+        )
+        val orderHash = sudoSwapEventConverter.getPoolHash(log.address())
+        val poolInfo = randomPoolInfo().copy(collection = Address.ONE())
+        coEvery { sudoSwapPoolInfoProvider.getPollInfo(orderHash, log.address()) } returns poolInfo
+        every { sudoSwapLoad.ignoreCollections } returns setOf(Address.ONE())
+        val purchaseValue = randomSudoSwapPurchaseValue()
+        coEvery {
+            sudoSwapCurve.getSellOutputValues(
+                poolInfo.curve,
+                poolInfo.spotPrice,
+                poolInfo.delta,
+                1,
+                poolInfo.fee,
+                poolInfo.protocolFee
+            )
+        } returns listOf(purchaseValue)
 
         val ethBlock = EthereumBlockchainBlock(
             number = 1,

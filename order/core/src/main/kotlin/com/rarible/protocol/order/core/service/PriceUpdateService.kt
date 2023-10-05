@@ -23,7 +23,6 @@ import java.math.BigInteger
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EXT)
 @Suppress("SpringJavaInjectionPointsAutowiringInspection")
 class PriceUpdateService(
     private val blockchain: Blockchain,
@@ -159,6 +158,7 @@ class PriceUpdateService(
             Blockchain.POLYGON -> BlockchainDto.POLYGON
             Blockchain.OPTIMISM -> BlockchainDto.OPTIMISM
             Blockchain.MANTLE -> BlockchainDto.MANTLE
+            Blockchain.HEDERA -> BlockchainDto.POLYGON
         }
     }
 }

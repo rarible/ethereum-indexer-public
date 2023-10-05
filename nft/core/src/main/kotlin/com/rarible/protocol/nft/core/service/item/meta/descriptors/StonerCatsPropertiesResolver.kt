@@ -1,18 +1,15 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
-import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class StonerCatsPropertiesResolver(
     private val urlService: UrlService,
     private val raribleResolver: RariblePropertiesResolver,

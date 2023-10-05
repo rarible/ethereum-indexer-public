@@ -1,26 +1,26 @@
 package com.rarible.protocol.order.listener.service.descriptors.approval
 
 import com.rarible.contracts.erc721.ApprovalForAllEvent
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.contracts.ApprovalForAllByTopicsEvent
 import com.rarible.protocol.contracts.ApprovalForAllEventWithFullData
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.service.approve.ApproveService
 import com.rarible.protocol.order.listener.service.descriptors.ApprovalSubscriber
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class ApprovalForAllDescriptor(
-    private val approveService: ApproveService
+    private val approveService: ApproveService,
+    autoReduceService: AutoReduceService,
 ) : ApprovalSubscriber(
     name = "approval",
     topic = ApprovalForAllEvent.id(),
-    contracts = emptyList()
+    contracts = emptyList(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(
         log: Log,

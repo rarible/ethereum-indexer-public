@@ -9,6 +9,7 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.protocol.order.core.data.log
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.listener.service.blur.BlurEventConverter
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.HistorySubscriber
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
@@ -23,6 +24,7 @@ abstract class AbstractBlurDescriptorTest {
         every { blurV1() } returns listOf(randomAddress())
     }
     protected val blurEventConverter = mockk<BlurEventConverter>()
+    protected val autoReduceService = mockk<AutoReduceService>()
 
     protected suspend fun <T : EventData> checkConversion(
         subscriber: HistorySubscriber<T>,

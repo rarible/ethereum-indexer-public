@@ -1,0 +1,38 @@
+global:
+  network: testnet
+  environments: &sharedEnv
+    KAFKA_HOSTS: "PLAINTEXT://staging-kafka1.rarible.int.:9092,staging-kafka2.rarible.int.:9092,staging-kafka3.rarible.int.:9092"
+    MONGODB_HOSTS: "staging-mongo1.rarible.int.,staging-mongo2.rarible.int.,staging-mongo3.rarible.int."
+
+  ########### Erc20 Indexer environments
+  erc20Environments: &erc20Env
+    <<: *sharedEnv
+    MONGODB_DATABASE: "testnet-protocol-hedera-erc20"
+
+  nftEnvironments: &nftEnv
+    <<: *sharedEnv
+    COMMON_BASEPUBLICAPIURL: "https://testnet-hedera-api.rarible.org/v0.1/nft"
+    COMMON_OPENSEALAZYMINTADDRESS: "0x0000000000000000000000000000000000000000"
+    MONGODB_DATABASE: "testnet-protocol-hedera-nft"
+    REDIS_URI: redis://redis
+
+hedera-nft-api:
+  resources:
+    jvm:
+      max_direct_memory_megabytes: 128
+  environments:
+    <<: *nftEnv
+
+hedera-nft-listener:
+  livenessProbe:
+    initialDelaySeconds: 360
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 512
+  environments:
+    <<: *nftEnv
+
+hedera-nft-migration:
+  environments:
+    <<: *nftEnv

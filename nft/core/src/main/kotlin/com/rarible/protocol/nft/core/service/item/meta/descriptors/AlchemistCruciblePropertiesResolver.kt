@@ -1,10 +1,8 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
-import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
@@ -12,7 +10,6 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class AlchemistCruciblePropertiesResolver(
     private val urlService: UrlService,
     private val rawPropertiesProvider: RawPropertiesProvider

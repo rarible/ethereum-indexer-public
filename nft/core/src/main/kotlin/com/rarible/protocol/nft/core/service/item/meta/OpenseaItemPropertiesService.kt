@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Service
 import scalether.domain.Address
 
 @Service
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class OpenseaItemPropertiesService(
     private val itemPropertiesResolverProvider: ItemPropertiesResolverProvider,
     nftIndexerProperties: NftIndexerProperties

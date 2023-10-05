@@ -6,5 +6,5 @@ import com.rarible.protocol.nft.listener.service.descriptors.erc721.TokenUriReve
 import org.springframework.stereotype.Component
 
 @Component
-class TokenUriRevealLogSubscriber(descriptor: TokenUriRevealLogDescriptor) :
-    AbstractItemLogEventSubscriber<TokenUriReveal>(SubscriberGroups.TOKEN_REVEAL, descriptor)
+class TokenUriRevealLogSubscriber(descriptor: TokenUriRevealLogDescriptor, autoReduceService: AutoReduceService) :
+    AbstractItemLogEventSubscriber<TokenUriReveal>(SubscriberGroups.TOKEN_REVEAL, descriptor, autoReduceService)

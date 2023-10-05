@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswap
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SwapNFTOutPairEvent
@@ -14,6 +12,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.curve.PoolCurve
 import com.rarible.protocol.order.core.service.pool.PoolInfoProvider
 import com.rarible.protocol.order.listener.configuration.SudoSwapLoadProperties
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.PoolSubscriber
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
@@ -25,7 +24,6 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 @EnableSudoSwap
 class SudoSwapOutNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
@@ -36,25 +34,36 @@ class SudoSwapOutNftPairDescriptor(
     private val poolCurve: PoolCurve,
     private val priceUpdateService: PriceUpdateService,
     private val sudoSwapLoad: SudoSwapLoadProperties,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
+    autoReduceService: AutoReduceService,
 ) : PoolSubscriber<PoolTargetNftOut>(
     name = "sudo_nft_out_pair",
     topic = SwapNFTOutPairEvent.id(),
-    contracts = emptyList()
+    contracts = emptyList(),
+    autoReduceService = autoReduceService,
 ) {
-    override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<PoolTargetNftOut> {
+    override suspend fun convert(
+        log: Log,
+        transaction: Transaction,
+        timestamp: Instant,
+        index: Int,
+        totalLogs: Int
+    ): List<PoolTargetNftOut> {
         logger.info("log=$log, transaction=$transaction, index=$index, totalLogs=$totalLogs")
-        if (log.address() in sudoSwapLoad.ignorePairs) {
-            return emptyList()
-        }
         val details = sudoSwapEventConverter.getSwapOutNftDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
         }
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
         val poolInfo = sudoSwapPoolInfoProvider.getPollInfo(hash, log.address()) ?: run {
-            if (featureFlags.getPoolInfoFromChain) throw IllegalStateException("Can't get pool ${log.address()} info")
-            else return emptyList()
+            if (featureFlags.getPoolInfoFromChain) {
+                throw IllegalStateException("Can't get pool ${log.address()} info")
+            } else {
+                return emptyList()
+            }
+        }
+        if (poolInfo.collection in sudoSwapLoad.ignoreCollections) {
+            return emptyList()
         }
         val tokenIds = when (details) {
             is SudoSwapAnyOutNftDetail -> {

@@ -81,7 +81,7 @@ class ExchangeBuyDescriptorIt : AbstractIntegrationTest() {
             MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
         )
 
-        val token = TestERC1155.deployAndWait(owner, poller, "ipfs:/").block()!!
+        val token = TestERC1155.deployAndWait(owner, poller).block()!!
         val tokenId = BigInteger.ONE
 
         val buyToken = TestERC20.deployAndWait(sender, poller, "TEST", "TST").block()!!
@@ -122,7 +122,7 @@ class ExchangeBuyDescriptorIt : AbstractIntegrationTest() {
         orderIndexerProperties.operatorPrivateKey = Binary.apply(buyerFeeSignerPrivateKey.toByteArray())
 
         val ownerHas = BigInteger.TEN
-        token.mint(owner.from(), tokenId, ownerHas, ByteArray(0)).execute().verifySuccess()
+        token.mint(owner.from(), tokenId, ownerHas).execute().verifySuccess()
 
         val buyerHas = 20.toBigInteger()
         buyToken.mint(buyer.from(), buyerHas).withSender(buyer).execute().verifySuccess()

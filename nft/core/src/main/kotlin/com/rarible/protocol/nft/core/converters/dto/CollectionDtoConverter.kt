@@ -22,7 +22,8 @@ object CollectionDtoConverter {
                 features = token.features.map { CollectionFeatureDtoConverter.convert(it) },
                 supportsLazyMint = token.features.contains(TokenFeature.MINT_AND_TRANSFER),
                 minters = if (token.isRaribleContract) listOfNotNull(token.owner) else emptyList(),
-                isRaribleContract = token.isRaribleContract
+                isRaribleContract = token.isRaribleContract,
+                scam = token.scam,
             )
         } catch (e: Throwable) {
             logger.error("Failed to convert collection [{}]: {}", token.id, e.message)

@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.listener.service.descriptors.creators
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.creators.CreatorsEvent
 import com.rarible.protocol.contracts.creators.CreatorsIndexedEvent
@@ -19,7 +17,6 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Component
-@CaptureSpan(type = SpanType.EVENT)
 class CreatorsLogDescriptor(
     properties: NftListenerProperties
 ) : ItemHistoryLogEventDescriptor<ItemCreators> {

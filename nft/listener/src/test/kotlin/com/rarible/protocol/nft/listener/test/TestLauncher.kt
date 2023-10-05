@@ -37,7 +37,8 @@ class TestLauncher(
                 hash = currentEthBlock.blockHash.prefixed(),
                 parentHash = currentEthBlock.parentHash()?.prefixed(),
                 timestamp = currentEthBlock.timestamp().toLong(),
-                status = BlockStatus.SUCCESS
+                status = BlockStatus.SUCCESS,
+                errors = emptyList()
             )
         )
     }

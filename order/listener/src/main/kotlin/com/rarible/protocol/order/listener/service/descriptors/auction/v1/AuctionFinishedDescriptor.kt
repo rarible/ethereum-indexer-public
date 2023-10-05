@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.Auction
 import com.rarible.protocol.order.core.model.AuctionFinished
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
@@ -16,10 +17,12 @@ import java.time.Instant
 @EnableAuction
 class AuctionFinishedDescriptor(
     contractsProvider: ContractsProvider,
+    autoReduceService: AutoReduceService,
 ) : AbstractAuctionDescriptor<AuctionFinished>(
     name = "auction_finished",
     topic = AuctionFinishedEvent.id(),
-    contractsProvider = contractsProvider
+    contractsProvider = contractsProvider,
+    autoReduceService = autoReduceService,
 ) {
 
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<AuctionFinished> {

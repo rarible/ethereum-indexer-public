@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.order
 
-import com.rarible.core.apm.withTransaction
 import com.rarible.core.daemon.job.JobHandler
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.order.core.event.OrderListener
@@ -26,9 +25,7 @@ class OrderStartEndCheckerHandler(
     private val logger: Logger = LoggerFactory.getLogger(OrderStartEndCheckerHandler::class.java)
 
     override suspend fun handle() {
-        withTransaction("order_status") {
-            update(Instant.now())
-        }
+        update(Instant.now())
     }
 
     internal suspend fun update(now: Instant) {

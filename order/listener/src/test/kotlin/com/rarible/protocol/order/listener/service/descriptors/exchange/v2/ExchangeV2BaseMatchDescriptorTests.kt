@@ -83,7 +83,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
         token1155
-            .mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value, ByteArray(0))
+            .mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value,)
             .execute().verifySuccess()
         token2
             .mint(userSender2.from(), sellOrder.take.value.value)
@@ -213,7 +213,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
 
-        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value, ByteArray(0))
+        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value)
             .execute().verifySuccess()
         token2.mint(userSender2.from(), sellOrder.take.value.value)
             .execute().verifySuccess()
@@ -450,7 +450,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
 
-        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value, ByteArray(0))
+        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value)
             .execute().verifySuccess()
         token2.mint(userSender2.from(), sellOrder.take.value.value)
             .execute().verifySuccess()
@@ -578,7 +578,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
 
-        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value, ByteArray(0))
+        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value)
             .execute().verifySuccess()
         token2.mint(userSender2.from(), sellOrder.take.value.value)
             .execute().verifySuccess()
@@ -677,7 +677,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
 
         token1.mint(userSender1.from(), bidOrder.make.value.value)
             .execute().verifySuccess()
-        token1155.mint(userSender2.from(), EthUInt256.ONE.value, EthUInt256.TEN.value, ByteArray(0))
+        token1155.mint(userSender2.from(), EthUInt256.ONE.value, EthUInt256.TEN.value)
             .execute().verifySuccess()
 
         val signature = eip712Domain.hashToSign(Order.hash(bidOrder)).sign(privateKey1)
@@ -919,7 +919,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
 
-        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value, ByteArray(0))
+        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value)
             .execute().verifySuccess()
         token2.mint(userSender2.from(), sellOrder.take.value.value)
             .execute().verifySuccess()
@@ -1040,7 +1040,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
 
-        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value, ByteArray(0))
+        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value)
             .execute().verifySuccess()
         token2.mint(userSender2.from(), sellOrder.take.value.value)
             .execute().verifySuccess()
@@ -1161,7 +1161,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
 
         token1.mint(userSender1.from(), bidOrder.make.value.value)
             .execute().verifySuccess()
-        token1155.mint(userSender2.from(), EthUInt256.ONE.value, EthUInt256.TEN.value, ByteArray(0))
+        token1155.mint(userSender2.from(), EthUInt256.ONE.value, EthUInt256.TEN.value)
             .execute().verifySuccess()
 
         val signature = hashToSign(Order.hash(bidOrder)).sign(privateKey1)

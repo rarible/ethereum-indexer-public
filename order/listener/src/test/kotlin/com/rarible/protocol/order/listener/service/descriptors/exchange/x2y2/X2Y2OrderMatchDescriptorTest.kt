@@ -18,6 +18,7 @@ import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
 import com.rarible.protocol.order.listener.misc.convert
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -51,10 +52,12 @@ class X2Y2OrderMatchDescriptorTest {
     private val metrics = mockk<ForeignOrderMetrics> {
         every { onOrderEventHandled(Platform.X2Y2, "match") } returns Unit
     }
+    private val autoReduceService = mockk<AutoReduceService>()
     private val descriptor = X2Y2SellOrderMatchDescriptor(
         contractsProvider,
         converter,
-        metrics
+        metrics,
+        autoReduceService,
     )
 
     @ParameterizedTest

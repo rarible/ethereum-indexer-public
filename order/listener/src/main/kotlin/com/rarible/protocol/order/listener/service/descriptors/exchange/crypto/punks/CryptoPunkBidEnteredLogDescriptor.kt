@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBidEnteredEvent
@@ -20,6 +18,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.ContractsProvider
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Service
@@ -30,15 +29,16 @@ import java.math.BigInteger
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkBidEnteredLogDescriptor(
     contractsProvider: ContractsProvider,
     private val priceUpdateService: PriceUpdateService,
-    private val exchangeHistoryRepository: ExchangeHistoryRepository
+    private val exchangeHistoryRepository: ExchangeHistoryRepository,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderExchangeHistory>(
     name = "punk_bid_entered",
     topic = PunkBidEnteredEvent.id(),
-    contracts = contractsProvider.cryptoPunks()
+    contracts = contractsProvider.cryptoPunks(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(log: Log, transaction: Transaction, timestamp: Instant, index: Int, totalLogs: Int): List<OrderExchangeHistory> {
         val punkBidEnteredEvent = PunkBidEnteredEvent.apply(log)

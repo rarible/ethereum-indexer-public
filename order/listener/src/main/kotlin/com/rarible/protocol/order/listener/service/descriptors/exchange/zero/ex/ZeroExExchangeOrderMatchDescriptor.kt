@@ -1,10 +1,9 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.zero.ex
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.contracts.exchange.zero.ex.FillEvent
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.service.ContractsProvider
+import com.rarible.protocol.order.listener.service.descriptors.AutoReduceService
 import com.rarible.protocol.order.listener.service.descriptors.ExchangeSubscriber
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderEventConverter
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderParser
@@ -15,15 +14,16 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class ZeroExExchangeOrderMatchDescriptor(
     contractsProvider: ContractsProvider,
     private val zeroExOrderEventConverter: ZeroExOrderEventConverter,
-    private val zeroExOrderParser: ZeroExOrderParser
+    private val zeroExOrderParser: ZeroExOrderParser,
+    autoReduceService: AutoReduceService,
 ) : ExchangeSubscriber<OrderSideMatch>(
     name = "0x_fill",
     topic = FillEvent.id(),
-    contracts = contractsProvider.zeroEx()
+    contracts = contractsProvider.zeroEx(),
+    autoReduceService = autoReduceService,
 ) {
     override suspend fun convert(
         log: Log,

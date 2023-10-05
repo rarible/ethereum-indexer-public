@@ -1,8 +1,6 @@
 package com.rarible.protocol.nft.listener.service.descriptors.erc1155
 
 import com.rarible.contracts.erc1155.TransferBatchEvent
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.erc1155.TransferBatchEventWithFullData
 import com.rarible.protocol.nft.core.model.ItemTransfer
@@ -24,7 +22,6 @@ import java.math.BigInteger
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = SpanType.EVENT)
 class ERC1155TransferBatchLogDescriptor(
     private val tokenService: TokenService,
     ignoredTokenResolver: IgnoredTokenResolver,
