@@ -75,8 +75,6 @@ common:
     weth: "0x0000000000000000000000000000000000000000"
   operatorPrivateKey: "0x0000000000000000000000000000000000000000000000000000000000000000"
   protocolCommission: 0
-  feature-flags:
-    scanner-version: V2
 
 listener:
   updateAuctionOngoingState: PT1M

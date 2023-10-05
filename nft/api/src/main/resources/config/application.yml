@@ -56,9 +56,6 @@ common:
     ipfsGateway: "https://ipfs.io"
     ipfsPublicGateway: "https://ipfs.io"
     ipfsLazyGateway: "https://nftstorage.link"
-  feature-flags:
-    scanner-version: V2
-    reduce-version: V2
 
 blockchain:
   scanner:

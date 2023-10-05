@@ -47,9 +47,6 @@ common:
   metric-root-path: "protocol.nft.indexer"
   cryptoPunksContractAddress: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
   ensDomainsContractAddress: "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85"
-  feature-flags:
-    scanner-version: V2
-    reduce-version: V2
   itemMeta:
     maxNameLength: 1000
     maxDescriptionLength: 10000

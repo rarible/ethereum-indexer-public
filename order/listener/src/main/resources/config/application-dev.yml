@@ -8,7 +8,6 @@ common:
   feature-flags:
     showSudoSwapOrdersWithOtherPlatforms: true
     skipEventsIfNoTraceFound: true
-    scanner-version: V2
   publish:
     publishAmmOrders: true
 rarible:

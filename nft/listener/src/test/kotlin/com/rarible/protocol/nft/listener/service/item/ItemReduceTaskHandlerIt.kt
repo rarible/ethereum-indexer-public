@@ -10,7 +10,6 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
-import com.rarible.protocol.nft.core.model.ScannerVersion
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.test.IntegrationTest
 import io.daonomic.rpc.domain.Word
@@ -38,11 +37,6 @@ internal class ItemReduceTaskHandlerIt : AbstractIntegrationTest() {
 
     @Test
     fun `should make reduce all items`() = runBlocking<Unit> {
-        when (featureFlags.scannerVersion) {
-            ScannerVersion.V2 -> {
-                assertThat(itemReduceTaskHandler.isAbleToRun("")).isTrue()
-            }
-        }
         val log1 = createMintLog(blockNumber = 1)
         val mint1 = log1.data as ItemTransfer
 
@@ -63,11 +57,6 @@ internal class ItemReduceTaskHandlerIt : AbstractIntegrationTest() {
 
     @Test
     fun `should make reduce target token`() = runBlocking<Unit> {
-        when (featureFlags.scannerVersion) {
-            ScannerVersion.V2 -> {
-                assertThat(itemReduceTaskHandler.isAbleToRun("")).isTrue()
-            }
-        }
         val token = Address.THREE()
         val log1 = createMintLog(token, blockNumber = 1)
         val mint1 = log1.data as ItemTransfer

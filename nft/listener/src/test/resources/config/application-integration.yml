@@ -42,8 +42,6 @@ common:
   cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
   metricRootPath: "nft-metrics"
   feature-flags:
-    scanner-version: V2
-    reduce-version: V2
     validate-creator-by-transaction-sender: true
   reduceProperties:
     skipOwnerships: true
