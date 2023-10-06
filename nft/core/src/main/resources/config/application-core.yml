@@ -45,6 +45,7 @@ rarible:
     useLocks: true
 
 common:
+  kafkaReplicaSet: ${kafka.hosts}
   metricRootPath: "protocol.nft.indexer"
   cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
   ensDomainsContractAddress: "0x0000000000000000000000000000000000000000"
