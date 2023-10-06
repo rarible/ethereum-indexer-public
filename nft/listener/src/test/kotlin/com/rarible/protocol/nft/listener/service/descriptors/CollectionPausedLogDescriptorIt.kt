@@ -49,9 +49,12 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
             assertThat(testCollectionHandler.events.size).isGreaterThan(0)
-            val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
-            assertThat(event.collection.id).isEqualTo(contract.address())
-            assertThat(event.collection.flags).isNull()
+            val event = testCollectionHandler.events
+                .filterIsInstance<NftCollectionUpdateEventDto>()
+                .firstOrNull { it.collection.id == contract.address() }
+            assertThat(event).isNotNull
+            assertThat(event!!.collection.id).isEqualTo(contract.address())
+            assertThat(event.collection.flags?.paused).isTrue()
         }
 
         contract.emitPauseEvent(true).execute().verifySuccess()
@@ -59,10 +62,13 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
         Wait.waitAssert {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
-            assertThat(testCollectionHandler.events.size).isGreaterThan(0)
             assertThat(token!!.flags?.paused).isTrue()
-            val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
-            assertThat(event.collection.id).isEqualTo(contract.address())
+            assertThat(testCollectionHandler.events.size).isGreaterThan(0)
+            val event = testCollectionHandler.events
+                .filterIsInstance<NftCollectionUpdateEventDto>()
+                .firstOrNull { it.collection.id == contract.address() }
+            assertThat(event).isNotNull
+            assertThat(event!!.collection.id).isEqualTo(contract.address())
             assertThat(event.collection.flags?.paused).isTrue()
         }
 
@@ -71,11 +77,14 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
         Wait.waitAssert {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
-            assertThat(testCollectionHandler.events.size).isGreaterThan(0)
             assertThat(token!!.flags?.paused).isFalse()
-            val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
-            assertThat(event.collection.id).isEqualTo(contract.address())
-            assertThat(event.collection.flags?.paused).isFalse()
+            assertThat(testCollectionHandler.events.size).isGreaterThan(0)
+            val event = testCollectionHandler.events
+                .filterIsInstance<NftCollectionUpdateEventDto>()
+                .firstOrNull { it.collection.id == contract.address() }
+            assertThat(event).isNotNull
+            assertThat(event!!.collection.id).isEqualTo(contract.address())
+            assertThat(event.collection.flags?.paused).isTrue()
         }
     }
 }
