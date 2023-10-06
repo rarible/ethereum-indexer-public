@@ -2,9 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.EventTimeMarks
 import com.rarible.core.common.asyncWithTraceId
-import com.rarible.protocol.dto.EthCollectionFlagDto
 import com.rarible.protocol.dto.NftCollectionDto
-import com.rarible.protocol.dto.NftCollectionFlagDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.dto.toModel
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -43,10 +41,7 @@ class OrderCollectionService(
         eventTimeMarks: EventTimeMarks
     ) {
         if (featureFlags.ignoreTokenPause) return
-        val paused = collection.flags
-            ?.firstOrNull { it.flag == EthCollectionFlagDto.Flag.PAUSED }
-            ?.value?.toBooleanStrict() ?: false
-        if (!paused) return
+        if (collection.flags?.paused == false) return
         val start = System.currentTimeMillis()
         val toCancel = orderRepository.findNonTerminateOrdersByToken(collection.id)
             .take(ORDER_TO_CANCEL_MAX_COUNT).map { it.hash }.toList()

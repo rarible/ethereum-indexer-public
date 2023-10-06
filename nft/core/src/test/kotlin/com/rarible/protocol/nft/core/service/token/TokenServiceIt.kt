@@ -80,7 +80,7 @@ class TokenServiceIt : AbstractIntegrationTest() {
                     NftCollectionDto.Features.SET_URI_PREFIX,
                     NftCollectionDto.Features.BURN
                 ),
-                flags = emptyList(),
+                flags = null,
                 isRaribleContract = true,
                 minters = listOf(owner),
             )
@@ -241,7 +241,7 @@ class TokenServiceIt : AbstractIntegrationTest() {
                     NftCollectionDto.Features.BURN,
                     NftCollectionDto.Features.MINT_AND_TRANSFER
                 ),
-                flags = emptyList(),
+                flags = null,
                 isRaribleContract = false,
                 minters = emptyList(),
             )

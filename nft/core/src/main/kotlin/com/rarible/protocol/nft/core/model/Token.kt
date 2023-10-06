@@ -18,7 +18,7 @@ data class Token(
     val symbol: String? = null,
     val status: ContractStatus = ContractStatus.CONFIRMED,
     val features: Set<TokenFeature> = emptySet(),
-    val flags: Map<TokenFlag, String> = emptyMap(),
+    val flags: TokenFlags? = null,
     val dbUpdatedAt: Instant? = null, // TODO Can't be null after migration
 
     val lastEventId: String? = null,

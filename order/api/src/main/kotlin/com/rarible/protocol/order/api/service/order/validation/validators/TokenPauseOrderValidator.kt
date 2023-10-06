@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.api.service.order.validation.validators
 
-import com.rarible.protocol.dto.NftCollectionFlagDto
 import com.rarible.protocol.order.api.form.OrderForm
 import com.rarible.protocol.order.api.service.order.validation.OrderFormValidator
 import com.rarible.protocol.order.core.exception.ValidationApiException
@@ -21,10 +20,7 @@ class TokenPauseOrderValidator(
             return
         }
         val collection = nftCollectionApiService.getNftCollectionById(token) ?: return
-        val paused = collection.flags.orEmpty()
-            .firstOrNull { it.flag == NftCollectionFlagDto.Flag.PAUSED }
-            ?.value?.toBoolean() ?: false
-        if (paused) {
+        if (collection.flags?.paused == true) {
             throw ValidationApiException("Collection $token is paused")
         }
     }

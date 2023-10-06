@@ -20,7 +20,7 @@ object CollectionDtoConverter {
                 name = token.name,
                 symbol = token.symbol,
                 features = token.features.map { CollectionFeatureDtoConverter.convert(it) },
-                flags = CollectionFlagDtoConverter.convert(token.flags),
+                flags = token.flags?.let { CollectionFlagDtoConverter.convert(it) },
                 supportsLazyMint = token.features.contains(TokenFeature.MINT_AND_TRANSFER),
                 minters = if (token.isRaribleContract) listOfNotNull(token.owner) else emptyList(),
                 isRaribleContract = token.isRaribleContract,

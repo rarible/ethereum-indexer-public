@@ -3,12 +3,9 @@ package com.rarible.protocol.nft.listener.service.descriptors
 import com.rarible.contracts.test.erc1155.TestERC1155
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.EthCollectionFlagDto
 import com.rarible.protocol.dto.NftCollectionEventDto
-import com.rarible.protocol.dto.NftCollectionFlagDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.TokenFlag
 import com.rarible.protocol.nft.core.test.TestKafkaHandler
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.test.IntegrationTest
@@ -53,7 +50,7 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
             assertThat(token).isNotNull
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
-            assertThat(event.collection.flags).isEmpty()
+            assertThat(event.collection.flags).isNull()
         }
 
         contract.emitPauseEvent(true).execute().verifySuccess()
@@ -61,11 +58,10 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
         Wait.waitAssert {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
-            assertThat(token!!.flags).containsEntry(TokenFlag.PAUSED, "true")
+            assertThat(token!!.flags?.paused).isTrue()
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
-            assertThat(event.collection.flags)
-                .contains(EthCollectionFlagDto(EthCollectionFlagDto.Flag.PAUSED, "true"))
+            assertThat(event.collection.flags?.paused).isTrue()
         }
 
         contract.emitPauseEvent(false).execute().verifySuccess()
@@ -73,11 +69,10 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
         Wait.waitAssert {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
-            assertThat(token!!.flags).containsEntry(TokenFlag.PAUSED, "false")
+            assertThat(token!!.flags?.paused).isFalse()
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
-            assertThat(event.collection.flags)
-                .contains(EthCollectionFlagDto(EthCollectionFlagDto.Flag.PAUSED, "false"))
+            assertThat(event.collection.flags?.paused).isFalse()
         }
     }
 }
