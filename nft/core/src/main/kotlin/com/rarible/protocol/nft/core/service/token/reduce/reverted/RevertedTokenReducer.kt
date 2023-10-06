@@ -4,6 +4,7 @@ import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenEvent
+import com.rarible.protocol.nft.core.model.TokenFlags
 import org.springframework.stereotype.Component
 
 @Component
@@ -20,7 +21,7 @@ class RevertedTokenReducer : Reducer<TokenEvent, Token> {
 
             is TokenEvent.TokenPauseEvent -> {
                 entity.copy(
-                    flags = entity.flags?.copy(paused = false)
+                    flags = entity.flags?.copy(paused = true) ?: TokenFlags(paused = true)
                 )
             }
         }
