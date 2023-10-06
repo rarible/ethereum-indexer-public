@@ -9,7 +9,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.test.TestKafkaHandler
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.test.IntegrationTest
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -23,7 +22,6 @@ import scalether.domain.Address
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
-import java.time.Duration
 
 @IntegrationTest
 class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
