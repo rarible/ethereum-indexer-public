@@ -13,6 +13,7 @@ enum class TokenFeature(val erc165: List<Binary> = emptyList()) {
     NOT_FOR_SALE(listOf(
         Binary.apply("0x0489b56f"), // eip-5484
         Binary.apply("0x0e89341c"), // eip-5516
-        Binary.apply("0x911ec470")) // eip-5633
-    ),
+        Binary.apply("0x911ec470"), // eip-5633
+        Binary.apply("0xeb72bb7c") // eip-4973
+    )),
 }
