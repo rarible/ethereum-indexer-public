@@ -23,6 +23,7 @@ import scalether.domain.Address
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
+import java.time.Duration
 
 @IntegrationTest
 class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
@@ -76,7 +77,6 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
         }
 
         contract.emitPauseEvent(false).execute().verifySuccess()
-        delay(100)
 
         Wait.waitAssert {
             val token = tokenService.getToken(contract.address())
