@@ -48,6 +48,7 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
         Wait.waitAssert {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
+            assertThat(testCollectionHandler.events.size).isGreaterThan(0)
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
             assertThat(event.collection.flags).isNull()
@@ -58,6 +59,7 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
         Wait.waitAssert {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
+            assertThat(testCollectionHandler.events.size).isGreaterThan(0)
             assertThat(token!!.flags?.paused).isTrue()
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())
@@ -69,6 +71,7 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
         Wait.waitAssert {
             val token = tokenService.getToken(contract.address())
             assertThat(token).isNotNull
+            assertThat(testCollectionHandler.events.size).isGreaterThan(0)
             assertThat(token!!.flags?.paused).isFalse()
             val event = testCollectionHandler.events.remove() as NftCollectionUpdateEventDto
             assertThat(event.collection.id).isEqualTo(contract.address())

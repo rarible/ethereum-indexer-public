@@ -36,7 +36,7 @@ class ForwardTokenReducer : Reducer<TokenEvent, Token> {
 
             is TokenEvent.TokenPauseEvent -> {
                 entity.copy(
-                    flags = entity.flags?.copy(paused = true) ?: TokenFlags(paused = true)
+                    flags = entity.flags?.copy(paused = event.paused) ?: TokenFlags(paused = event.paused)
                 )
             }
         }
