@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.migration.mongock.mongo
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
+import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
@@ -32,6 +33,7 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
         @NonLockGuarded urlService: UrlService,
         @NonLockGuarded nftIndexerProperties: NftIndexerProperties
     ) = runBlocking<Unit> {
+        if (nftIndexerProperties.blockchain != Blockchain.ETHEREUM) return@runBlocking
         val address = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
         if (address == Address.ZERO()) return@runBlocking
         val url = urlService.resolvePublicHttpUrl("QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD")

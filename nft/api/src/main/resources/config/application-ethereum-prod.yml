@@ -2,3 +2,8 @@ spring:
   data:
     mongodb:
       uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
+
+api:
+  chainId: 1
+  metaSyncLoadingTimeout: 30000
+

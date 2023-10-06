@@ -50,4 +50,4 @@ blockchain:
   scanner:
     ethereum:
       monitoring:
-        rootPath: ${common.metric-root-path}
+        rootPath: ${common.metricRootPath}

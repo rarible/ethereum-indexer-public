@@ -1,4 +1,0 @@
-blockchain:
-  scanner:
-    kafka:
-      numberOfPartitionsPerLogGroup: 48

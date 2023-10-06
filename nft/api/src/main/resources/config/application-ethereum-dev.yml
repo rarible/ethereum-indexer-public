@@ -1,7 +1,6 @@
 api:
-  chain-id: 3
+  chainId: 300500
+
 logging:
   level:
     org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
-common:
-  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"

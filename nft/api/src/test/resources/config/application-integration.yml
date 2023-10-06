@@ -1,26 +1,18 @@
-api:
-  metaSyncLoadingTimeout: 3000
-  operator:
-    privateKey: "0x0000000000000000000000000000000000000000000000000000000000000001"
-
 common:
   kafka-replica-set: ${kafka.hosts}
   basePublicApiUrl: "http://localhost:8080/"
-  blockchain: ethereum
-  cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
-  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
-  royaltyRegistryAddress: "0x0000000000000000000000000000000000000000"
   metricRootPath: "nft-metrics"
   reduceProperties:
     skipOwnerships: true
   feature-flags:
     pending-disabled: false
 
-ethereumBlockReindexEnabled: false
-pendingLogsProcessingEnabled: false
-reindexBlocksJobEnabled: false
+api:
+  metaSyncLoadingTimeout: 3000
+  operator:
+    privateKey: 1f8a9bb81a949f3c988218999deae5b6111f5858c080f952c9318a3fd12302ba
 
 blockchain:
   scanner:
     kafka:
-      broker-replica-set: ${kafka.hosts}
+      brokerReplicaSet: ${kafka.hosts}

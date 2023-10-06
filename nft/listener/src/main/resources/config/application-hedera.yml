@@ -1,6 +1,3 @@
-common:
-  blockchain: hedera
-
 rarible:
   ethereum:
     cache:

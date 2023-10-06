@@ -2,3 +2,9 @@ spring:
   data:
     mongodb:
       uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
+
+api:
+  chainId: 137
+  metaSyncLoadingTimeout: 10000
+  opensea:
+    url: https://api.opensea.io/api/v2

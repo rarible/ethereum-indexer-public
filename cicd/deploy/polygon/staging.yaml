@@ -11,6 +11,12 @@ global:
     <<: *sharedEnv
     MONGODB_DATABASE: "staging-protocol-polygon-erc20"
 
+  ########### Nft Indexer environments
+  nftEnvironments: &nftEnv
+    <<: *sharedEnv
+    MONGODB_DATABASE: "staging-protocol-polygon-nft"
+
+########### Erc20 Indexer services
 polygon-erc20-api:
   environments:
     <<: *erc20Env
@@ -25,7 +31,14 @@ polygon-erc20-migration:
   environments:
     <<: *erc20Env
 
+########### Nft Indexer services
+polygon-nft-api:
+  environments:
+    <<: *nftEnv
+
 polygon-nft-listener:
+  environments:
+    <<: *nftEnv
   livenessProbe:
     initialDelaySeconds: 360
   resources:
@@ -33,3 +46,6 @@ polygon-nft-listener:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 256
 
+polygon-nft-migration:
+  environments:
+    <<: *nftEnv

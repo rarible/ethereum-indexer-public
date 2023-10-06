@@ -21,7 +21,6 @@ data class NftListenerProperties(
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val enableCheckDataQualityJob: Boolean = false,
     var elementsFetchJobSize: Int = 1000,
-    val actionExecute: ActionExecuteProperties = ActionExecuteProperties(),
     val itemOwnershipConsistency: ItemOwnershipConsistencyProperties = ItemOwnershipConsistencyProperties(),
     val ownershipItemConsistency: OwnershipItemConsistencyProperties = OwnershipItemConsistencyProperties(),
     val inconsistentItemsRepair: InconsistentItemsRepairProperties = InconsistentItemsRepairProperties(),
@@ -30,15 +29,10 @@ data class NftListenerProperties(
     val fixStandardJob: FixStandardJobProperties = FixStandardJobProperties()
 )
 
-data class ActionExecuteProperties(
-    val enabled: Boolean = false,
-    val daemon: DaemonWorkerProperties = DaemonWorkerProperties()
-)
-
 data class ItemOwnershipConsistencyProperties(
     val autofix: Boolean = true,
     val checkTimeOffset: Duration = Duration.ofSeconds(30),
-    val parallelism: Int = 16,
+    val parallelism: Int = 4,
     val daemon: DaemonWorkerProperties = DaemonWorkerProperties(
         pollingPeriod = Duration.ofMinutes(1),
         errorDelay = Duration.ofMinutes(1),
@@ -56,19 +50,19 @@ data class OwnershipItemConsistencyProperties(
 )
 
 data class InconsistentItemsRepairProperties(
-    val parallelism: Int = 4,
+    val parallelism: Int = 1,
     val daemon: DaemonWorkerProperties = DaemonWorkerProperties(
         pollingPeriod = Duration.ofMinutes(1),
         errorDelay = Duration.ofMinutes(1),
     ),
-    val rateLimitMaxEntities: Int = 100,
+    val rateLimitMaxEntities: Int = 30,
     val rateLimitPeriod: Long = 10000,
 )
 
 data class UpdateSuspiciousItemsHandlerProperties(
     val enabled: Boolean = false,
-    val chunkSize: Int = 100,
-    val handlePeriod: Duration = Duration.ofDays(3),
+    val chunkSize: Int = 2,
+    val handlePeriod: Duration = Duration.ofDays(1),
     val awakePeriod: Duration = Duration.ofHours(1)
 )
 
@@ -79,9 +73,9 @@ data class OwnershipCheckerProperties(
 )
 
 data class FixStandardJobProperties(
-    val enabled: Boolean = false,
-    val batchSize: Int = 10,
+    val enabled: Boolean = true,
+    val batchSize: Int = 500,
     val reduceBatch: Int = 2,
-    val retries: Int = 5,
-    val reindexLimit: Int = 5 // Max number of reindex tasks
+    val retries: Int = 2,
+    val reindexLimit: Int = 2 // Max number of reindex tasks
 )

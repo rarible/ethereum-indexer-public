@@ -1,0 +1,5 @@
+listener:
+  skipContracts:
+    - "0x2741532ae23ee3a3c0c272b17f9a2fb69bc24388"
+    - "0xa8ad67ad3084566762d1d5e65e539871803b0b03"
+    - "0xb97fcf0c6d3498ebf19fdecaad0c622140b24d29"
