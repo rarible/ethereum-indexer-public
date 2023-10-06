@@ -54,6 +54,7 @@ data class OrderIndexerProperties(
     val poolEventHandle: PoolEventHandleProperties = PoolEventHandleProperties(),
     val looksrareLoad: LooksrareLoadProperties = LooksrareLoadProperties(),
     val compression: Compression = Compression.SNAPPY,
+    val batchHandle: BatchHandleProperties = BatchHandleProperties()
 ) {
     val minSeaportMakePrice = BigDecimal.valueOf(minSeaportMakeWeiPrice.toLong()) * BigDecimal.valueOf(1, 18)
 
@@ -184,4 +185,8 @@ data class LooksrareLoadProperties(
     val retryDelay: Duration = Duration.ofMillis(500),
     val pollingPeriod: Duration = Duration.ofSeconds(60),
     val errorDelay: Duration = Duration.ofSeconds(1)
+)
+
+data class BatchHandleProperties(
+    val countChangeBatchSize: Int = 200,
 )
