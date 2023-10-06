@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.test.TestKafkaHandler
 import com.rarible.protocol.nft.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.test.IntegrationTest
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -52,9 +53,10 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
             val event = testCollectionHandler.events
                 .filterIsInstance<NftCollectionUpdateEventDto>()
                 .firstOrNull { it.collection.id == contract.address() }
+            testCollectionHandler.events.remove(event)
             assertThat(event).isNotNull
             assertThat(event!!.collection.id).isEqualTo(contract.address())
-            assertThat(event.collection.flags?.paused).isTrue()
+            assertThat(event.collection.flags).isNull()
         }
 
         contract.emitPauseEvent(true).execute().verifySuccess()
@@ -67,12 +69,14 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
             val event = testCollectionHandler.events
                 .filterIsInstance<NftCollectionUpdateEventDto>()
                 .firstOrNull { it.collection.id == contract.address() }
+            testCollectionHandler.events.remove(event)
             assertThat(event).isNotNull
             assertThat(event!!.collection.id).isEqualTo(contract.address())
             assertThat(event.collection.flags?.paused).isTrue()
         }
 
         contract.emitPauseEvent(false).execute().verifySuccess()
+        delay(100)
 
         Wait.waitAssert {
             val token = tokenService.getToken(contract.address())
@@ -82,9 +86,10 @@ class CollectionPausedLogDescriptorIt : AbstractIntegrationTest() {
             val event = testCollectionHandler.events
                 .filterIsInstance<NftCollectionUpdateEventDto>()
                 .firstOrNull { it.collection.id == contract.address() }
+            testCollectionHandler.events.remove(event)
             assertThat(event).isNotNull
             assertThat(event!!.collection.id).isEqualTo(contract.address())
-            assertThat(event.collection.flags?.paused).isTrue()
+            assertThat(event.collection.flags?.paused).isFalse()
         }
     }
 }
