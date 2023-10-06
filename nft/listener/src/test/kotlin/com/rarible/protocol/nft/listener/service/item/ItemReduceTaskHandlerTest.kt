@@ -2,7 +2,6 @@ package com.rarible.protocol.nft.listener.service.item
 
 import com.rarible.core.task.TaskRepository
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import io.mockk.every
@@ -20,9 +19,7 @@ internal class ItemReduceTaskHandlerTest {
 
     private val taskRepository = mockk<TaskRepository>()
 
-    private val featureFlags = FeatureFlags()
-
-    private val itemReduceTaskHandler = ItemReduceTaskHandler(itemReduceService, taskRepository, featureFlags)
+    private val itemReduceTaskHandler = ItemReduceTaskHandler(itemReduceService, taskRepository)
 
     @Test
     fun `should parse old param`() {

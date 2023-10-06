@@ -6,11 +6,8 @@ import com.rarible.core.task.TaskRepository
 import com.rarible.core.task.TaskStatus
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
-import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemType
-import com.rarible.protocol.nft.core.model.ScannerVersion
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -24,16 +21,10 @@ import java.time.Duration
 class ItemReduceTaskHandler(
     private val itemReduceService: ItemReduceService,
     private val taskRepository: TaskRepository,
-    private val featureFlags: FeatureFlags
 ) : TaskHandler<ItemReduceState> {
 
     override val type: String
         get() = ITEM_REDUCE
-
-    override suspend fun isAbleToRun(param: String): Boolean {
-        return if (featureFlags.scannerVersion == ScannerVersion.V2) true
-        else verifyAllCompleted(ItemType.TRANSFER.topic + ItemType.ROYALTY.topic)
-    }
 
     override fun runLongTask(from: ItemReduceState?, param: String): Flow<ItemReduceState> {
         val (fromItemId, toItemId) = rangeItemId(from, param)

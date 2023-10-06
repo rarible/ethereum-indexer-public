@@ -3,10 +3,8 @@ global:
   environments: &sharedEnv
     KAFKA_HOSTS: "PLAINTEXT://kafka1.rarible.int.:9092,kafka2.rarible.int.:9092,kafka3.rarible.int.:9092"
     MONGODB_HOSTS: "mongo-ethereum1.rarible.int.,mongo-ethereum2.rarible.int.,mongo-ethereum3.rarible.int."
-    RARIBLE_ETHEREUM_NODES_0_HTTPURL: "http://mainnet-node-0.mainnet-node.ethereum-node.svc.cluster.local.:8545"
-    RARIBLE_ETHEREUM_NODES_0_WEBSOCKETURL: "ws://mainnet-node-0.mainnet-node.ethereum-node.svc.cluster.local.:8546"
-    RARIBLE_ETHEREUM_NODES_1_HTTPURL: "http://mainnet-node-1.mainnet-node.ethereum-node.svc.cluster.local.:8545"
-    RARIBLE_ETHEREUM_NODES_1_WEBSOCKETURL: "ws://mainnet-node-1.mainnet-node.ethereum-node.svc.cluster.local.:8546"
+    RARIBLE_ETHEREUM_NODES_0_HTTPURL: "https://eth17097.allnodes.me:8545"
+    RARIBLE_ETHEREUM_NODES_0_WEBSOCKETURL: "wss://eth17097.allnodes.me:8546"
 
   ########### Erc20 Indexer environments
   erc20Environments: &erc20Env

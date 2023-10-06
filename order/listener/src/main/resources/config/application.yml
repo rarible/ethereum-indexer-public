@@ -75,21 +75,12 @@ common:
     weth: "0x0000000000000000000000000000000000000000"
   operatorPrivateKey: "0x0000000000000000000000000000000000000000000000000000000000000000"
   protocolCommission: 0
-  feature-flags:
-    scanner-version: V2
 
 listener:
   updateAuctionOngoingState: PT1M
   updateAuctionOngoingStateEnabled: false
   updateAuctionOngoingStateEndLag: PT5M
   openSeaEndpoint: "https://api.opensea.io"
-  # TODO remove later
-  collectionStatRefresh:
-    enabled: true
-    currencies: 0x0f5d2fb29fb7d3cfee444a200298f468908cc942,0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48,0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce,0x64d91f12ece7362f91a6f8e7940cd55f05060b92,0x6b175474e89094c44da98b954eedeac495271d0f
-    rate: PT1M
-    timeOffset: PT1H
-    batchSize: 20
   open-sea-orders-load-delay-worker:
     log-prefix: "OpenSeaDelay"
     state-id: "open_sea_order_delay_fetch"

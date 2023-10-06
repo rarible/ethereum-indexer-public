@@ -9,11 +9,6 @@ rarible:
     task:
       enabled: true
 
-protocol:
-  nft:
-    subscriber:
-      broker-replica-set: ${kafka.hosts}
-
 blockchain:
   scanner:
     kafka:

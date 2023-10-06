@@ -21,7 +21,6 @@ import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
@@ -36,7 +35,6 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.provider.Arguments
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
@@ -44,7 +42,6 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
-import java.util.stream.Stream
 
 @IntegrationTest
 class ItemReduceServiceIt : AbstractIntegrationTest() {
@@ -889,11 +886,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     }
 
     companion object {
-        @JvmStatic
-        fun invalidLogEventStatus(): Stream<Arguments> = Stream.of(
-            Arguments.of(LogEventStatus.DROPPED, ReduceVersion.V2),
-            Arguments.of(LogEventStatus.INACTIVE, ReduceVersion.V2),
-        )
 
         private fun creators(vararg creator: Address): List<Part> = creators(creator.toList())
 

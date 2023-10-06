@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@EnableOnScannerV2
 @EnableEthereumScanner
 class BlockchainScannerV2Configuration(
     private val commonProperties: OrderIndexerProperties,

@@ -31,7 +31,7 @@ class OrderSimulationService(
             logger.info("Checked request limit for ${order.id}")
             val address = randomAddress() // buyer, could be any address
             val tx = transactionService.buyTx(order, address)
-            logger.info("Got buy-tx for ${order.id}")
+            logger.info("Got buy-tx for ${order.id}: $tx")
             val result = tenderlyService.simulate(tx)
 
             when {
@@ -44,7 +44,7 @@ class OrderSimulationService(
                 else -> OrderSimulation.ERROR
             }
         } catch (ex: Exception) {
-            logger.error("Simulation failed for order ${order.id}: ${ex.message}")
+            logger.error("Simulation failed for order ${order.id} (${order.platform.name}): ${ex.message}")
             OrderSimulation.ERROR
         } finally {
             logger.info("Simulation finished for ${order.id}")

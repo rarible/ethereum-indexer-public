@@ -12,7 +12,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderUsdValue
 import com.rarible.protocol.order.core.model.OrderVersion
-import kotlinx.coroutines.reactor.awaitSingleOrNull
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import scalether.domain.Address
@@ -80,11 +80,9 @@ class PriceUpdateService(
     }
 
     suspend fun getTokenRate(token: Address, at: Instant): BigDecimal? {
-        val rate = currencyApi.getCurrencyRate(convert(blockchain), token.hex(), at.toEpochMilli())
-            .awaitSingleOrNull()?.rate
-
+        val rate = currencyApi.getCurrencyRate(convert(blockchain), token.hex(), at.toEpochMilli()).awaitFirstOrNull()?.rate
         if (rate == null) {
-            logger.warn("Currency api didn't respond any value for $blockchain: $token")
+            logger.warn("Currency api didn't respond any value for $blockchain: $token at $at")
         }
         return rate
     }
@@ -157,8 +155,8 @@ class PriceUpdateService(
             Blockchain.ETHEREUM -> BlockchainDto.ETHEREUM
             Blockchain.POLYGON -> BlockchainDto.POLYGON
             Blockchain.OPTIMISM -> BlockchainDto.OPTIMISM
-            Blockchain.MANTLE -> BlockchainDto.POLYGON // TODO: Fix it
-            Blockchain.HEDERA -> BlockchainDto.POLYGON // TODO: Fix it
+            Blockchain.MANTLE -> BlockchainDto.MANTLE
+            Blockchain.HEDERA -> BlockchainDto.POLYGON
         }
     }
 }

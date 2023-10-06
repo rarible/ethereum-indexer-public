@@ -25,7 +25,6 @@ common:
     weth: "0xa6fa4fb5f76172d178d61b04b0ecd319c5d1c0aa"
   feature-flags:
     getPoolInfoFromChain: false
-    scanner-version: V2
 listener:
   seaport-load:
     enabled: true

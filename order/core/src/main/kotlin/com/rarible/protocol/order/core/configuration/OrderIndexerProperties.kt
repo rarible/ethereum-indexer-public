@@ -2,7 +2,6 @@ package com.rarible.protocol.order.core.configuration
 
 import com.rarible.core.kafka.Compression
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.protocol.order.core.model.ScannerVersion
 import com.rarible.protocol.order.core.model.TraceMethod
 import io.daonomic.rpc.domain.Binary
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -129,7 +128,6 @@ data class OrderIndexerProperties(
         val searchSudoSwapErc1155Transfer: Boolean = false,
         val checkMinimalBidPrice: Boolean = false,
         val checkMinimalCollectionBidPriceOnly: Boolean = false,
-        val scannerVersion: ScannerVersion = ScannerVersion.V2,
         val enableAuction: Boolean = false,
         val skipEventsIfNoTraceFound: Boolean = false,
         val getPoolInfoFromChain: Boolean = true,

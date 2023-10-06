@@ -5,19 +5,16 @@ import com.rarible.ethereum.listener.log.LogListenService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ReindexCryptoPunksTaskParam
 import com.rarible.protocol.nft.core.service.token.TokenService
-import com.rarible.protocol.nft.listener.configuration.EnableOnScannerV1
 import com.rarible.protocol.nft.listener.service.descriptors.crypto.punks.CryptoPunkAssignLogDescriptor
 import com.rarible.protocol.nft.listener.service.descriptors.crypto.punks.CryptoPunkBoughtLogDescriptor
 import com.rarible.protocol.nft.listener.service.descriptors.crypto.punks.CryptoPunkTransferLogDescriptor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
-import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 
-@Component
-@EnableOnScannerV1
+// TODO should be refactored to be compatible with V2 Scanner, or removed (PT-3910)
 class ReindexCryptoPunksTaskHandler(
     private val logListenService: LogListenService,
     private val tokenService: TokenService,
