@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.dto.EthCollectionFlagsDto
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createBidOrder
 import com.rarible.protocol.order.core.data.createNftCollectionDto
 import com.rarible.protocol.order.core.data.createSellOrder
@@ -17,6 +18,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -29,8 +31,13 @@ class OrderCollectionServiceTest {
     @MockK
     lateinit var orderCancelService: OrderCancelService
 
-    @InjectMockKs
     lateinit var orderCollectionService: OrderCollectionService
+
+    @BeforeEach
+    fun setUp() {
+        orderCollectionService =
+            OrderCollectionService(orderRepository, orderCancelService, OrderIndexerProperties.FeatureFlags())
+    }
 
     @Test
     fun `paused collection cancel orders`() = runBlocking<Unit> {
@@ -59,7 +66,7 @@ class OrderCollectionServiceTest {
         val sellOrder = createSellOrder()
         val buyOrder = createBidOrder()
         val collection = createNftCollectionDto(token)
-            .copy(flags = EthCollectionFlagsDto(paused = true))
+            .copy(flags = EthCollectionFlagsDto(paused = false))
 
         coEvery {
             orderRepository.findNonTerminateOrdersByToken(token)
