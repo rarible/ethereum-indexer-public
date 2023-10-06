@@ -2,12 +2,15 @@ package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HegicPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HegicPropertiesResolver.Companion.HEGIC_ADDRESS
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions
@@ -18,7 +21,9 @@ class HegicPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val hegicPropertiesResolver = HegicPropertiesResolver(
         sender = sender,
-        apiUrl = "http://localhost:8080"
+        properties = mockk<NftIndexerProperties> {
+            every { apiUrl } returns "http://localhost:8080"
+        }
     )
 
     @Test

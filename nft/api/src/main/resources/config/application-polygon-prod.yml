@@ -6,5 +6,3 @@ spring:
 api:
   chainId: 137
   metaSyncLoadingTimeout: 10000
-  opensea:
-    url: https://api.opensea.io/api/v2

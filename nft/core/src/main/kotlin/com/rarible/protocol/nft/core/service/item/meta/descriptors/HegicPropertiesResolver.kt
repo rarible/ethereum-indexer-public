@@ -1,13 +1,13 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.protocol.contracts.external.hegic.Hegic
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -20,8 +20,9 @@ import java.util.TimeZone
 
 @Component
 class HegicPropertiesResolver(
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     sender: MonoTransactionSender,
-    @Value("\${api.properties.api-url}") private val apiUrl: String
+    private val properties: NftIndexerProperties,
 ) : ItemPropertiesResolver {
     private val hegic = Hegic(HEGIC_ADDRESS, sender)
     private val token = "hegic"
@@ -92,7 +93,7 @@ class HegicPropertiesResolver(
                             attributes = attributes,
                             rawJsonContent = null,
                             content = ContentBuilder.getItemMetaContent(
-                                imageOriginal = "$apiUrl/image/$token/${itemId.tokenId.value}.svg"
+                                imageOriginal = "${properties.apiUrl}/image/$token/${itemId.tokenId.value}.svg"
                             )
                         )
                     }

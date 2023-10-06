@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
@@ -18,15 +19,17 @@ import scalether.domain.Address
 @ItemMetaTest
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
+    private val coreProperties = mockk<NftIndexerProperties> {
+        every { blockchain } returns Blockchain.POLYGON
+        every { opensea } returns NftIndexerProperties.OpenseaProperties().copy(url = openseaUrl)
+    }
     private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
         externalHttpClient = externalHttpClient,
-        properties = mockk { every { blockchain } returns Blockchain.ETHEREUM },
-        openseaUrl = openseaUrl
+        properties = coreProperties
     )
     private val polygonOpenSeaPropertiesResolver = OpenSeaPropertiesResolver(
         externalHttpClient = externalHttpClient,
-        properties = mockk { every { blockchain } returns Blockchain.POLYGON },
-        openseaUrl = openseaUrl
+        properties = coreProperties
     )
 
     @Test

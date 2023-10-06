@@ -6,6 +6,7 @@ import com.rarible.core.meta.resource.http.OpenseaHttpClient
 import com.rarible.core.meta.resource.http.ProxyHttpClient
 import com.rarible.core.meta.resource.http.builder.DefaultWebClientBuilder
 import com.rarible.core.meta.resource.http.builder.ProxyWebClientBuilder
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -14,6 +15,7 @@ import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
 import com.rarible.protocol.nft.core.test.IntegrationTest
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
@@ -83,7 +85,9 @@ class OpenseaTokenPropertiesResolverTest : AbstractTokenTest() {
         val externalHttpClient = mockExternalHttpClient(webClient)
         return OpenseaTokenPropertiesResolver(
             externalHttpClient = externalHttpClient,
-            openseaUrl = OPENSEA_URL
+            properties = mockk<NftIndexerProperties> {
+                every { opensea } returns NftIndexerProperties.OpenseaProperties().copy(url = OPENSEA_URL)
+            }
         )
     }
 

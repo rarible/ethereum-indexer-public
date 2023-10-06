@@ -44,8 +44,10 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
 
     private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
         externalHttpClient = externalHttpClient,
-        properties = mockk { every { blockchain } returns Blockchain.ETHEREUM },
-        openseaUrl = openseaUrl
+        properties = mockk<NftIndexerProperties> {
+            every { blockchain } returns Blockchain.ETHEREUM
+            every { opensea } returns NftIndexerProperties.OpenseaProperties().copy(url = openseaUrl)
+        }
     )
 
     private val nftIndexerProperties = mockk<NftIndexerProperties> {

@@ -1,4 +1,6 @@
 common:
+  opensea:
+    url: https://api.opensea.io/api/v2
   openseaLazyMintAddress: "0x2953399124f0cbb46d2cbacd8a89cf0599974963"
   royaltyRegistryAddress: "0xf2514f32ae798ca29641f6e2313bacb1650cc76f"
   scamByteCodes:
