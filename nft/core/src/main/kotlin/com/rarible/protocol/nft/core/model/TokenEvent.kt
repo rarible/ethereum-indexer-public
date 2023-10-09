@@ -28,4 +28,11 @@ sealed class TokenEvent : EthereumEntityEvent<TokenEvent>() {
         override val log: EthereumLog,
         override val compact: Boolean = false
     ) : TokenEvent()
+
+    data class TokenPauseEvent(
+        val paused: Boolean,
+        override val entityId: String,
+        override val log: EthereumLog,
+        override val compact: Boolean = false
+    ) : TokenEvent()
 }

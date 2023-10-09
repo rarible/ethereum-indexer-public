@@ -69,8 +69,9 @@ fun createNftOwnershipDeleteEventLegacy(ownership: NftOwnershipDto): NftOwnershi
 
 fun createNftCollectionDto(): NftCollectionDto {
     return NftCollectionDto(
-        features = emptyList(),
         id = randomAddress(),
+        features = emptyList(),
+        flags = null,
         isRaribleContract = randomBoolean(),
         minters = emptyList(),
         name = randomString(),

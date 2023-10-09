@@ -17,6 +17,7 @@ class TokenMetricReducer(
         return when (event) {
             is TokenEvent.TokenChangeOwnershipEvent -> "change_ownership"
             is TokenEvent.TokenCreateEvent -> "create"
+            is TokenEvent.TokenPauseEvent -> "pause"
         }
     }
 }

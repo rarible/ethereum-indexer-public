@@ -149,14 +149,14 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    override fun findSellOrdersNotCancelledByItemId(
+    override fun findNonTerminateStatusSellOrdersByItemId(
         platform: Platform,
         token: Address,
         tokenId: EthUInt256
     ): Flow<Order> {
         val criteria =
             (Order::make / Asset::type / NftAssetType::nft isEqualTo true)
-                .and(Order::cancelled).isEqualTo(false)
+                .and(Order::status).`in`(OrderStatus.ACTIVE, OrderStatus.INACTIVE, OrderStatus.NOT_STARTED)
                 .and(Order::platform).isEqualTo(platform)
                 .and(Order::make / Asset::type / NftAssetType::token).isEqualTo(token)
                 .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
@@ -333,6 +333,14 @@ class MongoOrderRepository(
             Order::class.java,
             Address::class.java
         ).collectList().awaitFirst()
+    }
+
+    override fun findNonTerminateOrdersByToken(token: Address): Flow<Order> {
+        val criteria = Criteria().orOperator(
+            (Order::make / Asset::type / NftAssetType::token).isEqualTo(token),
+            (Order::take / Asset::type / NftAssetType::token).isEqualTo(token),
+        ).and(Order::status).`in`(OrderStatus.ACTIVE, OrderStatus.INACTIVE, OrderStatus.NOT_STARTED)
+        return template.query<Order>().matching(Query(criteria)).all().asFlow()
     }
 
     override fun findNotStartedOrders(now: Instant): Flow<Order> {

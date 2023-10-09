@@ -141,6 +141,7 @@ data class OrderIndexerProperties(
         val enableOrderValidation: Boolean = true,
         var checkBidStockOnChain: Boolean = false,
         val blurV2Enabled: Boolean = true,
+        val ignoreTokenPause: Boolean = false,
     )
 
     data class RaribleOrderExpirationProperties(

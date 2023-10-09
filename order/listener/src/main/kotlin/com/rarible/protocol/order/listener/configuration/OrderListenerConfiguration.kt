@@ -11,6 +11,7 @@ import com.rarible.ethereum.domain.Blockchain
 import com.rarible.opensea.subscriber.OpenseaConsumerFactory
 import com.rarible.opensea.subscriber.model.OpenseaEvent
 import com.rarible.protocol.dto.Erc20BalanceEventDto
+import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFactory
@@ -32,6 +33,7 @@ import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2CancelEventsFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2OrdersFetchWorker
 import com.rarible.protocol.order.listener.misc.ForeignOrderMetrics
+import com.rarible.protocol.order.listener.service.event.CollectionConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.ItemConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.OwnershipConsumerEventHandler
@@ -82,6 +84,8 @@ class OrderListenerConfiguration(
         "protocol.${commonProperties.blockchain.value}.order.indexer.item"
     private val openseaEventConsumerGroup =
         "protocol.${commonProperties.blockchain.value}.order.indexer.opensea.event"
+    private val collectionEventConsumerGroup =
+        "protocol.${commonProperties.blockchain.value}.order.indexer.collection"
 
     @Bean
     fun blockchain(): Blockchain {
@@ -207,6 +211,23 @@ class OrderListenerConfiguration(
             blockchain = blockchain(),
             concurrency = listenerProperties.itemConsumerWorkersCount,
             batchSize = listenerProperties.itemConsumerBatchSize,
+        )
+        return factory.createWorker(
+            settings = settings,
+            handler = handler
+        )
+    }
+
+    @Bean
+    fun collectionChangeWorker(
+        factory: RaribleKafkaConsumerFactory,
+        handler: CollectionConsumerEventHandler
+    ): RaribleKafkaConsumerWorker<NftCollectionEventDto> {
+        val settings = nftIndexerEventsConsumerFactory.createCollectionEventsKafkaConsumerSettings(
+            consumerGroup = collectionEventConsumerGroup,
+            blockchain = blockchain(),
+            concurrency = listenerProperties.collectionConsumerWorkersCount,
+            batchSize = listenerProperties.collectionConsumerBatchSize,
         )
         return factory.createWorker(
             settings = settings,
