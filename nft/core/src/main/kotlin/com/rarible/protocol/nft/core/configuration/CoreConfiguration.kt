@@ -28,7 +28,6 @@ import com.rarible.protocol.nft.core.service.Package
 import com.rarible.protocol.nft.core.service.item.meta.ipfs.EthereumCustomIpfsGatewayResolver
 import com.rarible.protocol.nft.core.service.item.meta.ipfs.LazyItemIpfsGatewayResolver
 import net.logstash.logback.util.StringUtils
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -138,46 +137,37 @@ class CoreConfiguration(
 
     @Bean
     fun externalHttpClient(
-        @Value("\${api.opensea.url:}") openseaUrl: String,
-        @Value("\${api.opensea.api-key:}") openseaApiKey: String,
-        @Value("\${api.opensea.read-timeout}") readTimeout: Int,
-        @Value("\${api.opensea.connect-timeout}") connectTimeout: Int,
-        @Value("\${api.opensea.request-timeout}") openseaRequestTimeout: Long,
-        @Value("\${api.proxy-url:}") proxyUrl: String,
-        @Value("\${api.properties.request-timeout}") apiRequestTimeout: Long
+        properties: NftIndexerProperties,
     ): ExternalHttpClient {
-        val followRedirect = true // TODO Move to properties?
-
         val defaultHeaders = HttpHeaders()
         defaultHeaders.set(HttpHeaders.USER_AGENT, "rarible-protocol")
 
         val defaultWebClientBuilder = DefaultWebClientBuilder(
-            followRedirect = followRedirect,
+            followRedirect = properties.followRedirect,
             defaultHeaders = defaultHeaders
         )
         val proxyWebClientBuilder = ProxyWebClientBuilder(
-            readTimeout = readTimeout,
-            connectTimeout = connectTimeout,
-            proxyUrl = proxyUrl,
-            followRedirect = followRedirect,
+            readTimeout = properties.opensea.readTimeout,
+            connectTimeout = properties.opensea.connectTimeout,
+            proxyUrl = properties.proxyUrl,
+            followRedirect = properties.followRedirect,
             defaultHeaders = defaultHeaders
         )
         val defaultHttpClient = DefaultHttpClient(
             builder = defaultWebClientBuilder,
-            requestTimeout = apiRequestTimeout
+            requestTimeout = properties.requestTimeout
         )
         val proxyHttpClient = ProxyHttpClient(
             builder = proxyWebClientBuilder,
-            requestTimeout = openseaRequestTimeout
+            requestTimeout = properties.opensea.requestTimeout
         )
         val openseaHttpClient = OpenseaHttpClient(
             builder = proxyWebClientBuilder,
-            requestTimeout = openseaRequestTimeout,
-            openseaUrl = openseaUrl,
-            openseaApiKey = openseaApiKey,
-            proxyUrl = proxyUrl,
+            requestTimeout = properties.opensea.requestTimeout,
+            openseaUrl = properties.opensea.url,
+            openseaApiKey = properties.opensea.apiKey,
+            proxyUrl = properties.proxyUrl,
         )
-
         return ExternalHttpClient(
             defaultClient = defaultHttpClient,
             proxyClient = proxyHttpClient,

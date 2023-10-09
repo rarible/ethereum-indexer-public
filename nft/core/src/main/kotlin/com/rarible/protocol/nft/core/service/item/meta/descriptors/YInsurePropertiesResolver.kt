@@ -2,12 +2,12 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.protocol.contracts.external.quotation.QuotationData
 import com.rarible.protocol.contracts.external.yinsure.YInsure
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
@@ -17,8 +17,9 @@ import java.util.Locale
 
 @Component
 class YInsurePropertiesResolver(
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     sender: MonoTransactionSender,
-    @Value("\${api.properties.api-url}") private val apiUrl: String
+    private val properties: NftIndexerProperties,
 ) : ItemPropertiesResolver {
 
     companion object {
@@ -139,7 +140,7 @@ class YInsurePropertiesResolver(
                             attributes = attributes,
                             rawJsonContent = null,
                             content = ContentBuilder.getItemMetaContent(
-                                imageOriginal = "$apiUrl/image/yinsure/${itemId.tokenId.value}.svg"
+                                imageOriginal = "${properties.apiUrl}/image/yinsure/${itemId.tokenId.value}.svg"
                             )
                         )
                     }

@@ -2,21 +2,27 @@ package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.YInsurePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 @ItemMetaTest
 class YinsurePropertiesResolverTest : BasePropertiesResolverTest() {
+    private val coreProperties = mockk<NftIndexerProperties> {
+        every { apiUrl } returns "http://localhost:8080"
+    }
 
     private val yInsurePropertiesResolver: YInsurePropertiesResolver = YInsurePropertiesResolver(
         sender = sender,
-        apiUrl = "http://localhost:8080"
+        properties = coreProperties
     )
 
     @Test

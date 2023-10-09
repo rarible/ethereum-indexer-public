@@ -51,6 +51,16 @@ common:
   ensDomainsContractAddress: "0x0000000000000000000000000000000000000000"
   openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
   royaltyRegistryAddress: "0x0000000000000000000000000000000000000000"
+  apiUrl: https://api.rarible.com/images
+  cacheTimeout: 315360000000 # 10 years (effectively, forever)
+  requestTimeout: 60000
+  opensea:
+    readTimeout: 10000
+    connectTimeout: 3000
+    requestTimeout: 20000
+    cacheTimeout: 315360000000
+    url: https://api.opensea.io/api/v1
+    apiKey: 00000000000000000000000000000000
   itemMeta:
     maxNameLength: 1000
     maxDescriptionLength: 10000

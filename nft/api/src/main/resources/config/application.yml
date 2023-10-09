@@ -2,20 +2,8 @@ spring:
   application.name: protocol-${common.blockchain}-nft-indexer-api
 
 api:
-  opensea:
-    readTimeout: 10000
-    connectTimeout: 3000
-    requestTimeout: 20000
-    cacheTimeout: 315360000000
-    url: https://api.opensea.io/api/v1
-    apiKey: 00000000000000000000000000000000
   operator:
     privateKey: 0x0000000000000000000000000000000000000000000000000000000000000000
-  properties:
-    apiUrl: https://api.rarible.com/images
-    cacheTimeout: 315360000000 # 10 years (effectively, forever)
-    requestTimeout: 60000
-    mediaMetaTimeout: 10000
   royalty:
     cacheTimeout: 600000 # 10 min
 

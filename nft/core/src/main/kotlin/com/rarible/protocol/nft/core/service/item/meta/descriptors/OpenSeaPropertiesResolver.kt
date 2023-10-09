@@ -12,7 +12,6 @@ import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.parseAttributes
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.math.BigInteger
@@ -21,7 +20,6 @@ import java.math.BigInteger
 class OpenSeaPropertiesResolver(
     private val externalHttpClient: ExternalHttpClient,
     private val properties: NftIndexerProperties,
-    @Value("\${api.opensea.url:}") private val openseaUrl: String
 ) : ItemPropertiesResolver {
 
     private val defaultImageUrlParser = DefaultOpenSeaImageUrlParser(properties.blockchain)
@@ -33,7 +31,7 @@ class OpenSeaPropertiesResolver(
     }
 
     suspend fun resolve(itemId: ItemId, imageUrlParser: OpenSeaImageUrlParser): ItemProperties? {
-        if (openseaUrl.isBlank()) return null
+        if (properties.opensea.url.isBlank()) return null
         val url = createOpenSeaUrl(itemId)
         logMetaLoading(itemId, "OpenSea: getting properties from $url")
         val rawProperties = externalHttpClient.getBody(url = url, id = itemId.decimalStringValue) ?: return null
@@ -77,6 +75,7 @@ class OpenSeaPropertiesResolver(
         )
 
     private fun createOpenSeaUrl(itemId: ItemId): String {
+        val openseaUrl = properties.opensea.url
         return when (properties.blockchain) {
             Blockchain.ETHEREUM -> "$openseaUrl/asset/${itemId.token}/${itemId.tokenId.value}/"
             Blockchain.POLYGON -> "$openseaUrl/metadata/matic/${itemId.token}/${itemId.tokenId.value}"

@@ -12,6 +12,7 @@ import com.rarible.core.meta.resource.resolver.IpfsGatewayResolver
 import com.rarible.core.meta.resource.resolver.LegacyIpfsGatewaySubstitutor
 import com.rarible.core.meta.resource.resolver.RandomGatewayProvider
 import com.rarible.core.meta.resource.resolver.UrlResolver
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -103,10 +104,14 @@ abstract class BasePropertiesResolverTest {
         urlResolver = urlResolver,
     )
 
+    protected val properties = mockk<NftIndexerProperties> {
+        every { requestTimeout } returns REQUEST_TIMEOUT
+    }
+
     protected val tokenUriResolver = BlockchainTokenUriResolver(
         sender = sender,
         tokenRepository = tokenRepository,
-        requestTimeout = REQUEST_TIMEOUT
+        properties = properties,
     )
 
     protected val ipfsContentCache: IpfsContentCache = mockk()

@@ -2,11 +2,11 @@ package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.protocol.contracts.erc1155.v1.rarible.RaribleToken
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -15,12 +15,13 @@ import java.time.Duration
 
 @Component
 class BlockchainTokenUriResolver(
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
-    @Value("\${api.properties.request-timeout}") requestTimeout: Long
+    properties: NftIndexerProperties,
 ) {
 
-    private val timeout = Duration.ofMillis(requestTimeout)
+    private val timeout = Duration.ofMillis(properties.requestTimeout)
 
     suspend fun getCollectionName(itemId: ItemId): String? {
         val token = tokenRepository.findById(itemId.token).awaitFirstOrNull() ?: return null
