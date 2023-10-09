@@ -54,7 +54,6 @@ common:
   apiUrl: https://api.rarible.com/images
   cacheTimeout: 315360000000 # 10 years (effectively, forever)
   requestTimeout: 60000
-  mediaMetaTimeout: 10000
   opensea:
     readTimeout: 10000
     connectTimeout: 3000
