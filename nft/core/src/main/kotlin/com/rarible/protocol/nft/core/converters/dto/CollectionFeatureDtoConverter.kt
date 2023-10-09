@@ -13,6 +13,7 @@ object CollectionFeatureDtoConverter {
             TokenFeature.MINT_WITH_ADDRESS -> NftCollectionDto.Features.MINT_WITH_ADDRESS
             TokenFeature.SECONDARY_SALE_FEES -> NftCollectionDto.Features.SECONDARY_SALE_FEES
             TokenFeature.MINT_AND_TRANSFER -> NftCollectionDto.Features.MINT_AND_TRANSFER
+            TokenFeature.NOT_FOR_SALE -> NftCollectionDto.Features.NOT_FOR_SALE
         }
     }
 }

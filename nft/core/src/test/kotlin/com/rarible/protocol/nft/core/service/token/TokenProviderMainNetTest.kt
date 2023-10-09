@@ -1,10 +1,12 @@
 package com.rarible.protocol.nft.core.service.token
 
 import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.token.TokenByteCodeRepository
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.mockk
+import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -92,5 +94,12 @@ class TokenProviderMainNetTest {
             val standard = service.fetchTokenStandard(token)
             println("!!! Standard of $token is correct: $standard")
         }
+    }
+
+    @Test
+    fun `request token`() = runBlocking<Unit> {
+        val address = Address.apply("0xdeafa79960684d39c0413bca3670600c26ff3f59")
+        val token = service.fetchToken(address).awaitSingle()
+        assertThat(token.features).contains(TokenFeature.NOT_FOR_SALE)
     }
 }
