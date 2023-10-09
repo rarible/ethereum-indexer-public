@@ -74,7 +74,7 @@ class ApproveService(
         default: Boolean = false,
     ): Boolean {
         return checkPlatformApprove(platform) { hasApprove(owner, it, collection) } ?: run {
-            logger.error(
+            logger.warn(
                 "Can't find approval event for owner={}, collection={}, platform={}, use default={}",
                 owner, collection, platform, default
             )
