@@ -12,7 +12,6 @@ import com.rarible.protocol.order.core.service.OrderCancelService
 import io.mockk.called
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
