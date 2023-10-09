@@ -3,8 +3,8 @@ global:
   environments: &sharedEnv
     KAFKA_HOSTS: "PLAINTEXT://staging-kafka1.rarible.int.:9092,staging-kafka2.rarible.int.:9092,staging-kafka3.rarible.int.:9092"
     MONGODB_HOSTS: "staging-mongo1.rarible.int.,staging-mongo2.rarible.int.,staging-mongo3.rarible.int."
-    RARIBLE_ETHEREUM_NODES_0_HTTPURL: "http://node-smart-proxy:8080/polygon/erc20"
-    RARIBLE_ETHEREUM_NODES_0_WEBSOCKETURL: "ws://node-smart-proxy:8080/polygon/erc20/ws"
+    RARIBLE_ETHEREUM_NODES_0_HTTPURL: "http://mumbai-node.polygon-node:8545"
+    RARIBLE_ETHEREUM_NODES_0_WEBSOCKETURL: "ws://mumbai-node.polygon-node:8546"
 
   ########### Erc20 Indexer environments
   erc20Environments: &erc20Env
