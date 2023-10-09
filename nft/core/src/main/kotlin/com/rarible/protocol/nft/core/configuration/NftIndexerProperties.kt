@@ -94,7 +94,7 @@ data class NftIndexerProperties(
         val connectTimeout: Int = 3000,
         val requestTimeout: Long = 20000,
         val cacheTimeout: Long = 315360000000,
-        val url: String = "https://api.opensea.io/api/v1",
+        val url: String = "",
         val apiKey: String = "",
         val proxyUrl: String = "",
     )
