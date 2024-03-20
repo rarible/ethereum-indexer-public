@@ -8,6 +8,11 @@ rarible:
   core:
     task:
       enabled: true
+  ethereum:
+    read-only-transaction-sender:
+      enabled: true
+  cache:
+    use-locks: true
 
 blockchain:
   scanner:
@@ -38,3 +43,6 @@ blockchain:
         rootPath: ${common.metricRootPath}
         worker:
           pollingPeriod: 1m
+
+mongock:
+  enabled: false
