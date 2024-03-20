@@ -12,3 +12,13 @@ blockchain:
     ethereum:
       scan:
         enabled: false
+
+rarible:
+  ethereum:
+    read-only-transaction-sender:
+      enabled: true
+  cache:
+    use-locks: true
+
+mongock:
+  enabled: false

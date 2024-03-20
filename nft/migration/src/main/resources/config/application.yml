@@ -4,3 +4,10 @@ spring:
 mongock:
   change-logs-scan-package:
     - com.rarible.protocol.nft.migration.mongock.mongo
+
+rarible:
+  ethereum:
+    read-only-transaction-sender:
+      enabled: true
+  cache:
+    use-locks: true
