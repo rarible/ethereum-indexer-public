@@ -69,23 +69,6 @@ x-common-order-service-variables: &common-order-service-variables
 
 services:
 
-  local-ethereum-gateway:
-    build:
-      context: ../gateway
-      dockerfile: ../docker/Dockerfile
-    image: protocol-ethereum-gateway
-    environment:
-      <<: *common-variables
-      JAVA_OPTIONS: '-Xmx$PROTOCOL_GATEWAY_HEAP -Xms$PROTOCOL_GATEWAY_HEAP -XX:MaxDirectMemorySize=$PROTOCOL_GATEWAY_DIRECT_MEMORY'
-      GATEWAY_BLOCKCHAIN: $GATEWAY_BLOCKCHAIN
-      RARIBLE_CORE_NGINX-EXPOSE_SERVER: $GATEWAY_NGINX_EXPOSE
-    ports:
-      - "${GATE_EXPOSE_PORT}:8080"
-    depends_on:
-      - "local-ethereum-nft-api"
-      - "local-ethereum-order-api"
-      - "local-ethereum-erc20-api"
-
   local-ethereum-nft-api:
     build:
       context: ../nft/api
